@@ -1,45 +1,27 @@
-<div align="center">
+---
+title: "Specialized Small Language Models for NL-to-SQL: Task Specialization and Intelligent SLM–LLM Orchestration"
+---
+
+\vspace{2cm}
 
 **Department of Computer Science**
 **National University of Computer and Emerging Sciences, Islamabad**
 
 # Specialized Small Language Models for NL-to-SQL: Task Specialization and Intelligent SLM–LLM Orchestration
 
-</div>
-
 | | | |
 |---|---|---|
-| **Submitted By** | : | [Student Name] |
-| **Roll No** | : | [Roll Number] |
-| **Supervisor** | : | [Supervisor Name] |
-| **Co-Supervisor** | : | [Co-Supervisor Name, if any] |
-
-<div align="center">
+| **Submitted By** | : | Abdullah Amin, Haaniah Ismail, Mishal Fatima |
+| **Roll No** | : | 23i-0691, 23i-0605, 23i-0776 |
+| **Supervisor** | : | Ali Zeeshan |
+| **Co-Supervisor** | : | - |
 
 Department of Computer Science
 2026
 
-</div>
+\newpage
 
----
-
-## Table of Contents
-
-1. [Introduction](#1-introduction)
-2. [Research Objectives](#2-research-objectives)
-3. [Literature Review / Related Work](#3-literature-review--related-work)
-4. [Gap Analysis](#4-gap-analysis)
-5. [Problem Statement](#5-problem-statement)
-6. [Research Questions](#6-research-questions)
-7. [Methodology](#7-methodology)
-8. [Dataset & Sources](#8-dataset--sources)
-9. [Evaluation Strategy & Metrics](#9-evaluation-strategy--metrics)
-10. [Expected Outcome(s)](#10-expected-outcomes)
-11. [References](#11-references)
-
----
-
-# MS Thesis Proposal
+# Thesis Proposal
 
 ## 1. Introduction
 
@@ -77,9 +59,9 @@ The objectives of this research are organized around the two components in scope
 
 Related work for this project falls into two groups that map directly onto its two components: work on specializing small models for NL-to-SQL, and work on routing/orchestrating between small and large models.
 
-On **specialization**, Fan et al.'s ZeroNL2SQL pairs a small model (handling SQL structure and schema alignment) with a large model (reranking and filling in detail), improving execution accuracy by 5.5–16.4% over an SLM-only baseline on Spider and BIRD. Pei's Feather-SQL shows that schema pruning, linking, and multi-candidate generation let models under 7B parameters reach 54.76% execution accuracy on BIRD with no fine-tuning at all, and separately demonstrates knowledge distillation and SQL-aware pretraining for 100M–800M models. Ma et al.'s SQL-R1 uses reinforcement learning with execution-based rewards on roughly 2.5 million synthetic training pairs to push a 7B model to 88.6% accuracy on Spider and 67.1% on BIRD, showing what is achievable with large-scale RL training, though at a data and compute cost this project does not attempt to match. Solanki et al.'s preprint on chain-of-thought fine-tuning shows that reasoning-style training data — schema linking and query decomposition steps before SQL generation — alone raises a small model's accuracy from 36% to 54.5%, suggesting a concrete, lower-cost lever for closing the size–accuracy gap. Dettmers et al.'s QLoRA underlies the fine-tuning method itself: 4-bit quantization combined with trainable low-rank adapters matches full fine-tuning quality while sharply reducing the compute required, making it practical to fine-tune multiple model sizes for the size-effect ablation. Most recently, SLM-SQL (Sheng & Xu, AACL-IJCNLP 2025) post-trained 0.5B–1.5B models with SFT and reinforcement learning on roughly a million synthetic examples, reaching 70.49% execution accuracy on BIRD test with a 1.5B model — evidence that even the sub-2B class can approach 7B-class accuracy, though at a data and compute scale this project does not assume.
+On **specialization**, Fan et al.'s ZeroNL2SQL pairs a small model (handling SQL structure and schema alignment) with a large model (reranking and filling in detail), improving execution accuracy by 5.5–16.4% over an SLM-only baseline on Spider and BIRD. Pei's Feather-SQL shows that schema pruning, linking, and multi-candidate generation let models under 7B parameters reach 54.76% execution accuracy on BIRD with no fine-tuning at all, and separately demonstrates knowledge distillation and SQL-aware pretraining for 100M–800M models. Ma et al.'s SQL-R1 uses reinforcement learning with execution-based rewards on roughly 2.5 million synthetic training pairs to push a 7B model to 88.6% accuracy on Spider and 67.1% on BIRD, showing what is achievable with large-scale RL training, though at a data and compute cost this project does not attempt to match. Pourreza and Rafiei's DTS-SQL demonstrates that explicitly decomposing NL-to-SQL fine-tuning into two stages — a dedicated schema-linking stage followed by SQL generation — allows small open-source LLMs to substantially close the gap to GPT-4-level accuracy on Spider, suggesting a concrete, lower-cost lever (structured, decomposed fine-tuning rather than raw scale) for closing the size–accuracy gap. Dettmers et al.'s QLoRA underlies the fine-tuning method itself: 4-bit quantization combined with trainable low-rank adapters matches full fine-tuning quality while sharply reducing the compute required, making it practical to fine-tune multiple model sizes for the size-effect ablation. Most recently, SLM-SQL (Sheng & Xu, AACL-IJCNLP 2025) post-trained 0.5B–1.5B models with SFT and reinforcement learning on roughly a million synthetic examples, reaching 70.49% execution accuracy on BIRD test with a 1.5B model — evidence that even the sub-2B class can approach 7B-class accuracy, though at a data and compute scale this project does not assume.
 
-On **orchestration**, RouteLLM learns a preference-trained routing classifier that achieves roughly 2× cost reduction while retaining 95%+ of quality; FrugalGPT applies a cascade-based strategy where cheap models are tried first and expensive models are called only when needed; and OrchestraLLM applies the same idea to dialogue state tracking, cutting cost by 50%+ while maintaining task performance. All three, however, route on generic, task-agnostic signals. The closest existing work to this project's orchestration component is EllieSQL (Li et al., COLM 2025), which trains a lightweight complexity classifier — including a 0.5B router fine-tuned with DPO — to route each query among text-to-SQL pipelines of increasing cost, cutting token expenditure by more than 40% on BIRD with no loss of execution accuracy. EllieSQL, however, routes among pipelines built around fixed cloud LLMs: it does not fine-tune the answering model, does not use explicit SQL-structural features — schema complexity, JOIN depth, subquery nesting, ambiguous column references — and does not escalate based on the generator's own token-level confidence. Deciding whether a locally fine-tuned SLM is likely to get a given query right, using such signals, remains open; that remaining gap is the direct motivation for this project's orchestration component.
+On **orchestration**, RouteLLM learns a preference-trained routing classifier that achieves roughly 2× cost reduction while retaining 95%+ of quality; FrugalGPT (Chen, Zaharia & Zou, published in Transactions on Machine Learning Research, 2024) applies a cascade-based strategy where cheap models are tried first and expensive models are called only when needed; and OrchestraLLM applies the same idea to dialogue state tracking, cutting cost by 50%+ while maintaining task performance. All three, however, route on generic, task-agnostic signals. The closest existing work to this project's orchestration component is EllieSQL (Li et al., COLM 2025), which trains a lightweight complexity classifier — including a 0.5B router fine-tuned with DPO — to route each query among text-to-SQL pipelines of increasing cost, cutting token expenditure by more than 40% on BIRD with no loss of execution accuracy. EllieSQL, however, routes among pipelines built around fixed cloud LLMs: it does not fine-tune the answering model, does not use explicit SQL-structural features — schema complexity, JOIN depth, subquery nesting, ambiguous column references — and does not escalate based on the generator's own token-level confidence. Deciding whether a locally fine-tuned SLM is likely to get a given query right, using such signals, remains open; that remaining gap is the direct motivation for this project's orchestration component.
 
 The table below summarizes the key related work, its methodology, findings, and relevance to this project.
 
@@ -88,11 +70,11 @@ The table below summarizes the key related work, its methodology, findings, and 
 | **Fan et al. (PVLDB 2024) — ZeroNL2SQL** | Combine a small model and a large model for zero-shot NL-to-SQL translation. | SLM generates candidate SQL structure/schema alignment; LLM reranks and fills in remaining detail; evaluated on Spider and BIRD. | Hybrid approach improves execution accuracy by +5.5–16.4% over an SLM-only baseline. | Treats fine-tuning and routing as separate problems rather than a single system; motivates this project's integrated specialization + orchestration design. |
 | **Pei (2025) — Feather-SQL** | Enable competitive NL-to-SQL performance for models under 7B parameters at low inference cost. | Schema pruning/linking, multi-candidate generation, and knowledge distillation for 100M–800M models. | 54.76% execution accuracy on BIRD without any task-specific fine-tuning. | Does not address edge-deployment constraints or measure real latency/memory; this project's specialization component fills that gap. |
 | **Ma et al. (NeurIPS 2025) — SQL-R1** | Train an NL-to-SQL model to iteratively refine queries using execution feedback as a reward signal. | Reinforcement learning with execution-based rewards on ~2.5M synthetic query pairs, evaluated at 7B scale. | 88.6% execution accuracy on Spider and 67.1% on BIRD. | Uses far more training data than is practical to characterize at the 1–4B scale; motivates this project's own data-efficiency ablation. |
-| **Solanki et al. (2026, preprint) — CoT Fine-Tuning for SLMs** | Close the accuracy gap between small and large models on NL-to-SQL through reasoning-style training data. | Fine-tuning with explicit chain-of-thought steps (schema linking, query decomposition) before SQL generation. | Raises a small model's accuracy from 36% to 54.5% on the same benchmark. | Preprint, cited cautiously; suggests reasoning-style data as a lever for the size–accuracy tradeoff this project studies. |
+| **Pourreza & Rafiei (Findings of EMNLP 2024) — DTS-SQL** | Close the accuracy gap between small and large models on NL-to-SQL through structured, decomposed fine-tuning. | Two-stage supervised fine-tuning — a dedicated schema-linking stage followed by SQL generation — evaluated on Spider and Spider-SYN with open-source LLMs. | Substantially narrows the gap to GPT-4-level accuracy without increasing model size. | Peer-reviewed; supports this project's use of structured, decomposed fine-tuning as a lever for the size–accuracy tradeoff. |
 | **Dettmers et al. (NeurIPS 2023) — QLoRA** | Enable fine-tuning of large language models on limited hardware without quality loss. | 4-bit quantization of frozen base-model weights with trainable low-rank adapters (LoRA). | Matches full fine-tuning quality while drastically reducing memory footprint. | Adopted as the project's core parameter-efficient fine-tuning method for comparing LoRA vs. QLoRA efficiency. |
 | **RouteLLM (Ong et al., ICLR 2025)** | Route queries between cheaper and more capable models using a learned preference-trained classifier. | Binary router trained on human preference data, evaluated on general-purpose tasks. | Achieves roughly 2× cost reduction while retaining 95%+ of quality. | Routing signal is generic and task-agnostic; does not exploit SQL-specific structure. Core related work for this project's routing component. |
 | **OrchestraLLM (NAACL 2024)** | Orchestrate when to call specialized modules versus larger LLMs for dialogue state tracking. | Lightweight orchestrator model that decides per-turn whether a small module or a large LLM should respond. | Cuts inference cost 50%+ while maintaining task performance. | Domain is dialogue state tracking, not SQL; demonstrates the general orchestration pattern this project adapts to NL-to-SQL. |
-| **FrugalGPT (Chen et al., 2023)** | Reduce LLM API cost while preserving output quality. | Cascade-based routing: cheap models are tried first, escalating to expensive models only when needed. | Substantial cost savings with minimal quality loss on general NLP tasks. | Generic cascading, not SQL-aware; used as a baseline routing strategy to compare against this project's SQL-complexity-aware router. |
+| **FrugalGPT (Chen, Zaharia & Zou; Transactions on Machine Learning Research, 2024)** | Reduce LLM API cost while preserving output quality. | Cascade-based routing: cheap models are tried first, escalating to expensive models only when needed. | Substantial cost savings with minimal quality loss on general NLP tasks. | Generic cascading, not SQL-aware; used as a baseline routing strategy to compare against this project's SQL-complexity-aware router. |
 | **Li et al. (COLM 2025) — EllieSQL** | Cut text-to-SQL serving cost by routing each query to a pipeline matching its difficulty. | Learned complexity classifier (incl. a 0.5B DPO-tuned router) routes queries among basic/intermediate/advanced pipelines; Token Elasticity of Performance metric. | >40% token-cost reduction on BIRD dev with no loss of execution accuracy. | Routes among fixed cloud-LLM pipelines: no fine-tuned local generator, no explicit structural features, no token-confidence escalation — the closest prior work and the primary routing baseline for this project. |
 | **Sheng & Xu (AACL-IJCNLP 2025) — SLM-SQL** | Characterize how far 0.5B–1.5B models can be pushed on text-to-SQL. | SFT + GRPO-style RL on ~900K+ SynSQL-derived examples; corrective self-consistency at inference. | +31.4 EX points on average; 1.5B model reaches 70.49% EX on BIRD test. | Depends on large-scale synthetic data and RL compute; no routing. Motivates this project's LoRA/QLoRA data-efficiency ablation in the 1–4B class. |
 
@@ -194,14 +176,12 @@ The specialized SLM is compared against GPT-4 and Claude baselines on the same S
 2. Pei, W., et al. (2025). *Feather-SQL: A Lightweight NL2SQL Framework with Dual-Model Collaboration Paradigm for Small Language Models.* Findings of the Association for Computational Linguistics: AACL-IJCNLP 2025.
 3. Ma, X., et al. (2025). *SQL-R1: NL-to-SQL Reasoning via Reinforcement Learning with Execution Feedback.* Advances in Neural Information Processing Systems (NeurIPS).
 4. Pourreza, M., et al. (2025). *CHASE-SQL: Multi-Path Reasoning and Preference-Optimized Candidate Selection for NL-to-SQL.* International Conference on Learning Representations (ICLR).
-5. Solanki, R., et al. (2026). *Optimizing Small Language Models for NL-to-SQL via Chain-of-Thought Fine-Tuning.* Preprint.
+5. Pourreza, M., & Rafiei, D. (2024). *DTS-SQL: Decomposed Text-to-SQL with Small Large Language Models.* Findings of the Association for Computational Linguistics: EMNLP 2024, pp. 8212–8220.
 6. Dettmers, T., Pagnoni, A., Holtzman, A., & Zettlemoyer, L. (2023). *QLoRA: Efficient Finetuning of Quantized LLMs.* Advances in Neural Information Processing Systems (NeurIPS).
 7. Ong, I., et al. (2025). *RouteLLM: Learning to Route LLMs with Preference Data.* International Conference on Learning Representations (ICLR).
-8. Chen, L., Zaharia, M., & Zou, J. (2023). *FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance.* Stanford University.
+8. Chen, L., Zaharia, M., & Zou, J. (2024). *FrugalGPT: How to Use Large Language Models While Reducing Cost and Improving Performance.* Transactions on Machine Learning Research (TMLR).
 9. Yao, Z., et al. (2024). *OrchestraLLM: Efficient Orchestration for Dialogue State Tracking with Large Language Models.* North American Chapter of the Association for Computational Linguistics (NAACL).
-10. Hu, Q., et al. (2024). *RouterBench: A Benchmark for Multi-LLM Routing.* arXiv preprint.
-11. *CITER: Token-Level Routing for Collaborative Inference.* (2024). NeurIPS Workshop.
-12. Yu, T., et al. (2018). *Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task.* <https://yale-lily.github.io/spider>
-13. Zhong, V., Xiong, C., & Socher, R. (2017). *Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning (WikiSQL).* <https://github.com/salesforce/WikiSQL>
-14. Li, B., et al. (2025). *EllieSQL: Cost-Efficient Text-to-SQL with Complexity-Aware Routing.* Conference on Language Modeling (COLM 2025).
-15. Sheng, L., & Xu, S.-S. (2025). *SLM-SQL: An Exploration of Small Language Models for Text-to-SQL.* Findings of the Association for Computational Linguistics: AACL-IJCNLP 2025.
+10. Yu, T., et al. (2018). *Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task.* <https://yale-lily.github.io/spider>
+11. Zhong, V., Xiong, C., & Socher, R. (2017). *Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning (WikiSQL).* <https://github.com/salesforce/WikiSQL>
+12. Li, B., et al. (2025). *EllieSQL: Cost-Efficient Text-to-SQL with Complexity-Aware Routing.* Conference on Language Modeling (COLM 2025).
+13. Sheng, L., & Xu, S.-S. (2025). *SLM-SQL: An Exploration of Small Language Models for Text-to-SQL.* Findings of the Association for Computational Linguistics: AACL-IJCNLP 2025.
