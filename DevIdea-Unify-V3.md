@@ -6,6 +6,39 @@
 
 Development teams constantly switch between separate tools for design, code, project management, documentation, communication, and deployment. A Figma update, a merged GitHub PR, and a Jira ticket are disconnected pieces of information that someone must manually reconcile. Context gets lost, updates are missed, and there is no single source of truth showing how work across these tools is related. Small inconsistencies—such as an outdated design, stale ticket, or undocumented change—often surface late as bugs, rework, or miscommunication.
 
+### Problem Breakdown
+Sub-problem → Feature mapping
+
+SP1 — Tools don't emit their state anywhere common
+
+Problem: Each platform holds its data behind its own API/webhook format. Nothing can happen until events leave the silos reliably and in a normalized shape.
+Feature: Event Ingestion & Normalization Layer. Webhook receivers + polling fallback per integration, mapping every event into a common internal schema (actor, entity, action, timestamp, refs). This isn't in your feature list explicitly but it's the true foundation — the "Shared Activity Feed" is just the view of this layer.
+
+SP2 — The same real-world thing has a different identity in every tool
+
+Problem: A "checkout redesign" is a Figma frame ID, a PR number, a Jira key, and a Slack thread — with no shared identifier. Without resolving identity, you can't link anything.
+Feature: Entity Resolution + Cross-Tool Relationship Layer (the backbone). Auto-linking from textual references (PR mentions JIRA-482, branch names, Figma URLs in tickets) plus manual linking for the gaps. This is the core IP of the project.
+
+SP3 — Relationships exist but nobody can see the connected picture
+
+Problem: Even once linked, a user still can't answer "what's connected to this?" at a glance.
+Feature: Unified Dashboard + Shared Activity Feed. The read-model over SP1+SP2 — role-tailored widgets and one chronological timeline. Note these are presentation, not new intelligence.
+
+SP4 — Linked items silently drift out of sync
+
+Problem: This is the actual pain in the proposal — the late-surfacing bug. Design changes after code starts; PR merges while ticket is still "In Progress."
+Feature: Conflict Detection Engine. Rules over the relationship graph comparing state + timestamps of linked entities. This is the feature that delivers the headline value; everything below it exists to enable it.
+
+SP5 — Alerts either flood everyone or reach the wrong person
+
+Problem: Detection is worthless if it notifies the designer about a commit or spams the PM. Precision is the product here.
+Feature: Role-Aware Notification Engine. Routing by role + configurable channel/frequency/noise threshold. Your success metric (low dismissal rate) lives entirely here.
+
+SP6 — Understanding relationships/changes still requires human reading
+
+Problem: Summarizing a chain, inferring a missing link, or answering "what's blocking checkout?" needs semantic understanding, not rules.
+Feature: AI Layer. Summaries, link suggestions, standup generation, NL query. Correctly scoped in your proposal as future/advisory — it recommends, humans decide.
+
 ## Solution
 
 A web application that connects (rather than replaces) existing development tools into a single workspace with a shared relationship layer that understands how entities across different platforms are connected.
