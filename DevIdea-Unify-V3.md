@@ -115,6 +115,43 @@ A normalized timeline that combines activity from every connected tool into one 
 - Answer natural-language questions about project status.
   - *Example:* "What's blocking the checkout redesign?"
 
+## Novelty Assessment (Web Research, July 2026)
+
+**Verdict:** The idea is not novel as a category — the space is crowded — but the specific core (SP4: workflow-level conflict detection over a cross-tool relationship graph, plus SP5: role-aware routing) does not exist as a shipped product in this combination. Novelty for the FYP depends entirely on positioning.
+
+### What Already Exists (Overlap by Sub-Problem)
+
+**SP1/SP3 — ingestion, unified feed, dashboard: solved many times over.**
+
+- [Unito](https://unito.io/) and [Exalate](https://github.com/marketplace/exalate-issue-sync) do two-way sync between Jira, GitHub, Notion, Slack, and dozens more.
+- Zapier/Make do one-way event plumbing.
+- A unified activity feed is table stakes, not IP — don't lead with it.
+
+**SP2 — entity resolution across tools: the biggest novelty risk, on two fronts.**
+
+- *Commercially:* [Unblocked](https://docs.getunblocked.com/what-is-unblocked) already builds what this proposal calls the "relationship layer" — it "continuously reads, analyzes, and relates fragmented information across code, PRs, Slack, Jira, Confluence, Notion into a unified knowledge graph" across 25+ tools. [Potpie](https://techfundingnews.com/the-startup-building-a-knowledge-graph-for-code-raises-2-2m-to-make-ai-agents-actually-useful/) raised $2.2M for a similar cross-tool knowledge graph. Atlassian Rovo does this within the Atlassian ecosystem.
+- *Academically:* auto-linking artifacts from textual references is a mature research field called **traceability link recovery** — a [2026 SoK paper](https://arxiv.org/html/2603.16208) systematizes 20+ years of it. It can't be claimed as novel, but the literature can be cited as the foundation, which examiners tend to like.
+
+**SP6 — AI Q&A over the graph: already a product.**
+
+- Unblocked's core product is literally "answer natural-language questions with citations to PRs, tickets, docs." Atlassian Rovo and Glean too. Correctly scoped as future work in this proposal — keep it there.
+
+**Adjacent but different:**
+
+- Design-drift tools ([Applitools Figma plugin](https://applitools.com/solutions/figma/), [Uiprobe](https://www.uiprobe.io/)) detect *visual/pixel* divergence between Figma and the live site — not workflow-state divergence.
+- Internal developer portals ([Compass, Port, Cortex](https://www.atlassian.com/software/compass/comparison/compass-vs-cortex)) catalog *services*, not work items.
+- [Figma for Jira](https://marketplace.atlassian.com/apps/1217865/figma-for-jira) notifies on design changes, but only pairwise within that one integration.
+
+### Where the Genuine Gap Is
+
+No product was found that does **rule-based conflict detection over a heterogeneous work-item graph** — i.e., "the Figma frame linked to this PR changed after the first commit," "this PR merged but the linked ticket is still In Progress," "two open PRs touch the same linked component" — combined with **role-aware routing with a precision metric** (the low-dismissal-rate goal). Existing tools either sync data (Unito), answer questions (Unblocked), or compare pixels (Applitools). None of them model *staleness/inconsistency between linked entities across tools* as a first-class detection problem.
+
+### Recommendations for Framing
+
+1. **Reframe the project title and pitch around SP4+SP5**, not the "unified hub." "Unified Dev Collaboration Hub" pattern-matches to a dozen existing products and invites the question "isn't this just Unito + a dashboard?" Something like *cross-tool consistency/drift detection for product teams* is defensible; the dashboard and feed become supporting UI.
+2. **Cite the traceability literature for SP2** and position the linking layer as an application of known techniques, with the conflict-detection semantics as the contribution on top.
+3. **Add a related-work section** naming Unblocked, Unito, Figma-for-Jira, and Applitools explicitly, and stating the gap — an FYP evaluator will find these in five minutes of searching, so beating them to it strengthens the proposal.
+
 ## Project Analysis
 
 **1. Whose workflow are we improving?**
