@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Switchboard V2 — Proposal Deck</title>
+<style>
+  :root{
+    --paper:#ECEEE6; --paper2:#F5F6F0; --grid:rgba(24,36,32,.055);
+    --ink:#182420; --ink2:#45524B; --faint:#8A948C;
+    --green:#216B47; --green-soft:rgba(33,107,71,.09);
+    --fault:#BF3B2B; --brass:#A9762B; --line:#C4C9BD; --rule:#182420;
+    --display:"Futura","Century Gothic","Trebuchet MS",sans-serif;
+    --body:"Avenir Next","Avenir","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{font-size:clamp(11px,1.28vw,21px)}
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:1.6rem 1.6rem;
+    color:var(--ink);font-family:var(--body);overflow:hidden;
+  }
+  .deck{position:fixed;inset:0}
+  .slide{position:absolute;inset:0;display:none;grid-template-columns:4.2rem 1fr;overflow:hidden}
+  .slide.on{display:grid}
+  @media (prefers-reduced-motion: no-preference){
+    .slide.on .page{animation:settle .28s ease-out}
+    @keyframes settle{from{opacity:0;transform:translateY(.4rem)}to{opacity:1;transform:none}}
+  }
+
+  /* binding rail */
+  .rail{border-right:2px solid var(--rule);display:flex;flex-direction:column;align-items:center;padding:2.2vh 0 8vh;background:var(--paper2)}
+  .rail .no{font-family:var(--mono);font-size:1.05rem;font-weight:700;border-bottom:2px solid var(--rule);padding-bottom:.35em;margin-bottom:1.2em;font-variant-numeric:tabular-nums}
+  .rail .tab{writing-mode:vertical-rl;font-family:var(--mono);font-size:.6rem;letter-spacing:.32em;text-transform:uppercase;color:var(--ink2)}
+  .rail .punch{margin-top:auto;display:grid;gap:1.1em}
+  .rail .punch i{width:.55rem;height:.55rem;border-radius:50%;border:1.5px solid var(--faint);display:block}
+
+  .page{padding:3.6vh 4.5vw 10vh 3vw;display:flex;flex-direction:column;overflow-y:auto;min-width:0}
+  .fig{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink2);display:flex;align-items:baseline;gap:1em;margin-bottom:1.4vh}
+  .fig b{color:var(--green);font-weight:700}
+  .fig::after{content:"";flex:1;border-bottom:1px solid var(--line);transform:translateY(-.35em)}
+  h1{font-family:var(--display);font-weight:600;font-size:3.3rem;line-height:1.02;letter-spacing:-.01em;text-wrap:balance}
+  h2{font-family:var(--display);font-weight:600;font-size:2rem;line-height:1.1;letter-spacing:-.005em;text-wrap:balance;margin-bottom:2.2vh;max-width:26em}
+  h3{font-family:var(--display);font-weight:600;font-size:.92rem;letter-spacing:.01em}
+  p,li{font-size:.9rem;line-height:1.5}
+  .ink2{color:var(--ink2)}
+
+  /* chrome: patch-panel nav */
+  .chrome{position:fixed;bottom:0;left:4.2rem;right:0;display:flex;align-items:center;gap:1.2em;padding:1.5vh 4.5vw 1.8vh 3vw;z-index:5;background:linear-gradient(transparent,var(--paper) 45%)}
+  .chrome .id{font-family:var(--mono);font-size:.58rem;letter-spacing:.2em;color:var(--ink2);text-transform:uppercase}
+  .jacks{display:flex;gap:.9em;margin-left:auto}
+  .jack{width:1.05em;height:1.05em;border-radius:50%;border:2px solid var(--ink);background:var(--paper2);cursor:pointer;position:relative;padding:0}
+  .jack:hover{border-color:var(--green)}
+  .jack:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+  .jack.live{background:var(--ink)}
+  .jack.live::after{content:"";position:absolute;inset:31%;border-radius:50%;background:var(--green)}
+  .chrome .keys{font-family:var(--mono);font-size:.58rem;color:var(--faint);letter-spacing:.1em}
+
+  /* title slide */
+  .s-title .page{justify-content:center;gap:0}
+  .stamp{align-self:flex-start;font-family:var(--mono);font-size:.6rem;letter-spacing:.26em;text-transform:uppercase;color:var(--fault);border:2px solid var(--fault);padding:.5em .9em;transform:rotate(-2deg);margin-bottom:4vh}
+  .s-title h1 .g{color:var(--green)}
+  .s-title .sub{font-size:1.08rem;line-height:1.55;max-width:33em;color:var(--ink2);margin-top:2.4vh}
+  .s-title .sub strong{color:var(--ink);font-weight:600}
+  .circuit{margin-top:5vh;width:min(100%,52rem)}
+  .circuit svg{width:100%;height:auto;display:block}
+  .circuit .cap{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;margin-top:.6em}
+  .circuit .cap .in{color:var(--fault)} .circuit .cap .out{color:var(--green)}
+
+  /* problem slide */
+  .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2vw;margin-bottom:2.4vh}
+  .fact{background:var(--paper2);border:1.5px solid var(--rule);padding:1.1em 1.2em}
+  .fact .tag{font-family:var(--mono);font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--fault);display:block;margin-bottom:.7em}
+  .fact h3{margin-bottom:.4em}
+  .fact p{font-size:.78rem;color:var(--ink2)}
+  .fact p strong{color:var(--ink);font-weight:600}
+  .thesis{margin-top:auto;border-top:2px solid var(--rule);padding-top:1.4vh;display:grid;grid-template-columns:auto 1fr;gap:1.2em;align-items:baseline}
+  .thesis .lbl{font-family:var(--mono);font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--green)}
+  .thesis p{font-size:1.05rem;line-height:1.5;max-width:38em}
+  .thesis strong{color:var(--green)}
+
+  /* solution slide */
+  .schematic{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:1.2vw;margin-bottom:2.6vh;padding-top:1.5rem}
+  .schematic::before{content:"";position:absolute;top:.55rem;left:2%;right:2%;border-top:2px solid var(--green)}
+  .stage{position:relative;background:var(--paper2);border:1.5px solid var(--rule);padding:.9em 1em}
+  .stage::before{content:"";position:absolute;top:-1.32rem;left:50%;width:.8rem;height:.8rem;margin-left:-.4rem;border-radius:50%;background:var(--paper2);border:2.5px solid var(--green)}
+  .stage .n{font-family:var(--mono);font-size:.58rem;letter-spacing:.2em;color:var(--green);text-transform:uppercase;display:block;margin-bottom:.45em;font-weight:700}
+  .stage p{font-size:.73rem;color:var(--ink2)}
+  .stage p strong{color:var(--ink)}
+  .pairs{display:grid;grid-template-columns:1fr 1fr;gap:1.2vw}
+  .pair{border:1.5px solid var(--line);background:var(--paper2);padding:.85em 1em;display:grid;grid-template-columns:1fr 1fr;gap:1.1em}
+  .pair .from,.pair .to{font-size:.75rem;line-height:1.45}
+  .pair .from{color:var(--ink2)}
+  .pair em{font-style:normal;font-family:var(--mono);font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:.4em}
+  .pair .from em{color:var(--fault)} .pair .to em{color:var(--green)}
+  .pair .to{border-left:1.5px solid var(--line);padding-left:1.1em}
+  code{font-family:var(--mono);font-size:.9em;background:var(--green-soft);padding:.05em .3em}
+
+  /* comparison */
+  .tablewrap{overflow-x:auto;flex:1;min-height:0;border:1.5px solid var(--rule);background:var(--paper2)}
+  table{border-collapse:collapse;width:100%}
+  th,td{padding:.55em .8em;text-align:left;font-size:.73rem;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  thead th{font-family:var(--mono);font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);border-bottom:2px solid var(--rule);font-weight:700}
+  td.cap{font-weight:600;min-width:11em}
+  td.cap span{display:block;font-weight:400;color:var(--ink2);font-size:.66rem;margin-top:.2em}
+  th.sb,td.sb{background:var(--green-soft);border-left:2px solid var(--green);border-right:2px solid var(--green)}
+  thead th.sb{color:var(--green);border-top:2px solid var(--green)}
+  tbody tr:last-child td.sb{border-bottom:2px solid var(--green)}
+  .m{font-size:.95em;margin-right:.45em}
+  .m.f{color:var(--green)} .m.p{color:var(--brass)} .m.n{color:var(--faint)}
+  td .note{color:var(--ink2)}
+  .legend{display:flex;gap:2em;margin-top:1.2vh;font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+  .takeaway{margin-top:1.4vh;font-size:.88rem;color:var(--ink2);max-width:52em}
+  .takeaway strong{color:var(--ink)}
+  .takeaway strong.g{color:var(--green)}
+
+  /* inventory */
+  .inv{display:grid;grid-template-columns:1fr 1fr;gap:2vw;flex:1;align-content:start}
+  .colhead{font-family:var(--mono);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;padding:.55em .8em;margin-bottom:.9em;font-weight:700}
+  .colhead.core{background:var(--ink);color:var(--paper)}
+  .colhead.core b{color:#7FC9A4}
+  .colhead.sec{border:1.5px solid var(--rule);color:var(--ink2)}
+  .inv ul{list-style:none;display:grid;gap:.4em}
+  .inv li{display:flex;gap:.8em;align-items:baseline;font-size:.8rem;border-bottom:1px solid var(--line);padding-bottom:.4em}
+  .inv li .fn{font-family:var(--mono);font-size:.6rem;color:var(--green);flex:none;width:1.8em;font-variant-numeric:tabular-nums;font-weight:700}
+  .inv li.s .fn{color:var(--faint)}
+  .inv li span.d{color:var(--ink2)}
+  .footnote{margin-top:2vh;font-size:.72rem;color:var(--ink2);font-family:var(--mono);letter-spacing:.02em}
+
+  /* core features */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1vw;flex:1;align-content:start}
+  .feat{background:var(--paper2);border:1.5px solid var(--rule);padding:.95em 1.1em;position:relative}
+  .feat .fn{font-family:var(--mono);font-size:.56rem;letter-spacing:.16em;color:var(--green);text-transform:uppercase;display:block;margin-bottom:.45em;font-weight:700}
+  .feat h3{margin-bottom:.35em}
+  .feat p{font-size:.74rem;color:var(--ink2)}
+  .feat p strong{color:var(--ink);font-weight:600}
+
+  /* secondary */
+  .seclist{display:grid;gap:.65em;flex:1;align-content:start;max-width:62em}
+  .secitem{display:grid;grid-template-columns:14em 1fr;gap:1.4em;padding:.7em 1em;border:1.5px solid var(--line);background:var(--paper2);align-items:baseline}
+  .secitem h3{font-size:.84rem}
+  .secitem p{font-size:.74rem;color:var(--ink2)}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1 · TITLE -->
+  <section class="slide s-title on">
+    <div class="rail"><span class="no">01</span><span class="tab">Proposal</span><span class="punch"><i></i><i></i><i></i></span></div>
+    <div class="page">
+      <span class="stamp">Final Year Project · Proposal · Aug 2026</span>
+      <h1>Switchboard V2<br>the <span class="g">self-healing layer</span> for citizen automation</h1>
+      <p class="sub">Every problem it detects, it also <strong>fixes</strong> — a previewable, reversible edit to the automation itself, applied through the platform's own API. <strong>Dependabot for citizen automation.</strong></p>
+      <div class="circuit">
+        <svg viewBox="0 0 1040 120" role="img" aria-label="Schematic: a fault signal passes through detect, diagnose, fix and verify, and exits verified">
+          <line x1="0" y1="46" x2="150" y2="46" stroke="#BF3B2B" stroke-width="3" stroke-dasharray="10 7"/>
+          <line x1="150" y1="46" x2="890" y2="46" stroke="#182420" stroke-width="3"/>
+          <line x1="890" y1="46" x2="1040" y2="46" stroke="#216B47" stroke-width="3.5"/>
+          <g fill="#F5F6F0" stroke="#182420" stroke-width="3">
+            <circle cx="220" cy="46" r="15"/><circle cx="440" cy="46" r="15"/>
+            <circle cx="660" cy="46" r="15"/><circle cx="880" cy="46" r="15" stroke="#216B47"/>
+          </g>
+          <circle cx="880" cy="46" r="6" fill="#216B47"/>
+          <g font-family="ui-monospace,Menlo,monospace" font-size="15" letter-spacing="3" fill="#45524B" text-anchor="middle">
+            <text x="220" y="95">DETECT</text><text x="440" y="95">DIAGNOSE</text>
+            <text x="660" y="95">FIX</text><text x="880" y="95" fill="#216B47">VERIFY</text>
+          </g>
+        </svg>
+        <div class="cap"><span class="in">← fault in</span><span class="out">verified · reversible · logged out →</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · PROBLEM -->
+  <section class="slide">
+    <div class="rail"><span class="no">02</span><span class="tab">Problem</span><span class="punch"><i></i><i></i><i></i></span></div>
+    <div class="page">
+      <div class="fig"><b>Fig. 02</b> The problem · section 1 of 3</div>
+      <h2>Business logic moved into no-code automations. The repair workflow didn't move with it.</h2>
+      <div class="facts">
+        <div class="fact"><span class="tag">Condition A</span><h3>An invisible estate</h3><p>Zaps, scenarios, and flows built by non-engineers, spread across platforms — <strong>no repository, no review, no on-call</strong>. They outlive their owners.</p></div>
+        <div class="fact"><span class="tag">Condition B</span><h3>Failures nobody sees</h3><p>A renamed column or expired credential kills a flow <strong>silently</strong>. Two flows fight over the same CRM field <strong>across platform boundaries</strong> no single vendor can see.</p></div>
+        <div class="fact"><span class="tag">Condition C</span><h3>Every fix is manual</h3><p>Find the platform, find the flow, reverse-engineer a stranger's logic, edit it <strong>live in production</strong> — no diff, no test, no undo.</p></div>
+      </div>
+      <div class="thesis"><span class="lbl">Diagnosis</span><p>Nobody wants a map of their broken automations — they want the automations <strong>not broken</strong>. The real gap is the <strong>repair workflow</strong>, not the missing dashboard.</p></div>
+    </div>
+  </section>
+
+  <!-- 3 · SOLUTION -->
+  <section class="slide">
+    <div class="rail"><span class="no">03</span><span class="tab">Solution</span><span class="punch"><i></i><i></i><i></i></span></div>
+    <div class="page">
+      <div class="fig"><b>Fig. 03</b> The solution · section 1 of 3</div>
+      <h2>A continuous loop that closes every finding with a verified, reversible fix</h2>
+      <div class="schematic">
+        <div class="stage"><span class="n">Detect</span><p>Cross-platform estate graph, run-telemetry baselines, conflict analysis — the sensing layer.</p></div>
+        <div class="stage"><span class="n">Diagnose</span><p>Root cause: which step, which resource, which change broke it.</p></div>
+        <div class="stage"><span class="n">Fix</span><p>Synthesize a definition diff, preview it like a pull request, apply via the platform API on approval.</p></div>
+        <div class="stage"><span class="n">Verify</span><p>Watch telemetry against baseline; confirm recovery; <strong>auto-undo</strong> if the fix made things worse.</p></div>
+      </div>
+      <div class="pairs">
+        <div class="pair"><div class="from"><em>Today</em>Live-edit production logic by hand, hoping nothing else breaks.</div><div class="to"><em>With Switchboard</em>Review and approve a diff; snapshot taken first, every write revertible like <code>git revert</code>.</div></div>
+        <div class="pair"><div class="from"><em>Today</em>Discover the breakage days later from angry downstream teams.</div><div class="to"><em>With Switchboard</em>"Lead routing broke 09:14, auto-repaired 09:31, 4 leads replayed."</div></div>
+        <div class="pair"><div class="from"><em>Today</em>New flow quietly overwrites a field another platform's flow owns.</div><div class="to"><em>With Switchboard</em>Pre-flight gate catches the conflict at "merge time," like CI — fix offered before damage.</div></div>
+        <div class="pair"><div class="from"><em>Today</em>Machine edits to someone's flow would be socially unacceptable.</div><div class="to"><em>With Switchboard</em>Owner consent workflow: plain-language diff to the builder — approve, veto, or take over.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · COMPARISON -->
+  <section class="slide">
+    <div class="rail"><span class="no">04</span><span class="tab">Comparison</span><span class="punch"><i></i><i></i><i></i></span></div>
+    <div class="page">
+      <div class="fig"><b>Fig. 04</b> Related systems · section 2 of 3</div>
+      <h2>What exists today — and where each one stops</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr>
+            <th>Capability</th>
+            <th class="sb">Switchboard V2</th>
+            <th>Platform-native<br>(Make / Power Automate)</th>
+            <th>Zenity · Nokod<br>(no-code security)</th>
+            <th>Torii · Zluri<br>(SaaS management)</th>
+            <th>Dependabot · Argo CD<br>(engineering analogs)</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="cap">Cross-platform estate visibility<span>one graph across vendors</span></td>
+              <td class="sb"><span class="m f">●</span>Full</td>
+              <td><span class="m n">○</span><span class="note">single silo only</span></td>
+              <td><span class="m f">●</span><span class="note">discovery, security lens</span></td>
+              <td><span class="m p">◐</span><span class="note">apps &amp; credentials, not logic</span></td>
+              <td><span class="m n">○</span><span class="note">code repos / clusters</span></td></tr>
+            <tr><td class="cap">Operational failure detection<span>silent failures vs. learned baselines</span></td>
+              <td class="sb"><span class="m f">●</span>Full</td>
+              <td><span class="m p">◐</span><span class="note">per-run history, no baseline</span></td>
+              <td><span class="m p">◐</span><span class="note">risk posture, not correctness</span></td>
+              <td><span class="m n">○</span></td>
+              <td><span class="m p">◐</span><span class="note">drift, for infra</span></td></tr>
+            <tr><td class="cap">Cross-automation conflict detection<span>write-write races, trigger cycles</span></td>
+              <td class="sb"><span class="m f">●</span>Full</td>
+              <td><span class="m n">○</span></td>
+              <td><span class="m n">○</span></td>
+              <td><span class="m n">○</span></td>
+              <td><span class="m n">○</span></td></tr>
+            <tr><td class="cap">Repairs by editing the definition<span>operational fix as a reviewable diff</span></td>
+              <td class="sb"><span class="m f">●</span>Full</td>
+              <td><span class="m n">○</span><span class="note">manual edit, no diff/undo</span></td>
+              <td><span class="m p">◐</span><span class="note">security playbooks: revoke, quarantine — no logic edits</span></td>
+              <td><span class="m n">○</span></td>
+              <td><span class="m f">●</span><span class="note">…for code &amp; infra artifacts</span></td></tr>
+            <tr><td class="cap">Cross-platform rollback<span>restore any prior version</span></td>
+              <td class="sb"><span class="m f">●</span>Full</td>
+              <td><span class="m p">◐</span><span class="note">partial per-platform history</span></td>
+              <td><span class="m n">○</span></td>
+              <td><span class="m n">○</span></td>
+              <td><span class="m f">●</span><span class="note">git-native</span></td></tr>
+            <tr><td class="cap">Verified recovery + auto-undo<span>telemetry confirms the fix worked</span></td>
+              <td class="sb"><span class="m f">●</span>Full</td>
+              <td><span class="m n">○</span></td>
+              <td><span class="m n">○</span></td>
+              <td><span class="m n">○</span></td>
+              <td><span class="m p">◐</span><span class="note">Argo health checks</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="legend"><span><span class="m f">●</span> Yes</span><span><span class="m p">◐</span> Partial / different scope</span><span><span class="m n">○</span> No</span></div>
+      <p class="takeaway"><strong>The gap:</strong> the last column has the mechanics (fix-as-reviewable-change, drift → auto-reconcile) but only for engineer-controlled artifacts; the middle columns see citizen automations but never repair them. <strong class="g">Switchboard is that unshipped combination.</strong></p>
+    </div>
+  </section>
+
+  <!-- 5 · INVENTORY -->
+  <section class="slide">
+    <div class="rail"><span class="no">05</span><span class="tab">Features · All</span><span class="punch"><i></i><i></i><i></i></span></div>
+    <div class="page">
+      <div class="fig"><b>Fig. 05</b> Full feature inventory · section 3 of 3</div>
+      <h2>Everything proposed — 16 features, triaged into two tiers</h2>
+      <div class="inv">
+        <div>
+          <div class="colhead core"><b>Core</b> — defines the contribution, must ship</div>
+          <ul>
+            <li><span class="fn">01</span><span><strong>Fix Plans</strong> — <span class="d">every finding = evidence + root cause + executable diff</span></span></li>
+            <li><span class="fn">02</span><span><strong>Conflict Resolution</strong> — <span class="d">resolution options as definition diffs</span></span></li>
+            <li><span class="fn">03</span><span><strong>Pre-flight Conflict Gate</strong> — <span class="d">new/edited flows checked before damage, like CI</span></span></li>
+            <li><span class="fn">04</span><span><strong>Silent-Failure Repair</strong> — <span class="d">re-point broken references, route re-auth</span></span></li>
+            <li><span class="fn">05</span><span><strong>Rollback &amp; Version Control</strong> — <span class="d">one-click restore of any prior version</span></span></li>
+            <li><span class="fn">06</span><span><strong>Verification Loop</strong> — <span class="d">telemetry-confirmed recovery, auto-undo</span></span></li>
+            <li><span class="fn">07</span><span><strong>Read+Write Connectors</strong> — <span class="d">Make, Power Automate, n8n</span></span></li>
+            <li><span class="fn">08</span><span><strong>Dependency Graph + Entity Resolution</strong> — <span class="d">the sensing layer</span></span></li>
+            <li><span class="fn">09</span><span><strong>Snapshot-First Guardrails</strong> — <span class="d">consent workflow, audit trail, policy ladder</span></span></li>
+          </ul>
+        </div>
+        <div>
+          <div class="colhead sec">Secondary — supporting / nice-to-have</div>
+          <ul>
+            <li class="s"><span class="fn">10</span><span><strong>Estate Health Report</strong> — <span class="d">weekly outcomes ledger for stakeholders</span></span></li>
+            <li class="s"><span class="fn">11</span><span><strong>Zapier Monitor-Only Tier</strong> — <span class="d">fixes as generated instructions (no write API)</span></span></li>
+            <li class="s"><span class="fn">12</span><span><strong>Orphan Re-Homing</strong> — <span class="d">executed ownership succession</span></span></li>
+            <li class="s"><span class="fn">13</span><span><strong>Auto-Apply Policy Engine</strong> — <span class="d">full automation tier of the policy ladder</span></span></li>
+            <li class="s"><span class="fn">14</span><span><strong>Clone-Testing Harness</strong> — <span class="d">validate fixes on a cloned copy first</span></span></li>
+            <li class="s"><span class="fn">15</span><span><strong>LLM Fix Explanations &amp; NL Queries</strong> — <span class="d">plain-language layer</span></span></li>
+            <li class="s"><span class="fn">16</span><span><strong>Replay of Missed Runs</strong> — <span class="d">recover work lost during the outage</span></span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="footnote">// deliberately over-complete — the next two slides argue the split; secondary items can be cut without touching the contribution.</p>
+    </div>
+  </section>
+
+  <!-- 6 · CORE -->
+  <section class="slide">
+    <div class="rail"><span class="no">06</span><span class="tab">Features · Core</span><span class="punch"><i></i><i></i><i></i></span></div>
+    <div class="page">
+      <div class="fig"><b>Fig. 06</b> Slide A — core features · section 3 of 3</div>
+      <h2>The contribution: detection + remediation, never detection alone</h2>
+      <div class="grid2">
+        <div class="feat"><span class="fn">01 · Unit of work</span><h3>Fix Plans</h3><p>Every finding ships as evidence + root cause + a machine-executable diff. States: <strong>proposed → approved → applied → verified</strong> (or rolled back). Nothing is ever just "an alert."</p></div>
+        <div class="feat"><span class="fn">02–03 · Fix class</span><h3>Conflict Resolution &amp; Pre-flight Gate</h3><p>When flows fight over a resource: guard-condition diffs, scoped writers, cycle breaking — user picks, Switchboard applies. New flows are analyzed against the estate <strong>before they can do damage</strong>.</p></div>
+        <div class="feat"><span class="fn">04 · Fix class</span><h3>Silent-Failure Repair</h3><p>Entity resolution knows a resource's <strong>identity, not its old name</strong> — so a renamed sheet or moved column becomes a re-pointing patch; expired credentials route re-auth to the owner.</p></div>
+        <div class="feat"><span class="fn">05 · Fix class</span><h3>Rollback &amp; Version Control</h3><p>Every definition version snapshotted and <strong>restorable</strong> — git for citizen automations, including the revert. "Broken since Sara's Thursday edit" is a 30-second fix.</p></div>
+        <div class="feat"><span class="fn">06 · Safety</span><h3>Verification Loop</h3><p>Post-fix telemetry watched against the learned baseline; recovery confirmed, <strong>auto-rollback</strong> if anything regressed. The machine check on the machine's own fixes.</p></div>
+        <div class="feat"><span class="fn">07–09 · Foundation</span><h3>Connectors, Sensing &amp; Guardrails</h3><p>Read+write connectors (Make, Power Automate, n8n) with <strong>API round-trip verified Aug 2026</strong>; dependency graph + entity resolution to aim the fixes; snapshot-first writes, owner consent, full audit trail.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · SECONDARY -->
+  <section class="slide">
+    <div class="rail"><span class="no">07</span><span class="tab">Features · Secondary</span><span class="punch"><i></i><i></i><i></i></span></div>
+    <div class="page">
+      <div class="fig"><b>Fig. 07</b> Slide B — secondary features · section 3 of 3</div>
+      <h2>Supporting tier: valuable, cuttable, none of them load-bearing</h2>
+      <div class="seclist">
+        <div class="secitem"><h3>Estate Health Report</h3><p>Weekly service ledger to stakeholders — N detected, M auto-fixed, K approved-fixed, 0 rolled back. Reporting on the core loop, not part of it.</p></div>
+        <div class="secitem"><h3>Zapier Monitor-Only Tier</h3><p>No public write API for zap definitions, so fixes ship as step-by-step instructions. An honest product tier; deferred so the PoC stays on writable platforms.</p></div>
+        <div class="secitem"><h3>Orphan Re-Homing</h3><p>Executed succession when an owner leaves: transfer, re-bind connections, confirm next runs. High value, but independent of the fix-synthesis contribution.</p></div>
+        <div class="secitem"><h3>Auto-Apply Policy Engine</h3><p>Top rung of the policy ladder (advise → approve → auto). Core ships the first two rungs; full autonomy is a policy feature, not a research one.</p></div>
+        <div class="secitem"><h3>Clone-Testing Harness</h3><p>Validate fixes on a cloned scenario before touching production, where platforms support it. Strengthens guardrails; snapshot + verify loop already covers safety.</p></div>
+        <div class="secitem"><h3>LLM Fix Explanations &amp; NL Queries</h3><p>Plain-language diffs and estate questions in natural language. Polish on the consent workflow, not a dependency of it.</p></div>
+        <div class="secitem"><h3>Replay of Missed Runs</h3><p>Re-trigger runs lost during an outage where the platform supports it. Extends repair from "fixed" to "made whole" — a stretch goal.</p></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="chrome">
+  <span class="id">Switchboard V2 · FYP Proposal</span>
+  <span class="keys">← → to navigate</span>
+  <nav class="jacks" id="jacks" aria-label="Slides"></nav>
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const jacksEl=document.getElementById('jacks');let i=0;
+  slides.forEach((s,k)=>{const b=document.createElement('button');b.className='jack';
+    b.setAttribute('aria-label','Slide '+(k+1));b.addEventListener('click',()=>go(k));jacksEl.appendChild(b);});
+  const jacks=[...jacksEl.children];
+  function go(n){i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+    jacks.forEach((j,k)=>j.classList.toggle('live',k===i));}
+  addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ')go(i+1);
+    if(e.key==='ArrowLeft'||e.key==='PageUp')go(i-1);
+    if(e.key==='Home')go(0); if(e.key==='End')go(slides.length-1);});
+  go(0);
+</script>
+</body>
+</html>
