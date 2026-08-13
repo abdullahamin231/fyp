@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unify — Cross-Tool Drift Detection · FYP Proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFF2F6;
+    --panel:#FAFBFD;
+    --ink:#182530;
+    --slate:#5B6B79;
+    --teal:#0F766E;
+    --teal-soft:#D7EAE7;
+    --amber:#B45309;
+    --amber-soft:#F6E3CB;
+    --line:#CBD5DE;
+    --grid:#E3E9EF;
+    --display:"Archivo","Avenir Next","Helvetica Neue",Arial,sans-serif;
+    --body:"Archivo","Avenir Next","Helvetica Neue",Arial,sans-serif;
+    --mono:"IBM Plex Mono","SF Mono",ui-monospace,Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--body);
+    color:var(--ink);
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+      var(--paper);
+    background-size:44px 44px,44px 44px,auto;
+    font-size:clamp(15px,1.15vw,18px);
+    line-height:1.55;
+  }
+  .deck{height:100dvh;overflow-y:auto;scroll-snap-type:y mandatory}
+  .slide{
+    min-height:100dvh;
+    scroll-snap-align:start;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:clamp(2rem,6vh,4.5rem) clamp(1.4rem,7vw,7rem);
+    border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:.72em;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--teal);
+    margin-bottom:1.1rem;
+  }
+  .eyebrow .n{color:var(--slate)}
+  h1,h2{
+    font-family:var(--display);
+    font-weight:800;
+    letter-spacing:-.02em;
+    line-height:1.06;
+    text-wrap:balance;
+  }
+  h1{font-size:clamp(2.4rem,5.6vw,4.6rem)}
+  h2{font-size:clamp(1.7rem,3.4vw,2.9rem);margin-bottom:1.4rem}
+  .lede{
+    font-size:clamp(1rem,1.5vw,1.3rem);
+    color:var(--slate);
+    max-width:38em;
+    margin-top:1.2rem;
+    text-wrap:pretty;
+  }
+  .lede strong{color:var(--ink)}
+
+  /* ---------- entity chips + drift chain (signature) ---------- */
+  .chain{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:.35rem 0;
+    margin:2.6rem 0 0;
+  }
+  .chip{
+    font-family:var(--mono);
+    font-size:.82em;
+    background:var(--panel);
+    border:1.5px solid var(--ink);
+    border-radius:4px;
+    padding:.55em .8em;
+    white-space:nowrap;
+    box-shadow:3px 3px 0 var(--line);
+    display:inline-flex;
+    flex-direction:column;
+    gap:.1em;
+  }
+  .chip .tool{font-size:.78em;letter-spacing:.1em;text-transform:uppercase;color:var(--slate)}
+  .chip .id{font-weight:600}
+  .chip .state{font-size:.82em;color:var(--teal)}
+  .chip.drifted{border-color:var(--amber)}
+  .chip.drifted .state{color:var(--amber);font-weight:600}
+  .edge{
+    width:clamp(1.6rem,4vw,4rem);
+    height:0;
+    border-top:2px solid var(--teal);
+    position:relative;
+    flex:none;
+  }
+  .edge.broken{border-top:2px dashed var(--amber)}
+  .edge.broken::after{
+    content:"drift";
+    position:absolute;
+    top:-1.7em;left:50%;
+    transform:translateX(-50%);
+    font-family:var(--mono);
+    font-size:.68rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--amber);
+    background:var(--amber-soft);
+    border-radius:3px;
+    padding:.15em .5em;
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+  @media (prefers-reduced-motion:reduce){
+    .edge.broken::after{animation:none}
+    html{scroll-behavior:auto}
+  }
+
+  /* ---------- generic panels & grids ---------- */
+  .cols{display:grid;gap:1.2rem;margin-top:2rem}
+  .cols.two{grid-template-columns:repeat(auto-fit,minmax(310px,1fr))}
+  .cols.three{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:1.3rem 1.4rem;
+  }
+  .panel h3{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:1.05em;
+    margin-bottom:.45rem;
+    letter-spacing:-.01em;
+  }
+  .panel p{color:var(--slate);font-size:.94em;text-wrap:pretty}
+  .panel .tag{
+    font-family:var(--mono);
+    font-size:.68rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--teal);
+    display:inline-block;
+    margin-bottom:.6rem;
+  }
+  .panel.star{border:1.5px solid var(--amber);box-shadow:4px 4px 0 var(--amber-soft)}
+  .panel.star .tag{color:var(--amber)}
+
+  /* ---------- pipeline (solution slide) ---------- */
+  .pipeline{display:grid;gap:.9rem;margin-top:2rem}
+  .stage{
+    display:grid;
+    grid-template-columns:minmax(150px,190px) 1fr;
+    gap:1.2rem;
+    align-items:start;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:4px solid var(--teal);
+    border-radius:6px;
+    padding:1rem 1.3rem;
+  }
+  .stage.hot{border-left-color:var(--amber)}
+  .stage .name{font-family:var(--display);font-weight:700;letter-spacing:-.01em}
+  .stage .name small{
+    display:block;font-family:var(--mono);font-weight:400;
+    font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--slate);margin-top:.25em;
+  }
+  .stage p{color:var(--slate);font-size:.93em;text-wrap:pretty}
+  .stage p strong{color:var(--ink)}
+
+  /* ---------- comparison table ---------- */
+  .tablewrap{overflow-x:auto;margin-top:1.8rem;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+  table{border-collapse:collapse;width:100%;min-width:760px;font-size:.88em}
+  th,td{padding:.75em .9em;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{
+    font-family:var(--mono);font-weight:600;font-size:.72em;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--slate);
+    border-bottom:2px solid var(--ink);
+  }
+  tbody th{font-weight:700;font-family:var(--display);white-space:nowrap}
+  td .what{color:var(--slate);font-size:.92em}
+  td.mark{font-family:var(--mono);text-align:center;white-space:nowrap}
+  .yes{color:var(--teal);font-weight:600}
+  .part{color:var(--amber);font-weight:600}
+  .no{color:var(--line)}
+  tr.unify{background:var(--teal-soft)}
+  tr.unify th::after{content:" ← this project";font-family:var(--mono);font-weight:400;font-size:.7em;color:var(--teal);letter-spacing:.08em}
+  tr:last-child th,tr:last-child td{border-bottom:none}
+  .legend{font-family:var(--mono);font-size:.72rem;color:var(--slate);margin-top:.8rem;letter-spacing:.05em}
+  .gapnote{
+    margin-top:1.6rem;
+    border-left:4px solid var(--amber);
+    background:var(--amber-soft);
+    border-radius:0 6px 6px 0;
+    padding:.9rem 1.2rem;
+    max-width:52em;
+    font-size:.97em;
+    text-wrap:pretty;
+  }
+
+  /* ---------- feature inventory ---------- */
+  .inventory{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.8rem;margin-top:2rem;counter-reset:feat}
+  .inv{
+    background:var(--panel);border:1px solid var(--line);border-radius:6px;
+    padding:.85rem 1rem .85rem 3rem;position:relative;font-size:.93em;
+  }
+  .inv::before{
+    counter-increment:feat;
+    content:"F" counter(feat);
+    position:absolute;left:.85rem;top:.95rem;
+    font-family:var(--mono);font-size:.72rem;font-weight:600;
+    color:var(--teal);letter-spacing:.05em;
+  }
+  .inv b{display:block;font-weight:700;margin-bottom:.15em}
+  .inv span{color:var(--slate);font-size:.92em}
+  .inv.future{border-style:dashed}
+  .inv.future::before{color:var(--slate)}
+
+  footer.hint{
+    position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);
+    font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;
+    color:var(--slate);background:var(--panel);border:1px solid var(--line);
+    border-radius:999px;padding:.35em 1em;z-index:10;
+  }
+  .counter{
+    position:fixed;top:1rem;right:1.2rem;z-index:10;
+    font-family:var(--mono);font-size:.75rem;color:var(--slate);
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:999px;padding:.3em .9em;
+  }
+  .metric{font-family:var(--mono)}
+  .metric b{font-size:1.7em;color:var(--teal);letter-spacing:-.02em}
+  .metric.hot b{color:var(--amber)}
+
+  @media (max-width:640px){
+    .stage{grid-template-columns:1fr;gap:.4rem}
+    .chain{gap:.3rem}
+    .edge{width:1.1rem}
+  }
+</style>
+</head>
+<body>
+<div class="counter" id="counter">1 / 8</div>
+<div class="deck" id="deck">
+
+  <!-- 1 · TITLE -->
+  <section class="slide" id="s1">
+    <p class="eyebrow"><span class="n">Final Year Project Proposal</span></p>
+    <h1>Unify</h1>
+    <p class="lede" style="font-size:clamp(1.15rem,2vw,1.6rem);color:var(--ink);max-width:30em">
+      Cross-tool drift detection for product teams — it catches linked work
+      falling out of sync <strong>before it becomes a bug</strong>.
+    </p>
+    <div class="chain" aria-label="Example relationship chain with drift">
+      <span class="chip"><span class="tool">Figma</span><span class="id">frame · checkout-v2</span><span class="state">updated Tue</span></span>
+      <span class="edge broken"></span>
+      <span class="chip drifted"><span class="tool">GitHub</span><span class="id">PR #482</span><span class="state">built on Mon's design</span></span>
+      <span class="edge"></span>
+      <span class="chip"><span class="tool">Jira</span><span class="id">JIRA-482</span><span class="state">In Progress</span></span>
+      <span class="edge"></span>
+      <span class="chip"><span class="tool">Slack</span><span class="id">#proj-checkout</span><span class="state">thread linked</span></span>
+    </div>
+    <p class="lede" style="margin-top:2.2rem;font-size:.95em">
+      Connects Figma · GitHub · Jira · Vercel · Notion · Slack — without replacing any of them.
+    </p>
+  </section>
+
+  <!-- 2 · PROBLEM -->
+  <section class="slide" id="s2">
+    <p class="eyebrow"><span class="n">01 ·</span> The problem</p>
+    <h2>Linked work drifts apart silently, and nobody finds out until it's expensive</h2>
+    <p class="lede">
+      A feature lives in six tools at once: a Figma frame, a GitHub PR, a Jira ticket,
+      a Notion spec, a Slack thread, a Vercel deploy. Each tool holds its own copy of
+      the truth, under its own identity, behind its own API. <strong>No shared identifier
+      connects them, and no tool watches the connections.</strong>
+    </p>
+    <div class="cols three">
+      <div class="panel">
+        <span class="tag">During work</span>
+        <h3>References die at creation</h3>
+        <p>"See the Figma link in the ticket" is a snapshot, not a live relationship. When the design changes on Tuesday, the PR built on Monday's version has no idea.</p>
+      </div>
+      <div class="panel">
+        <span class="tag">The reconciler</span>
+        <h3>A human is the sync engine</h3>
+        <p>Someone — usually the PM — manually cross-checks tickets against PRs against designs. It's unowned, unreliable work that scales with team size.</p>
+      </div>
+      <div class="panel star">
+        <span class="tag">The cost</span>
+        <h3>Drift surfaces late, as bugs</h3>
+        <p>The mismatch is discovered at QA, deployment, or standup — the most expensive possible moment — and triggers rework and cross-tool archaeology to find out what happened.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · SOLUTION -->
+  <section class="slide" id="s3">
+    <p class="eyebrow"><span class="n">02 ·</span> How Unify solves it</p>
+    <h2>A relationship graph over existing tools, with drift rules on top</h2>
+    <p class="lede">
+      Unify connects tools instead of replacing them. Four layers, each solving one
+      sub-problem — the bottom two are plumbing, the top two are the contribution.
+    </p>
+    <div class="pipeline">
+      <div class="stage">
+        <div class="name">Ingest<small>events out of silos</small></div>
+        <p>Webhook receivers with polling fallback per tool, normalizing every event into one schema: <strong>actor, entity, action, timestamp, references</strong>.</p>
+      </div>
+      <div class="stage">
+        <div class="name">Link<small>one identity per work item</small></div>
+        <p>Entity resolution builds the cross-tool graph automatically from textual references — a PR mentioning <strong>JIRA-482</strong>, branch names, Figma URLs in tickets — with manual linking for the gaps. Grounded in 20+ years of traceability-link-recovery research.</p>
+      </div>
+      <div class="stage hot">
+        <div class="name">Detect<small>the headline value</small></div>
+        <p>Rules over the graph compare <strong>state and timestamps of linked entities</strong>: design changed after implementation began, PR merged while its ticket is still In Progress, two open PRs touching the same component.</p>
+      </div>
+      <div class="stage hot">
+        <div class="name">Route<small>precision over volume</small></div>
+        <p>Each conflict reaches <strong>only the person whose work it affects</strong> — the designer, the developer, or the PM — on their channel, at their frequency, above their noise threshold. Success is measured as a low dismissal rate.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · COMPARISON -->
+  <section class="slide" id="s4">
+    <p class="eyebrow"><span class="n">03 ·</span> Versus existing systems</p>
+    <h2>Every neighbor solves an adjacent problem — none detects drift</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>What it actually does</th>
+            <th style="text-align:center">Syncs data</th>
+            <th style="text-align:center">Links entities</th>
+            <th style="text-align:center">Detects workflow drift</th>
+            <th style="text-align:center">Routes by role</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>Zapier / Make</th>
+            <td><span class="what">One-way event plumbing between apps</span></td>
+            <td class="mark"><span class="part">◐</span></td>
+            <td class="mark"><span class="no">—</span></td>
+            <td class="mark"><span class="no">—</span></td>
+            <td class="mark"><span class="no">—</span></td>
+          </tr>
+          <tr>
+            <th>Unito / Exalate</th>
+            <td><span class="what">Two-way field sync between Jira, GitHub, Notion…</span></td>
+            <td class="mark"><span class="yes">●</span></td>
+            <td class="mark"><span class="part">◐</span></td>
+            <td class="mark"><span class="no">—</span></td>
+            <td class="mark"><span class="no">—</span></td>
+          </tr>
+          <tr>
+            <th>Unblocked / Atlassian Rovo</th>
+            <td><span class="what">AI knowledge graph over 25+ tools, Q&amp;A with citations</span></td>
+            <td class="mark"><span class="no">—</span></td>
+            <td class="mark"><span class="yes">●</span></td>
+            <td class="mark"><span class="no">—</span></td>
+            <td class="mark"><span class="no">—</span></td>
+          </tr>
+          <tr>
+            <th>Figma for Jira</th>
+            <td><span class="what">Pairwise plugin: design-change pings inside one integration</span></td>
+            <td class="mark"><span class="part">◐</span></td>
+            <td class="mark"><span class="part">◐</span></td>
+            <td class="mark"><span class="part">◐</span></td>
+            <td class="mark"><span class="no">—</span></td>
+          </tr>
+          <tr>
+            <th>Applitools / Uiprobe</th>
+            <td><span class="what">Pixel diffing between Figma and the rendered site</span></td>
+            <td class="mark"><span class="no">—</span></td>
+            <td class="mark"><span class="no">—</span></td>
+            <td class="mark"><span class="part">◐</span></td>
+            <td class="mark"><span class="no">—</span></td>
+          </tr>
+          <tr class="unify">
+            <th>Unify</th>
+            <td><span class="what">Conflict detection over a cross-tool work-item graph</span></td>
+            <td class="mark"><span class="yes">●</span></td>
+            <td class="mark"><span class="yes">●</span></td>
+            <td class="mark"><span class="yes">●</span></td>
+            <td class="mark"><span class="yes">●</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="legend">● full &nbsp;&nbsp; ◐ partial / single pair &nbsp;&nbsp; — absent</p>
+    <div class="gapnote">
+      <strong>The gap:</strong> existing tools sync data (Unito), answer questions (Unblocked),
+      or compare pixels (Applitools). No shipped product models
+      <strong>staleness between linked work items across tools</strong> as a first-class
+      detection problem — let alone routes it by role with a precision target.
+    </div>
+  </section>
+
+  <!-- 5 · FEATURE INVENTORY -->
+  <section class="slide" id="s5">
+    <p class="eyebrow"><span class="n">04 ·</span> Proposed features — full inventory</p>
+    <h2>Everything on the table, before any trimming</h2>
+    <p class="lede">Ten proposed features. The next two slides split them into the core that defines the project and the secondary set we can cut or defer.</p>
+    <div class="inventory">
+      <div class="inv"><b>Tool integrations</b><span>Figma, GitHub, Jira, Vercel, Notion, Slack</span></div>
+      <div class="inv"><b>Event ingestion &amp; normalization</b><span>Webhooks + polling fallback → one common event schema</span></div>
+      <div class="inv"><b>Cross-tool relationship layer</b><span>Auto-linking from textual references + manual linking</span></div>
+      <div class="inv"><b>Conflict detection engine</b><span>Rules over the graph: stale designs, merged-but-open tickets, colliding PRs</span></div>
+      <div class="inv"><b>Role-aware notification engine</b><span>Routing by role; configurable channel, frequency, noise threshold</span></div>
+      <div class="inv"><b>Unified dashboard</b><span>Customizable, role-tailored live widgets per tool</span></div>
+      <div class="inv"><b>Shared activity feed</b><span>One chronological timeline across all connected tools</span></div>
+      <div class="inv future"><b>AI layer</b><span>Change summaries, link suggestions, standup generation, natural-language queries</span></div>
+      <div class="inv future"><b>Advanced analytics dashboards</b><span>Project-level trends and reporting</span></div>
+      <div class="inv future"><b>Additional niche integrations</b><span>Beyond the six launch tools</span></div>
+    </div>
+  </section>
+
+  <!-- 6 · SLIDE A: CORE -->
+  <section class="slide" id="s6">
+    <p class="eyebrow"><span class="n">05 · Slide A</span> Core features — must be delivered</p>
+    <h2>Five features define the project; two of them are the contribution</h2>
+    <div class="cols three">
+      <div class="panel">
+        <span class="tag">Foundation</span>
+        <h3>Tool integrations</h3>
+        <p>Figma, GitHub, Jira, Vercel, Notion, Slack. Nothing works without events leaving the silos.</p>
+      </div>
+      <div class="panel">
+        <span class="tag">Foundation</span>
+        <h3>Event ingestion &amp; normalization</h3>
+        <p>Webhooks with polling fallback, mapped to one internal schema. Reliability here bounds everything above it.</p>
+      </div>
+      <div class="panel">
+        <span class="tag">Backbone</span>
+        <h3>Cross-tool relationship layer</h3>
+        <p>Entity resolution across tools — automatic from textual references, manual for the gaps. Applies established traceability techniques; every other feature reads from this graph.</p>
+      </div>
+      <div class="panel star">
+        <span class="tag">★ Contribution</span>
+        <h3>Conflict detection engine</h3>
+        <p>Workflow-state drift rules over linked entities. This is the feature no existing product ships, and the headline value of the project.</p>
+      </div>
+      <div class="panel star">
+        <span class="tag">★ Contribution</span>
+        <h3>Role-aware notification engine</h3>
+        <p>Detection is worthless if it spams the wrong person. Precision routing with a measurable target: low dismissal rate.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · SLIDE B: SECONDARY -->
+  <section class="slide" id="s7">
+    <p class="eyebrow"><span class="n">06 · Slide B</span> Secondary features — supporting &amp; nice-to-have</p>
+    <h2>Valuable, cuttable, and none of them the point</h2>
+    <div class="cols two">
+      <div class="panel">
+        <span class="tag">Supporting UI</span>
+        <h3>Unified dashboard</h3>
+        <p>Role-tailored live widgets from every connected tool. A read-model over the graph — presentation, not new intelligence, and table stakes in this market.</p>
+      </div>
+      <div class="panel">
+        <span class="tag">Supporting UI</span>
+        <h3>Shared activity feed</h3>
+        <p>One chronological timeline of normalized events. Falls out of the ingestion layer almost for free; useful, but not a differentiator.</p>
+      </div>
+      <div class="panel">
+        <span class="tag">Future · advisory only</span>
+        <h3>AI layer</h3>
+        <p>Change summaries across linked entities, suggested missing links, standup generation, natural-language status queries ("what's blocking the checkout redesign?"). Recommends — humans decide. Deliberately future work: Unblocked and Rovo already own this ground.</p>
+      </div>
+      <div class="panel">
+        <span class="tag">Future</span>
+        <h3>Analytics &amp; long-tail integrations</h3>
+        <p>Advanced analytics dashboards and niche tools beyond the six launch integrations. Deferred until the core proves precision.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · CLOSE -->
+  <section class="slide" id="s8">
+    <p class="eyebrow"><span class="n">07 ·</span> How success is measured</p>
+    <h2>Precision is the product</h2>
+    <div class="cols three" style="margin-top:2.4rem">
+      <div class="panel metric hot"><b>Low dismissal rate</b><p>on drift notifications — every alert reaches someone who acts on it</p></div>
+      <div class="panel metric"><b>% items linked</b><p>share of work items successfully connected across tools</p></div>
+      <div class="panel metric"><b>Fewer late finds</b><p>reduction in inconsistencies first discovered at QA, deploy, or standup</p></div>
+    </div>
+    <p class="lede" style="margin-top:2.6rem">
+      Unify doesn't ask teams to change tools. It watches the connections the tools
+      can't see — and tells exactly the right person when they break.
+    </p>
+  </section>
+
+</div>
+<footer class="hint">← → arrows · space · click to advance</footer>
+<script>
+  const deck=document.getElementById('deck');
+  const slides=[...deck.querySelectorAll('.slide')];
+  const counter=document.getElementById('counter');
+  let current=0;
+  function go(i){
+    current=Math.max(0,Math.min(slides.length-1,i));
+    slides[current].scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  }
+  addEventListener('keydown',e=>{
+    if(['ArrowDown','ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(current+1);}
+    else if(['ArrowUp','ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(current-1);}
+    else if(e.key==='Home'){e.preventDefault();go(0);}
+    else if(e.key==='End'){e.preventDefault();go(slides.length-1);}
+  });
+  deck.addEventListener('click',e=>{
+    if(e.target.closest('a,table')) return;
+    go(current+1);
+  });
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
+      if(en.isIntersecting){
+        current=slides.indexOf(en.target);
+        counter.textContent=(current+1)+' / '+slides.length;
+      }
+    });
+  },{root:deck,threshold:.6});
+  slides.forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>
