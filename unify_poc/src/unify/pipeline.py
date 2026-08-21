@@ -1,12 +1,11 @@
 import os
-import json
 import time
 
-from .ingestion.fixtures import load_fixtures
-from .resolution.linker import Linker
 from .conflicts.engine import run_rules
-from .notify.sink import emit, route
 from .eval.harness import evaluate, load_labels
+from .ingestion.fixtures import ingest_raw, load_raw, load_raw_by_tool
+from .notify.sink import emit, route
+from .resolution.linker import Linker
 from .store.memory_store import MemoryStore
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -17,29 +16,55 @@ LABELS = os.path.join(DATA_DIR, "labels.json")
 
 def build_store(data_dir=DATA_DIR, manual_path=MANUAL_LINKS):
     store = MemoryStore()
-    entities, events = load_fixtures(data_dir)
-    for e in entities:
-        store.add_entity(e)
-    for ev in events:
-        store.add_event(ev)
+    ingest_raw(store, load_raw(data_dir))
     Linker(store, manual_path=manual_path).link()
     return store
 
 
-def run_pipeline(data_dir=DATA_DIR, manual_path=MANUAL_LINKS, labels_path=LABELS):
-    store = build_store(data_dir, manual_path)
+def run_pipeline(
+    data_dir=DATA_DIR,
+    manual_path=MANUAL_LINKS,
+    labels_path=LABELS,
+    github_repo=None,
+    github_token=None,
+    max_prs=5,
+    write_logs=True,
+):
+    """Full pipeline: ingest -> normalize -> link -> detect -> route -> log.
+
+    With github_repo set ("owner/repo"), live GitHub PRs/commits are fetched
+    via REST and ingested in place of the github fixture — the Adapter swap
+    the POC is required to demonstrate. Label-based evaluation only applies
+    to the fixture scenario, so it is skipped in live mode.
+    """
+    store = MemoryStore()
+
+    by_tool = load_raw_by_tool(data_dir)
+    if github_repo:
+        from .ingestion.github_api import GitHubAdapter
+
+        by_tool["github"] = GitHubAdapter(
+            github_repo, token=github_token, max_prs=max_prs
+        ).load_raw()
+    for raws in by_tool.values():
+        ingest_raw(store, raws)
+
+    Linker(store, manual_path=manual_path).link()
+
     start = time.perf_counter()
     alerts = run_rules(store)
     processing_ms = (time.perf_counter() - start) * 1000.0
-    alerts = route(alerts)
-    emit(alerts)
+
+    deliveries = route(alerts)
+    if write_logs:
+        emit(alerts, deliveries)
+
     report = None
-    if labels_path and os.path.exists(labels_path):
-        labels = load_labels(labels_path)
-        report = evaluate(store, alerts, labels, processing_ms)
-    return store, alerts, report
+    if labels_path and not github_repo and os.path.exists(labels_path):
+        report = evaluate(store, alerts, load_labels(labels_path), processing_ms)
+    return store, alerts, deliveries, report
 
 
 if __name__ == "__main__":
-    s, a, r = run_pipeline()
-    print(json.dumps(r, indent=2))
+    s, a, d, r = run_pipeline(write_logs=False)
+    print(f"{len(s.all_entities())} entities, {len(a)} alerts")

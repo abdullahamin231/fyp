@@ -35,8 +35,9 @@ td.e{color:var(--signal)}
 <body>
 <div class="wrap">
   <a class="back" href="/">&larr; back to overview</a>
+  <a class="back" style="margin-left:1rem" href="/graph">view graph</a>
   <h1>{{ feed.entity.title }}</h1>
-  <p class="sub">{{ feed.entity.id }} · {{ feed.entity.tool }} · {{ feed.entity.type }} · {{ feed.entity.status or 'no status' }}</p>
+  <p class="sub">{{ feed.entity.id }} · {{ feed.entity.tool }} · {{ feed.entity.type }} · {{ feed.entity.status or 'no status' }}{% if feed.entity.stale %} · <span style="color:var(--drift)">stale/unverified{% if feed.entity.stale_reason %} ({{ feed.entity.stale_reason }}){% endif %}</span>{% endif %}</p>
 
   <div class="card">
     <h2>Linked chain</h2>

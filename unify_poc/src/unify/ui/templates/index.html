@@ -136,6 +136,7 @@ footer .mono{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
     <nav class="nav">
       <a href="#pipeline">Pipeline</a>
       <a href="#conflicts">Conflicts</a>
+      <a href="/graph">Graph</a>
       <a href="/run">Re-run</a>
     </nav>
   </header>
@@ -159,9 +160,9 @@ footer .mono{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
           <h3>One format for every tool</h3>
           <p>Each vendor event is rewritten to a shared record: actor, item, action, time, and any references it carries.</p>
           <div class="chips">
-            {% for e in tools.figma %}<span class="chip"><span class="dot dot--figma"></span>{{ e.title }} <small>{{ e.id }}</small></span>{% endfor %}
-            {% for e in tools.jira %}<span class="chip"><span class="dot dot--jira"></span>{{ e.title }} <small>{{ e.id }}</small></span>{% endfor %}
-            {% for e in tools.github %}<span class="chip"><span class="dot dot--github"></span>{{ e.title }} <small>{{ e.id }}</small></span>{% endfor %}
+            {% for e in tools.figma %}<span class="chip"><span class="dot dot--figma"></span>{{ e.title }} <small>{{ e.id }}</small>{% if e.stale %}<small style="color:var(--drift)">· stale</small>{% endif %}</span>{% endfor %}
+            {% for e in tools.jira %}<span class="chip"><span class="dot dot--jira"></span>{{ e.title }} <small>{{ e.id }}</small>{% if e.stale %}<small style="color:var(--drift)">· stale</small>{% endif %}</span>{% endfor %}
+            {% for e in tools.github %}<span class="chip"><span class="dot dot--github"></span>{{ e.title }} <small>{{ e.id }}</small>{% if e.stale %}<small style="color:var(--drift)">· stale</small>{% endif %}</span>{% endfor %}
           </div>
         </div>
 
@@ -188,7 +189,7 @@ footer .mono{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
           <span class="node"></span>
           <div class="stage-no">04 · ROUTE</div>
           <h3>To the role that owns it</h3>
-          <p>Each conflict is sent to the person who can act on it.</p>
+          <p>Each conflict is delivered to role channels with a logged delivery record — noise thresholds suppress excess.</p>
           <div class="role-chips">
             <span class="role role--designer">Designer</span>
             <span class="role role--pm">PM</span>
@@ -220,7 +221,11 @@ footer .mono{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
           {% endfor %}
         </div>
         <div class="link-reason">
-          {% for l in a.links %}<span>{{ l.provenance }}</span>{% endfor %}
+          {% for l in a.links %}<span>{{ l.provenance }} · conf {{ l.conf }}</span>{% endfor %}
+        </div>
+        <div class="meta" style="margin-top:.7rem;margin-bottom:0">
+          {% if a.latency_ms is not none %}<span>event→alert {{ a.latency_ms }} ms</span>{% endif %}
+          {% for d in a.deliveries %}<span class="tag">{{ d.channel }} · {{ d.status }}</span>{% endfor %}
         </div>
       </article>
       {% else %}
@@ -238,10 +243,13 @@ footer .mono{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
     <div class="eval">
       <div><b>{{ report.linking.precision }}</b><small>linking precision</small></div>
       <div><b>{{ report.linking.recall }}</b><small>linking recall</small></div>
+      <div><b>{{ report.linking.f1 }}</b><small>linking F1</small></div>
+      <div><b>{{ report.linking.false_positive_rate }}</b><small>linking FPR ({{ report.linking.true_negative }} negatives)</small></div>
       <div><b>{{ report.alerts.precision }}</b><small>alert precision</small></div>
       <div><b>{{ report.alerts.recall }}</b><small>alert recall</small></div>
-      <div><b>{{ report.alerts.false_positive_rate }}</b><small>false-positive rate</small></div>
-      <div><b>{{ report.latency_ms }} ms</b><small>rule-eval latency</small></div>
+      <div><b>{{ report.alerts.false_positive_rate }}</b><small>alert FPR ({{ report.alerts.true_negative }} silences)</small></div>
+      <div><b>{{ report.latency_ms.p50_event_to_alert }} ms</b><small>p50 event→alert</small></div>
+      <div><b>{{ report.latency_ms.p95_event_to_alert }} ms</b><small>p95 event→alert</small></div>
     </div>
     <div class="legend">
       <span><span class="dot dot--figma"></span> Figma</span>
@@ -254,9 +262,26 @@ footer .mono{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
     {% endif %}
   </section>
 
+  {% if suggestions %}
+  <section class="section" id="suggestions">
+    <div class="sec-head">
+      <h2>Ambiguous links · awaiting confirmation</h2>
+      <p>References that could not be auto-resolved are queued for manual confirmation instead of being silently dropped or assumed.</p>
+    </div>
+    <div class="alerts">
+      {% for s in suggestions %}
+      <article class="alert" style="border-left-color:var(--faint)">
+        <div class="meta"><span class="tag">{{ s.source_entity_id }}</span><span class="arrow">→</span><span class="tag">{{ s.ref }}</span><span>{{ s.reason }}</span></div>
+        <p class="msg" style="color:var(--static)">No entity matches this reference in the connected tools. A human can confirm or reject the pair; confirmed pairs become manual links.</p>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
   <footer>
-    <p>Prototype running on sample fixtures — the same pipeline that would run against live APIs.</p>
-    <p class="mono">swap FixtureAdapter for GitHub / Jira / Figma adapters · linking &amp; detection logic unchanged</p>
+    <p>Prototype running on sample fixtures — the same pipeline that runs against live APIs (<span class="mono">--live-github owner/repo</span>) and the outage fallback experiment (<span class="mono">--experiment-outage</span>).</p>
+    <p class="mono">FixtureAdapter / GitHubAdapter share one Adapter interface · linking &amp; detection logic unchanged</p>
   </footer>
 
 </div>

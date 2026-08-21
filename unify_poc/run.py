@@ -1,40 +1,84 @@
 import argparse
+import contextlib
+import io
 import json
 import os
+import sys
 
+from unify.eval.harness import summarize
+from unify.ingestion.outage import run_outage_experiment
 from unify.pipeline import run_pipeline
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+HERE = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(HERE, "data")
+
+
+def print_suggestions(store):
+    pending = store.pending_suggestions()
+    if not pending:
+        return
+    print(f"\n{len(pending)} unresolved reference(s) queued for manual confirmation:")
+    for s in pending:
+        print(f"  [{s.source_entity_id}] -> {s.ref} ({s.reason})")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Unify POC engine CLI")
     parser.add_argument("--data-dir", default=DATA_DIR, help="path to fixture data")
     parser.add_argument("--json", action="store_true", help="print eval report as JSON")
+    parser.add_argument(
+        "--live-github",
+        metavar="OWNER/REPO",
+        help="ingest live PRs from a GitHub repo via REST (GITHUB_TOKEN optional)",
+    )
+    parser.add_argument("--max-prs", type=int, default=5, help="max PRs to fetch in live mode")
+    parser.add_argument(
+        "--experiment-outage",
+        action="store_true",
+        help="run the Section 12/13 failure experiment: one tool unreachable, "
+        "events queued, entities marked stale, replay on reconnect",
+    )
     args = parser.parse_args()
 
-    store, alerts, report = run_pipeline(data_dir=args.data_dir)
-    print(f"\nIngested {len(store.all_entities())} entities, "
+    if args.experiment_outage:
+        store, alerts, report = run_outage_experiment(args.data_dir)
+        print(json.dumps(report, indent=2))
+        return
+
+    if args.json:
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            store, alerts, deliveries, report = run_pipeline(
+                data_dir=args.data_dir,
+                github_repo=args.live_github,
+                max_prs=args.max_prs,
+                write_logs=True,
+            )
+        print(json.dumps(report, indent=2) if report else "{}")
+        return
+
+    store, alerts, deliveries, report = run_pipeline(
+        data_dir=args.data_dir,
+        github_repo=args.live_github,
+        max_prs=args.max_prs,
+        write_logs=True,
+    )
+
+    mode = f"live github:{args.live_github}" if args.live_github else "fixtures"
+    print(f"\n[{mode}] Ingested {len(store.all_entities())} entities, "
           f"{len(store.all_events())} events, {len(store.links)} links.")
-    print(f"Generated {len(alerts)} alerts.\n")
+    print(f"Generated {len(alerts)} alerts, {len(deliveries)} deliveries.")
+    print_suggestions(store)
+
     if report:
         if args.json:
             print(json.dumps(report, indent=2))
         else:
-            print("=== Evaluation ===")
-            print(f"Linking   : precision={report['linking']['precision']} "
-                  f"recall={report['linking']['recall']} "
-                  f"(tp={report['linking']['true_positive']}, "
-                  f"fp={report['linking']['false_positive']}, "
-                  f"fn={report['linking']['false_negative']})")
-            print(f"Alerts    : precision={report['alerts']['precision']} "
-                  f"recall={report['alerts']['recall']} "
-                  f"false_positive_rate={report['alerts']['false_positive_rate']} "
-                  f"(tp={report['alerts']['true_positive']}, "
-                  f"fp={report['alerts']['false_positive']}, "
-                  f"fn={report['alerts']['false_negative']})")
-            print(f"Latency   : {report['latency_ms']} ms (batch rule-eval)")
+            print()
+            print(summarize(report))
+    elif args.live_github:
+        print("\n(live mode: label-based evaluation applies to the fixture scenario only)")
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

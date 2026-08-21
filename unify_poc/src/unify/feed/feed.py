@@ -1,7 +1,3 @@
-from ..models import Event
-from ..store.memory_store import MemoryStore
-
-
 def build_chain(store, eid, max_depth=6):
     seen = set()
     frontier = [(eid, 0)]
