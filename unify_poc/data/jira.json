@@ -1,0 +1,20 @@
+[
+  {
+    "tool": "jira",
+    "id": "PROJ-15",
+    "title": "Build login screen",
+    "description": "Implement the login screen per https://www.figma.com/file/ABC123/AppDesign",
+    "actor": "pm1",
+    "timestamp": "2026-08-01T10:00:00Z",
+    "status": "In Progress"
+  },
+  {
+    "tool": "jira",
+    "id": "PROJ-16",
+    "title": "Footer tweaks",
+    "description": "Minor footer spacing changes, no design link.",
+    "actor": "pm1",
+    "timestamp": "2026-08-05T09:00:00Z",
+    "status": "Done"
+  }
+]

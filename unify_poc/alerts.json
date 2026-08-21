@@ -1,0 +1,35 @@
+[
+  {
+    "rule": "design_changed_after_code",
+    "entity_ids": [
+      "fig:ABC123",
+      "PROJ-15",
+      "gh:pr:42"
+    ],
+    "role": "designer",
+    "severity": "warning",
+    "message": "Design 'Login Screen' was updated (2026-08-04T09:00:00Z) after code for 'Implement login form (PROJ-15)' started (2026-08-02T10:30:00Z). Implementation may now be out of sync.",
+    "timestamp": "2026-08-21T11:47:41Z"
+  },
+  {
+    "rule": "ticket_stale_in_progress",
+    "entity_ids": [
+      "PROJ-15",
+      "gh:pr:42"
+    ],
+    "role": "pm",
+    "severity": "warning",
+    "message": "Ticket 'Build login screen' is still 'In Progress' but linked PR 'Implement login form (PROJ-15)' was merged (2026-08-03T14:00:00Z).",
+    "timestamp": "2026-08-21T11:47:41Z"
+  },
+  {
+    "rule": "done_without_code",
+    "entity_ids": [
+      "PROJ-16"
+    ],
+    "role": "developer",
+    "severity": "info",
+    "message": "Ticket 'Footer tweaks' is 'Done' but has no linked pull request. Change may be undocumented in code.",
+    "timestamp": "2026-08-21T11:47:41Z"
+  }
+]
