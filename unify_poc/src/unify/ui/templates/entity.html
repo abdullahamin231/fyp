@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unify — entity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--graphite:#0E1116;--panel:#161B22;--panel-2:#1B222C;--hairline:#2A313C;--signal:#E6E9EF;--static:#8B95A5;--faint:#5A6373;--figma:#F24E8C;--github:#4C8DFF;--jira:#2DD4A7;--drift:#FFB020;--display:"Space Grotesk",system-ui,sans-serif;--body:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--graphite);color:var(--signal);font-family:var(--body);font-size:15px;line-height:1.5}
+a{color:inherit}
+.wrap{max-width:820px;margin:0 auto;padding:1.4rem 1.5rem 3rem}
+.back{font-family:var(--mono);font-size:.74rem;color:var(--static);text-decoration:none}
+.back:hover{color:var(--signal)}
+h1{font-family:var(--display);font-weight:600;font-size:1.6rem;margin:.8rem 0 .2rem}
+.sub{font-family:var(--mono);font-size:.74rem;color:var(--static);margin:0 0 1.6rem}
+.card{background:var(--panel);border:1px solid var(--hairline);border-radius:12px;padding:1.1rem 1.2rem;margin-bottom:1.2rem}
+h2{font-family:var(--display);font-weight:600;font-size:1.05rem;margin:0 0 .9rem}
+.chain{display:flex;flex-wrap:wrap;gap:.45rem}
+.pill{font-family:var(--mono);font-size:.74rem;padding:.3rem .55rem;border-radius:7px;background:var(--panel-2);border:1px solid var(--hairline);text-decoration:none;color:var(--signal)}
+.pill--figma{border-color:var(--figma)} .pill--github{border-color:var(--github)} .pill--jira{border-color:var(--jira)}
+.pill:hover{border-color:var(--faint)}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.76rem}
+th,td{text-align:left;padding:.5rem .5rem;border-bottom:1px solid var(--hairline);color:var(--static)}
+th{color:var(--faint);font-weight:400;letter-spacing:.06em;text-transform:uppercase;font-size:.66rem}
+td.e{color:var(--signal)}
+.empty{color:var(--static);font-family:var(--mono);font-size:.8rem}
+:focus-visible{outline:2px solid var(--drift);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/">&larr; back to overview</a>
+  <h1>{{ feed.entity.title }}</h1>
+  <p class="sub">{{ feed.entity.id }} · {{ feed.entity.tool }} · {{ feed.entity.type }} · {{ feed.entity.status or 'no status' }}</p>
+
+  <div class="card">
+    <h2>Linked chain</h2>
+    {% if feed.linked %}
+    <div class="chain">
+      {% for l in feed.linked %}<a class="pill" href="/entity/{{ l }}">{{ l }}</a>{% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No linked entities.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Activity timeline</h2>
+    <table>
+      <tr><th>Time</th><th>Entity</th><th>Actor</th><th>Action</th></tr>
+      {% for ev in feed.timeline %}
+      <tr><td>{{ ev.timestamp }}</td><td class="e">{{ ev.entity }}</td><td>{{ ev.actor }}</td><td>{{ ev.action }}</td></tr>
+      {% else %}
+      <tr><td colspan="4" class="empty">No events.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+</body>
+</html>

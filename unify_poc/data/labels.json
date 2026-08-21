@@ -1,0 +1,23 @@
+{
+  "expected_links": [
+    ["PROJ-15", "gh:pr:42"],
+    ["PROJ-15", "fig:ABC123"],
+    ["gh:commit:c1", "gh:pr:42"],
+    ["gh:commit:c2", "gh:pr:42"],
+    ["gh:commit:c1", "PROJ-15"]
+  ],
+  "expected_alerts": [
+    {
+      "rule": "design_changed_after_code",
+      "entities": ["fig:ABC123", "PROJ-15", "gh:pr:42"]
+    },
+    {
+      "rule": "ticket_stale_in_progress",
+      "entities": ["PROJ-15", "gh:pr:42"]
+    },
+    {
+      "rule": "done_without_code",
+      "entities": ["PROJ-16"]
+    }
+  ]
+}

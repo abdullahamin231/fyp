@@ -1,0 +1,12 @@
+[
+  {
+    "tool": "figma",
+    "id": "fig:ABC123",
+    "title": "Login Screen",
+    "action": "updated",
+    "actor": "designer1",
+    "timestamp": "2026-08-04T09:00:00Z",
+    "status": "updated",
+    "refs": []
+  }
+]
