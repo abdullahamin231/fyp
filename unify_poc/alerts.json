@@ -8,8 +8,12 @@
     ],
     "role": "designer",
     "severity": "warning",
-    "message": "Design 'Login Screen' was updated (2026-08-04T09:00:00Z) after code for 'Implement login form (PROJ-15)' started (2026-08-02T10:30:00Z). Implementation may now be out of sync.",
-    "timestamp": "2026-08-21T11:47:41Z"
+    "message": "Design 'Login Screen' was updated 1 time(s) after code for 'Implement login form (PROJ-15)' started (2026-08-02T10:30:00Z); latest at 2026-08-04T09:00:00Z. Implementation may now be out of sync.",
+    "timestamp": "2026-08-21T12:51:36Z",
+    "triggered_by": [
+      "fig:ABC123#updated"
+    ],
+    "latency_ms": 0.532
   },
   {
     "rule": "ticket_stale_in_progress",
@@ -20,7 +24,11 @@
     "role": "pm",
     "severity": "warning",
     "message": "Ticket 'Build login screen' is still 'In Progress' but linked PR 'Implement login form (PROJ-15)' was merged (2026-08-03T14:00:00Z).",
-    "timestamp": "2026-08-21T11:47:41Z"
+    "timestamp": "2026-08-21T12:51:36Z",
+    "triggered_by": [
+      "gh:pr:42#merged"
+    ],
+    "latency_ms": 0.576
   },
   {
     "rule": "done_without_code",
@@ -30,6 +38,10 @@
     "role": "developer",
     "severity": "info",
     "message": "Ticket 'Footer tweaks' is 'Done' but has no linked pull request. Change may be undocumented in code.",
-    "timestamp": "2026-08-21T11:47:41Z"
+    "timestamp": "2026-08-21T12:51:36Z",
+    "triggered_by": [
+      "PROJ-16#2026-08-05T09:00:00Z"
+    ],
+    "latency_ms": 0.592
   }
 ]

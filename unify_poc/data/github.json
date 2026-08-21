@@ -12,5 +12,42 @@
       {"sha": "c1", "message": "feat: scaffold login (PROJ-15)", "timestamp": "2026-08-02T10:30:00Z"},
       {"sha": "c2", "message": "feat: wire up login form", "timestamp": "2026-08-02T12:00:00Z"}
     ]
+  },
+  {
+    "tool": "github",
+    "id": "gh:pr:51",
+    "title": "Polish navbar spacing (PROJ-20)",
+    "action": "opened",
+    "actor": "dev2",
+    "timestamp": "2026-08-05T18:00:00Z",
+    "status": "open",
+    "merged_at": null,
+    "commits": [
+      {"sha": "k1", "message": "style: navbar padding (PROJ-20)", "timestamp": "2026-08-06T09:00:00Z"}
+    ]
+  },
+  {
+    "tool": "github",
+    "id": "gh:pr:55",
+    "title": "Fix signup validation (PROJ-21)",
+    "action": "opened",
+    "actor": "dev1",
+    "timestamp": "2026-08-06T08:00:00Z",
+    "status": "merged",
+    "merged_at": "2026-08-07T16:00:00Z",
+    "commits": [
+      {"sha": "m1", "message": "fix: validate signup email (PROJ-21)", "timestamp": "2026-08-06T10:00:00Z"}
+    ]
+  },
+  {
+    "tool": "github",
+    "id": "gh:pr:60",
+    "title": "chore: bump dependencies (PROJ-99)",
+    "action": "opened",
+    "actor": "dev2",
+    "timestamp": "2026-08-07T11:00:00Z",
+    "status": "open",
+    "merged_at": null,
+    "commits": []
   }
 ]

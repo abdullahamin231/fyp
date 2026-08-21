@@ -8,5 +8,25 @@
     "timestamp": "2026-08-04T09:00:00Z",
     "status": "updated",
     "refs": []
+  },
+  {
+    "tool": "figma",
+    "id": "fig:GHI789",
+    "title": "Navbar",
+    "action": "updated",
+    "actor": "designer2",
+    "timestamp": "2026-08-05T12:00:00Z",
+    "status": "updated",
+    "refs": []
+  },
+  {
+    "tool": "figma",
+    "id": "fig:JKL333",
+    "title": "Settings Spec",
+    "action": "version_changed",
+    "actor": "designer1",
+    "timestamp": "2026-08-02T09:00:00Z",
+    "status": "current",
+    "refs": []
   }
 ]

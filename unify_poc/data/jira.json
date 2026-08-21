@@ -12,9 +12,36 @@
     "tool": "jira",
     "id": "PROJ-16",
     "title": "Footer tweaks",
-    "description": "Minor footer spacing changes, no design link.",
+    "description": "Minor footer spacing changes per old spec https://www.figma.com/file/DEF999/OldFooterSpec (frame no longer in workspace).",
     "actor": "pm1",
     "timestamp": "2026-08-05T09:00:00Z",
     "status": "Done"
+  },
+  {
+    "tool": "jira",
+    "id": "PROJ-20",
+    "title": "Navbar polish",
+    "description": "Adjust navbar spacing to match https://www.figma.com/file/GHI789/WebApp",
+    "actor": "pm2",
+    "timestamp": "2026-08-04T15:00:00Z",
+    "status": "In Progress"
+  },
+  {
+    "tool": "jira",
+    "id": "PROJ-21",
+    "title": "Fix signup validation",
+    "description": "Signup accepts invalid emails; add server-side validation.",
+    "actor": "pm2",
+    "timestamp": "2026-08-05T08:30:00Z",
+    "status": "Done"
+  },
+  {
+    "tool": "jira",
+    "id": "PROJ-22",
+    "title": "Settings page",
+    "description": "New settings page. Design was agreed in review; see the shared spec.",
+    "actor": "pm1",
+    "timestamp": "2026-08-03T12:00:00Z",
+    "status": "In Progress"
   }
 ]
