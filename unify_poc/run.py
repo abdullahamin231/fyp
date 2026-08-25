@@ -31,6 +31,12 @@ def main():
         metavar="OWNER/REPO",
         help="ingest live PRs from a GitHub repo via REST (GITHUB_TOKEN optional)",
     )
+    parser.add_argument(
+        "--live-figma",
+        metavar="FILE_KEY_OR_URL",
+        help="ingest a live Figma file via REST (FIGMA_TOKEN required); "
+        "accepts a bare file key or a figma.com file/design URL",
+    )
     parser.add_argument("--max-prs", type=int, default=5, help="max PRs to fetch in live mode")
     parser.add_argument(
         "--experiment-outage",
@@ -51,6 +57,7 @@ def main():
             store, alerts, deliveries, report = run_pipeline(
                 data_dir=args.data_dir,
                 github_repo=args.live_github,
+                figma_file_key=args.live_figma,
                 max_prs=args.max_prs,
                 write_logs=True,
             )
@@ -60,11 +67,17 @@ def main():
     store, alerts, deliveries, report = run_pipeline(
         data_dir=args.data_dir,
         github_repo=args.live_github,
+        figma_file_key=args.live_figma,
         max_prs=args.max_prs,
         write_logs=True,
     )
 
-    mode = f"live github:{args.live_github}" if args.live_github else "fixtures"
+    live = []
+    if args.live_github:
+        live.append(f"github:{args.live_github}")
+    if args.live_figma:
+        live.append(f"figma:{args.live_figma}")
+    mode = " + ".join(live) if live else "fixtures"
     print(f"\n[{mode}] Ingested {len(store.all_entities())} entities, "
           f"{len(store.all_events())} events, {len(store.links)} links.")
     print(f"Generated {len(alerts)} alerts, {len(deliveries)} deliveries.")
@@ -76,7 +89,7 @@ def main():
         else:
             print()
             print(summarize(report))
-    elif args.live_github:
+    elif live:
         print("\n(live mode: label-based evaluation applies to the fixture scenario only)")
 
 

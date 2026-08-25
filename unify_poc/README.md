@@ -21,6 +21,7 @@ unify_poc/
     ingestion/
       adapter.py         # Adapter ABC (load_raw) + FixtureAdapter
       github_api.py      # LIVE GitHub REST adapter (GITHUB_TOKEN optional)
+      figma_api.py       # LIVE Figma REST adapter (FIGMA_TOKEN required)
       normalizer.py      # vendor record -> common schema; reference extraction
       fixtures.py        # raw loading + store ingestion helpers
       outage.py          # OutageQueue + Section 12/13 failure experiment
@@ -45,6 +46,7 @@ pip install -r requirements.txt
 PYTHONPATH=src python3 run.py                          # fixture pipeline + eval
 PYTHONPATH=src python3 run.py --json                   # eval report as JSON
 PYTHONPATH=src python3 run.py --live-github owner/repo # live GitHub REST ingestion
+PYTHONPATH=src python3 run.py --live-figma FILE_KEY    # live Figma REST ingestion
 PYTHONPATH=src python3 run.py --experiment-outage      # failure/fallback experiment
 PYTHONPATH=src python3 -m pytest                       # test suite
 PYTHONPATH=src python3 -m unify.ui.app                 # UI at http://127.0.0.1:5000
@@ -58,6 +60,14 @@ and hollow ghost nodes for unresolved references awaiting manual confirmation.
 `GITHUB_TOKEN` (env var) is optional for `--live-github`; it only raises the
 API rate limit.
 
+`--live-figma` accepts a bare file key or a full figma.com file/design URL
+and swaps the figma fixture for the real file (metadata + latest version
+history). It needs `FIGMA_TOKEN` — a Figma personal access token with view
+access to the file. Because the entity id is still `fig:<file-key>`, any
+Jira description containing that file's URL auto-links exactly as in the
+fixture scenario; the flags combine, e.g.
+`--live-github owner/repo --live-figma <url>` runs a fully live chain.
+
 ## What it proves (Section 12 POC plan)
 
 **Q1 — risky assumption.** Reference-based auto-linking plus rule-based
@@ -67,7 +77,8 @@ Jira with measurable precision.
 **Q2 — input/setup.** Two paths:
 - *Primary-path seed*: `--live-github` fetches real PRs and commits from any
   GitHub repo through the same `Adapter` interface as the fixtures — the
-  normalization/linking/conflict stack is untouched by the swap.
+  normalization/linking/conflict stack is untouched by the swap. `--live-figma`
+  does the same for a real Figma file.
 - *Fallback path*: JSON fixtures covering five scenarios (below).
 
 **Q3 — expected result.** A simulated Figma change (`fig:ABC123`, updated
@@ -125,7 +136,7 @@ Lowering the confidence in config demonstrates the degradation path.
 
 ## Out of scope (POC only)
 
-OAuth handshake, Jira/Figma live adapters (same `Adapter` interface),
+OAuth handshake, Jira live adapter (same `Adapter` interface),
 Postgres + graph queries, background workers, real Slack delivery (channels
 are simulated with logged deliveries). All are drop-in extensions of the
 interfaces exercised here.

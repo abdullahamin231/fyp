@@ -27,15 +27,19 @@ def run_pipeline(
     labels_path=LABELS,
     github_repo=None,
     github_token=None,
+    figma_file_key=None,
+    figma_token=None,
     max_prs=5,
     write_logs=True,
 ):
     """Full pipeline: ingest -> normalize -> link -> detect -> route -> log.
 
     With github_repo set ("owner/repo"), live GitHub PRs/commits are fetched
-    via REST and ingested in place of the github fixture — the Adapter swap
-    the POC is required to demonstrate. Label-based evaluation only applies
-    to the fixture scenario, so it is skipped in live mode.
+    via REST; with figma_file_key set (bare key or figma.com URL), a live
+    Figma file is fetched the same way — each swaps one fixture at the
+    Adapter boundary, leaving normalization/linking/conflicts untouched.
+    Label-based evaluation only applies to the fixture scenario, so it is
+    skipped whenever a live adapter is used.
     """
     store = MemoryStore()
 
@@ -46,6 +50,10 @@ def run_pipeline(
         by_tool["github"] = GitHubAdapter(
             github_repo, token=github_token, max_prs=max_prs
         ).load_raw()
+    if figma_file_key:
+        from .ingestion.figma_api import FigmaAdapter
+
+        by_tool["figma"] = FigmaAdapter(figma_file_key, token=figma_token).load_raw()
     for raws in by_tool.values():
         ingest_raw(store, raws)
 
@@ -60,7 +68,11 @@ def run_pipeline(
         emit(alerts, deliveries)
 
     report = None
-    if labels_path and not github_repo and os.path.exists(labels_path):
+    if (
+        labels_path
+        and not (github_repo or figma_file_key)
+        and os.path.exists(labels_path)
+    ):
         report = evaluate(store, alerts, load_labels(labels_path), processing_ms)
     return store, alerts, deliveries, report
 
