@@ -156,14 +156,24 @@ def wire_page(folder_name):
         content
     )
 
-    # 2. Replace existing sidebar
+    # 2. Build new sidebar and convert hrefs to hash-based
+    new_sidebar = build_sidebar(active_path)
+    for folder, key in FOLDER_TO_KEY.items():
+        new_sidebar = new_sidebar.replace(
+            f'href="../{folder}/code.html"',
+            f'href="#{key}"'
+        )
+
+    # 3. Replace existing sidebar
     start, end, old_sidebar = extract_existing_sidebar(content)
     if start is not None:
-        new_sidebar = build_sidebar(active_path)
         content = content[:start] + new_sidebar + content[end:]
 
-    # 3. Wire up specific buttons based on page
+    # 4. Wire up specific buttons based on page
     content = wire_buttons(folder_name, content)
+
+    # 5. Inject navigateTo() script before </body>
+    content = content.replace('</body>', NAV_SCRIPT + '\n</body>')
 
     with open(filepath, 'w') as f:
         f.write(content)
@@ -171,182 +181,101 @@ def wire_page(folder_name):
     print(f"  Wired: {folder_name}")
 
 
+# SPA navigation keys for each folder
+FOLDER_TO_KEY = {v: k for k, v in {
+    "onboarding": "unify_workspace_onboarding",
+    "conflict-inbox": "unify_conflict_inbox",
+    "conflict-detail": "unify_conflict_detail",
+    "graph-explorer": "unify_artifact_graph_explorer",
+    "policy-configuration": "unify_policy_configuration",
+    "policy-simulation": "unify_policy_simulation",
+    "link-management": "unify_link_management",
+    "search": "unify_search_advanced_filtering",
+    "evaluation": "unify_evaluation_dashboard_internal",
+    "admin": "unify_workspace_administration",
+    "audit-trail": "unify_audit_trail_compliance_export",
+    "user-profile": "unify_user_profile_watcher_preferences",
+    "slack-config": "unify_slack_configuration",
+    "notifications": "unify_notification_preferences",
+    "study": "unify_manual_workflow_study_interface",
+}.items()}
+
+# Standalone fallback: map key -> relative path from any page
+KEY_TO_STANDALONE = {k: f"../{v}/code.html" for k, v in {
+    "onboarding": "unify_workspace_onboarding",
+    "conflict-inbox": "unify_conflict_inbox",
+    "conflict-detail": "unify_conflict_detail",
+    "graph-explorer": "unify_artifact_graph_explorer",
+    "policy-configuration": "unify_policy_configuration",
+    "policy-simulation": "unify_policy_simulation",
+    "link-management": "unify_link_management",
+    "search": "unify_search_advanced_filtering",
+    "evaluation": "unify_evaluation_dashboard_internal",
+    "admin": "unify_workspace_administration",
+    "audit-trail": "unify_audit_trail_compliance_export",
+    "user-profile": "unify_user_profile_watcher_preferences",
+    "slack-config": "unify_slack_configuration",
+    "notifications": "unify_notification_preferences",
+    "study": "unify_manual_workflow_study_interface",
+}.items()}
+
+# Script that provides navigateTo() for standalone pages
+NAV_SCRIPT = """<script>
+function navigateTo(key){var m={"onboarding":"../unify_workspace_onboarding/code.html","conflict-inbox":"../unify_conflict_inbox/code.html","conflict-detail":"../unify_conflict_detail/code.html","graph-explorer":"../unify_artifact_graph_explorer/code.html","policy-configuration":"../unify_policy_configuration/code.html","policy-simulation":"../unify_policy_simulation/code.html","link-management":"../unify_link_management/code.html","search":"../unify_search_advanced_filtering/code.html","evaluation":"../unify_evaluation_dashboard_internal/code.html","admin":"../unify_workspace_administration/code.html","audit-trail":"../unify_audit_trail_compliance_export/code.html","user-profile":"../unify_user_profile_watcher_preferences/code.html","slack-config":"../unify_slack_configuration/code.html","notifications":"../unify_notification_preferences/code.html","study":"../unify_manual_workflow_study_interface/code.html"};if(m[key])window.location.href=m[key];}
+</script>"""
+
+
 def wire_buttons(folder_name, content):
     """Wire up page-specific buttons to navigate to other pages."""
-    inbox = PATH_MAP["conflict-inbox"]
-    detail = PATH_MAP["conflict-detail"]
-    policy = PATH_MAP["policy-configuration"]
-    sim = PATH_MAP["policy-simulation"]
-    audit = PATH_MAP["audit-trail"]
-    admin = PATH_MAP["admin"]
-    eval_ = PATH_MAP["evaluation"]
-    onboarding = PATH_MAP["onboarding"]
-    search = PATH_MAP["search"]
-    links = PATH_MAP["link-management"]
-    graph = PATH_MAP["graph-explorer"]
-    user = PATH_MAP["user-profile"]
-    slack = PATH_MAP["slack-config"]
-    notif = PATH_MAP["notifications"]
-    study = PATH_MAP["study"]
+    # Use navigateTo() for all button clicks - works in both SPA and standalone
+    def nav(key):
+        return f"navigateTo('{key}')"
 
     if folder_name == "unify_workspace_onboarding":
-        # "Save & Continue" / completeStep -> go to conflict inbox
-        content = content.replace(
-            "completeStep()",
-            f"window.location.href='{inbox}'"
-        )
+        content = content.replace("completeStep()", nav("conflict-inbox"))
 
     elif folder_name == "unify_conflict_inbox":
-        # "Review 3 Blockers" button -> conflict detail
         content = content.replace(
             'id="batch-resolve-btn"',
-            f'id="batch-resolve-btn" onclick="window.location.href=\'{detail}\'"'
+            f'id="batch-resolve-btn" onclick="{nav("conflict-detail")}"'
         )
-        # "Configure Rules" -> policy config
         content = re.sub(
             r'(<button[^>]*>[\s\S]*?Configure Rules[\s\S]*?</button>)',
             lambda m: m.group(0).replace(
-                'href="#"',
-                f'onclick="window.location.href=\'{policy}\'"'
+                '#', '#'
             ).replace(
                 'class="px-3.5 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-sm text-body-sm font-medium transition flex items-center gap-1.5 shadow-sm"',
-                f'class="px-3.5 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-sm text-body-sm font-medium transition flex items-center gap-1.5 shadow-sm cursor-pointer" onclick="window.location.href=\'{policy}\'"'
+                f'class="px-3.5 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-sm text-body-sm font-medium transition flex items-center gap-1.5 shadow-sm cursor-pointer" onclick="{nav("policy-configuration")}"'
             ),
             content
         )
-        # "New Policy Rule" -> policy config
         content = re.sub(
             r'(<button[^>]*>[\s\S]*?New Policy Rule[\s\S]*?</button>)',
             lambda m: m.group(0).replace(
                 'class="px-3.5 py-1.5 rounded-lg bg-primary-container hover:brightness-110 text-on-primary-container font-body-sm text-body-sm font-semibold transition flex items-center gap-1.5 shadow-md"',
-                f'class="px-3.5 py-1.5 rounded-lg bg-primary-container hover:brightness-110 text-on-primary-container font-body-sm text-body-sm font-semibold transition flex items-center gap-1.5 shadow-md cursor-pointer" onclick="window.location.href=\'{policy}\'"'
+                f'class="px-3.5 py-1.5 rounded-lg bg-primary-container hover:brightness-110 text-on-primary-container font-body-sm text-body-sm font-semibold transition flex items-center gap-1.5 shadow-md cursor-pointer" onclick="{nav("policy-configuration")}"'
             ),
             content
         )
 
     elif folder_name == "unify_conflict_detail":
-        # Breadcrumb "Conflict Inbox" link -> inbox
-        content = content.replace(
-            f'<a class="hover:text-primary transition-colors flex items-center gap-1" href="#">\n<span class="material-symbols-outlined text-[16px]">inbox</span>\n<span>Conflict Inbox</span>\n</a>',
-            f'<a class="hover:text-primary transition-colors flex items-center gap-1" href="{inbox}">\n<span class="material-symbols-outlined text-[16px]">inbox</span>\n<span>Conflict Inbox</span>\n</a>'
-        )
-        # Also handle minified version
-        content = content.replace(
-            f'<a class="hover:text-primary transition-colors flex items-center gap-1" href="#"><span class="material-symbols-outlined text-[16px]">inbox</span><span>Conflict Inbox</span></a>',
-            f'<a class="hover:text-primary transition-colors flex items-center gap-1" href="{inbox}"><span class="material-symbols-outlined text-[16px]">inbox</span><span>Conflict Inbox</span></a>'
-        )
-        # "Back to Inbox" button
         content = content.replace(
             'onclick="history.back()"',
-            f'onclick="window.location.href=\'{inbox}\'"'
-        )
-
-    elif folder_name == "unify_policy_configuration":
-        # "Global Audit" button -> audit trail
-        content = re.sub(
-            r'(id="btn-create-policy")',
-            r'\1',
-            content
-        )
-        # Find and wire "Global Audit" button
-        content = re.sub(
-            r'(<button[^>]*>[\s\S]*?Global Audit[\s\S]*?</button>)',
-            lambda m: m.group(0).replace(
-                '#',
-                audit
-            ) if 'href="#"' in m.group(0) else m.group(0),
-            content
-        )
-        # Add onclick to Global Audit if not already wired
-        if 'Global Audit' in content and audit not in content.split('Global Audit')[0][-200:]:
-            content = re.sub(
-                r'(>[\s]*Global Audit[\s]*</button>)',
-                f' onclick="window.location.href=\'{audit}\'"\\1',
-                content,
-                count=1
-            )
-        # "View Analytics" -> evaluation dashboard
-        content = re.sub(
-            r'(View Analytics)',
-            f'\\1',
-            content
+            f'onclick="{nav("conflict-inbox")}"'
         )
 
     elif folder_name == "unify_policy_simulation":
-        # Breadcrumb "Policy Configuration" -> policy config
-        content = content.replace(
-            f'href="#">\n<span class="material-symbols-outlined text-[14px]">arrow_back</span>\n<span>Policy Configuration</span>',
-            f'href="{policy}">\n<span class="material-symbols-outlined text-[14px]">arrow_back</span>\n<span>Policy Configuration</span>'
-        )
-        # Minified version
-        content = content.replace(
-            f'href="#"><span class="material-symbols-outlined text-[14px]">arrow_back</span><span>Policy Configuration</span>',
-            f'href="{policy}"><span class="material-symbols-outlined text-[14px]">arrow_back</span><span>Policy Configuration</span>'
-        )
-        # "Apply v2.2 to Policy" -> policy config
         content = content.replace(
             'id="applyPolicyBtn"',
-            f'id="applyPolicyBtn" onclick="window.location.href=\'{policy}\'"'
+            f'id="applyPolicyBtn" onclick="{nav("policy-configuration")}"'
         )
 
     elif folder_name == "unify_workspace_administration":
-        # "Compliance Audit" -> audit trail
         content = re.sub(
             r'(>[\s]*Compliance Audit[\s\S]*?</button>)',
-            f' onclick="window.location.href=\'{audit}\'"\\1',
+            f' onclick="{nav("audit-trail")}"\\1',
             content,
             count=1
-        )
-
-    elif folder_name == "unify_audit_trail_compliance_export":
-        # Breadcrumb "Governance" -> admin
-        content = content.replace(
-            f'href="#">\n<span class="material-symbols-outlined text-[14px]">arrow_back</span>\n<span>Governance</span>',
-            f'href="{admin}">\n<span class="material-symbols-outlined text-[14px]">arrow_back</span>\n<span>Governance</span>'
-        )
-        # Minified
-        content = content.replace(
-            f'href="#"><span class="material-symbols-outlined text-[14px]">arrow_back</span><span>Governance</span>',
-            f'href="{admin}"><span class="material-symbols-outlined text-[14px]">arrow_back</span><span>Governance</span>'
-        )
-
-    elif folder_name == "unify_search_advanced_filtering":
-        # Wire result links
-        pass  # Results are dynamic, sidebar handles navigation
-
-    elif folder_name == "unify_link_management":
-        # "Create New Link" button scrolls to wizard (keep as-is)
-        pass
-
-    elif folder_name == "unify_user_profile_watcher_preferences":
-        # "Test Sync" buttons already work inline
-        pass
-
-    elif folder_name == "unify_slack_configuration":
-        # Breadcrumb "Integrations" -> admin
-        content = content.replace(
-            f'href="#">\n<span class="material-symbols-outlined text-[14px]">arrow_back</span>\n<span>Integrations</span>',
-            f'href="{admin}">\n<span class="material-symbols-outlined text-[14px]">arrow_back</span>\n<span>Integrations</span>'
-        )
-        # Minified
-        content = content.replace(
-            f'href="#"><span class="material-symbols-outlined text-[14px]">arrow_back</span><span>Integrations</span>',
-            f'href="{admin}"><span class="material-symbols-outlined text-[14px]">arrow_back</span><span>Integrations</span>'
-        )
-
-    elif folder_name == "unify_notification_preferences":
-        # "Apply Routing Rules" -> save preferences (keep inline)
-        pass
-
-    elif folder_name == "unify_manual_workflow_study_interface":
-        # Standalone study tool
-        pass
-
-    elif folder_name == "unify_artifact_graph_explorer":
-        # Breadcrumb workspace -> admin
-        content = content.replace(
-            'href="#">Workspace',
-            f'href="{admin}">Workspace'
         )
 
     return content
