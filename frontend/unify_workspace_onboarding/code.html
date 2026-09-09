@@ -337,7 +337,7 @@
 <button class="px-4 py-2 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-body-sm transition-colors flex items-center gap-1.5">
 <span class="material-symbols-outlined text-[16px]">arrow_back</span> Back
       </button>
-<button class="px-6 py-2 rounded bg-primary-container hover:bg-indigo-600 text-on-primary-container font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-md" id="nextStepBtn" onclick="window.location.href='../unify_conflict_inbox/code.html'">
+<button class="px-6 py-2 rounded bg-primary-container hover:bg-indigo-600 text-on-primary-container font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-md" id="nextStepBtn" onclick="navigateTo('conflict-inbox')" >
 <span>Save &amp; Continue to Next Step</span>
 <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
 </button>
@@ -383,23 +383,17 @@
       }
     }
 
-    function window.location.href='../unify_conflict_inbox/code.html' {
+    function completeStep() {
       if (!isAuthorized) {
         if(confirm("Jira authorization is pending. Do you wish to authorize first? Click Cancel to proceed anyway.")) {
           simulateOAuth();
           return;
         }
       }
-      alert("Advancing to Step 5: Invite Team Members & Permissions.");
+      navigateTo('conflict-inbox');
     }
   </script>
 </div></main></div><script>
-function navigateTo(key){var m={"onboarding":"../unify_workspace_onboarding/code.html","conflict-inbox":"../unify_conflict_inbox/code.html","conflict-detail":"../unify_conflict_detail/code.html","graph-explorer":"../unify_artifact_graph_explorer/code.html","policy-configuration":"../unify_policy_configuration/code.html","policy-simulation":"../unify_policy_simulation/code.html","link-management":"../unify_link_management/code.html","search":"../unify_search_advanced_filtering/code.html","evaluation":"../unify_evaluation_dashboard_internal/code.html","admin":"../unify_workspace_administration/code.html","audit-trail":"../unify_audit_trail_compliance_export/code.html","user-profile":"../unify_user_profile_watcher_preferences/code.html","slack-config":"../unify_slack_configuration/code.html","notifications":"../unify_notification_preferences/code.html","study":"../unify_manual_workflow_study_interface/code.html"};if(m[key])window.location.href=m[key];}
-</script>
-<script>
-function navigateTo(key){var m={"onboarding":"../unify_workspace_onboarding/code.html","conflict-inbox":"../unify_conflict_inbox/code.html","conflict-detail":"../unify_conflict_detail/code.html","graph-explorer":"../unify_artifact_graph_explorer/code.html","policy-configuration":"../unify_policy_configuration/code.html","policy-simulation":"../unify_policy_simulation/code.html","link-management":"../unify_link_management/code.html","search":"../unify_search_advanced_filtering/code.html","evaluation":"../unify_evaluation_dashboard_internal/code.html","admin":"../unify_workspace_administration/code.html","audit-trail":"../unify_audit_trail_compliance_export/code.html","user-profile":"../unify_user_profile_watcher_preferences/code.html","slack-config":"../unify_slack_configuration/code.html","notifications":"../unify_notification_preferences/code.html","study":"../unify_manual_workflow_study_interface/code.html"};if(m[key])window.location.href=m[key];}
-</script>
-<script>
 function navigateTo(key){var m={"onboarding":"../unify_workspace_onboarding/code.html","conflict-inbox":"../unify_conflict_inbox/code.html","conflict-detail":"../unify_conflict_detail/code.html","graph-explorer":"../unify_artifact_graph_explorer/code.html","policy-configuration":"../unify_policy_configuration/code.html","policy-simulation":"../unify_policy_simulation/code.html","link-management":"../unify_link_management/code.html","search":"../unify_search_advanced_filtering/code.html","evaluation":"../unify_evaluation_dashboard_internal/code.html","admin":"../unify_workspace_administration/code.html","audit-trail":"../unify_audit_trail_compliance_export/code.html","user-profile":"../unify_user_profile_watcher_preferences/code.html","slack-config":"../unify_slack_configuration/code.html","notifications":"../unify_notification_preferences/code.html","study":"../unify_manual_workflow_study_interface/code.html"};if(m[key])window.location.href=m[key];}
 </script>
 </body></html>
