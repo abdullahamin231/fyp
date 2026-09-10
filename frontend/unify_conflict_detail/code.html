@@ -30,6 +30,7 @@ body { overscroll-behavior: none; font-family: 'Inter', system-ui, sans-serif; f
 main > :first-child { margin-top: 0 !important; }
 main > :last-child { margin-bottom: 0 !important; }
 ::-webkit-scrollbar { display: none; }
+#llm-score-ring { transition: stroke-dashoffset 0.8s ease-in-out; }
 </style><script src="https://cdn.tailwindcss.com"></script><script>
 tailwind.config = {
   darkMode: "class",
@@ -239,6 +240,148 @@ tailwind.config = {
   "violation_score": 0.948,
   "remediation_hint": "GENERATE_BACKLOG_DELTA_TICKET"
 }</code></pre>
+</div>
+</div>
+</div>
+<!-- LLM Faithfulness Analysis Section -->
+<div class="rounded-xl bg-surface-container p-margin-page mb-gutter shadow-md relative overflow-hidden" id="llm-faithfulness-section">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-primary via-secondary to-primary"></div>
+<div class="flex flex-wrap items-start justify-between gap-gutter mb-gutter">
+<div class="flex items-start gap-gutter">
+<div class="w-10 h-10 rounded-lg bg-secondary-container text-on-secondary-container flex items-center justify-center flex-shrink-0 shadow-md">
+<span class="material-symbols-outlined text-[24px]">psychology</span>
+</div>
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">LLM Faithfulness Analysis</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container-highest text-outline font-mono-code text-[10px]">Local Inference</span>
+</div>
+<p class="text-on-surface-variant font-body-sm text-body-sm">Independent verification of code-to-design faithfulness via local LLM analysis</p>
+</div>
+</div>
+<div class="flex items-center gap-stack-compact flex-shrink-0">
+<button class="px-3 py-1.5 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-body-sm font-body-sm flex items-center gap-1.5 transition-colors" id="btn-rerun-llm">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Re-run Analysis</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Score Column -->
+<div class="lg:col-span-4 flex flex-col items-center justify-center p-gutter rounded-lg bg-surface-container-low relative">
+<div class="relative w-32 h-32 mb-stack-comfortable">
+<svg class="w-32 h-32 -rotate-90" viewBox="0 0 120 120">
+<circle cx="60" cy="60" r="52" stroke="currentColor" stroke-width="8" fill="none" class="text-surface-container-highest"/>
+<circle cx="60" cy="60" r="52" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="18.82" class="text-secondary" id="llm-score-ring"/>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-mono-code text-headline-lg font-bold text-secondary" id="llm-score-value">94.2</span>
+<span class="font-mono-code text-body-sm text-outline">%</span>
+</div>
+</div>
+<span class="px-3 py-1 rounded-full bg-secondary/15 text-secondary font-label-caps text-label-caps font-semibold uppercase tracking-wider mb-stack-compact" id="llm-status-badge">Partial Drift</span>
+<div class="text-center space-y-1 font-mono-code text-[11px]">
+<div class="flex items-center justify-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[13px] text-outline">smart_toy</span>
+<span>local-mistral-7b-instruct</span>
+</div>
+<div class="flex items-center justify-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[13px] text-outline">timer</span>
+<span>Inference: 1.8s</span>
+</div>
+<div class="flex items-center justify-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[13px] text-outline">schedule</span>
+<span>Oct 24, 09:16:42 UTC</span>
+</div>
+</div>
+</div>
+<!-- Explanation Column -->
+<div class="lg:col-span-8 flex flex-col gap-gutter">
+<div class="rounded-lg bg-surface-container-low p-gutter">
+<div class="flex items-center gap-2 mb-stack-compact">
+<span class="material-symbols-outlined text-secondary text-[18px]">auto_awesome</span>
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">LLM Interpretation</span>
+</div>
+<p class="text-on-surface font-body-md text-body-md leading-relaxed" id="llm-explanation">
+The implementation in <span class="font-mono-code text-primary font-medium">PR #142</span> correctly captures the modal structure, button hierarchy, and overall layout from Figma frame <span class="font-mono-code text-secondary font-medium">v3.2</span>. However, two specific token values diverge from the design specification:
+</p>
+<ul class="mt-stack-compact space-y-stack-compact font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-start gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary mt-1.5 flex-shrink-0"></span>
+<span><strong class="text-on-surface">Padding:</strong> Code uses <code class="font-mono-code text-tertiary bg-tertiary/10 px-1 rounded">spacing-md</code> (24px) instead of design-specified <code class="font-mono-code text-secondary bg-secondary/10 px-1 rounded">spacing-lg</code> (32px) — 8px drift on horizontal axis</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary mt-1.5 flex-shrink-0"></span>
+<span><strong class="text-on-surface">Border Radius:</strong> Code applies <code class="font-mono-code text-tertiary bg-tertiary/10 px-1 rounded">rounded-lg</code> (8px) while design specifies <code class="font-mono-code text-secondary bg-secondary/10 px-1 rounded">rounded-xl</code> (12px) — 4px drift on corner radius</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5 flex-shrink-0"></span>
+<span><strong class="text-on-surface">Matching elements:</strong> Modal title typography, button sizing, overlay backdrop blur, close icon placement — all faithfully implemented</span>
+</li>
+</ul>
+</div>
+<!-- Per-Artifact Confidence Breakdown -->
+<div class="rounded-lg bg-surface-container-low p-gutter">
+<div class="flex items-center justify-between mb-stack-compact">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[16px]">analytics</span>
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Per-Artifact Confidence</span>
+</div>
+<button class="text-primary hover:text-on-primary-container font-mono-code text-[11px] flex items-center gap-1 transition-colors" id="btn-toggle-confidence">
+<span>View Full LLM Response</span>
+<span class="material-symbols-outlined text-[14px]">expand_more</span>
+</button>
+</div>
+<div class="grid grid-cols-3 gap-stack-comfortable">
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between text-[11px] font-mono-code">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#F24E1E]"></span>Figma</span>
+<span class="text-secondary font-semibold">96%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 96%;"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between text-[11px] font-mono-code">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-primary"></span>GitHub</span>
+<span class="text-tertiary font-semibold">92%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-tertiary h-full rounded-full" style="width: 92%;"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between text-[11px] font-mono-code">
+<span class="text-on-surface-variant flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-tertiary"></span>Jira</span>
+<span class="text-secondary font-semibold">98%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 98%;"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Hidden Full Response Drawer -->
+<div class="hidden rounded-lg bg-surface-container-lowest p-gutter font-mono-code text-[12px] text-on-surface-variant overflow-x-auto leading-5" id="llm-full-response">
+<pre><code>{
+  "model": "local-mistral-7b-instruct",
+  "quantization": "Q4_K_M",
+  "context_window": "8192 tokens",
+  "inference_time_ms": 1842,
+  "faithfulness_score": 0.942,
+  "artifacts_analyzed": {
+    "figma": { "confidence": 0.96, "tokens_matched": 14, "tokens_drifted": 2 },
+    "github": { "confidence": 0.92, "files_analyzed": 3, "lines_with_drift": 4 },
+    "jira":   { "confidence": 0.98, "fields_matched": 8, "fields_missing": 0 }
+  },
+  "drift_details": [
+    { "type": "padding", "expected": "spacing-lg (32px)", "actual": "spacing-md (24px)", "delta_px": 8 },
+    { "type": "border_radius", "expected": "rounded-xl (12px)", "actual": "rounded-lg (8px)", "delta_px": 4 }
+  ],
+  "summary": "Implementation is structurally faithful with 2 token-level drifts totaling 12px cumulative layout variance."
+}</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -821,6 +964,55 @@ tailwind.config = {
     document.getElementById('btn-escalate')?.addEventListener('click', () => {
       showToast('Escalation Page Sent', 'PagerDuty event triggered for Secondary UX-Eng On-Call');
     });
+
+    // LLM Faithfulness: Toggle Full Response
+    const btnToggleConfidence = document.getElementById('btn-toggle-confidence');
+    const llmFullResponse = document.getElementById('llm-full-response');
+    if (btnToggleConfidence && llmFullResponse) {
+      btnToggleConfidence.addEventListener('click', () => {
+        const isHidden = llmFullResponse.classList.contains('hidden');
+        llmFullResponse.classList.toggle('hidden');
+        btnToggleConfidence.innerHTML = isHidden
+          ? '<span>Collapse</span><span class="material-symbols-outlined text-[14px]">expand_less</span>'
+          : '<span>View Full LLM Response</span><span class="material-symbols-outlined text-[14px]">expand_more</span>';
+      });
+    }
+
+    // LLM Faithfulness: Re-run Analysis
+    const btnRerunLLM = document.getElementById('btn-rerun-llm');
+    const llmScoreRing = document.getElementById('llm-score-ring');
+    const llmScoreValue = document.getElementById('llm-score-value');
+    const llmStatusBadge = document.getElementById('llm-status-badge');
+    if (btnRerunLLM) {
+      btnRerunLLM.addEventListener('click', () => {
+        btnRerunLLM.disabled = true;
+        btnRerunLLM.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span><span>Analyzing...</span>';
+        if (llmScoreValue) llmScoreValue.textContent = '...';
+        if (llmScoreRing) llmScoreRing.style.strokeDashoffset = '326.73';
+
+        setTimeout(() => {
+          const scores = [94.2, 91.8, 96.5, 88.3, 97.1];
+          const statuses = ['Partial Drift', 'Faithful', 'Significant Drift', 'Faithful', 'Partial Drift'];
+          const idx = Math.floor(Math.random() * scores.length);
+          const score = scores[idx];
+          const status = statuses[idx];
+          const offset = 326.73 - (326.73 * score / 100);
+
+          if (llmScoreValue) llmScoreValue.textContent = score.toFixed(1);
+          if (llmScoreRing) llmScoreRing.style.strokeDashoffset = offset;
+          if (llmStatusBadge) {
+            llmStatusBadge.textContent = status;
+            llmStatusBadge.className = 'px-3 py-1 rounded-full font-label-caps text-label-caps font-semibold uppercase tracking-wider mb-stack-compact ' +
+              (status === 'Faithful' ? 'bg-secondary/15 text-secondary' :
+               status === 'Partial Drift' ? 'bg-tertiary/15 text-tertiary' :
+               'bg-error/15 text-error');
+          }
+          btnRerunLLM.disabled = false;
+          btnRerunLLM.innerHTML = '<span class="material-symbols-outlined text-[16px]">refresh</span><span>Re-run Analysis</span>';
+          showToast('LLM Analysis Complete', 'Faithfulness score updated: ' + score + '% (' + status + ')');
+        }, 2000);
+      });
+    }
   })();
 </script></main></div><script>
 function navigateTo(key){var m={"onboarding":"../unify_workspace_onboarding/code.html","conflict-inbox":"../unify_conflict_inbox/code.html","conflict-detail":"../unify_conflict_detail/code.html","graph-explorer":"../unify_artifact_graph_explorer/code.html","policy-configuration":"../unify_policy_configuration/code.html","policy-simulation":"../unify_policy_simulation/code.html","link-management":"../unify_link_management/code.html","search":"../unify_search_advanced_filtering/code.html","evaluation":"../unify_evaluation_dashboard_internal/code.html","admin":"../unify_workspace_administration/code.html","audit-trail":"../unify_audit_trail_compliance_export/code.html","user-profile":"../unify_user_profile_watcher_preferences/code.html","slack-config":"../unify_slack_configuration/code.html","notifications":"../unify_notification_preferences/code.html","study":"../unify_manual_workflow_study_interface/code.html"};if(m[key])window.location.href=m[key];}
