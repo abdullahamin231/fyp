@@ -1,0 +1,19 @@
+{
+  "__unify_received_at": "2026-10-06T00:03:00.000000+00:00",
+  "event_type": "FILE_VERSION_UPDATE",
+  "file_key": "aBcDeFgHiJkL",
+  "file_name": "Unify-Components",
+  "version_id": "1234567890",
+  "label": "v1.0 — LoginButton approved (UNIFY-1)",
+  "description": "LoginButton component approved for implementation. Matches acceptance criteria in UNIFY-1. See also UNIFY-2 for auth flow.",
+  "created_at": "2026-10-06T00:03:00Z",
+  "triggered_by": {
+    "id": "figma-user-abdullah-001",
+    "handle": "abdullah-design",
+    "email": "abdullah@unify.dev",
+    "img_url": "https://s3-alpha.figma.com/profile/placeholder.png"
+  },
+  "passcode": "verified",
+  "webhook_id": "figma-hook-001",
+  "retries": 0
+}

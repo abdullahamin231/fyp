@@ -1,0 +1,118 @@
+{
+  "__unify_received_at": "2026-10-06T00:02:00.000000+00:00",
+  "timestamp": 1728172920000,
+  "webhookEvent": "jira:issue_updated",
+  "issue_event_type_name": "issue_generic",
+  "user": {
+    "self": "https://unify-team.atlassian.net/rest/api/3/user?accountId=abc123",
+    "accountId": "abc123mishalaccountid",
+    "displayName": "Mishal Fatima",
+    "emailAddress": "mishal@unify.dev",
+    "active": true
+  },
+  "issue": {
+    "id": "10001",
+    "self": "https://unify-team.atlassian.net/rest/api/3/issue/10001",
+    "key": "UNIFY-1",
+    "fields": {
+      "summary": "Implement LoginButton component",
+      "issuetype": {
+        "name": "Story",
+        "subtask": false
+      },
+      "project": {
+        "id": "10000",
+        "key": "UNIFY",
+        "name": "Unify"
+      },
+      "status": {
+        "name": "In Progress",
+        "statusCategory": { "key": "indeterminate", "name": "In Progress" }
+      },
+      "priority": { "name": "High" },
+      "assignee": {
+        "accountId": "def456haaniahaccountid",
+        "displayName": "Haaniah Ismail",
+        "emailAddress": "haaniah@unify.dev"
+      },
+      "reporter": {
+        "accountId": "abc123mishalaccountid",
+        "displayName": "Mishal Fatima"
+      },
+      "description": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          {
+            "type": "heading",
+            "attrs": { "level": 2 },
+            "content": [{ "type": "text", "text": "Acceptance Criteria" }]
+          },
+          {
+            "type": "bulletList",
+            "content": [
+              {
+                "type": "listItem",
+                "content": [{
+                  "type": "paragraph",
+                  "content": [{ "type": "text", "text": "Button renders in primary state with correct brand colour (#1A73E8)" }]
+                }]
+              },
+              {
+                "type": "listItem",
+                "content": [{
+                  "type": "paragraph",
+                  "content": [{ "type": "text", "text": "Disabled state applies opacity-50 and cursor-not-allowed" }]
+                }]
+              },
+              {
+                "type": "listItem",
+                "content": [{
+                  "type": "paragraph",
+                  "content": [{ "type": "text", "text": "Loading state shows spinner, disables click" }]
+                }]
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              { "type": "text", "text": "Design reference: " },
+              {
+                "type": "text",
+                "marks": [{ "type": "link", "attrs": { "href": "https://www.figma.com/design/aBcDeFgHiJkL/Unify-Components?node-id=1:2" } }],
+                "text": "Figma — LoginButton (UNIFY-1)"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              { "type": "text", "text": "Implementation tracked in: " },
+              {
+                "type": "text",
+                "marks": [{ "type": "link", "attrs": { "href": "https://github.com/unify-team/unify-fixture/pull/1" } }],
+                "text": "PR #1"
+              }
+            ]
+          }
+        ]
+      },
+      "created": "2026-10-01T10:00:00.000+0500",
+      "updated": "2026-10-06T00:02:00.000+0500"
+    }
+  },
+  "changelog": {
+    "id": "10123",
+    "items": [
+      {
+        "field": "status",
+        "fieldtype": "jira",
+        "from": "10000",
+        "fromString": "To Do",
+        "to": "10001",
+        "toString": "In Progress"
+      }
+    ]
+  }
+}

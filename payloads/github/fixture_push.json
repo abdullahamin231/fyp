@@ -1,0 +1,51 @@
+{
+  "__unify_received_at": "2026-10-06T00:01:00.000000+00:00",
+  "__unify_event_type": "push",
+  "ref": "refs/heads/feature/UNIFY-1-login-button",
+  "before": "0000000000000000000000000000000000000000",
+  "after": "abc123def456abc123def456abc123def456abc1",
+  "repository": {
+    "id": 500001,
+    "name": "unify-fixture",
+    "full_name": "unify-team/unify-fixture",
+    "private": false,
+    "owner": { "login": "unify-team", "id": 1000 },
+    "default_branch": "main"
+  },
+  "pusher": {
+    "name": "haaniah-dev",
+    "email": "haaniah@unify.dev"
+  },
+  "sender": {
+    "login": "haaniah-dev",
+    "id": 1001,
+    "type": "User"
+  },
+  "commits": [
+    {
+      "id": "aaa111bbb222ccc333ddd444eee555fff666aaa1",
+      "message": "feat: scaffold LoginButton component\n\nUnify-1: initial component structure",
+      "timestamp": "2026-10-05T23:55:00Z",
+      "url": "https://github.com/unify-team/unify-fixture/commit/aaa111bbb222ccc333ddd444eee555fff666aaa1",
+      "author": { "name": "Haaniah Ismail", "email": "haaniah@unify.dev" },
+      "added": ["src/components/LoginButton.tsx"],
+      "modified": [],
+      "removed": []
+    },
+    {
+      "id": "abc123def456abc123def456abc123def456abc1",
+      "message": "test: add LoginButton unit tests (UNIFY-1)\n\nCovers primary, disabled and loading states as per acceptance criteria.",
+      "timestamp": "2026-10-05T23:58:00Z",
+      "url": "https://github.com/unify-team/unify-fixture/commit/abc123def456abc123def456abc123def456abc1",
+      "author": { "name": "Haaniah Ismail", "email": "haaniah@unify.dev" },
+      "added": ["src/components/LoginButton.test.tsx"],
+      "modified": ["src/components/LoginButton.tsx"],
+      "removed": []
+    }
+  ],
+  "head_commit": {
+    "id": "abc123def456abc123def456abc123def456abc1",
+    "message": "test: add LoginButton unit tests (UNIFY-1)",
+    "timestamp": "2026-10-05T23:58:00Z"
+  }
+}

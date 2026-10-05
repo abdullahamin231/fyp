@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+
+  # ── PostgreSQL — event store ───────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: unify_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       unify_dev
+      POSTGRES_USER:     unify
+      POSTGRES_PASSWORD: unify
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./integrations/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unify -d unify_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Webhook Receiver ───────────────────────────────────────────────────────
+  receiver:
+    build:
+      context: .
+      dockerfile: webhooks/receiver/Dockerfile
+    container_name: unify_receiver
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    volumes:
+      - ./payloads:/app/payloads        # raw payloads written to host disk
+      - ./integrations:/app/integrations
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
