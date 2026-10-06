@@ -1,60 +1,31 @@
-# Unify - Cross-Tool Collaboration Hub
+# FYP
 
-A system for monitoring and reconciling consistency across Figma, GitHub, and Jira. Detects design-code drift, ticket staleness, and cross-tool conflicts in real time.
+Fresh repository — Final Year Project, built from scratch.
 
-## Project Structure
+## Setup
 
-```
-.
-├── frontend/               # Stitch-generated UI prototypes (15 screens)
-│   ├── unify_workspace_onboarding/
-│   ├── unify_conflict_inbox/
-│   ├── unify_conflict_detail/
-│   ├── unify_artifact_graph_explorer/
-│   ├── unify_policy_configuration/
-│   ├── unify_policy_simulation/
-│   ├── unify_link_management/
-│   ├── unify_search_advanced_filtering/
-│   ├── unify_evaluation_dashboard_internal/
-│   ├── unify_workspace_administration/
-│   ├── unify_audit_trail_compliance_export/
-│   ├── unify_user_profile_watcher_preferences/
-│   ├── unify_slack_configuration/
-│   ├── unify_notification_preferences/
-│   ├── unify_manual_workflow_study_interface/
-│   ├── wire_navigation.py  # Navigation wiring script
-│   └── docs/               # Design documentation
-├── unify_poc/              # Python proof-of-concept engine
-│   ├── run.py              # CLI entrypoint
-│   ├── src/unify/          # Core library
-│   ├── data/               # Fixtures
-│   └── tests/              # Test suite
-└── docs/                   # FYP documentation
-```
+Clone the repo and open it in OpenCode. The project ships an `opencode.json`
+that configures the official **Google Stitch MCP server**
+(`https://stitch.googleapis.com/mcp`) so agents can generate and manage UI
+screens.
 
-## Frontend Demo
+### Stitch MCP API key
 
-The `frontend/` directory contains 15 interconnected screens built with Google Stitch. All screens share a sidebar navigation and key buttons are wired to navigate between pages.
+Each team member needs their own Stitch API key:
 
-```bash
-cd frontend
-python3 -m http.server 8080
-# Open http://localhost:8080/unify_workspace_onboarding/code.html
-```
+1. Open [stitch.withgoogle.com](https://stitch.withgoogle.com) and sign in.
+2. Click your profile icon (top right) → **Stitch Settings** → **API Keys** →
+   **Create Key**.
+3. Export the key in your shell (add to `~/.bashrc` or `~/.zshrc` to keep it
+   across sessions):
 
-To re-wire navigation after editing screens:
+   ```sh
+   export STITCH_API_KEY="your-key-here"
+   ```
 
-```bash
-cd frontend
-python3 wire_navigation.py
-```
+4. Restart OpenCode so it picks up the environment variable. The key stays out
+   of git — it is read via `{env:STITCH_API_KEY}` from `opencode.json`.
 
-## POC Engine
-
-See [unify_poc/README.md](unify_poc/README.md) for setup and usage.
-
-```bash
-cd unify_poc
-pip install -r requirements.txt
-PYTHONPATH=src python3 run.py
-```
+Stitch MCP is free of charge. See the
+[Stitch MCP setup docs](https://stitch.withgoogle.com/docs/mcp/setup/) for
+details.
