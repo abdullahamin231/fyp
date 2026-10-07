@@ -1,0 +1,266 @@
+% =============================================================================
+% UNIFY -- Entity-relationship diagram, PostgreSQL MVP (owner: Mishal Fatima)
+% Sources: proposal §8.3 (event envelope), §8.4 (checkpoints, SOURCE_STALE),
+%          §9.1/§9.9 (nodes/edges/artifact_snapshots + indexes), §9.3 (rule
+%          schema), §11.5-11.8 (packet, verdict schema, gate), §15.1 FR-03,
+%          FR-15, FR-18 (immutable evidence, idempotent findings, audit),
+%          §22.1-22.2 (CodeAnchor, re-anchoring), §27.1 (packet manifest).
+% Design decision: Requirement, Criterion, Ticket, ... are rows of `nodes`
+% (type discriminator + jsonb payload), exactly as §9.9 commits to. Only the
+% CodeAnchor gets its own table, because re-anchoring history and
+% anchor_survival_rate need one row per commit-pinned anchor.
+% =============================================================================
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \newcommand{\pk}{\textbf{PK}\ }
+  \newcommand{\fk}{\textit{FK}\ }
+  \newcommand{\ix}{\phantom{PK}\ }
+  \newcommand{\rarr}{$\rightarrow$}
+  \newcommand{\hdr}[2]{\textbf{\normalsize #1}\ \textrm{\scriptsize\textit{#2}}}
+
+  % ============================ ROW 1 =========================================
+  \node[table=uIngest, anchor=north] (events) at (-13,0) {%
+    \hdr{events}{\guillemotleft append-only\guillemotright}
+    \nodepart{two}
+    \pk event\_id : text\\
+    \ix vendor\_delivery\_id : text\\
+    \ix workspace\_id : uuid\\
+    \ix source\_tool : enum\\
+    \ix entity\_type, entity\_id : text\\
+    \ix version : text\\
+    \ix action : text\\
+    \ix state\_before, state\_after : text\\
+    \ix actor : text\\
+    \ix occurred\_at, received\_at : tstz\\
+    \ix references : jsonb\\
+    \ix raw\_hash : text\\
+    \ix schema\_version : int\\[2pt]
+    \textrm{\textit{UNIQUE (source\_tool, vendor\_delivery\_id)}}};
+
+  \node[table=uIngest, anchor=north] (snaps) at (-6.5,0) {%
+    \hdr{artifact\_snapshots}{\guillemotleft immutable\guillemotright}
+    \nodepart{two}
+    \pk id : uuid\\
+    \fk node\_id \rarr{} nodes\\
+    \fk source\_event\_id \rarr{} events\\
+    \ix version : text\\
+    \ix content\_hash : text\\
+    \ix captured\_at : tstz\\
+    \ix content : jsonb\\[2pt]
+    \textrm{\textit{UNIQUE (node\_id, version)}}};
+
+  \node[table=uGraph, anchor=north] (nodes) at (0,0) {%
+    \hdr{nodes}{}
+    \nodepart{two}
+    \pk id : uuid\\
+    \ix workspace\_id : uuid\\
+    \ix type : node\_type (enum)\\
+    \ix external\_id : text\\
+    \ix version : text\\
+    \ix status, owner : text\\
+    \ix last\_modified : tstz\\
+    \ix valid\_from, valid\_to : tstz\\
+    \ix payload : jsonb\\[2pt]
+    \textrm{\textit{UNIQUE (workspace\_id, type, external\_id)}}};
+
+  \node[table=uGraph, anchor=north] (edges) at (6.5,0) {%
+    \hdr{edges}{}
+    \nodepart{two}
+    \pk id : uuid\\
+    \fk from\_id \rarr{} nodes\\
+    \fk to\_id \rarr{} nodes\\
+    \ix type : edge\_type (enum)\\
+    \ix source\_class : enum\\
+    \ix confidence : real\\
+    \ix resolver : text\\
+    \ix link\_state : enum\\
+    \ix created\_at : tstz\\
+    \ix valid\_from, valid\_to : tstz\\
+    \ix metadata : jsonb\\[2pt]
+    \textrm{\textit{INDEX (from\_id, type), (to\_id, type)}}};
+
+  \node[table=uGraph, anchor=north] (anchors) at (13,0) {%
+    \hdr{code\_anchors}{\guillemotleft commit-pinned\guillemotright}
+    \nodepart{two}
+    \pk id : uuid\\
+    \fk edge\_id \rarr{} edges (SATISFIES)\\
+    \fk prev\_anchor\_id \rarr{} code\_anchors\\
+    \ix repo, file\_path : text\\
+    \ix symbol\_fqn : text\\
+    \ix start\_line, end\_line : int\\
+    \ix blob\_hash : text\\
+    \ix commit\_sha : text\\
+    \ix method : anchor\_method (enum)\\
+    \ix status : anchor\_status (enum)\\
+    \ix confidence : real\\
+    \ix provenance : jsonb};
+
+  % ============================ ROW 2 =========================================
+  \node[table=uIngest, anchor=north] (ckpt) at (-13,-7.0) {%
+    \hdr{checkpoints}{}
+    \nodepart{two}
+    \pk workspace\_id, source\_tool,\\
+    \ix resource\_id\\
+    \fk last\_event\_id \rarr{} events\\
+    \ix last\_state\_at : tstz\\
+    \ix last\_success\_at : tstz\\
+    \ix source\_stale : bool};
+
+  \node[table=uVerify, anchor=north] (fe) at (-6.5,-7.0) {%
+    \hdr{finding\_evidence}{}
+    \nodepart{two}
+    \pk (finding\_id, snapshot\_id)\\
+    \fk finding\_id \rarr{} findings\\
+    \fk snapshot\_id \rarr{} artifact\_snapshots\\
+    \ix role : text};
+
+  \node[table=uVerify, anchor=north] (findings) at (0,-7.0) {%
+    \hdr{findings}{}
+    \nodepart{two}
+    \pk id : uuid\\
+    \fk subject\_node\_id \rarr{} nodes\\
+    \fk rule\_id, rule\_version \rarr{} rules\\
+    \fk verdict\_id \rarr{} verdicts\\
+    \ix kind : enum (rule | verdict)\\
+    \ix idempotency\_key : text\\
+    \ix annotation, severity : text\\
+    \ix state : finding\_state (enum)\\
+    \ix created\_at : tstz\\[2pt]
+    \textrm{\textit{UNIQUE (idempotency\_key)}}\\
+    \textrm{\textit{CHECK exactly one of rule / verdict}}};
+
+  \node[table=uVerify, anchor=north] (verdicts) at (6.5,-7.0) {%
+    \hdr{verdicts}{}
+    \nodepart{two}
+    \pk id : uuid\\
+    \fk packet\_id \rarr{} context\_packets\\
+    \ix status : verdict\_status (enum)\\
+    \ix evidence : jsonb (cited spans)\\
+    \ix reason, missing\_evidence : text\\
+    \ix divergence\_tag : enum\\
+    \ix freshness\_state : enum\\
+    \ix review\_required : bool\\
+    \ix reason\_code : text\\
+    \ix pass\_count : int, stop\_reason\\
+    \ix gate\_outcome : enum\\
+    \ix model\_and\_run : jsonb};
+
+  \node[table=uVerify, anchor=north] (packets) at (13,-7.0) {%
+    \hdr{context\_packets}{\guillemotleft immutable\guillemotright}
+    \nodepart{two}
+    \pk id : uuid\\
+    \fk criterion\_node\_id \rarr{} nodes\\
+    \ix base\_commit, head\_commit\\
+    \ix token\_budget : int\\
+    \ix slot\_budgets : jsonb\\
+    \ix manifest : jsonb\\
+    \ix prompt\_hash : text\\
+    \ix packet\_hash : text};
+
+  % ============================ ROW 3 =========================================
+  \node[table=uGraph, anchor=north] (rules) at (-6.5,-13.9) {%
+    \hdr{rules}{\guillemotleft versioned\guillemotright}
+    \nodepart{two}
+    \pk id, version\\
+    \ix edge\_type : edge\_type\\
+    \ix trigger, guards : jsonb\\
+    \ix condition : text\\
+    \ix grace\_period\_hours : int\\
+    \ix produces, severity : text\\
+    \ix notify : jsonb\\
+    \ix resolution\_options : text[]\\
+    \ix active : bool};
+
+  \node[table=uVerify, anchor=north] (audit) at (0,-13.9) {%
+    \hdr{audit\_log}{\guillemotleft append-only\guillemotright}
+    \nodepart{two}
+    \pk id : uuid\\
+    \fk finding\_id \rarr{} findings\\
+    \fk actor\_id \rarr{} nodes (Person)\\
+    \ix action : enum\\
+    \ix reason : text\\
+    \ix evidence\_snapshot : jsonb\\
+    \ix at : tstz};
+
+  \node[table=uVerify, anchor=north] (notif) at (6.5,-13.9) {%
+    \hdr{notifications}{}
+    \nodepart{two}
+    \pk id : uuid\\
+    \fk finding\_id \rarr{} findings\\
+    \fk recipient\_id \rarr{} nodes (Person)\\
+    \ix channel : text\\
+    \ix delivery\_status : enum\\
+    \ix delivered\_at : tstz};
+
+  % ============================ RELATIONSHIPS ==================================
+  % helper: horizontal relationship at a given depth below the row top
+  \newcommand{\hrel}[6]{% from, to, depth, card-from, card-to, label
+    \draw[rel] ([yshift=-#3]#1.north east) -- ([yshift=-#3]#1.north east -| #2.west)
+      node[card, pos=0.0, anchor=south west]{#4}
+      node[card, pos=1.0, anchor=south east]{#5}
+      node[lbl, pos=0.5, below=1pt]{#6};}
+
+  \hrel{events}{snaps}{1.2cm}{1}{0..*}{source}
+  \hrel{snaps}{nodes}{1.2cm}{1..*}{1}{of}
+  \hrel{nodes}{edges}{1.0cm}{1}{0..*}{from}
+  \hrel{nodes}{edges}{2.0cm}{1}{0..*}{to}
+  \hrel{edges}{anchors}{1.2cm}{1}{0..*}{SATISFIES}
+  \hrel{fe}{findings}{1.0cm}{1..*}{1}{cites}
+  \hrel{findings}{verdicts}{1.2cm}{0..1}{0..1}{from}
+  \hrel{verdicts}{packets}{1.2cm}{1..*}{1}{judges}
+
+  % self-reference: prev_anchor_id (re-anchoring history)
+  \draw[rel] ([yshift=-1.4cm]anchors.north east) -- ++(0.6,0) |- ([yshift=-0.75cm]anchors.north east);
+  \node[card, anchor=west, align=left, font=\scriptsize] at ([xshift=0.65cm,yshift=-1.07cm]anchors.north east)
+       {0..1\\[-1pt]\textmd{\color{uMuted}prev}};
+
+  % vertical relationships
+  \draw[rel] (ckpt.north) -- (events.south)
+    node[card, pos=0.04, anchor=south west]{0..*}
+    node[card, pos=0.96, anchor=north west]{0..1};
+  \draw[rel] (fe.north) -- (snaps.south)
+    node[card, pos=0.06, anchor=south west]{0..*}
+    node[card, pos=0.95, anchor=north west]{1};
+  \draw[rel] (findings.north) -- (nodes.south)
+    node[card, pos=0.06, anchor=south west]{0..*}
+    node[card, pos=0.95, anchor=north west]{1}
+    node[lbl, pos=0.5, right=1pt]{subject};
+  \draw[rel] (audit.north) -- (findings.south)
+    node[card, pos=0.1, anchor=south west]{0..*}
+    node[card, pos=0.9, anchor=north west]{1};
+
+  % findings -> rules (orthogonal, below finding_evidence)
+  \draw[rel] ([yshift=0.5cm]findings.south west) -| (rules.north)
+    node[card, pos=0.03, anchor=south east]{0..*}
+    node[card, pos=0.97, anchor=south west]{0..1}
+    node[lbl, pos=0.3, above=1pt]{fired by};
+
+  % findings -> notifications
+  \draw[rel] ([xshift=1.6cm]findings.south) |- ++(4.9,-0.75) -- (notif.north)
+    node[card, pos=0.0, anchor=north west]{0..*};
+  \node[card, anchor=south west] at ([xshift=1.6cm]findings.south) {1};
+
+  % context_packets -> nodes (criterion), routed over the top row
+  \draw[rel] ([yshift=-1.0cm]packets.north east) -- ++(2.3,0) |- (0.6,1.0) -- (0.6,0)
+    node[card, pos=0.85, anchor=west]{1};
+  \node[card, anchor=south west] at ([yshift=-1.0cm]packets.north east) {0..*};
+  \node[lbl, anchor=south] at (8,1.0) {criterion (Criterion node)};
+
+  % ============================ LEGEND ==========================================
+  \node[note=5.4cm, anchor=north] (legend) at (-13,-12.3) {%
+    \textbf{Layer (header colour)}\\[2pt]
+    \tikz\fill[uIngest,draw=uLine] (0,0) rectangle (0.35,0.22);\ event reliability \& version store\\
+    \tikz\fill[uGraph,draw=uLine] (0,0) rectangle (0.35,0.22);\ evidence graph, policy \& traceability\\
+    \tikz\fill[uVerify,draw=uLine] (0,0) rectangle (0.35,0.22);\ verification \& findings\\[4pt]
+    \textbf{Notation}: \texttt{PK} primary key, \texttt{\textit{FK}} foreign key,
+    \texttt{1}/\texttt{0..1}/\texttt{0..*}/\texttt{1..*} cardinality at that end,
+    \texttt{tstz} = timestamptz.\\[4pt]
+    \textbf{Enums}\\
+    \texttt{node\_type}: DesignArtifact, DesignConstraint, Ticket, Criterion,
+      Requirement, PullRequest, Commit, CodeSymbol, TestCase, Person, Message\\
+    \texttt{source\_class}: observed | derived | model\_candidate | unresolved\\
+    \texttt{link\_state}: active | dismissed | revoked\\
+    \texttt{anchor\_method}: created | symbol | hash | hunk\\
+    \texttt{anchor\_status}: active | broken\\
+    \texttt{verdict\_status}: SUPPORTED | CONTRADICTED | PARTIAL | INSUFFICIENT\_EVIDENCE\\
+    \texttt{finding\_state}: open | acknowledged | resolved | disputed | suppressed};
+\end{tikzpicture}

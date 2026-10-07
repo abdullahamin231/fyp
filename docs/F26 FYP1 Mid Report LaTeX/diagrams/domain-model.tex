@@ -1,0 +1,144 @@
+% =============================================================================
+% UNIFY -- Domain / class model of the evidence graph (owner: Mishal Fatima)
+% Sources: proposal §9.1 (node types, edge types, edge attributes), §9.2
+%          (eligibility of edges), §7.3 (structured design constraints),
+%          §22.1-22.2 (Requirement, SATISFIES + CodeAnchor), §26.1 (symbol card).
+% Every association drawn here is persisted as a row of `edges` (see ERD).
+% =============================================================================
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \tikzset{klass/.append style={align=left, text width=3.45cm}}
+  \newcommand{\cname}[2][]{\makebox[\linewidth]{\textbf{#2}}%
+     \ifx\relax#1\relax\else\\[-1pt]\makebox[\linewidth]{\textit{\scriptsize#1}}\fi}
+
+  % ---------------- abstract superclass + person -------------------------------
+  \node[klass=uGraph, anchor=center] (art) at (-2.6,0) {%
+    \cname[\guillemotleft abstract\guillemotright]{Artifact}
+    \nodepart{two}
+    id : UUID\\ externalId : String\\ version : String\\ status : String\\
+    owner : String\\ lastModified : Time\\ validFrom, validTo : Time\\ raw : JSON};
+
+  \node[klass=white, anchor=north] (person) at (-2.6,-4.6) {%
+    \cname{Person}
+    \nodepart{two}
+    handle : String\\ displayName : String\\ toolIdentities : Map};
+
+  \draw[directed] (person.north) -- (art.south)
+    node[lbl, pos=0.5, align=center]{OWNS / ASSIGNED\_TO\\/ WATCHES};
+  \node[card, anchor=north west] at ([xshift=2pt]art.south) {*};
+  \node[card, anchor=south west] at ([xshift=2pt]person.north) {*};
+
+  \node[note=4.4cm, anchor=south] (edgenote) at (-2.6,2.6) {%
+    \textbf{Every association is an \texttt{Edge}} carrying
+    \emph{sourceClass} (observed | derived | model\_candidate | unresolved),
+    confidence, resolver, createdAt and a validity interval.
+    Only deterministic or confirmed edges may produce a decisive finding (\S9.2).};
+
+  % ---------------- row A: intent side (anchored on their south edge) ----------
+  \node[klass=uIntent, anchor=south] (da) at (2.6,3) {%
+    \cname{DesignArtifact}\nodepart{two} fileKey : String\\ nodeId : String\\ versionId : String};
+  \node[klass=uIntent, anchor=south] (dc) at (7.2,3) {%
+    \cname{DesignConstraint}\nodepart{two} kind : ConstraintKind\\ expected : String\\ approvedBy : Person};
+  \node[klass=uIntent, anchor=south] (tk) at (11.8,3) {%
+    \cname{Ticket}\nodepart{two} key : String\\ workflowState : String};
+  \node[klass=uIntent, anchor=south] (cr) at (16.4,3) {%
+    \cname{Criterion}\nodepart{two} text : String\\ atomicIndex : Int};
+  \node[klass=white, anchor=south] (msg) at (21.0,3) {%
+    \cname{Message}\nodepart{two} channel : String\\ ts : Time};
+
+  % ---------------- row B: change / evidence side (anchored on north edge) -----
+  \node[klass=uIngest, anchor=north] (pr) at (2.6,-3) {%
+    \cname{PullRequest}\nodepart{two} number : Int\\ baseSha, headSha : String\\ mergedAt : Time [0..1]};
+  \node[klass=uIngest, anchor=north] (cm) at (7.2,-3) {%
+    \cname{Commit}\nodepart{two} sha : String\\ message : String\\ authoredAt : Time};
+  \node[klass=uIngest, anchor=north] (tc) at (11.8,-3) {%
+    \cname{TestCase}\nodepart{two} path : String\\ name : String\\ lastResult : Result [0..1]};
+  \node[klass=uIngest, anchor=north] (cs) at (16.4,-3) {%
+    \cname[symbol card fields, \S26.1]{CodeSymbol}\nodepart{two}
+    fqName : String\\ signature : String\\ filePath : String\\ docstring : String [0..1]\\
+    blobHash : String};
+  \node[klass=uIntent, anchor=north] (rq) at (22.4,-3) {%
+    \cname{Requirement}\nodepart{two} reqKey : String\\ kind : FR | NFR\\ text : String\\ source : String};
+
+  % ---------------- generalisation tree ----------------------------------------
+  \coordinate (trunkTop) at (-0.25,5.5);
+  \coordinate (trunkBot) at (-0.25,-7.1);
+  \draw[uline] (trunkTop) -- (trunkBot);
+  \draw[uline] (trunkTop) -- (21.0,5.5);
+  \draw[uline] (trunkBot) -- (22.4,-7.1);
+  \foreach \c in {da,dc,tk,cr,msg} \draw[uline] (\c.north) -- (\c.north |- trunkTop);
+  \foreach \c in {pr,cm,tc,cs,rq}  \draw[uline] (\c.south) -- (\c.south |- trunkBot);
+  \draw[generalise] (-0.25,0) -- (art.east);
+
+  % ---------------- associations within row A ----------------------------------
+  \draw[rel] ([yshift=0.45cm]dc.south west) -- ([yshift=0.45cm]dc.south west -| da.east)
+    node[lbl, pos=0.5, above=1pt]{PART\_OF}
+    node[card, pos=0.05, anchor=north east]{*}
+    node[card, pos=0.95, anchor=north west]{1};
+  \draw[rel] ([yshift=0.45cm]cr.south west) -- ([yshift=0.45cm]cr.south west -| tk.east)
+    node[lbl, pos=0.5, above=1pt]{PART\_OF}
+    node[card, pos=0.05, anchor=north east]{1..*}
+    node[card, pos=0.95, anchor=north west]{1};
+
+  % CONSTRAINS: design constraint -> criterion (routed below row A)
+  \draw[directed] (dc.south) |- (15.3,1.7) -- (15.3,3)
+    node[lbl, pos=0.5, anchor=south]{CONSTRAINS};
+
+  % ---------------- associations within row B ----------------------------------
+  \draw[directed] ([yshift=-0.45cm]cm.north west) -- ([yshift=-0.45cm]cm.north west -| pr.east)
+    node[lbl, pos=0.5, below=1pt]{PART\_OF}
+    node[card, pos=0.06, anchor=south east]{1..*}
+    node[card, pos=0.94, anchor=south west]{1};
+  \draw[directed] ([yshift=-0.45cm]tc.north east) -- ([yshift=-0.45cm]tc.north east -| cs.west)
+    node[lbl, pos=0.5, below=1pt]{COVERS}
+    node[card, pos=0.06, anchor=south west]{*}
+    node[card, pos=0.94, anchor=south east]{*};
+
+  % TOUCHES_COMPONENT: self-association on PullRequest (top-left corner)
+  \draw[uline] ([xshift=0.35cm]pr.north west) -- ++(0,0.55) -| ([xshift=-0.45cm,yshift=-0.5cm]pr.north west)
+     -- ([yshift=-0.5cm]pr.north west);
+  \node[lbl, anchor=south, align=center] at ([xshift=-0.05cm,yshift=0.6cm]pr.north west)
+       {TOUCHES\_COMPONENT};
+
+  % ---------------- associations across rows -----------------------------------
+  \draw[directed] (pr.north) -- (da.south)
+    node[lbl, pos=0.5, align=center]{IMPLEMENTS\\(design version)};
+  \draw[directed] ([xshift=0.9cm]pr.north) -- ([xshift=-0.8cm]tk.south)
+    node[lbl, pos=0.62, sloped, above=1pt]{TRACKS};
+  \draw[directed] ([xshift=0.6cm]tc.north) -- ([xshift=-0.4cm]cr.south)
+    node[lbl, pos=0.45, sloped, above=1pt]{COVERS};
+  \draw[directed, dashed] ([xshift=0.8cm]cs.north) -- ([xshift=0.8cm]cr.south)
+    node[lbl, pos=0.5, align=right, anchor=east, xshift=-2pt]{SATISFIES\_\\CANDIDATE\\\textit{(never decisive}\\\textit{on its own)}};
+
+  % SATISFIES with association class CodeAnchor
+  \draw[directed] ([yshift=-0.6cm]cs.north east) -- ([yshift=-0.6cm]cs.north east -| rq.west)
+    node[lbl, pos=0.5, below=2pt]{SATISFIES}
+    node[card, pos=0.04, anchor=south west]{*}
+    node[card, pos=0.96, anchor=south east]{*};
+  \node[klass=uGraph, anchor=south] (anchor) at (19.45,-1.75) {%
+    \cname[\guillemotleft association class\guillemotright]{CodeAnchor}
+    \nodepart{two}
+    repo, filePath : String\\ symbolFqn : String\\ startLine, endLine : Int\\
+    blobHash, commitSha : String\\ method : AnchorMethod\\ status : ACTIVE | BROKEN\\
+    confidence : Real};
+  \coordinate (satline) at ([yshift=-0.6cm]cs.north east);
+  \draw[uline, dashed] (anchor.south) -- (anchor.south |- satline);
+
+  % ---------------- notes ------------------------------------------------------
+  \node[note=3.3cm, anchor=west] (msgnote) at (23.1,4.0)
+    {Any \texttt{Artifact} may be \textbf{DISCUSSED\_IN} a \texttt{Message}.
+     Messages are a role/watch signal only, never a rule-evaluation target (\S9.1).};
+  \draw[uline, dashed] (msgnote.west) -- (msg.east);
+
+  \node[note=3.3cm, anchor=north west] (nfrnote) at (24.5,-3)
+    {\textbf{FR} anchors to symbol + line range, commit-pinned.
+     \textbf{NFR} is \emph{not} line-anchored: it links to its enforcement point
+     and verifying \texttt{TestCase} (\S22.4).};
+  \draw[uline, dashed] (nfrnote.west) -- (rq.east);
+
+  % ---------------- legend -----------------------------------------------------
+  \node[note=4.4cm, anchor=north] at (-2.6,-8.1) {%
+    \tikz\fill[uIntent,draw=uLine] (0,0) rectangle (0.35,0.22);\ linked intent (what was asked for)\\
+    \tikz\fill[uIngest,draw=uLine] (0,0) rectangle (0.35,0.22);\ actual change and test evidence\\
+    \tikz\fill[uGraph,draw=uLine] (0,0) rectangle (0.35,0.22);\ graph structure / traceability\\[2pt]
+    Solid arrow: observed or derived edge. Dashed arrow: retrieval candidate.};
+\end{tikzpicture}

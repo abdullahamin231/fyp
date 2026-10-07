@@ -6,6 +6,42 @@
 \section{Design Evolution}
 Show important design changes since the proposal and justify them.
 \section{Domain Model}
+
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/domain-model}}
+  \caption{Domain model of the evidence graph. Every association is persisted
+           as a typed, provenance-carrying edge; \texttt{CodeAnchor} is the
+           association class on \texttt{SATISFIES}.}
+  \label{fig:domain-model}
+\end{figure}
+\end{landscape}
+
 \section{Data Design}
+
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/erd}}
+  \caption{Entity-relationship diagram of the PostgreSQL schema. Graph entities
+           share one \texttt{nodes} table with a type discriminator; evidence
+           tables are append-only or immutable.}
+  \label{fig:erd}
+\end{figure}
+\end{landscape}
+
 \section{Process / Behavior Design}
 Include appropriate activity, sequence, state, DFD, ERD/schema, class, component, or other project-specific artefacts.
+
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/anchor-reanchoring}}
+  \caption{Commit-pinned requirement-to-code anchoring (illustrative example).
+           Re-anchoring tries the fully-qualified symbol, then the content hash,
+           then diff-hunk mapping; if all fail, the anchor is marked broken
+           rather than left silently wrong.}
+  \label{fig:anchor}
+\end{figure}
+\end{landscape}
