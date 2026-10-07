@@ -1,0 +1,90 @@
+% =============================================================================
+% UNIFY -- shared TikZ styles for the SE diagrams
+% Load ONCE in the report preamble (main.tex), after \usepackage{tikz-uml}:
+%     \input{diagrams/unify-diagram-styles}
+% Plain TikZ only (no tikz-uml dependency), so it compiles on any TeX Live.
+% =============================================================================
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,
+                shapes.geometric,shapes.multipart,decorations.pathreplacing}
+
+% ---- palette (prints legibly in greyscale) ----------------------------------
+\definecolor{uInk}{HTML}{1F2933}
+\definecolor{uMuted}{HTML}{5B6670}
+\definecolor{uLine}{HTML}{3E4C59}
+\definecolor{uIngest}{HTML}{D9E8F5}   % event reliability / version store
+\definecolor{uGraph}{HTML}{DDEFDF}    % evidence graph / policy / traceability
+\definecolor{uVerify}{HTML}{F6E6CF}   % verification / findings
+\definecolor{uIntent}{HTML}{E7E1F3}   % intent-side artifacts
+\definecolor{uOk}{HTML}{2F7D4E}
+\definecolor{uWarn}{HTML}{B7791F}
+\definecolor{uBad}{HTML}{B4372F}
+\definecolor{uSpan}{HTML}{FCE9A6}
+
+% ---- fixed font sizes, so layouts don't break in 11pt/12pt report classes ----
+\newcommand{\uDiagScript}{\fontsize{7pt}{8.5pt}\selectfont}
+\newcommand{\uDiagSmall}{\fontsize{9pt}{11pt}\selectfont}
+\newcommand{\uDiagNormal}{\fontsize{10pt}{12pt}\selectfont}
+
+\tikzset{
+  % ---- generic ---------------------------------------------------------------
+  every picture/.append style={line join=round,
+     execute at begin picture={\let\scriptsize\uDiagScript
+       \let\small\uDiagSmall\let\normalsize\uDiagNormal\uDiagSmall}},
+  every node/.append style={execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
+  uline/.style={draw=uLine, line width=0.6pt},
+  lbl/.style={font=\scriptsize, text=uMuted, fill=white, inner sep=1pt},
+  note/.style={draw=uMuted, fill=yellow!8, font=\scriptsize, align=left,
+               text width=#1, inner sep=4pt, rounded corners=1pt},
+  note/.default=4.6cm,
+  % ---- use-case --------------------------------------------------------------
+  usecase/.style={ellipse, draw=uLine, fill=white, line width=0.6pt,
+                  minimum width=4.4cm, minimum height=0.95cm, align=center,
+                  font=\scriptsize, inner sep=1pt, text width=3.6cm},
+  sysboundary/.style={draw=uLine, line width=0.9pt, rounded corners=3pt,
+                      fill=uIngest!25},
+  assoc/.style={draw=uLine, line width=0.5pt},
+  stereo/.style={draw=uLine, line width=0.5pt, dashed,
+                 -{Stealth[length=2mm]}},
+  extsys/.style={draw=uLine, fill=uGraph!60, rounded corners=2pt,
+                 minimum width=2.3cm, minimum height=0.8cm, font=\scriptsize,
+                 align=center},
+  % ---- ERD / class boxes -------------------------------------------------------
+  table/.style={rectangle split, rectangle split parts=2, draw=uLine,
+                line width=0.6pt, rectangle split part fill={#1,white},
+                text width=4.9cm, align=left, inner sep=3pt,
+                font=\scriptsize\ttfamily},
+  table/.default=uGraph,
+  klass/.style={rectangle split, rectangle split parts=2, draw=uLine,
+                line width=0.6pt, rectangle split part fill={#1,white},
+                text width=3.7cm, align=center, inner sep=3pt,
+                font=\scriptsize},
+  klass/.default=white,
+  rel/.style={draw=uLine, line width=0.55pt},
+  card/.style={font=\scriptsize\bfseries, text=uInk, inner sep=1.5pt},
+  generalise/.style={draw=uLine, line width=0.6pt,
+                     -{Triangle[open, length=3mm, width=3mm]}},
+  directed/.style={draw=uLine, line width=0.55pt, -{Stealth[length=2.2mm]}},
+  % ---- flow ----------------------------------------------------------------------
+  decision/.style={diamond, aspect=1.9, draw=uLine, fill=white,
+                   line width=0.6pt, font=\scriptsize, align=center,
+                   inner sep=1pt, text width=2.1cm},
+  step/.style={rectangle, rounded corners=2pt, draw=uLine, line width=0.6pt,
+               font=\scriptsize, align=center, minimum height=0.8cm,
+               text width=#1, inner sep=3pt},
+  step/.default=2.6cm,
+  flow/.style={draw=uLine, line width=0.6pt, -{Stealth[length=2.2mm]}},
+}
+
+% ---- stick-figure actor:  \actor{name}{(x,y)}{Label} ---------------------------
+\newcommand{\actor}[3]{%
+  \begin{scope}[shift={#2}, line width=0.8pt, draw=uInk]
+    \draw (0,0.62) circle (0.17);
+    \draw (0,0.45) -- (0,-0.05);
+    \draw (-0.32,0.28) -- (0.32,0.28);
+    \draw (0,-0.05) -- (-0.24,-0.45);
+    \draw (0,-0.05) -- (0.24,-0.45);
+    \node[font=\scriptsize\bfseries, align=center, anchor=north]
+         (#1-label) at (0,-0.5) {#3};
+    \coordinate (#1) at (0.4,0.2);
+  \end{scope}}

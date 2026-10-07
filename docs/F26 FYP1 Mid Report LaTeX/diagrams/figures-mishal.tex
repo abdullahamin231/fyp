@@ -1,0 +1,56 @@
+% =============================================================================
+% Figure blocks for Mishal's diagrams -- copy each block into the chapter where
+% it belongs (suggested: use-case -> ch4; domain model, ERD, anchor -> ch5).
+%
+% Preamble of main.tex needs (once):
+%     \usepackage{graphicx}
+%     \usepackage{pdflscape}
+%     \input{diagrams/unify-diagram-styles}
+% and this folder copied to  <report root>/diagrams/
+% =============================================================================
+
+% ---------------------------------------------------------------- ch4 --------
+\begin{figure}[htbp]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/usecase}}
+  \caption{Use-case diagram for UNIFY's four stakeholder roles and the three
+           source tools. Link confirmation is routed to the code owner or
+           assignee rather than the PM, and configuration is system-proposed
+           and PM-approved.}
+  \label{fig:usecase}
+\end{figure}
+
+% ---------------------------------------------------------------- ch5 --------
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/domain-model}}
+  \caption{Domain model of the evidence graph. Every association is persisted
+           as a typed, provenance-carrying edge; \texttt{CodeAnchor} is the
+           association class on \texttt{SATISFIES}.}
+  \label{fig:domain-model}
+\end{figure}
+\end{landscape}
+
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/erd}}
+  \caption{Entity-relationship diagram of the PostgreSQL schema. Graph entities
+           share one \texttt{nodes} table with a type discriminator; evidence
+           tables are append-only or immutable.}
+  \label{fig:erd}
+\end{figure}
+\end{landscape}
+
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/anchor-reanchoring}}
+  \caption{Commit-pinned requirement-to-code anchoring (illustrative example).
+           Re-anchoring tries the fully-qualified symbol, then the content hash,
+           then diff-hunk mapping; if all fail, the anchor is marked broken
+           rather than left silently wrong.}
+  \label{fig:anchor}
+\end{figure}
+\end{landscape}

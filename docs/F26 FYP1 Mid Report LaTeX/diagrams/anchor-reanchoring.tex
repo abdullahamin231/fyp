@@ -1,0 +1,132 @@
+% =============================================================================
+% UNIFY -- Requirement -> code anchor: commit-pinned anchoring, re-anchoring
+% order and the broken state (owner: Mishal Fatima)
+% Sources: proposal §22.1 (CodeAnchor fields), §22.2 (re-anchor order:
+%          fully-qualified symbol -> content hash -> diff-hunk mapping -> broken;
+%          anchor survival rate), §22.3 (P4), §22.4 (FR vs NFR granularity).
+% The file names, symbols and line numbers are an ILLUSTRATIVE example only.
+% =============================================================================
+\begin{tikzpicture}[x=1cm,y=1cm]
+
+  % ---- one commit panel ---------------------------------------------------------
+  % #1 x-origin, #2 commit id, #3 event caption, #4 file name, #5 span top line
+  % index (0-11), #6 span bottom line index, #7 span label, #8 tag colour,
+  % #9 tag text. Set \badge to the decision-step number first (empty = none).
+  \newcommand{\badge}{}%
+  \newcommand{\panel}[9]{%
+    \begin{scope}[shift={(#1,0)}]
+      \node[circle, draw=uLine, fill=white, line width=0.7pt, minimum size=0.75cm,
+            font=\scriptsize\bfseries] (#2) at (2.2,0) {#2};
+      \node[font=\scriptsize, align=center, text width=4.3cm, anchor=south]
+            at (2.2,0.45) {#3};
+      % file strip
+      \draw[uLine, fill=white, line width=0.6pt] (0,-0.75) rectangle (4.4,-3.95);
+      \fill[uIngest] (0,-0.75) rectangle (4.4,-1.15);
+      \draw[uLine, line width=0.6pt] (0,-1.15) -- (4.4,-1.15);
+      \node[font=\scriptsize\ttfamily, anchor=west] at (0.08,-0.95) {#4};
+      \ifnum#5>-1
+        \fill[uSpan, draw=uWarn, line width=0.5pt]
+          (0.05,{-1.3-0.22*#5+0.08}) rectangle (4.35,{-1.3-0.22*#6-0.08});
+      \fi
+      \foreach \i/\l in {0/2.6,1/3.4,2/1.9,3/3.0,4/2.4,5/3.6,6/2.8,7/1.6,8/3.1,9/2.2,10/2.9,11/1.4}
+        \draw[uMuted!55, line width=1.6pt] (0.3,{-1.3-0.22*\i}) -- ++(\l,0);
+      \ifnum#5>-1
+        \node[font=\scriptsize\ttfamily, fill=uSpan, inner sep=1pt, anchor=east]
+          at (4.3,{-1.3-0.22*(#5+#6)/2}) {#7};
+      \else
+        \node[font=\scriptsize, text=uBad, fill=white, inner sep=4pt, align=center]
+          at (2.2,-2.5) {#7};
+      \fi
+      % status tag
+      \node[draw=#8, fill=#8!12, text=#8!70!black, rounded corners=2pt,
+            font=\scriptsize\bfseries, align=center, text width=4.1cm,
+            anchor=north, inner sep=3pt] (#2tag) at (2.2,-4.15) {#9};
+      \if\relax\detokenize\expandafter{\badge}\relax\else
+        \node[circle, fill=uInk, text=white, font=\scriptsize\bfseries,
+              inner sep=1pt, minimum size=0.42cm] at (4.4,-0.75) {\badge};
+      \fi
+    \end{scope}}
+
+  % ---- the five commits ----------------------------------------------------------
+  \renewcommand{\badge}{}
+  \panel{0}{c1}{anchor created\\(SATISFIES confirmed)}
+        {src/cart/validate.ts}{2}{6}{validateCart()\ \ L40--58}
+        {uOk}{ACTIVE\\\textmd{method = created}}
+  \renewcommand{\badge}{1}
+  \panel{5.3}{c2}{12 lines inserted\\above the function}
+        {src/cart/validate.ts}{5}{9}{validateCart()\ \ L52--70}
+        {uOk}{ACTIVE\\\textmd{re-anchored by symbol name}}
+  \renewcommand{\badge}{2}
+  \panel{10.6}{c3}{function renamed,\\body unchanged}
+        {src/cart/validate.ts}{5}{9}{checkCart()\ \ L52--70}
+        {uOk}{ACTIVE\\\textmd{re-anchored by content hash}}
+  \renewcommand{\badge}{3}
+  \panel{15.9}{c4}{logic inlined into\\submitOrder() and edited}
+        {src/cart/submit.ts}{6}{10}{submitOrder()\ \ L112--127}
+        {uWarn}{ACTIVE, lower confidence\\\textmd{re-anchored by diff-hunk map}}
+  \renewcommand{\badge}{4}
+  \panel{21.2}{c5}{logic deleted}
+        {src/cart/submit.ts}{-1}{-1}{anchored span no longer exists}
+        {uBad}{BROKEN\\\textmd{shown to the user, never silently kept}}
+
+  \foreach \a/\b in {c1/c2,c2/c3,c3/c4,c4/c5} \draw[flow] (\a) -- (\b);
+  \draw[flow, dashed] (c5) -- ++(1.6,0) node[right, font=\scriptsize, text=uMuted]{time};
+
+  % ---- requirement on the left ----------------------------------------------------
+  \node[draw=uLine, fill=uIntent, line width=0.6pt, rounded corners=2pt,
+        text width=3.2cm, align=left, font=\scriptsize, inner sep=4pt, anchor=east]
+        (req) at (-1.9,-2.3)
+        {\textbf{Requirement FR-07} (v3)\\[2pt]
+         ``Checkout shall reject an empty cart.''\\[3pt]
+         \textit{kind:} FR $\Rightarrow$ line-anchored};
+  \draw[directed] (req.east) -- (0,-2.3)
+    node[lbl, pos=0.45, above=2pt, align=center]{SATISFIES\\(pinned to c1)};
+
+  % ---- anchor tuple callout ----------------------------------------------------------
+  \node[note=3.6cm, anchor=north east] (tuple) at (-1.9,-3.9)
+    {\textbf{CodeAnchor @ c1}\\
+     repo: acme/storefront\\
+     file: src/cart/validate.ts\\
+     symbol: cart.validateCart\\
+     lines: 40--58\\
+     blob: 9f2c\ldots{} \quad commit: c1\\
+     confidence: 1.0 (deterministic)\\
+     provenance: confirmed by reviewer};
+
+  % ---- re-anchoring decision ladder ----------------------------------------------------
+  \begin{scope}[shift={(0,-8.0)}]
+    \node[step=2.9cm, fill=uIngest] (new) at (0.9,0)
+      {New commit touches the anchored file};
+    \node[decision] (d1) at (5.4,0) {\textbf{1} Fully-qualified symbol still present?};
+    \node[decision] (d2) at (10.7,0) {\textbf{2} Identical content hash found?};
+    \node[decision] (d3) at (16.0,0) {\textbf{3} Diff hunk maps the old span?};
+    \node[step=3.3cm, draw=uBad, fill=uBad!10, text=uBad!70!black] (brk) at (21.4,0)
+      {\textbf{4} Mark anchor \textbf{BROKEN}, keep history, raise a finding};
+
+    \draw[flow] (new) -- (d1);
+    \draw[flow] (d1) -- node[lbl, above=2pt]{no} (d2);
+    \draw[flow] (d2) -- node[lbl, above=2pt]{no} (d3);
+    \draw[flow] (d3) -- node[lbl, above=2pt]{no} (brk);
+
+    \node[step=3.2cm, draw=uOk, fill=uOk!10] (r1) at (5.4,-2.3)
+      {Re-anchor to the symbol's new line range};
+    \node[step=3.2cm, draw=uOk, fill=uOk!10] (r2) at (10.7,-2.3)
+      {Re-anchor to the moved / renamed span};
+    \node[step=3.2cm, draw=uWarn, fill=uWarn!10] (r3) at (16.0,-2.3)
+      {Re-anchor to the mapped span; lower confidence};
+    \foreach \d/\r in {d1/r1,d2/r2,d3/r3}
+      \draw[flow] (\d) -- node[lbl, right=2pt]{yes} (\r);
+
+    \node[note=3.6cm, anchor=north] at (21.4,-1.0)
+      {Every outcome appends a new \texttt{code\_anchors} row (\texttt{prev\_anchor\_id}
+       links the history), so a finding can always be re-read against the commit it cited.\\[3pt]
+       \textbf{anchor\_survival\_rate} = anchors not broken $\div$ anchors tracked,
+       reported per commit window (\S22.2).};
+
+    \node[note=3.6cm, anchor=north east] at (-1.9,-0.4)
+      {\textbf{NFRs are not line-anchored.}
+       ``Respond within 2\,s'' links to its \emph{enforcement point}
+       (timeout constant, queue config) and a \emph{verifying test};
+       its metric is coverage, not span overlap (\S22.4).};
+  \end{scope}
+\end{tikzpicture}

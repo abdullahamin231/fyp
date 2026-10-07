@@ -1,0 +1,61 @@
+% =============================================================================
+% UNIFY -- Use-case diagram (owner: Mishal Fatima)
+% Sources: proposal §1.1 (roles), §15.1 (FR-04, FR-11, FR-14, FR-17..FR-21),
+%          §7.3 (designer-approved structured constraints),
+%          §23.1 (PM approves pre-filled configuration; link confirmation goes
+%          to code owner/assignee, not the PM), §26.2 (eligibility score).
+% =============================================================================
+\begin{tikzpicture}[x=1cm,y=1cm]
+
+  % ---- system boundary --------------------------------------------------------
+  \draw[sysboundary] (-1.0,-2.25) rectangle (10.3,10.6);
+  \node[font=\small\bfseries, anchor=north west] at (-0.85,10.5)
+       {UNIFY -- cross-tool change assurance};
+
+  % ---- left column: human-facing use cases -------------------------------------
+  \node[usecase] (sel)     at (1.9, 9.45) {Select change for verification\\(repo, base/head, linked artifacts)};
+  \node[usecase] (evid)    at (1.9, 8.25) {View criterion-level evidence case};
+  \node[usecase] (export)  at (1.9, 7.05) {Export audit evidence};
+  \node[usecase] (link)    at (1.9, 5.85) {Confirm / reject cross-tool link};
+  \node[usecase] (resolve) at (1.9, 4.6)  {Acknowledge / resolve / suppress / reopen finding};
+  \node[usecase] (p4)      at (1.9, 3.35) {Review requirement--code divergence (P4)};
+  \node[usecase] (notify)  at (1.9, 2.15) {Receive role-routed notification};
+  \node[usecase] (constr)  at (1.9, 0.95) {Approve structured design constraint};
+  \node[usecase] (config)  at (1.9,-0.25) {Approve pre-filled workflow configuration};
+  \node[usecase] (connect) at (1.9,-1.45) {Connect repository and view eligibility score};
+
+  % ---- right column -------------------------------------------------------------
+  \node[usecase] (passes)  at (7.6, 8.25) {Inspect bounded verification passes};
+  \node[usecase] (ingest)  at (7.6, 6.15) {Ingest and reconcile tool events};
+  \node[usecase] (dispute) at (7.6, 4.6)  {Dispute verdict\\(logged as labelled correction)};
+
+  % ---- include / extend -----------------------------------------------------------
+  \draw[stereo] (passes) -- node[lbl, above]{\guillemotleft extend\guillemotright} (evid);
+  \draw[stereo] (dispute) -- node[lbl, above]{\guillemotleft extend\guillemotright} (resolve);
+
+  % ---- human actors (left) --------------------------------------------------------
+  \actor{rev}{(-3.4,8.0)}{Code reviewer /\\technical lead\\(primary)}
+  \actor{dev}{(-3.4,4.55)}{Developer}
+  \actor{des}{(-3.4,1.35)}{Designer}
+  \actor{pm}{(-3.4,-1.1)}{Product owner /\\PM}
+
+  \foreach \u in {sel,evid,export,link,resolve} \draw[assoc] (rev) -- (\u.west);
+  \foreach \u in {evid,link,resolve,p4,notify}  \draw[assoc] (dev) -- (\u.west);
+  \foreach \u in {resolve,notify,constr}         \draw[assoc] (des) -- (\u.west);
+  \foreach \u in {resolve,p4,notify,config,connect} \draw[assoc] (pm) -- (\u.west);
+
+  % ---- external systems (right) ---------------------------------------------------
+  \node[extsys] (gh)    at (12.6, 7.55) {\guillemotleft system\guillemotright\\GitHub};
+  \node[extsys] (jira)  at (12.6, 6.15) {\guillemotleft system\guillemotright\\Jira};
+  \node[extsys] (figma) at (12.6, 4.75) {\guillemotleft system\guillemotright\\Figma};
+  \node[extsys] (slack) at (12.6, 1.6)  {\guillemotleft system\guillemotright\\Slack (delivery only)};
+
+  \foreach \s in {gh,jira,figma} \draw[assoc] (\s.west) -- (ingest);
+  \draw[assoc] (slack.west) -- (notify);
+
+  % ---- note ----------------------------------------------------------------------
+  \node[note=4.3cm, anchor=north west] at (5.25,3.55)
+    {Link confirmation is routed to the code owner/assignee, not the PM (\S23.1).
+     Configuration is proposed by the system from observed transitions; the PM
+     only approves it. Slack never feeds reasoning.};
+\end{tikzpicture}
