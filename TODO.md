@@ -171,16 +171,16 @@ Ordered by dependency. Each feature's **Definition of Done**: tests green · evi
 
 - [ ] Layered architecture + trust boundary (adapter → reviewer surface) — *Abdullah* — proposal §8.1
 - [ ] Component/interface diagram: API, worker, queue, DB, model server, external tools — *Abdullah* — §8.2
-- [ ] **ERD** — nodes, edges, artifact_snapshots, events, checkpoints, requirements/anchors, criteria, findings — *Mishal* — §9.1/§9.9
+- [-] **ERD** — nodes, edges, artifact_snapshots, events, checkpoints, requirements/anchors, criteria, findings — *Mishal* — §9.1/§9.9
 - [ ] Data-flow / DFD of the full pipeline (webhook → … → reviewer UI) — *Abdullah* — §8.2
 - [ ] Sequence diagram: ingestion with duplicate + out-of-order handling — *Haaniah* — §8.4
 - [ ] State machine: event processing and finding lifecycle incl. `SOURCE_STALE` — *Haaniah* — §8.4/§11.7
-- [ ] Use-case diagram for the four roles — *Mishal* — §1.1
-- [ ] Domain/class model of graph entities and edge types — *Mishal* — §9.1
+- [-] Use-case diagram for the four roles — *Mishal* — §1.1
+- [-] Domain/class model of graph entities and edge types — *Mishal* — §9.1
 - [ ] Activity diagram: bounded verifier loop (pass 1 → 2 → conditional 3) into the verdict gate — *Abdullah* — §11.4/§11.8
 - [ ] Traceability matrix: FR → design element → module → test case → demo step — *Abdullah maintains, all three feed* — worksheet §5
 - [ ] Deployment/containers diagram (single-host Docker footprint incl. model server) — *Haaniah* — §14
-- [ ] Requirement → code **anchor** illustration (commit-pinned, re-anchoring, broken state) — *Mishal* — §22
+- [-] Requirement → code **anchor** illustration (commit-pinned, re-anchoring, broken state) — *Mishal* — §22
 - [ ] LLM autonomy ladder / usage-register diagram (L0–L4 with fallbacks) — *Abdullah* — §24
 - [ ] Final cross-check: every diagram matches the evaluation version and can be explained by its owner — *all three*
 
