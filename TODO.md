@@ -167,22 +167,24 @@ Ordered by dependency. Each feature's **Definition of Done**: tests green · evi
 
 ## 5. Deliverable 3 — Diagrams
 
-`docs/diagrams/` — editable source committed (draw.io XML or Mermaid) + rendered PDF, each stamped with the commit it matches. Regenerate all at the evaluation tag.
+Editable source committed + rendered PDF, each stamped with the commit it matches. Regenerate all at the evaluation tag.
+
+*Location/tool note:* sources currently live in `docs/F26 FYP1 Mid Report LaTeX/diagrams/` (Mishal, commit `717a7af`) as **plain TikZ**, not `docs/diagrams/` draw.io/Mermaid. Either move them or ratify TikZ + that folder as the tool/path of record (§10). Still outstanding for all four: **commit stamp** in the file/caption, and regeneration at the evaluation tag.
 
 - [ ] Layered architecture + trust boundary (adapter → reviewer surface) — *Abdullah* — proposal §8.1
 - [ ] Component/interface diagram: API, worker, queue, DB, model server, external tools — *Abdullah* — §8.2
-- [-] **ERD** — nodes, edges, artifact_snapshots, events, checkpoints, requirements/anchors, criteria, findings — *Mishal* — §9.1/§9.9
+- [x] **ERD** — nodes, edges, artifact_snapshots, events, checkpoints, requirements/anchors, criteria, findings — *Mishal* — §9.1/§9.9 — **done** (`diagrams/erd.tex` + `rendered/erd.pdf`, `717a7af`; 13 tables, schema fields match §8.3/§9.3/§9.9/§11.6/§22.1; cardinalities and the `context_packets → nodes` routing checked, clean). *Follow-up:* checkpoints composite PK reads ambiguously (`resource_id` styled as an index row).
 - [ ] Data-flow / DFD of the full pipeline (webhook → … → reviewer UI) — *Abdullah* — §8.2
 - [ ] Sequence diagram: ingestion with duplicate + out-of-order handling — *Haaniah* — §8.4
 - [ ] State machine: event processing and finding lifecycle incl. `SOURCE_STALE` — *Haaniah* — §8.4/§11.7
-- [-] Use-case diagram for the four roles — *Mishal* — §1.1
-- [-] Domain/class model of graph entities and edge types — *Mishal* — §9.1
+- [x] Use-case diagram for the four roles — *Mishal* — §1.1 — **done** (`diagrams/usecase.tex`, `717a7af`, wired into ch4). *Follow-up:* FR-17 is "any authenticated user", so PM should also associate to *view evidence case* (and likely *export*); §1.1 says the PM wants project-level visibility.
+- [x] Domain/class model of graph entities and edge types — *Mishal* — §9.1 — **done** (`diagrams/domain-model.tex`, `717a7af`, wired into ch5). *Follow-ups:* `Artifact.raw` vs ERD `nodes.payload` naming must match; `workspace_id` missing from the class; `Person` is a `nodes` row in the ERD but not an `Artifact` subclass here while `Message` is — state why; `BLOCKS`/`DUPLICATES`/`REFERENCES` (§9.1) not drawn.
 - [ ] Activity diagram: bounded verifier loop (pass 1 → 2 → conditional 3) into the verdict gate — *Abdullah* — §11.4/§11.8
 - [ ] Traceability matrix: FR → design element → module → test case → demo step — *Abdullah maintains, all three feed* — worksheet §5
 - [ ] Deployment/containers diagram (single-host Docker footprint incl. model server) — *Haaniah* — §14
-- [-] Requirement → code **anchor** illustration (commit-pinned, re-anchoring, broken state) — *Mishal* — §22
+- [x] Requirement → code **anchor** illustration (commit-pinned, re-anchoring, broken state) — *Mishal* — §22 — **done** (`diagrams/anchor-reanchoring.tex`, `717a7af`, wired into ch5). *Follow-ups:* drop the invented **FR-07** label (it collides with the proposal's real FR-07 — use e.g. `REQ-42`); move the figure out of *Process / Behavior Design* (it belongs with the domain model / traceability text) and add a `\ref` in the body — no figure is referenced in the text yet.
 - [ ] LLM autonomy ladder / usage-register diagram (L0–L4 with fallbacks) — *Abdullah* — §24
-- [ ] Final cross-check: every diagram matches the evaluation version and can be explained by its owner — *all three*
+- [ ] Final cross-check: every diagram matches the evaluation version and can be explained by its owner — *all three* — **partly**: four reviewed against the proposal (`717a7af`), all consistent; the follow-ups above must be closed first
 
 ---
 
@@ -193,8 +195,8 @@ Skeleton: `docs/F26 FYP1 Mid Report LaTeX/` — owner writes, the other two revi
 - [ ] ch1 Introduction and Project Vision — *Abdullah*
 - [ ] ch2 Research, existing solutions and gap (incl. dated CodeRabbit / Rovo trial notes — still to be gathered) — *Haaniah*
 - [ ] ch3 Proposal feedback and iteration plan (action register table, iteration 1/2, WBS, progress vs. plan, recovery) — *Haaniah*
-- [ ] ch4 Software requirements (use cases + use-case diagram, FR/NFR, acceptance criteria, traceability) — *Mishal*
-- [ ] ch5 System design (architecture, components, interfaces, decisions, design evolution, domain model, data design, process/behaviour design) — *Abdullah + Mishal*
+- [ ] ch4 Software requirements (use cases + use-case diagram, FR/NFR, acceptance criteria, traceability) — *Mishal* — use-case figure in place (`fig:usecase`, `717a7af`); section body still to be written
+- [ ] ch5 System design (architecture, components, interfaces, decisions, design evolution, domain model, data design, process/behaviour design) — *Abdullah + Mishal* — domain model, ERD and anchor figures in place (`717a7af`); anchor figure should move out of *Process / Behavior Design*; no `\ref` to any figure in the body text yet
 - [ ] ch6 Iteration 1: design and implementation — each writes their own subsection against real files/functions/algorithms — *all three*
 - [ ] ch8 Testing and early validation (strategy, test cases, results, edge/failure case, **dataset pilot agreement stats**, defects, current validation status) — *Mishal*
 - [ ] ch9 Project management and development evidence (work completed/remaining, per-member contributions, repo evidence, GenAI + external components, risks, security/privacy, limitations) — *Haaniah*
@@ -203,7 +205,7 @@ Skeleton: `docs/F26 FYP1 Mid Report LaTeX/` — owner writes, the other two revi
 - [ ] Appendices: action register · requirements · test cases · repository · diagrams · meetings — *all three*
 - [ ] `references/references.bib` maintained continuously; every research claim checked against its original source (worksheet §10)
 - [ ] **Traceability of report ↔ implementation**: worksheet Form 3 evidence index filled (section/page → artefact → owner)
-- [ ] Compile clean (pdflatex → bibtex → pdflatex ×2); figures and tables lists populated
+- [ ] Compile clean (pdflatex → bibtex → pdflatex ×2); figures and tables lists populated — **not yet** (checked at `717a7af`: PDF builds, 56 pages, all four diagrams typeset with no errors, but two pre-existing blockers remain — `chapters/01_students_submission.tex` uses `\projecttitle`/`\studentone…` which `fast-nuces-bs.cls` never defines, and `chapters/chapter3_iteration_plan.tex` uses `longtable` without `\usepackage{longtable}`)
 
 ---
 
@@ -251,7 +253,7 @@ Skeleton: `docs/F26 FYP1 Mid Report LaTeX/` — owner writes, the other two revi
 
 - [ ] Which GPU/VRAM the group actually has (decides the model ceiling — §1.2)
 - [ ] Whether live GitHub/Jira/Figma OAuth is obtainable now, or the mock/exported-data fallback leads (proposal §13.4 sanctions either)
-- [ ] Diagram tooling of record (draw.io vs. Mermaid vs. TikZ) — one choice, one folder, everyone uses it
+- [ ] Diagram tooling of record (draw.io vs. Mermaid vs. TikZ) — one choice, one folder, everyone uses it — **TikZ de facto in use** since `717a7af` (four diagrams, `docs/F26 FYP1 Mid Report LaTeX/diagrams/`); needs a yes/no from all three, then either draw.io/Mermaid work is stopped or Mishal's four are re-drawn
 - [ ] Board of record and review rule (who reviews whom)
 - [ ] Annotation tooling format for blind double-labelling (two files per case, no discussion before both submitted)
 - [ ] Sign-off of the §16 ownership rows by all three members
