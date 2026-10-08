@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Unify Dev - Unified Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=JetBrains+Mono:wght@450&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#005048",
+                        "inverse-primary": "#4d44e3",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-container-low": "#0b1c30",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface": "#031427",
+                        "secondary": "#4fdbc8",
+                        "outline": "#918fa1",
+                        "surface-tint": "#c3c0ff",
+                        "secondary-container": "#04b4a2",
+                        "outline-variant": "#464555",
+                        "secondary-fixed": "#71f8e4",
+                        "tertiary-container": "#885500",
+                        "primary": "#c3c0ff",
+                        "on-tertiary-fixed": "#2a1700",
+                        "tertiary": "#ffb95f",
+                        "on-surface-variant": "#c7c4d8",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-primary-container": "#dad7ff",
+                        "surface-variant": "#26364a",
+                        "on-background": "#d3e4fe",
+                        "on-surface": "#d3e4fe",
+                        "on-primary": "#1d00a5",
+                        "on-secondary-fixed": "#00201c",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed": "#0f0069",
+                        "surface-bright": "#2a3a4f",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#e2dfff",
+                        "on-secondary-container": "#003f38",
+                        "surface-container": "#102034",
+                        "inverse-on-surface": "#213145",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "secondary-fixed-dim": "#4fdbc8",
+                        "surface-dim": "#031427",
+                        "inverse-surface": "#d3e4fe",
+                        "primary-container": "#4f46e5",
+                        "background": "#031427",
+                        "on-tertiary": "#472a00",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#ffd4a4",
+                        "on-secondary": "#003731",
+                        "surface-container-highest": "#26364a",
+                        "surface-container-high": "#1b2b3f",
+                        "surface-container-lowest": "#000f21"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "gutter": "16px",
+                        "margin-page": "24px",
+                        "stack-compact": "8px",
+                        "stack-comfortable": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "mono-code": ["JetBrains Mono"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                        "mono-code": ["13px", {"lineHeight": "20px", "fontWeight": "450"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #464555; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #918fa1; }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid #334155;
+        }
+        .graph-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 3s ease-in-out forwards;
+        }
+        @keyframes dash { to { stroke-dashoffset: 0; } }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary-container selection:text-white">
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar (rail) -->
+<aside class="flex flex-col h-full py-margin-page bg-surface-container dark:bg-surface-container border-r border-outline-variant dark:border-outline-variant h-screen w-[240px] sticky left-0 top-0 z-50">
+<div class="px-6 mb-8 flex flex-col gap-1">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary">Unify Dev</h1>
+<span class="font-body-sm text-on-surface-variant">Engineering Hub</span>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<!-- Dashboard (Active) -->
+<a class="flex items-center gap-3 px-4 py-3 text-primary dark:text-primary font-bold border-r-2 border-primary hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 group" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 group" href="#">
+<span class="material-symbols-outlined text-[20px]">account_tree</span>
+<span class="font-body-md">Graph Explorer</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 group" href="#">
+<span class="material-symbols-outlined text-[20px]">rss_feed</span>
+<span class="font-body-md">Activity Feed</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 group" href="#">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+<span class="font-body-md">Conflict Alerts</span>
+<span class="ml-auto bg-error-container text-on-error-container text-[10px] font-bold px-1.5 rounded-full">3</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 group" href="#">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+<span class="font-body-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 group" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="font-body-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-3">
+<div class="flex items-center gap-3 px-4 py-4 rounded-lg bg-surface-container-low border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all">
+<img class="w-8 h-8 rounded-full border border-primary/20" data-alt="A futuristic circular profile avatar with a glowing cyan neon ring around it, set against a dark architectural background with subtle light flares." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCn_JK7oVJvLsGC7AEoZs469tUIJApPJcjYuvqc7DUl_q9dQU5FcLrWZvOp5MTRTY-tWo978AF8rOUsAW6yaDGqKzLPnM_fek1jkyGh53z-a58GKj7xETWUhEMo53IAtSou9DqY1Kl9t2NDG9Z0RtBozIKEQbUYcRwYftmCS_6SHyhEHhK94C7iXeVKtJX46RPx3eZKfvBMBnH6IlZ249gDZR0xb_w9u6zmW5JBCkPjuG3zw0rgBeqq9JHgBrdZuSI_0yJVuHZf59l"/>
+<div class="flex flex-col">
+<span class="text-on-surface font-bold text-body-sm">Alex Rivera</span>
+<span class="text-on-surface-variant text-[10px] uppercase tracking-wider">Staff Eng</span>
+</div>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col overflow-y-auto">
+<!-- TopNavBar -->
+<header class="sticky top-0 w-full z-40 bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant flex items-center justify-between px-margin-page py-stack-compact">
+<div class="flex items-center gap-margin-page flex-1">
+<div class="font-headline-md text-headline-md font-black text-on-surface dark:text-on-surface">Unify</div>
+<!-- Omnibar -->
+<div class="relative w-full max-w-xl group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">search</span>
+</div>
+<input class="block w-full bg-surface-container-lowest border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary rounded-lg pl-10 pr-12 py-2 font-mono-code text-body-sm transition-all" placeholder="Jump to PR, Figma frame, or Slack thread..." type="text"/>
+<div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+<kbd class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant text-[10px] font-bold border border-outline-variant">⌘K</kbd>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-container-lowest transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant"></div>
+<button class="bg-primary text-on-primary px-4 py-1.5 rounded-lg font-bold text-body-sm hover:opacity-90 active:scale-95 transition-all">
+                        Link Item
+                    </button>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-margin-page max-w-[1600px] mx-auto w-full space-y-6">
+<div class="flex items-end justify-between">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Overview</h2>
+<p class="text-on-surface-variant">System integrity at 94%. 3 critical conflicts detected.</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="flex items-center gap-1.5 px-3 py-1 rounded bg-secondary/10 border border-secondary/20 text-secondary text-[12px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+                            Live Sync Active
+                        </span>
+</div>
+</div>
+<!-- Top Row: Conflicts & Project Status -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+<!-- Critical Conflicts -->
+<section class="glass-card rounded-xl overflow-hidden flex flex-col">
+<div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+<h3 class="font-headline-sm text-on-surface">Critical Conflicts</h3>
+</div>
+<span class="font-label-caps text-on-surface-variant">3 Active</span>
+</div>
+<div class="flex-1 p-0">
+<div class="divide-y divide-outline-variant">
+<div class="flex items-start gap-4 p-4 hover:bg-surface-container-high transition-colors cursor-pointer group">
+<div class="mt-1 flex items-center justify-center w-8 h-8 rounded bg-error-container/20 text-error">
+<span class="material-symbols-outlined text-[18px]">sync_problem</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<span class="text-body-md font-bold text-on-surface group-hover:text-primary transition-colors">GitHub PR #24 Outdated</span>
+<span class="text-body-sm text-on-surface-variant">2m ago</span>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">Contains Figma components that have been deprecated in 'Design System v4.2'. Visual regression likely.</p>
+<div class="mt-3 flex gap-2">
+<button class="px-3 py-1 bg-surface-container-highest border border-outline-variant text-[11px] font-bold rounded-md hover:bg-primary hover:text-on-primary transition-all">Auto-Sync</button>
+<button class="px-3 py-1 border border-outline-variant text-[11px] font-bold rounded-md hover:bg-surface-container-low transition-all">View Diff</button>
+</div>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 hover:bg-surface-container-high transition-colors cursor-pointer group">
+<div class="mt-1 flex items-center justify-center w-8 h-8 rounded bg-tertiary-container/20 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">variables</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center mb-1">
+<span class="text-body-md font-bold text-on-surface group-hover:text-primary transition-colors">Token Mismatch: spacing-unit</span>
+<span class="text-body-sm text-on-surface-variant">15m ago</span>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">CSS variable `8px` does not match Figma variable `12px` in 'Main Layout' frame.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Project Status Summary -->
+<section class="glass-card rounded-xl overflow-hidden flex flex-col">
+<div class="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+<h3 class="font-headline-sm text-on-surface">Unify Alpha v2.0</h3>
+</div>
+<div class="flex -space-x-2">
+<img class="w-6 h-6 rounded-full border-2 border-surface" data-alt="Close up of a professional software engineer with glasses, looking focused in a dimly lit office with monitors reflecting in their eyewear." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8VWpAbJC18RQSwMJHQcw840mBJ1eNVylQ3Q_V4uzWWarU5hlPTgcnnF5dG3JRlARgJHcrZZhBUcPKMOcev3nF8r1SIYYqIDcuvctbjKUunCwT_EFEt-LIqXxYNYjq0GojYKi-TONrHJcO6JzmQytH9v5n2QhatAL9JyOpcxUtkcTQ0eBb-F8AOR1wniicLSXK7q0FHMIZm9bO33oHnGaQgtiu35hEYDcnEfVKJuE8YO-yErUfP10gkD32gNHUZELRbaL00PWUgJo7"/>
+<img class="w-6 h-6 rounded-full border-2 border-surface" data-alt="Portrait of a female UI designer with creative studio lighting, warm skin tones, and a professional workspace background with design tools." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTpXi90jq1CA7EdM_yZSYY3JxrlsHclkTf5KMLVk3wTA8_GVqiMQWmXq65pyO5EqmRtH7b4cljWu9zf45ANNJDgf_vOpGxlvuwSq-EkRiNe7C2kgMrYu_BF8ZbQZvUqmHYxrp8zvKNpn-Z4jEtrMH1GZH35Zk5QaXiGphH2My_S_S3kU4RdPYOPPFTcTfrr72OhTZiFNtax6uzhuHV7pa72Lx-ZDgQA89m9cmtAR72FoD4lJuY8Lb405_fCpHcGAbiH5WBbq0UtK62"/>
+<div class="w-6 h-6 rounded-full bg-surface-container-high border-2 border-surface flex items-center justify-center text-[8px] font-bold text-on-surface-variant">+4</div>
+</div>
+</div>
+<div class="p-6 space-y-6">
+<div class="grid grid-cols-3 gap-4">
+<div class="space-y-2">
+<span class="text-label-caps text-on-surface-variant block">Design Flow</span>
+<div class="flex items-end gap-2">
+<span class="text-headline-sm font-bold text-on-surface">82%</span>
+<span class="text-[10px] text-secondary mb-1">↑ 4%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 82%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<span class="text-label-caps text-on-surface-variant block">Implementation</span>
+<div class="flex items-end gap-2">
+<span class="text-headline-sm font-bold text-on-surface">65%</span>
+<span class="text-[10px] text-primary mb-1">↑ 12%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 65%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<span class="text-label-caps text-on-surface-variant block">Tickets Done</span>
+<div class="flex items-end gap-2">
+<span class="text-headline-sm font-bold text-on-surface">14/20</span>
+<span class="text-[10px] text-tertiary mb-1">Pending</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full" style="width: 70%"></div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest/50 rounded-lg p-4 border border-outline-variant/30">
+<div class="flex items-center justify-between mb-3">
+<span class="text-body-sm font-bold text-on-surface">Active Linear Cycles</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">open_in_new</span>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-body-sm flex-1 truncate">UN-104: Root navigation refactor</span>
+<span class="text-[10px] font-mono-code bg-surface-container-high px-2 py-0.5 rounded text-on-surface-variant">IN-REVIEW</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-body-sm flex-1 truncate">UN-109: Implement Bento grid widgets</span>
+<span class="text-[10px] font-mono-code bg-primary-container text-white px-2 py-0.5 rounded">ACTIVE</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Middle Row: Graph Quick View -->
+<section class="glass-card rounded-xl overflow-hidden h-96 relative">
+<div class="absolute inset-0 z-0 opacity-40">
+
+</div>
+<div class="relative z-10 h-full flex flex-col">
+<div class="px-6 py-4 border-b border-outline-variant bg-surface/80 backdrop-blur-md flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">hub</span>
+<h3 class="font-headline-sm text-on-surface">Cross-Platform Dependency Graph</h3>
+</div>
+<div class="flex gap-2">
+<span class="px-2 py-1 rounded bg-surface-container-high border border-outline-variant text-[10px] font-mono-code">5 Nodes</span>
+<span class="px-2 py-1 rounded bg-surface-container-high border border-outline-variant text-[10px] font-mono-code">8 Edges</span>
+</div>
+</div>
+<div class="flex-1 relative flex items-center justify-center overflow-hidden">
+<!-- Simplified Node Visuals -->
+<svg class="absolute w-full h-full pointer-events-none" viewbox="0 0 1000 400">
+<path class="graph-line" d="M200,200 L400,100" fill="none" stroke="#4fdbc8" stroke-width="1.5"></path>
+<path class="graph-line" d="M200,200 L400,300" fill="none" stroke="#4fdbc8" stroke-width="1.5"></path>
+<path class="graph-line" d="M400,100 L700,200" fill="none" stroke="#c3c0ff" stroke-width="1.5"></path>
+<path class="graph-line" d="M400,300 L700,200" fill="none" stroke="#c3c0ff" stroke-width="1.5"></path>
+<path class="graph-line" d="M700,200 L850,200" fill="none" stroke="#ffb95f" stroke-width="1.5"></path>
+</svg>
+<!-- Nodes -->
+<div class="absolute left-[150px] top-[180px] group cursor-pointer">
+<div class="w-24 p-2 bg-surface-container border border-secondary rounded-lg text-center transition-all group-hover:scale-110 shadow-lg shadow-secondary/10">
+<div class="flex justify-center mb-1"><span class="material-symbols-outlined text-secondary text-[20px]">design_services</span></div>
+<div class="text-[10px] font-bold truncate">Figma UI Kit</div>
+</div>
+</div>
+<div class="absolute left-[360px] top-[70px] group cursor-pointer">
+<div class="w-24 p-2 bg-surface-container border border-primary rounded-lg text-center transition-all group-hover:scale-110 shadow-lg shadow-primary/10">
+<div class="flex justify-center mb-1"><span class="material-symbols-outlined text-primary text-[20px]">code</span></div>
+<div class="text-[10px] font-bold truncate">PR #244</div>
+</div>
+</div>
+<div class="absolute left-[360px] top-[270px] group cursor-pointer">
+<div class="w-24 p-2 bg-surface-container border border-primary rounded-lg text-center transition-all group-hover:scale-110 shadow-lg shadow-primary/10">
+<div class="flex justify-center mb-1"><span class="material-symbols-outlined text-primary text-[20px]">code</span></div>
+<div class="text-[10px] font-bold truncate">PR #245</div>
+</div>
+</div>
+<div class="absolute left-[650px] top-[170px] group cursor-pointer">
+<div class="w-24 p-2 bg-surface-container border border-tertiary rounded-lg text-center transition-all group-hover:scale-110 shadow-lg shadow-tertiary/10">
+<div class="flex justify-center mb-1"><span class="material-symbols-outlined text-tertiary text-[20px]">chat</span></div>
+<div class="text-[10px] font-bold truncate">#dev-sync</div>
+</div>
+</div>
+<div class="absolute right-[50px] top-[180px] group cursor-pointer">
+<div class="w-28 p-2 bg-surface-container-high border border-outline rounded-lg text-center opacity-70">
+<div class="flex justify-center mb-1"><span class="material-symbols-outlined text-outline text-[20px]">cloud_done</span></div>
+<div class="text-[10px] font-bold truncate">AWS Deploy</div>
+</div>
+</div>
+<div class="absolute bottom-4 right-6 bg-surface-container/80 backdrop-blur-sm p-3 rounded-lg border border-outline-variant max-w-xs">
+<p class="text-[11px] text-on-surface-variant italic">Showing automated link between Figma Component 'NavigationRail' and GitHub Pull Request #244 based on Slack thread activity.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Row: Tool Specific Widgets -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
+<!-- GitHub Widget -->
+<div class="glass-card rounded-xl overflow-hidden flex flex-col h-72">
+<div class="px-4 py-3 bg-[#24292e]/10 border-b border-outline-variant flex items-center gap-2">
+<svg class="w-4 h-4 text-white" fill="currentColor" viewbox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+<span class="text-label-caps text-on-surface">GitHub Repos</span>
+</div>
+<div class="flex-1 overflow-y-auto p-3 space-y-3">
+<div class="p-2.5 rounded bg-surface-container-low border border-outline-variant/30 hover:border-primary transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-1">
+<span class="text-body-sm font-bold truncate">unify-core/main</span>
+<span class="flex items-center gap-1 text-[9px] font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[10px]">check_circle</span> PASSED
+                                    </span>
+</div>
+<div class="text-[11px] text-on-surface-variant flex items-center gap-2">
+<span>feat: websocket-sync</span>
+<span>•</span>
+<span>4m ago</span>
+</div>
+</div>
+<div class="p-2.5 rounded bg-surface-container-low border border-outline-variant/30 hover:border-primary transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-1">
+<span class="text-body-sm font-bold truncate">unify-ui/refactor</span>
+<span class="flex items-center gap-1 text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[10px] animate-spin">refresh</span> RUNNING
+                                    </span>
+</div>
+<div class="text-[11px] text-on-surface-variant flex items-center gap-2">
+<span>fix: bento-spacing</span>
+<span>•</span>
+<span>12m ago</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Linear Widget -->
+<div class="glass-card rounded-xl overflow-hidden flex flex-col h-72">
+<div class="px-4 py-3 bg-[#5E6AD2]/10 border-b border-outline-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[#5E6AD2] text-[18px]">allo</span>
+<span class="text-label-caps text-on-surface">Linear Tickets</span>
+</div>
+<div class="flex-1 overflow-y-auto p-3 space-y-3">
+<div class="group flex flex-col gap-1 p-2 border-l-2 border-primary bg-surface-container-high/40 cursor-pointer">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono-code text-on-surface-variant">UN-442</span>
+<span class="text-body-sm font-bold flex-1 truncate">Auth middleware refactor</span>
+</div>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-[9px] px-1.5 py-0.5 bg-surface-container-highest rounded text-on-surface-variant">In Progress</span>
+<span class="text-[9px] text-primary font-bold">P1</span>
+</div>
+</div>
+<div class="group flex flex-col gap-1 p-2 border-l-2 border-outline-variant bg-surface-container-high/40 cursor-pointer">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono-code text-on-surface-variant">UN-445</span>
+<span class="text-body-sm font-bold flex-1 truncate">Telemetry endpoint validation</span>
+</div>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-[9px] px-1.5 py-0.5 bg-surface-container-highest rounded text-on-surface-variant">Todo</span>
+<span class="text-[9px] text-on-surface-variant font-bold">P3</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Figma Widget -->
+<div class="glass-card rounded-xl overflow-hidden flex flex-col h-72">
+<div class="px-4 py-3 bg-[#F24E1E]/10 border-b border-outline-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[#F24E1E] text-[18px]">pentagon</span>
+<span class="text-label-caps text-on-surface">Figma Updates</span>
+</div>
+<div class="flex-1 overflow-y-auto p-3 space-y-3">
+<div class="flex flex-col gap-2 p-1 rounded-lg bg-surface-container-low border border-outline-variant/30 overflow-hidden">
+<div class="h-20 w-full bg-cover bg-center rounded" data-alt="A detailed digital interface mockup featuring complex dark-themed dashboard elements, including tiny interactive data visualizations, glowing progress bars, and high-density typography, presented in a clean and structured layout." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD-jZcal_DiQaiLvU7K6L-dA7oygcxPIHmdr3Lq90e0wwvqVgV_TInFzV2LT7y0W0nacnCbEr-cTnBK3U5VEvlsn_MWlEu-M2XCPRnPODnMo1iJhjHhiidZVVeGMpwA5-b_B4qMvKRm3Zly5XUimJrbctXTYxUsi_ONhCPwy7MtPEWqal4Weaf2vdCYaCnUI8Qlz0caBsl9b_j2_TU20NbyxsXTno68ymIG8dPuiPvVk7aRWPEeoXvk9AdgU0PDdWqozYQE-9nz7i_D')"></div>
+<div class="px-1 py-1">
+<span class="text-body-sm font-bold block truncate">Global Search Modal</span>
+<span class="text-[10px] text-on-surface-variant">Updated by Sarah • 2h ago</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 p-1 rounded-lg bg-surface-container-low border border-outline-variant/30 overflow-hidden">
+<div class="h-20 w-full bg-cover bg-center rounded" data-alt="A close-up view of a design system documentation page showcasing various UI components like buttons, toggles, and sliders in a dark-mode palette, with technical annotations and spacing guides visible." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGDzOzu2Kjsi-C2j9io8qC3pO0JfD45Z1ZFbjfc3pgBel2dLwluUEz6OYSsGXAZRTW8dZRwob1JLdalwlRBQs3_wt35o9XqHI2MiY2fNbqxR8syiFl76-homJl7h_O6Ybx8gHRLx23XBbHgwVSkbhU7BkYuoCqRDoBxzANrQtuJt6swzrkjjEHSlaZwupHrwsy4-OGrH9tsWhMyRPZ0C8aa3jWcRdFrXYfcdgJsNMmywWp54LZRf1rlh0FR1_7VX_jCxDzHlyhYHw6')"></div>
+<div class="px-1 py-1">
+<span class="text-body-sm font-bold block truncate">System Tokens / Spacing</span>
+<span class="text-[10px] text-on-surface-variant">Updated by Sarah • 5h ago</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Slack Widget -->
+<div class="glass-card rounded-xl overflow-hidden flex flex-col h-72">
+<div class="px-4 py-3 bg-[#4A154B]/10 border-b border-outline-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-[#36C5F0] text-[18px]">forum</span>
+<span class="text-label-caps text-on-surface">Slack Activity</span>
+</div>
+<div class="flex-1 overflow-y-auto p-3 space-y-4">
+<div class="flex gap-3">
+<img class="w-8 h-8 rounded shrink-0" data-alt="A portrait of a male developer with a beard, wearing a casual hoodie, in a modern office with warm bokeh lighting from server racks in the background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4FWALvihZPaTGvxuL8CtKZjogbWH2pSeyjqzVFrkcQnhfPMseXUysMg7UfoMh0LIakOBW-1OBVFTxNJOKo3pihJp4YWc1iIGStQMNimGFE1vlhcx_NKYk4Fg2de-HhW7fScTpIxyyemzRmS6amhoce4zwdSsKxXWn-5GXKCUh74DjcUgWI04Zc1GoTLayvnyHc0PpE5w1odXnKvZ6BMYhMC-4tRTqTO7nCiIDI4q5hStAazzYaEQqfXOUh8_Ll7SlHzCnEW2h-Ak5"/>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[11px] font-bold text-on-surface">Jordan T.</span>
+<span class="text-[9px] text-on-surface-variant">10:45 AM</span>
+</div>
+<div class="text-[12px] text-on-surface-variant leading-tight line-clamp-2">
+                                        Hey <span class="text-primary">@Alex</span>, I noticed the <span class="text-secondary">#PR-24</span> build is failing on staging. Can you take a look?
+                                    </div>
+</div>
+</div>
+<div class="flex gap-3">
+<img class="w-8 h-8 rounded shrink-0" data-alt="A focused female engineer with curly hair wearing a denim jacket, working in a modern collaborative workspace with architectural details and plant life." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9rRBlFAHhV_9CKOa5dAgeM54OrhWkOuaaWKawnYlG9tOCUjx7RgVz6MX83hDEv_eVDHGI2vKDZ8I5EhdiRbtXhl-bfzhjhy5A3T2dSqsjLyRVYdU4u31YuYW0VpZotyU3vqB0H4b4Q__o7UGfKBowkAXwOB-hBJ8vS8vTJdXjcRUAq6JdMCkq4V27qsRAp76FprzpUBoNMPJhppOb36lLnGVsgJJLotdk2gjgLYmnsi39HRPOy1s7kscm_B26uiAVVYNbcOahMQ_b"/>
+<div class="flex-1 overflow-hidden">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-[11px] font-bold text-on-surface">Maria G.</span>
+<span class="text-[9px] text-on-surface-variant">9:12 AM</span>
+</div>
+<div class="text-[12px] text-on-surface-variant leading-tight line-clamp-2">
+                                        Just pushed the final frames to the Figma project for the <span class="text-primary">#unify-v2</span> release.
+                                    </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Command Bar Micro-Interaction Layer -->
+<div class="fixed bottom-margin-page right-margin-page bg-surface-container border border-primary/40 px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-3 translate-y-20 opacity-0 transition-all duration-500 z-50" id="status-toast">
+<span class="material-symbols-outlined text-primary text-[18px] animate-pulse">cloud_sync</span>
+<span class="text-body-sm font-bold text-on-surface">Workspace synced successfully</span>
+</div>
+<script>
+        // Simple interaction to show the toast on load
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const toast = document.getElementById('status-toast');
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 4000);
+            }, 1000);
+        });
+
+        // Search bar focus effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('scale-[1.02]');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('scale-[1.02]');
+        });
+    </script>
+</body></html>

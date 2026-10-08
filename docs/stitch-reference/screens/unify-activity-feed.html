@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Activity Feed | Unify Dev</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@450&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0b1c30;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #464555;
+            border-radius: 10px;
+        }
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            left: 23px;
+            top: 40px;
+            bottom: -20px;
+            width: 1px;
+            background-color: #464555;
+        }
+        .last-item .timeline-line::before {
+            display: none;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#005048",
+                        "inverse-primary": "#4d44e3",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-container-low": "#0b1c30",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface": "#031427",
+                        "secondary": "#4fdbc8",
+                        "outline": "#918fa1",
+                        "surface-tint": "#c3c0ff",
+                        "secondary-container": "#04b4a2",
+                        "outline-variant": "#464555",
+                        "secondary-fixed": "#71f8e4",
+                        "tertiary-container": "#885500",
+                        "primary": "#c3c0ff",
+                        "on-tertiary-fixed": "#2a1700",
+                        "tertiary": "#ffb95f",
+                        "on-surface-variant": "#c7c4d8",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-primary-container": "#dad7ff",
+                        "surface-variant": "#26364a",
+                        "on-background": "#d3e4fe",
+                        "on-surface": "#d3e4fe",
+                        "on-primary": "#1d00a5",
+                        "on-secondary-fixed": "#00201c",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed": "#0f0069",
+                        "surface-bright": "#2a3a4f",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#e2dfff",
+                        "on-secondary-container": "#003f38",
+                        "surface-container": "#102034",
+                        "inverse-on-surface": "#213145",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "secondary-fixed-dim": "#4fdbc8",
+                        "surface-dim": "#031427",
+                        "inverse-surface": "#d3e4fe",
+                        "primary-container": "#4f46e5",
+                        "background": "#031427",
+                        "on-tertiary": "#472a00",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-container": "#ffd4a4",
+                        "on-secondary": "#003731",
+                        "surface-container-highest": "#26364a",
+                        "surface-container-high": "#1b2b3f",
+                        "surface-container-lowest": "#000f21"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "gutter": "16px",
+                        "margin-page": "24px",
+                        "stack-compact": "8px",
+                        "stack-comfortable": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "mono-code": ["JetBrains Mono"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                        "mono-code": ["13px", {"lineHeight": "20px", "fontWeight": "450"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background selection:bg-primary selection:text-on-primary overflow-hidden h-screen flex">
+<!-- SideNavBar (Authority: JSON & Rail Type) -->
+<aside class="h-screen w-[240px] sticky left-0 top-0 bg-surface-container dark:bg-surface-container border-r border-outline-variant dark:border-outline-variant flex flex-col py-margin-page z-50">
+<div class="px-6 mb-8 flex flex-col gap-1">
+<span class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary">Unify Dev</span>
+<span class="font-body-md text-body-md text-on-surface-variant opacity-70">Engineering Hub</span>
+</div>
+<nav class="flex-1 flex flex-col space-y-1">
+<a class="flex items-center px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="account_tree">account_tree</span>
+<span>Graph Explorer</span>
+</a>
+<!-- Active State: Activity Feed -->
+<a class="flex items-center px-6 py-3 text-primary dark:text-primary font-bold border-r-2 border-primary bg-surface-container-high transition-colors cursor-pointer active:scale-95 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="rss_feed">rss_feed</span>
+<span>Activity Feed</span>
+</a>
+<a class="flex items-center px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="warning">warning</span>
+<span>Conflict Alerts</span>
+</a>
+<a class="flex items-center px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="monitoring">monitoring</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center px-6 py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="px-6 pt-4 mt-auto border-t border-outline-variant">
+<a class="flex items-center py-3 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="account_circle">account_circle</span>
+<span>Profile</span>
+</a>
+</div>
+</aside>
+<div class="flex-1 flex flex-col min-w-0">
+<!-- TopNavBar (Authority: JSON) -->
+<header class="sticky top-0 w-full z-40 bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant flex items-center justify-between px-margin-page py-stack-compact">
+<div class="flex items-center gap-6 flex-1">
+<span class="font-headline-md text-headline-md font-black text-on-surface dark:text-on-surface uppercase tracking-tight">Unify</span>
+<div class="relative w-full max-w-md hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-2 pl-10 pr-4 text-body-sm font-mono-code focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-outline outline-none" placeholder="Search activities or commands..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-gutter">
+<div class="flex items-center gap-stack-comfortable">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-lowest rounded-full transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 text-on-surface-variant hover:bg-surface-container-lowest rounded-lg transition-colors duration-200 border border-outline-variant font-body-md text-body-md">
+<span class="material-symbols-outlined text-sm">link</span>
+<span>Link Item</span>
+</button>
+</div>
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border border-primary/20">
+<img class="w-full h-full object-cover" data-alt="Close up portrait of a professional developer in a dimly lit coding environment, soft blue ambient light from monitors highlighting their focused expression. Hyper-realistic, professional headshot style with a shallow depth of field, maintaining a dark-first aesthetic with slate and indigo tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCxZmuNzTA3tZ1yXmWdU9RNGzcDvj-2daBYFArJUE2DDyRnUlFELKf_iz38YqTt9f5QDilvEoYys9kJ_SbEzOeEWeaLbA5E2hhwxvc6_UMVnVSgknvsOgODsl8C6IUJCTsEKdr8nLfVg93xBJ3R3gIgagW9Khftf9jEp3y3WYhwhN5fPbx6J4a5D3yh23TlJd0ti_kRRvQ2TpXtZaKZDrNSFY-pu0KByw_IcS2v3lx9PBEdB2Qx1l7PxcUguu-gmLYUrBCdxbOJsmR"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 overflow-hidden flex">
+<!-- Feed Area -->
+<section class="flex-1 flex flex-col p-margin-page overflow-y-auto custom-scrollbar">
+<!-- AI Summary Panel -->
+<div class="mb-gutter p-6 bg-surface-container-high rounded-xl border border-outline-variant relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
+<span class="material-symbols-outlined text-4xl" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="flex items-start gap-4">
+<div class="p-2 bg-primary-container/20 rounded-lg text-primary">
+<span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-2">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Daily Pulse</h3>
+<span class="font-label-caps text-label-caps text-outline uppercase">AI GENERATED • 10:00 AM</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                                Yesterday, the team merged <span class="text-primary font-bold">12 PRs</span> and updated the design spec for the landing page. No conflicts were detected across the <span class="text-secondary font-bold">Unify UI</span> and <span class="text-secondary font-bold">Core API</span> repositories. Deployment velocity is up 8% compared to last week.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Activity Timeline -->
+<div class="flex flex-col">
+<h2 class="font-label-caps text-label-caps text-outline uppercase mb-stack-comfortable tracking-widest border-b border-outline-variant pb-2">Today, Oct 24</h2>
+<div class="space-y-0">
+<!-- Activity Item 1: GitHub -->
+<div class="group flex gap-gutter py-stack-comfortable relative timeline-line hover:bg-surface-container-lowest/50 rounded-lg transition-colors px-2 -mx-2 cursor-default">
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-12 h-12 rounded-full border border-outline-variant overflow-hidden bg-surface-container-low shadow-lg">
+<img class="w-full h-full object-cover" data-alt="Minimalist avatar of a software engineer, flat vector style with clean lines. Dark navy background with a subtle indigo silhouette, highlighting a modern professional tech identity, consistent with high-performance engineering dashboard aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0V-YxAYzTIzxAZ5BqLF5n4rFlzlXbqzPzuN6LO9BGemxhKxJemeBnx3ZdAM-Qe21wCNhoj6WKgfAjPk_ahyut38tXmXJwgDL_n8H5gNwwGrfYzFou1TFitboscwUBAXFbkHEASnOEoJg8K2-wpe4VhLfJXTtivQzA-9hvu04pYdktbQKkKRqgICT2MjBI9ubQuhFCBDggs8Nyh7ZZWfRP5PoaA0ev2fVZUezYM9N7l_4QUBhc0oCfjCVewG2NuCkKwSod_4ABd6nA"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-surface-container-highest border border-outline-variant p-1 rounded-md">
+<span class="material-symbols-outlined text-[14px] text-on-surface" data-icon="terminal">terminal</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-1 pt-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-body-md text-body-md font-bold text-on-surface">Alex Chen</span>
+<span class="font-body-md text-body-md text-on-surface-variant">merged a pull request in</span>
+<span class="font-mono-code text-body-sm px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant rounded text-primary">unify-core</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">10m ago</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface mt-1">
+                                    feat: optimize graph query latency (#102)
+                                </div>
+<div class="flex flex-wrap gap-2 mt-2">
+<div class="flex items-center gap-2 px-2 py-1 bg-surface-container rounded border border-outline-variant">
+<span class="material-symbols-outlined text-[12px] text-secondary" data-icon="confirmation_number">confirmation_number</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">UNI-12: Improve Dashboard FPS</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1 bg-surface-container rounded border border-outline-variant">
+<span class="material-symbols-outlined text-[12px] text-primary" data-icon="history">history</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">+240 lines</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Activity Item 2: Figma -->
+<div class="group flex gap-gutter py-stack-comfortable relative timeline-line hover:bg-surface-container-lowest/50 rounded-lg transition-colors px-2 -mx-2 cursor-default">
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-12 h-12 rounded-full border border-outline-variant overflow-hidden bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Portrait of a female UI/UX designer, soft focused studio lighting with cool temperature tones. Minimalist aesthetic, dark grey backdrop, professional and artistic feel, high-end corporate photography style for a modern tech workspace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDA-wzdGkHjZWErFK0SjsS3tzkxZUrzIwrveYpw9yEe_LHnGIXH7rgOvsJH9yYCw6OrSIdD7LqvDgf-l7NYc-t_wVJbwXV0glRIxBTu5nPPCOckKBikCU0bybM3WjsFGuiUbGS154iIEkTxe1H0QYUI1lznAsD9S2zCVI7X-7gDYLo9oPVTrS77W6WYYsF6ddAt9F3FrpG-O8jsOPceU01GCeZXYDfpmLmDlWJ-icYfmjJjMtolamgcqJD4ulptYTUJT9gRojMDb2WK"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-surface-container-highest border border-outline-variant p-1 rounded-md">
+<span class="material-symbols-outlined text-[14px] text-[#FF7262]" data-icon="draw">draw</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-1 pt-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-body-md text-body-md font-bold text-on-surface">Sarah Miller</span>
+<span class="font-body-md text-body-md text-on-surface-variant">updated a frame in</span>
+<span class="font-mono-code text-body-sm px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant rounded text-tertiary">Unify Design System</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">45m ago</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface mt-1">
+                                    Navigation / SideNav / Active State Refinement
+                                </div>
+<div class="mt-3 overflow-hidden rounded-lg border border-outline-variant aspect-[21/9] bg-surface-container-lowest">
+<img class="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" data-alt="Detailed UI design mockup of a sidebar navigation in dark mode, showcasing high-contrast icons and subtle glows. Professional design aesthetic with precise alignment, slate-colored surfaces, and indigo accents, reflecting a high-performance engineering interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFLi6uyA2mBVzM_N0jDFOeADNtorrZupeae6k67eyFQAUlTiv789afj5GIrcvZLtjYNkZ_Xi1Sbp32vN75FaEkJoxGrKVbpZpnbSu3F98BSVLjebgFo7wEOirJ0DL9DSxmmEwG-VlpVlwxMa6IMvJulT_d63V4Z9Xt2DPlEczhy241GITHIlQbNms7RjOlFs3fNH6GbgOLYMfU41j10E2p-raQK4bx96FJMF4XwXb9xuO9mxLA29EOx-YJkIA6Rze42ztt44O0bajk"/>
+</div>
+</div>
+</div>
+<!-- Activity Item 3: Slack/Linear -->
+<div class="group flex gap-gutter py-stack-comfortable relative timeline-line last-item hover:bg-surface-container-lowest/50 rounded-lg transition-colors px-2 -mx-2 cursor-default">
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-12 h-12 rounded-full border border-outline-variant overflow-hidden bg-surface-container-low">
+<img class="w-full h-full object-cover" data-alt="Abstract minimalist representation of a developer workspace, top-down view of a keyboard and trackpad in a dark room. Selective focus on hands, moody cinematic lighting with neon teal and indigo highlights, representing deep work and technical precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbMApCPnjxgDUqlshnV62D22vkBdswqa0IKcvvD8sXsKTYDhibdzWnS3p_lzN3I8ydxn1jkhofmZGDMav4iii8xB3vI56ck7jaL9fi78cMTTdirpglovm5l-XihQVnGplGxjGSx4GvDwuaqhUJGW_UXZbM5ttdvVazyL3duNih3_Yqji1vUmtewmJPSMO0k_rLB3dNcvJW0kexyXGYnRyNETzggbURxYFYRIKV1YrPOyDKhEt0ApA4_24MGrBlzDPvZvE1KlDrmOgl"/>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-surface-container-highest border border-outline-variant p-1 rounded-md">
+<span class="material-symbols-outlined text-[14px] text-secondary" data-icon="task_alt">task_alt</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-1 pt-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-body-md text-body-md font-bold text-on-surface">Marcus T.</span>
+<span class="font-body-md text-body-md text-on-surface-variant">closed ticket</span>
+<span class="font-mono-code text-body-sm px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant rounded text-on-surface">UNI-44</span>
+</div>
+<span class="font-body-sm text-body-sm text-outline">2h ago</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface mt-1 line-through opacity-50">
+                                    Fix intermittent websocket reconnection loop
+                                </div>
+<div class="flex items-center gap-2 mt-2">
+<span class="material-symbols-outlined text-[14px] text-outline" data-icon="chat">chat</span>
+<span class="font-body-sm text-body-sm text-outline italic">"Finally traced this to the nginx timeout settings. Deployed fix to staging."</span>
+</div>
+</div>
+</div>
+</div>
+<h2 class="font-label-caps text-label-caps text-outline uppercase mt-gutter mb-stack-comfortable tracking-widest border-b border-outline-variant pb-2">Yesterday, Oct 23</h2>
+<div class="opacity-70 grayscale">
+<!-- Earlier items... simplified for density -->
+<div class="flex gap-gutter py-stack-comfortable">
+<div class="w-12 h-12 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-outline" data-icon="more_horiz">more_horiz</span>
+</div>
+<div class="flex-1 pt-3">
+<span class="font-body-md text-body-md text-outline">14 more activities from yesterday...</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Search & Filter Sidebar -->
+<aside class="w-[320px] bg-surface-container-low border-l border-outline-variant p-6 hidden lg:flex flex-col gap-gutter">
+<div class="space-y-gutter">
+<div>
+<h4 class="font-label-caps text-label-caps text-on-surface uppercase mb-stack-comfortable">Filters</h4>
+<div class="space-y-stack-compact">
+<label class="flex items-center justify-between p-3 rounded-lg bg-surface-container hover:bg-surface-container-high cursor-pointer transition-colors border border-outline-variant/30">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+<span class="font-body-md text-body-md text-on-surface">My Activity</span>
+</div>
+<input class="rounded border-outline-variant bg-surface-container-lowest text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg bg-surface-container hover:bg-surface-container-high cursor-pointer transition-colors border border-outline-variant/30">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error" data-icon="error_outline">error_outline</span>
+<span class="font-body-md text-body-md text-on-surface">Blocking Issues</span>
+</div>
+<input checked="" class="rounded border-outline-variant bg-surface-container-lowest text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+</label>
+</div>
+</div>
+<div>
+<h4 class="font-label-caps text-label-caps text-on-surface uppercase mb-stack-comfortable">Tool Sources</h4>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 bg-surface-container-highest text-on-surface rounded-full font-label-caps text-label-caps border border-primary/50">GitHub</button>
+<button class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full font-label-caps text-label-caps border border-outline-variant">Figma</button>
+<button class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full font-label-caps text-label-caps border border-outline-variant">Slack</button>
+<button class="px-3 py-1.5 bg-surface-container-highest text-on-surface rounded-full font-label-caps text-label-caps border border-secondary/50">Linear</button>
+<button class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full font-label-caps text-label-caps border border-outline-variant">Jira</button>
+<button class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full font-label-caps text-label-caps border border-outline-variant">Veracity</button>
+</div>
+</div>
+<div>
+<h4 class="font-label-caps text-label-caps text-on-surface uppercase mb-stack-comfortable">Team Members</h4>
+<div class="space-y-stack-comfortable">
+<div class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full border border-outline-variant bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of a young male software architect, sharp features, neutral expression, soft lighting highlighting a dark professional environment. Slate and navy tones, high-density professional UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC08ETgkTY8xmVpZDRWw_urx2rSgHaVcJFpnkMCFqJbWY4xiJqzF2Sq736pScMvcWYuXqr3r6DeRTUNZRasys1cjGAsZnFix7EOCotXomchjyD1FEvZjgX4No2QKJTxeaJnPv2EQsyO745bRneSwHekdoTyO3aFH-M8F2UwWbInMgt_0J0t5Us_nfV2gLVcJVPjvOaWhQJJmMRAlD2-HemSeLbgSaWfJ9KxADHRrpsGzfiLSb3vOMP74XbRnpPN6sJ6kMjfXVdg-3FS"/>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant group-hover:text-on-surface">Alex Chen</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+</div>
+<div class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full border border-outline-variant bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of a woman designer, creative and focused, warm and cool light balance. Modern technical workspace, high detail, professional digital photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuABkMbDjdJyuccf0uxrF0a4ZJEXVMtQL0xSTyGHXeRwX6qwo0tXqMwl5O00OiKeWBu_WTB1BwCRufK2xoeg72xtygSFAI14ggYudYc7r_IcOofeiGjFdRXdI5p2WnQamtrOxmLJUhjlUd5RkmVTE-mv37TocXyJetq0WmH4TTu8Oxe1LLMb3vvIFHOoegwNxN1yDerAZq7q6T87KU3rcejSkXrRYoRO4D5Z3RlbPZPiVYdUoBnMmN7_HjHtMnyrWXGZgCyoBSa7Yw18"/>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant group-hover:text-on-surface">Sarah Miller</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+</div>
+<div class="flex items-center justify-between group cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full border border-outline-variant bg-surface-container overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of a senior developer, experienced and thoughtful look, soft lighting in a dark office setting. Indigo and charcoal tones, corporate modern style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNmXS-BCuCtjgIsc1QNDw6FKFZSOrJLbZgSXUVWsw9IuFOl_4fz-A_vc3y-5S441Tb8FO5FwaepZns-XjAwY9AlyJ0KJLrA9VLPH9d6w-Kn4FBO1Xif0mJnwgofvjO-vgRdFn6r5kYgUYVu1STl9lkG68tDx5zOwTXV9QcMhErEObajr8KRcZJ9iJneiDlH548H9jNc8LrkLGTC1aJf2WA1aDlYjFc_z6DWh-Q7bOGNQIav60SlIW5wZixS3GB5hpksXZYaHrBnYmf"/>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant group-hover:text-on-surface">Marcus T.</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-6 border-t border-outline-variant">
+<button class="w-full py-2.5 bg-primary text-on-primary font-bold rounded-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Export Report</span>
+</button>
+</div>
+</div>
+</aside>
+</main>
+</div>
+<!-- Micro-interaction script -->
+<script>
+        document.querySelectorAll('.active\\:scale-95').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.style.transform = 'scale(0.95)';
+            });
+            button.addEventListener('mouseup', () => {
+                button.style.transform = 'scale(1)';
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body></html>

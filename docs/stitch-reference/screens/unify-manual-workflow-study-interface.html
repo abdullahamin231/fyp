@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Unify Platform</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error": "#690005", "primary-container": "#4f46e5", "surface-container-highest": "#26364a", "outline": "#918fa1", "surface-variant": "#26364a", "on-tertiary-container": "#ffd4a4", "error-container": "#93000a", "tertiary-container": "#885500", "secondary": "#4fdbc8", "tertiary-fixed": "#ffddb8", "on-surface": "#d3e4fe", "surface-tint": "#c3c0ff", "on-tertiary-fixed": "#2a1700", "tertiary-fixed-dim": "#ffb95f", "on-primary": "#1d00a5", "secondary-container": "#04b4a2", "surface": "#031427", "on-primary-container": "#dad7ff", "secondary-fixed-dim": "#4fdbc8", "background": "#031427", "primary-fixed": "#e2dfff", "error": "#ffb4ab", "primary-fixed-dim": "#c3c0ff", "on-secondary-fixed": "#00201c", "on-secondary-fixed-variant": "#005048", "inverse-surface": "#d3e4fe", "surface-bright": "#2a3a4f", "on-primary-fixed": "#0f0069", "on-error-container": "#ffdad6", "outline-variant": "#464555", "surface-container": "#102034", "surface-dim": "#031427", "surface-container-high": "#1b2b3f", "on-background": "#d3e4fe", "on-surface-variant": "#c7c4d8", "on-primary-fixed-variant": "#3323cc", "on-secondary": "#003731", "primary": "#c3c0ff", "inverse-primary": "#4d44e3", "surface-container-lowest": "#000f21", "on-tertiary-fixed-variant": "#653e00", "surface-container-low": "#0b1c30", "on-tertiary": "#472a00", "on-secondary-container": "#003f38", "secondary-fixed": "#71f8e4", "tertiary": "#ffb95f", "inverse-on-surface": "#213145" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin-page": "24px", "gutter": "16px", "stack-compact": "8px", "stack-comfortable": "16px", "unit": "4px" }, "fontFamily": { "headline-sm": ["Inter"], "label-caps": ["Inter"], "headline-md": ["Inter"], "headline-lg": ["Inter"], "mono-code": ["JetBrains Mono"], "body-lg": ["Inter"], "body-sm": ["Inter"], "body-md": ["Inter"] }, "fontSize": { "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }], "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }], "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "mono-code": ["13px", { "lineHeight": "20px", "fontWeight": "450" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }] } } } };</script></head><body class="bg-background text-on-surface font-body-md text-body-md"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low border-r border-outline-variant z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-14 px-margin-page flex items-center justify-between border-b border-outline-variant"><div class="flex items-center gap-unit"><div class="w-6 h-6 rounded bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[16px]">token</span></div><span class="font-headline-sm text-headline-sm font-bold tracking-tight text-on-surface ml-1">UNIFY</span></div><span class="px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant font-mono-code text-[10px] text-on-surface-variant font-medium">v2.4</span></div><div class="p-gutter border-b border-outline-variant bg-surface-container-lowest/50"><button class="w-full flex items-center justify-between px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-left transition-colors"><div class="flex items-center gap-stack-compact overflow-hidden"><div class="w-5 h-5 rounded-full bg-secondary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-secondary text-[13px]">domain</span></div><span class="font-body-sm text-body-sm font-semibold text-on-surface truncate">Acme Eng</span></div><span class="material-symbols-outlined text-outline text-[18px]">unfold_more</span></button></div><div class="px-stack-comfortable pt-stack-comfortable pb-stack-compact"><span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Intelligence &amp; Rules</span></div><nav class="px-stack-compact flex flex-col gap-unit" data-active-classes="bg-primary-container text-on-primary-container font-semibold"><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="conflict-inbox" href="#"><div class="flex items-center gap-stack-comfortable"><span class="material-symbols-outlined text-[18px]">inbox</span><span class="font-body-sm text-body-sm">Conflict Inbox</span></div><span class="px-1.5 py-0.5 rounded bg-error-container text-error font-mono-code text-[11px] font-bold">14</span></a><a aria-current="page" class="flex items-center gap-stack-comfortable px-3 py-2 rounded transition-colors bg-primary-container text-on-primary-container font-semibold" data-path="conflict-detail" href="#"><span class="material-symbols-outlined text-[18px]">troubleshoot</span><span class="font-body-sm text-body-sm">Conflict Detail</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="policy-configuration" href="#"><span class="material-symbols-outlined text-[18px]">rule</span><span class="font-body-sm text-body-sm">Policy Configuration</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="policy-simulation" href="#"><div class="flex items-center gap-stack-comfortable"><span class="material-symbols-outlined text-[18px]">labs</span><span class="font-body-sm text-body-sm">Policy Simulation</span></div><span class="px-1.5 py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-mono-code text-[10px]">TEST</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="graph-explorer" href="#"><span class="material-symbols-outlined text-[18px]">account_tree</span><span class="font-body-sm text-body-sm">Graph Explorer</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="link-management" href="#"><span class="material-symbols-outlined text-[18px]">link</span><span class="font-body-sm text-body-sm">Link Management</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="audit-trail" href="#"><span class="material-symbols-outlined text-[18px]">history</span><span class="font-body-sm text-body-sm">Audit Trail</span></a></nav></div><div class="flex flex-col border-t border-outline-variant p-stack-compact bg-surface-container-lowest/40"><nav data-active-classes="bg-primary-container text-on-primary-container font-semibold"><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span><span class="font-body-sm text-body-sm">Settings</span></a></nav></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface/90 backdrop-blur-md border-b border-outline-variant z-40 flex items-center justify-between px-margin-page"><div class="flex items-center gap-stack-comfortable flex-1 max-w-xl"><div class="relative w-full"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input class="w-full pl-9 pr-16 py-1.5 rounded bg-surface-container border border-outline-variant text-on-surface placeholder-outline font-mono-code text-mono-code focus:outline-none focus:border-primary-container transition-colors" placeholder="Search artifacts, conflicts, policies (Cmd+K)" type="text"/><kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant font-mono-code text-[11px] text-on-surface-variant">⌘K</kbd></div></div><div class="flex items-center gap-stack-comfortable"><div class="flex items-center gap-2 px-2.5 py-1 rounded bg-secondary/10 border border-secondary/30"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-label-caps text-label-caps text-secondary uppercase font-bold tracking-wider">Production Sync Active</span></div><div class="h-4 w-px bg-outline-variant"></div><button aria-label="Notifications" class="relative p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full ring-2 ring-surface"></span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 px-margin-page bg-background min-h-screen"><div class="flex flex-col w-full pb-16 space-y-6">
+<!-- Study Runner Header & Control Bar -->
+<section class="relative bg-surface-container-high rounded-xl p-5 shadow-xl overflow-hidden">
+<div class="absolute -right-16 -top-16 w-56 h-56 bg-primary-container/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute left-1/3 -bottom-10 w-48 h-48 bg-secondary/5 rounded-full blur-2xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+<!-- Left: Study metadata & condition badge -->
+<div class="flex flex-col sm:flex-row sm:items-center gap-3">
+<div class="flex items-center gap-2.5">
+<span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-[20px]">science</span>
+</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Evaluation Session</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-mono-code text-[11px] text-on-surface-variant bg-surface-container-lowest px-2 py-0.5 rounded">PID: P-14</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface">
+              Counterbalanced User Study Experiment
+            </div>
+</div>
+</div>
+<div class="hidden sm:block w-px h-8 bg-surface-container-highest mx-2"></div>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-1 rounded bg-surface-container-lowest text-primary-fixed font-mono-code text-[12px] font-medium">
+            Condition: <strong class="text-primary font-bold">UNIFY-FIRST</strong>
+</span>
+<span class="px-2 py-1 rounded bg-surface-container text-tertiary font-mono-code text-[11px]">
+            Task 2 of 4 (Scenario B-2)
+          </span>
+</div>
+</div>
+<!-- Right: Live Timer & Primary Actions -->
+<div class="flex flex-wrap items-center gap-3">
+<!-- Live Timer Box -->
+<div class="flex items-center gap-3 bg-surface-container-lowest px-3.5 py-1.5 rounded-lg shadow-inner">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-secondary">timer</span>
+<span class="font-label-caps text-label-caps uppercase text-outline">Elapsed</span>
+</div>
+<span class="font-mono-code text-[15px] font-semibold text-secondary tracking-wider" id="studyStopwatch">03:42.8</span>
+<button class="p-1 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" id="toggleTimerBtn" title="Pause / Resume timer" type="button">
+<span class="material-symbols-outlined text-[16px]" id="toggleTimerIcon">pause</span>
+</button>
+</div>
+<!-- Flag Button -->
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container hover:bg-surface-variant text-error font-body-sm text-body-sm font-medium transition-colors" title="Record an ambiguous or broken simulation state" type="button">
+<span class="material-symbols-outlined text-[16px]">flag</span>
+<span>Flag Discrepancy</span>
+</button>
+<!-- Abandon Task -->
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container hover:bg-surface-variant text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+<span>Abandon</span>
+</button>
+<!-- Quick Submit Action -->
+<button class="flex items-center gap-2 px-4 py-1.5 rounded bg-primary text-on-primary font-body-sm text-body-sm font-semibold hover:bg-primary-fixed transition-colors shadow-md" onclick="document.getElementById('decisionSubmissionCard').scrollIntoView({behavior: 'smooth'})" type="button">
+<span class="material-symbols-outlined text-[18px]">fact_check</span>
+<span>Record Decision</span>
+</button>
+</div>
+</div>
+</section>
+<!-- 2-Pane Main Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+<!-- LEFT PANEL (cols 12 -> 4 xl): Scenario Briefing & Telemetry -->
+<aside class="xl:col-span-4 space-y-5">
+<!-- Scenario Brief Card -->
+<div class="bg-surface-container rounded-xl p-5 shadow-lg space-y-4">
+<div class="flex items-start justify-between gap-2">
+<div>
+<span class="font-label-caps text-label-caps text-tertiary uppercase tracking-wider">Test Scenario Objective</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface mt-0.5">Scenario B-2: Post-Merge Design Token Divergence</h2>
+</div>
+<span class="p-1.5 rounded bg-tertiary/10 text-tertiary flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+          A critical Figma design frame was updated <span class="text-tertiary font-semibold">4 days after PR #142 was merged</span> into <code class="font-mono-code text-[11px] bg-surface-container-lowest px-1 rounded text-primary">main</code>. Jira ticket <code class="font-mono-code text-[11px] bg-surface-container-lowest px-1 rounded text-secondary">PROJ-88</code> remains in "In Progress".
+        </p>
+<div class="p-3 rounded-lg bg-surface-container-low space-y-2">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Participant Prompt</span>
+<p class="font-body-sm text-body-sm text-on-surface">
+            Investigate the provenance chain across tools, verify if an actionable sync conflict exists, identify the precise root cause, and specify resolution.
+          </p>
+</div>
+<!-- Required Findings Checklist -->
+<div class="space-y-2.5 pt-2">
+<span class="font-label-caps text-label-caps text-on-surface uppercase tracking-wider">Required Output Metrics</span>
+<ul class="space-y-2 text-body-sm font-body-sm">
+<li class="flex items-start gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary text-[16px] mt-0.5">check_box</span>
+<span>1. Confirm Active Conflict existence [Yes/No/Inconclusive]</span>
+</li>
+<li class="flex items-start gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-outline text-[16px] mt-0.5">check_box_outline_blank</span>
+<span>2. Identify Root Cause (divergent padding commit vs token spec)</span>
+</li>
+<li class="flex items-start gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-outline text-[16px] mt-0.5">check_box_outline_blank</span>
+<span>3. Target notification list (Design Lead, PR Author)</span>
+</li>
+<li class="flex items-start gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-outline text-[16px] mt-0.5">check_box_outline_blank</span>
+<span>4. Specify automated patch or cherry-pick recommendation</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Real-Time Instrumentation Telemetry Tracker -->
+<div class="bg-surface-container rounded-xl p-5 shadow-lg space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span>
+<span class="font-headline-sm text-[16px] text-on-surface font-semibold">Live Telemetry Recorder</span>
+</div>
+<span class="font-mono-code text-[11px] text-outline">AUTO-STREAMING</span>
+</div>
+<!-- Metric Bento 2x2 -->
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between text-outline">
+<span class="font-label-caps text-label-caps uppercase">Artifacts Inspected</span>
+<span class="material-symbols-outlined text-[16px]">layers</span>
+</div>
+<div class="mt-2 flex items-baseline gap-1.5">
+<span class="font-mono-code text-[22px] font-bold text-on-surface" id="telemetryArtifacts">3</span>
+<span class="font-mono-code text-[11px] text-on-surface-variant">/ 5 total</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between text-outline">
+<span class="font-label-caps text-label-caps uppercase">Edges Traversed</span>
+<span class="material-symbols-outlined text-[16px]">alt_route</span>
+</div>
+<div class="mt-2 flex items-baseline gap-1.5">
+<span class="font-mono-code text-[22px] font-bold text-secondary" id="telemetryEdges">5</span>
+<span class="font-mono-code text-[11px] text-on-surface-variant">links</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between text-outline">
+<span class="font-label-caps text-label-caps uppercase">Search Queries</span>
+<span class="material-symbols-outlined text-[16px]">manage_search</span>
+</div>
+<div class="mt-2 flex items-baseline gap-1.5">
+<span class="font-mono-code text-[22px] font-bold text-primary" id="telemetryQueries">2</span>
+<span class="font-mono-code text-[11px] text-on-surface-variant">issued</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between">
+<div class="flex items-center justify-between text-outline">
+<span class="font-label-caps text-label-caps uppercase">Dwell Time / Node</span>
+<span class="material-symbols-outlined text-[16px]">avg_time</span>
+</div>
+<div class="mt-2 flex items-baseline gap-1.5">
+<span class="font-mono-code text-[22px] font-bold text-tertiary">44.2</span>
+<span class="font-mono-code text-[11px] text-on-surface-variant">sec avg</span>
+</div>
+</div>
+</div>
+<!-- Confidence Gauge Slider -->
+<div class="bg-surface-container-low p-3.5 rounded-lg space-y-2">
+<div class="flex items-center justify-between">
+<label class="font-label-caps text-label-caps text-on-surface uppercase tracking-wider" for="confSlider">Subject Decision Confidence</label>
+<span class="font-mono-code text-[12px] font-bold text-secondary" id="confDisplay">Level 4 (High)</span>
+</div>
+<input class="w-full h-1.5 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-secondary" id="confSlider" max="5" min="1" oninput="updateConfidence(this.value)" type="range" value="4"/>
+<div class="flex justify-between font-mono-code text-[10px] text-outline px-0.5">
+<span>1: Blind Guess</span>
+<span>3: Moderate</span>
+<span>5: Certain</span>
+</div>
+</div>
+<!-- Live Eye-tracking / Attention Indicator -->
+<div class="flex items-center justify-between px-3 py-2 rounded bg-surface-container-lowest text-on-surface-variant">
+<div class="flex items-center gap-2 font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-secondary text-[14px]">visibility</span>
+<span>Viewport Focus:</span>
+<span class="text-on-surface font-semibold">Diff Inspector</span>
+</div>
+<span class="font-label-caps text-[10px] text-primary">SYNC OK</span>
+</div>
+</div>
+<!-- Evaluation Protocol Reference (Collapsible summary) -->
+<div class="bg-surface-container-low p-4 rounded-xl space-y-2">
+<div class="flex items-center justify-between text-on-surface">
+<span class="font-body-sm text-body-sm font-semibold">Investigator Protocol Notes</span>
+<span class="material-symbols-outlined text-[16px] text-outline">info</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-relaxed">
+          Participant has received 5-minute training on Unify graph exploration. Counterbalanced group G-A completes Scenario B-2 using Unify before manual IDE/Figma inspection in Task 3.
+        </p>
+</div>
+</aside>
+<!-- RIGHT PANEL (cols 12 -> 8 xl): Split Investigation Workspace -->
+<main class="xl:col-span-8 space-y-6 min-w-0">
+<!-- Interactive Mini-Graph & Provenance Quick View -->
+<div class="bg-surface-container rounded-xl p-5 shadow-lg space-y-4">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">account_tree</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Provenance Dependency Graph</h3>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest font-mono-code text-[11px] text-outline">Filter: Direct Predecessors</span>
+<button class="p-1 rounded bg-surface-container-high hover:bg-surface-variant text-on-surface-variant hover:text-on-surface text-[12px] flex items-center gap-1 px-2" onclick="logAction('Reset graph zoom')">
+<span class="material-symbols-outlined text-[14px]">center_focus_strong</span>
+<span>Recenter</span>
+</button>
+</div>
+</div>
+<!-- Inline SVG Graph Topology View -->
+<div class="relative bg-surface-container-lowest rounded-lg p-4 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 pointer-events-none"></div>
+<svg class="w-full h-44" fill="none" viewbox="0 0 760 170" xmlns="http://www.w3.org/2000/svg">
+<!-- Grid decorative dots -->
+<pattern height="20" id="dotGrid" patternunits="userSpaceOnUse" width="20" x="0" y="0">
+<circle cx="2" cy="2" fill="#26364a" opacity="0.6" r="1"></circle>
+</pattern>
+<rect fill="url(#dotGrid)" height="170" width="760"></rect>
+<!-- Edge 1: Figma -> PR -->
+<path d="M 190 85 C 240 85, 260 85, 310 85" stroke="#464555" stroke-dasharray="4 4" stroke-width="2"></path>
+<path d="M 190 85 C 240 85, 260 85, 310 85" opacity="0.9" stroke="#ffb95f" stroke-width="2"></path>
+<!-- Edge 2: PR -> Jira -->
+<path d="M 450 85 C 500 85, 520 85, 570 85" stroke="#4fdbc8" stroke-width="2"></path>
+<!-- Traversal Pulse Animation Marker -->
+<circle cx="250" cy="85" fill="#ffb95f" r="4">
+<animate attributename="cx" dur="2.2s" repeatcount="indefinite" values="190;310"></animate>
+<animate attributename="opacity" dur="2.2s" repeatcount="indefinite" values="1;0.2"></animate>
+</circle>
+<!-- Node 1: Figma Frame -->
+<g class="cursor-pointer" onclick="selectGraphNode('Figma Frame: CheckoutModal_v3.2')">
+<rect fill="#102034" height="70" rx="8" stroke="#ffb95f" stroke-width="1.5" width="160" x="30" y="50"></rect>
+<circle cx="50" cy="72" fill="#ffb95f" opacity="0.2" r="7"></circle>
+<text fill="#ffb95f" font-family="Inter" font-size="10" font-weight="700" text-anchor="middle" x="50" y="76">F</text>
+<text fill="#d3e4fe" font-family="Inter" font-size="11" font-weight="600" x="66" y="75">CheckoutModal_v3.2</text>
+<text fill="#ffb95f" font-family="JetBrains Mono" font-size="9.5" x="50" y="102">UPDATED: Oct 24 (+4d)</text>
+</g>
+<!-- Node 2: GitHub PR #142 -->
+<g class="cursor-pointer" onclick="selectGraphNode('GitHub PR #142 (Merged)')">
+<rect fill="#102034" height="70" rx="8" stroke="#c3c0ff" stroke-width="2" width="140" x="310" y="50"></rect>
+<circle cx="330" cy="72" fill="#4f46e5" r="7"></circle>
+<text fill="#dad7ff" font-family="Inter" font-size="10" font-weight="700" text-anchor="middle" x="330" y="76">#</text>
+<text fill="#d3e4fe" font-family="Inter" font-size="11" font-weight="600" x="345" y="75">PR #142 (Merged)</text>
+<text fill="#c7c4d8" font-family="JetBrains Mono" font-size="9.5" x="330" y="102">Commit 8ef2a1 · Oct 20</text>
+</g>
+<!-- Node 3: Jira PROJ-88 -->
+<g class="cursor-pointer" onclick="selectGraphNode('Jira Issue: PROJ-88')">
+<rect fill="#102034" height="70" rx="8" stroke="#464555" stroke-width="1.5" width="150" x="570" y="50"></rect>
+<circle cx="590" cy="72" fill="#04b4a2" opacity="0.2" r="7"></circle>
+<text fill="#4fdbc8" font-family="Inter" font-size="10" font-weight="700" text-anchor="middle" x="590" y="76">J</text>
+<text fill="#d3e4fe" font-family="Inter" font-size="11" font-weight="600" x="606" y="75">Jira PROJ-88</text>
+<text fill="#4fdbc8" font-family="JetBrains Mono" font-size="9.5" x="590" y="102">Status: IN PROGRESS</text>
+</g>
+<!-- Discrepancy Alert badge over link -->
+<g transform="translate(230, 32)">
+<rect fill="#93000a" height="20" rx="4" width="64"></rect>
+<text fill="#ffdad6" font-family="JetBrains Mono" font-size="9" font-weight="700" text-anchor="middle" x="32" y="14">Δ DIVERGED</text>
+</g>
+</svg>
+<!-- Graph footer readout -->
+<div class="flex items-center justify-between pt-2 border-t border-surface-container text-on-surface-variant font-mono-code text-[11px]">
+<span>Selected Node: <strong class="text-primary font-semibold" id="selectedNodeLabel">CheckoutModal_v3.2</strong></span>
+<span class="text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">warning</span>
+              Temporal anomaly detected (4 days after base merge)
+            </span>
+</div>
+</div>
+</div>
+<!-- Direct Diff Inspector Card -->
+<div class="bg-surface-container rounded-xl p-5 shadow-lg space-y-4">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div>
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Automated Semantic Comparison</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-0.5">Token Discrepancy: Frame Padding Contract</h3>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-error-container text-error font-mono-code text-[11px] font-bold">Severity: High</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-[11px]">Key: modal_padding_insets</span>
+</div>
+</div>
+<!-- 2-Column Diff Block -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Figma Spec Side -->
+<div class="bg-surface-container-lowest rounded-lg p-3.5 space-y-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">Figma Component Spec</span>
+</div>
+<span class="font-mono-code text-[11px] text-tertiary">v3.2 · Oct 24, 14:18 UTC</span>
+</div>
+<div class="p-3 rounded bg-surface-container-low font-mono-code text-mono-code text-[12px] space-y-1">
+<div class="text-outline-variant">// Design Tokens applied</div>
+<div><span class="text-outline">component:</span> <span class="text-on-surface">"CheckoutModal"</span></div>
+<div class="bg-tertiary/10 p-1 rounded text-tertiary font-bold">
+                + padding: 16px; <span class="text-outline-variant font-normal text-[10px]">(Token: $spacing-comfortable)</span>
+</div>
+<div><span class="text-outline">border-radius:</span> <span class="text-on-surface">8px;</span></div>
+<div><span class="text-outline">layout-mode:</span> <span class="text-on-surface">"AutoLayout-Vertical"</span></div>
+</div>
+<!-- Figma Canvas Snippet Representation -->
+<div class="p-3 bg-surface-container-high rounded flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded bg-tertiary/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[20px]">space_dashboard</span>
+</div>
+<div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface">Updated by: Sarah (Staff Designer)</div>
+<div class="font-body-sm text-body-sm text-[11px] text-on-surface-variant">Design System Library v4.1</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[18px]">open_in_new</span>
+</div>
+</div>
+<!-- Code Repo / PR Side -->
+<div class="bg-surface-container-lowest rounded-lg p-3.5 space-y-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-body-sm text-body-sm font-semibold text-on-surface">GitHub PR #142 Implementation</span>
+</div>
+<span class="font-mono-code text-[11px] text-primary">Commit 8ef2a1 · Oct 20</span>
+</div>
+<div class="p-3 rounded bg-surface-container-low font-mono-code text-mono-code text-[12px] space-y-1">
+<div class="text-outline-variant">// packages/checkout/Modal.tsx</div>
+<div><span class="text-outline">export const ModalContainer = styled.div`</span></div>
+<div class="bg-error-container/30 p-1 rounded text-error font-bold">
+                - padding: 8px; <span class="text-outline-variant font-normal text-[10px]">(Merged hardcoded value)</span>
+</div>
+<div><span class="text-outline">border-radius:</span> <span class="text-on-surface">8px;</span></div>
+<div><span class="text-outline">display: flex;</span></div>
+</div>
+<!-- Author info -->
+<div class="p-3 bg-surface-container-high rounded flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded bg-primary-container/30 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+</div>
+<div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface">Merged by: Alex Chen (Frontend)</div>
+<div class="font-body-sm text-body-sm text-[11px] text-on-surface-variant">branch: feature/PROJ-88-checkout</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[18px]">done_all</span>
+</div>
+</div>
+</div>
+<!-- Root Cause Summary Box -->
+<div class="p-3 bg-surface-container-low rounded-lg flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-[22px]">troubleshoot</span>
+<div class="flex-1">
+<span class="font-label-caps text-label-caps text-secondary uppercase font-bold">Unify Inference Engine</span>
+<p class="font-body-sm text-body-sm text-on-surface">
+              Design library published updated padding tokens after PR approval. Code was implemented against obsolete mock v3.1. Issue is unresolved in production.
+            </p>
+</div>
+</div>
+</div>
+<!-- Tabbed Multi-Tool Raw Evidence Inspector -->
+<div class="bg-surface-container rounded-xl p-5 shadow-lg space-y-4">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-container-highest pb-3">
+<div>
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Raw Artifact Simulation</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-0.5">Evidence Timeline &amp; Tool Inspection</h3>
+</div>
+<!-- Tabs -->
+<div class="flex flex-wrap gap-1 bg-surface-container-lowest p-1 rounded-lg" role="tablist">
+<button class="px-3 py-1 rounded text-primary-fixed bg-surface-container-high font-mono-code text-[11px] font-semibold transition-all" id="tabBtn1" onclick="switchTab('unify')">
+              Unify Explainable Record
+            </button>
+<button class="px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-mono-code text-[11px] transition-all" id="tabBtn2" onclick="switchTab('github')">
+              GitHub PR #142
+            </button>
+<button class="px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-mono-code text-[11px] transition-all" id="tabBtn3" onclick="switchTab('figma')">
+              Figma Inspect
+            </button>
+<button class="px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-mono-code text-[11px] transition-all" id="tabBtn4" onclick="switchTab('jira')">
+              Jira PROJ-88
+            </button>
+</div>
+</div>
+<!-- Tab 1: Unify Explainable Record (Active) -->
+<div class="space-y-4" id="tabContent_unify">
+<div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+<div class="p-3 rounded bg-surface-container-lowest flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-outline">Oct 20, 10:15</span>
+<span class="font-body-sm text-body-sm font-medium text-on-surface mt-1">PR #142 Created</span>
+<span class="font-mono-code text-[10px] text-on-surface-variant">Ref PROJ-88</span>
+</div>
+<div class="p-3 rounded bg-surface-container-lowest flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-outline">Oct 20, 16:30</span>
+<span class="font-body-sm text-body-sm font-medium text-secondary mt-1">PR #142 Merged</span>
+<span class="font-mono-code text-[10px] text-on-surface-variant">main @ 8ef2a1</span>
+</div>
+<div class="p-3 rounded bg-surface-container-lowest flex flex-col justify-between">
+<span class="font-label-caps text-label-caps text-outline">Oct 22, 09:00</span>
+<span class="font-body-sm text-body-sm font-medium text-on-surface mt-1">Jira In QA</span>
+<span class="font-mono-code text-[10px] text-on-surface-variant">Staging deploy</span>
+</div>
+<div class="p-3 rounded bg-surface-container-lowest flex flex-col justify-between border-l-2 border-tertiary">
+<span class="font-label-caps text-label-caps text-tertiary font-bold">Oct 24, 14:18</span>
+<span class="font-body-sm text-body-sm font-medium text-tertiary mt-1">Figma v3.2 Push</span>
+<span class="font-mono-code text-[10px] text-tertiary">Δ Padding updated</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-lg font-mono-code text-mono-code text-[12px] space-y-2">
+<div class="text-secondary font-bold">// Unify Graph Path Resolution (Confidence: 0.982)</div>
+<div class="text-on-surface-variant">MATCH (f:FigmaNode {id: "CheckoutModal_v3.2"})-[:SPECIFIES]-&gt;(c:CodeCommit {sha: "8ef2a1"})</div>
+<div class="text-error">WHERE f.timestamp &gt; c.timestamp AND f.attributes.padding != c.attributes.padding</div>
+<div class="text-primary-fixed">RESULT: 1 active architectural drift pattern identified (ID: SYNC-2024-998)</div>
+</div>
+</div>
+<!-- Tab 2: GitHub PR Simulated -->
+<div class="hidden space-y-3" id="tabContent_github">
+<div class="bg-surface-container-lowest p-4 rounded-lg space-y-3 font-mono-code text-[12px]">
+<div class="flex items-center justify-between pb-2 border-b border-surface-container">
+<span class="text-secondary font-semibold">PR #142: feat(checkout): Add unified payment modal container</span>
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary-container text-[11px]">Merged</span>
+</div>
+<p class="text-on-surface font-body-sm text-body-sm">
+              Closes PROJ-88. Matches Figma Checkout screen designs as reviewed on Monday Oct 19.
+            </p>
+<div class="bg-surface-container p-2.5 rounded text-on-surface-variant">
+              +142 lines / -18 lines across 4 files. Checks: 14 passing.
+            </div>
+</div>
+</div>
+<!-- Tab 3: Figma Inspect Simulated -->
+<div class="hidden space-y-3" id="tabContent_figma">
+<div class="bg-surface-container-lowest p-4 rounded-lg space-y-2 font-mono-code text-[12px]">
+<div class="text-tertiary font-bold">Figma File: Acme Mobile &amp; Web Components / Core Library</div>
+<div class="text-on-surface">Node ID: 412:9082 [CheckoutModal_v3.2]</div>
+<div class="text-outline">Last modified by: Sarah M. (Design Systems Lead)</div>
+<div class="text-on-surface-variant">Version note: "Enlarged modal touch targets &amp; insets to 16px per a11y audit findings."</div>
+</div>
+</div>
+<!-- Tab 4: Jira View Simulated -->
+<div class="hidden space-y-3" id="tabContent_jira">
+<div class="bg-surface-container-lowest p-4 rounded-lg space-y-2 font-mono-code text-[12px]">
+<div class="text-secondary font-bold">Jira Ticket: PROJ-88 [Fix checkout modal spacing in responsive view]</div>
+<div class="text-on-surface">Assignee: Alex Chen | Reporter: Maya Lin | Status: IN PROGRESS</div>
+<div class="text-outline">Linked PR: #142 (Merged) | Sprint: Sprint 42</div>
+<div class="text-on-surface-variant">Comment (Oct 21): "Merged code to dev branch. Pending designer verification before closing."</div>
+</div>
+</div>
+</div>
+<!-- Decision Submission Card (Final Task Output) -->
+<div class="bg-surface-container rounded-xl p-6 shadow-xl space-y-5" id="decisionSubmissionCard">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[20px]">assignment_turned_in</span>
+</span>
+<div>
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Evaluation Response Form</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Record Decision &amp; Complete Task</h3>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-outline font-mono-code text-[11px]">Task 2 Final</span>
+</div>
+<!-- Form fields -->
+<div class="space-y-4">
+<!-- Question 1: Conflict Determination -->
+<div>
+<label class="font-body-sm text-body-sm font-semibold text-on-surface block mb-1.5">
+              1. Is there an active, unmerged design-code conflict?
+            </label>
+<div class="grid grid-cols-3 gap-3">
+<label class="flex items-center gap-2 p-2.5 rounded bg-surface-container-lowest cursor-pointer hover:bg-surface-container-high transition-colors">
+<input checked="" class="accent-secondary" name="conflictStatus" type="radio" value="yes"/>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Yes, Active Conflict</span>
+</label>
+<label class="flex items-center gap-2 p-2.5 rounded bg-surface-container-lowest cursor-pointer hover:bg-surface-container-high transition-colors">
+<input class="accent-secondary" name="conflictStatus" type="radio" value="no"/>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">No Conflict</span>
+</label>
+<label class="flex items-center gap-2 p-2.5 rounded bg-surface-container-lowest cursor-pointer hover:bg-surface-container-high transition-colors">
+<input class="accent-secondary" name="conflictStatus" type="radio" value="inconclusive"/>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Inconclusive</span>
+</label>
+</div>
+</div>
+<!-- Question 2: Root Cause Selection -->
+<div>
+<label class="font-body-sm text-body-sm font-semibold text-on-surface block mb-1.5" for="rootCauseSelect">
+              2. Identified Primary Root Cause
+            </label>
+<select class="w-full px-3 py-2 rounded bg-surface-container-lowest text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-high" id="rootCauseSelect">
+<option value="post_merge_design_token_update">Post-merge design update: Figma modified 16px padding after PR #142 merged with 8px</option>
+<option value="git_revert">Accidental Git revert during branch reconciliation</option>
+<option value="jira_out_of_sync">Jira status lag with no actual code divergence</option>
+<option value="other">Other architectural discrepancy</option>
+</select>
+</div>
+<!-- Question 3: Stakeholders to notify -->
+<div>
+<label class="font-body-sm text-body-sm font-semibold text-on-surface block mb-1.5">
+              3. Required Stakeholder Notifications
+            </label>
+<div class="flex flex-wrap gap-2">
+<span class="px-2.5 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[14px]">check</span>
+                Sarah M. (Design Lead)
+              </span>
+<span class="px-2.5 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[14px]">check</span>
+                Alex Chen (PR #142 Author)
+              </span>
+<span class="px-2.5 py-1 rounded bg-surface-container-lowest text-outline font-mono-code text-[11px] flex items-center gap-1.5 hover:text-on-surface cursor-pointer">
+<span class="material-symbols-outlined text-[14px]">add</span>
+                QA Lead (PROJ-88 Sign-off)
+              </span>
+</div>
+</div>
+<!-- Question 4: Free-text Justification -->
+<div>
+<label class="font-body-sm text-body-sm font-semibold text-on-surface block mb-1.5" for="justificationInput">
+              4. Evidence Justification &amp; Proposed Resolution Action
+            </label>
+<textarea class="w-full p-3 rounded-lg bg-surface-container-lowest text-on-surface font-mono-code text-[12px] placeholder-outline focus:outline-none focus:bg-surface-container-high transition-colors" id="justificationInput" placeholder="Enter justification based on evidence inspected in Unify graph and simulated tools... (e.g. Generate patch PR to bump padding: 16px to match Figma v3.2)" rows="3"></textarea>
+</div>
+</div>
+<!-- Submission Row -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+<div class="flex items-center gap-2 text-on-surface-variant font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-secondary text-[16px]">verified_user</span>
+<span>Subject P-14 responses will be timestamped and appended to study dataset</span>
+</div>
+<button class="flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-primary-container text-on-primary-container font-headline-sm text-[14px] font-semibold hover:bg-primary transition-all shadow-lg hover:shadow-primary/20" id="submitEvaluationBtn" onclick="submitEvaluationFindings()" type="button">
+<span class="material-symbols-outlined text-[18px]">send</span>
+<span>Submit Evaluation Findings &amp; Proceed</span>
+</button>
+</div>
+</div>
+</main>
+</div>
+</div>
+<script>
+  // Simple stopwatch for study instrumentation
+  let seconds = 222.8;
+  let timerActive = true;
+  const stopwatchEl = document.getElementById('studyStopwatch');
+  const toggleBtn = document.getElementById('toggleTimerBtn');
+  const toggleIcon = document.getElementById('toggleTimerIcon');
+
+  setInterval(() => {
+    if (timerActive) {
+      seconds += 0.1;
+      const mins = Math.floor(seconds / 60);
+      const secs = (seconds % 60).toFixed(1);
+      const formattedMins = String(mins).padStart(2, '0');
+      const formattedSecs = secs < 10 ? '0' + secs : secs;
+      stopwatchEl.textContent = `${formattedMins}:${formattedSecs}`;
+    }
+  }, 100);
+
+  toggleBtn.addEventListener('click', () => {
+    timerActive = !timerActive;
+    toggleIcon.textContent = timerActive ? 'pause' : 'play_arrow';
+    logAction(timerActive ? 'Timer Resumed' : 'Timer Paused');
+  });
+
+  function updateConfidence(val) {
+    const labels = {
+      '1': 'Level 1 (Very Low)',
+      '2': 'Level 2 (Low)',
+      '3': 'Level 3 (Moderate)',
+      '4': 'Level 4 (High)',
+      '5': 'Level 5 (Certain)'
+    };
+    document.getElementById('confDisplay').textContent = labels[val] || 'Level ' + val;
+    logAction('Confidence slider set to ' + val);
+  }
+
+  function selectGraphNode(nodeName) {
+    document.getElementById('selectedNodeLabel').textContent = nodeName;
+    const edgeCount = document.getElementById('telemetryEdges');
+    edgeCount.textContent = parseInt(edgeCount.textContent, 10) + 1;
+    logAction('Inspected Node: ' + nodeName);
+  }
+
+  function switchTab(tabId) {
+    const tabs = ['unify', 'github', 'figma', 'jira'];
+    tabs.forEach(t => {
+      const content = document.getElementById('tabContent_' + t);
+      if (content) content.classList.add('hidden');
+    });
+
+    const activeContent = document.getElementById('tabContent_' + tabId);
+    if (activeContent) activeContent.classList.remove('hidden');
+
+    const tabMap = { unify: 'tabBtn1', github: 'tabBtn2', figma: 'tabBtn3', jira: 'tabBtn4' };
+    tabs.forEach(t => {
+      const btn = document.getElementById(tabMap[t]);
+      if (btn) {
+        if (t === tabId) {
+          btn.className = 'px-3 py-1 rounded text-primary-fixed bg-surface-container-high font-mono-code text-[11px] font-semibold transition-all';
+        } else {
+          btn.className = 'px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-mono-code text-[11px] transition-all';
+        }
+      }
+    });
+
+    const artCount = document.getElementById('telemetryArtifacts');
+    const cur = parseInt(artCount.textContent, 10);
+    if (cur < 5) artCount.textContent = cur + 1;
+    logAction('Switched raw tab view to: ' + tabId);
+  }
+
+  function logAction(msg) {
+    // In actual study runner this would ping telemetry endpoint
+    console.log('[Unify-Study-Telemetry P-14]:', msg, 'at', stopwatchEl.textContent);
+  }
+
+  function submitEvaluationFindings() {
+    const btn = document.getElementById('submitEvaluationBtn');
+    btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span><span>Saving Telemetry...</span>';
+    btn.disabled = true;
+    timerActive = false;
+
+    setTimeout(() => {
+      btn.className = 'flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-secondary-container text-on-secondary-container font-headline-sm text-[14px] font-semibold';
+      btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span><span>Task 2 Recorded · Loading Task 3...</span>';
+    }, 1200);
+  }
+</script></main></div></body></html>
