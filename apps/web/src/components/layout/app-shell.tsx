@@ -11,7 +11,7 @@ function NavEntry({ item, active }: { item: NavItem; active: boolean }) {
     <Link
       href={item.href}
       className={[
-        "flex items-center gap-3 px-4 py-3 transition-colors cursor-pointer active:scale-95 group",
+        "flex items-center gap-3 px-3 py-2.5 transition-colors cursor-pointer active:scale-95 group",
         "border-r-2",
         active
           ? "text-primary font-bold border-primary bg-surface-container-high"
@@ -19,7 +19,7 @@ function NavEntry({ item, active }: { item: NavItem; active: boolean }) {
       ].join(" ")}
     >
       <Icon name={item.icon} className="text-[20px]" />
-      <span className="font-body-md">{item.label}</span>
+      <span className="font-body-sm whitespace-nowrap">{item.label}</span>
       {item.badge ? (
         <span className="ml-auto bg-error-container text-on-error-container text-[10px] font-bold px-1.5 rounded-full">
           {item.badge}

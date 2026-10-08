@@ -45,9 +45,25 @@ Technical ownership (proposal §16):
 ## Repository contents
 
 ```
-docs/           Project documents (see below)
-opencode.json   OpenCode config — official Stitch MCP server
-.env            Local secrets (gitignored) — STITCH_API_KEY
+apps/web           Reviewer web app — Next.js 16 + TypeScript + Tailwind (see its README)
+docs/              Project documents (see below)
+opencode.json      OpenCode config — official Stitch MCP server
+.env               Local secrets (gitignored) — STITCH_API_KEY
+```
+
+### Frontend
+
+`apps/web` implements the reviewer surface screen-for-screen against the Stitch
+project **Unified Dev Collaboration Hub**. Every design was exported locally to
+`docs/stitch-reference/screens/` (Tailwind HTML + PNG per screen) and the app's
+Tailwind theme is a 1:1 port of the token block inside those exports, so the
+screens stay checkable against their source. Screens currently render typed mock
+data (`apps/web/src/lib/mock/`); the contracts/API layer lands next.
+
+```sh
+npm install        # npm workspaces, from the repo root
+npm run dev        # → http://localhost:3000
+npm run build
 ```
 
 ### Documents
