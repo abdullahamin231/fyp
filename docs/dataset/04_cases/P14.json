@@ -1,0 +1,98 @@
+{
+  "case_id": "P14",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "MAN",
+    "url": "https://github.com/mantinedev/mantine",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "8f7bd9d958eb39ec1b7ac100685f5b0a73ecff57",
+    "head_sha": "d68920e564d37310baa5382393b5d7b418bf1cf0",
+    "head_patch": "patches/P14.head.patch",
+    "head_patch_sha256": "7d8add9c8f45a72417db09cfc9a608f583fba044717654e84be248fd29bd9369"
+  },
+  "change_under_review": {
+    "pr": 9192,
+    "title": "[@mantine/core] NumberInput: Fix `min` and `max` boundaries not being respected when `trimLeadingZeroesOnBlur` is false (#9192)"
+  },
+  "intent": {
+    "criterion_id": "P14-C1",
+    "criterion": "With trimLeadingZeroesOnBlur set to false, NumberInput must still clamp the value to min and max on blur.",
+    "source": "Squash-merge commit message of PR #9192",
+    "source_quote": "NumberInput: Fix `min` and `max` boundaries not being respected when `trimLeadingZeroesOnBlur` is false",
+    "issue_url": null,
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "packages/@mantine/core/src/components/NumberInput/NumberInput.story.tsx",
+        "start_line": 358,
+        "end_line": 401,
+        "kind": "code",
+        "lines_added": 44
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [
+      {
+        "file": "packages/@mantine/core/src/components/NumberInput/NumberInput.test.tsx",
+        "start_line": 738,
+        "end_line": 809,
+        "kind": "test",
+        "lines_added": 72
+      }
+    ],
+    "test_runs": [
+      {
+        "command": "npx jest packages/@mantine/core/src/components/NumberInput/NumberInput.test.tsx -t 'trimLeadingZeroesOnBlur is false'",
+        "result": "FAIL (1 failed, 1 passed): 'clamps string values on blur when trimLeadingZeroesOnBlur is false'",
+        "log": "test_logs/P14.log"
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P14-S1",
+      "file": "packages/@mantine/core/src/components/NumberInput/NumberInput.tsx",
+      "symbol": "blur sanitiser",
+      "start_line": 299,
+      "end_line": 322,
+      "content_sha256": "6483e119940bc4decf8b2629d9bc06f9dda63e3c02125c7c90c5c796aa57974f"
+    },
+    {
+      "span_id": "P14-S2",
+      "file": "packages/@mantine/core/src/components/NumberInput/NumberInput.tsx",
+      "symbol": "clampBigInt",
+      "start_line": 114,
+      "end_line": 124,
+      "content_sha256": "3b0935de0c26d3508349ffc2e14352ca83c37652a4f25d05a6055ae9674962c4"
+    },
+    {
+      "span_id": "P14-S3",
+      "file": "packages/@mantine/core/src/components/NumberInput/NumberInput.tsx",
+      "symbol": "isInRange",
+      "start_line": 143,
+      "end_line": 152,
+      "content_sha256": "adcbb63920d4997577949b1bae07a72492689f4929c72f0eab6aaca04abe7050"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #9192",
+      "occurred_at": "2026-09-18T13:47:53+03:00",
+      "delivered_order": 1,
+      "evidence": "commit d68920e56"
+    }
+  ]
+}
