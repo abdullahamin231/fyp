@@ -169,7 +169,7 @@ Ordered by dependency. Each feature's **Definition of Done**: tests green · evi
 
 Editable source committed + rendered PDF, each stamped with the commit it matches. Regenerate all at the evaluation tag.
 
-*Location/tool note:* sources currently live in `docs/F26 FYP1 Mid Report LaTeX/diagrams/` (Mishal, commit `717a7af`) as **plain TikZ**, not `docs/diagrams/` draw.io/Mermaid. Either move them or ratify TikZ + that folder as the tool/path of record (§10). Still outstanding for all four: **commit stamp** in the file/caption, and regeneration at the evaluation tag.
+*Location/tool note:* **one folder for all twelve** — `docs/F26 FYP1 Mid Report LaTeX/diagrams/` holds Mishal's four (`717a7af`), Abdullah's five (`d2d7d0c`) and Haaniah's three (`ae0a03c`) as plain TikZ; there is no `docs/diagrams/`, so the only open part of §10 is the tooling yes/no. `build.sh` renders all twelve in one run: fragments wrap via `unify-diagram-styles`, Haaniah's self-contained files compile via `unifystyle.tex` (reconstructed — palette sampled from her committed renders, rebuild verified **pixel-identical** to all committed PNGs). Still outstanding for all twelve: **commit stamp** in the file/caption, and regeneration at the evaluation tag; Haaniah's three are built but not yet wired into a chapter (`\includegraphics` — they are standalone documents, not `\input` fragments).
 
 - [x] Layered architecture + trust boundary (adapter → reviewer surface) — *Abdullah* — proposal §8.1 — **done** (`diagrams/layered-arch.tex` + `rendered/layered-arch.pdf`, `d2d7d0c`, wired into ch5 §System Architecture; re-rendered clean via the `texlive/texlive` container). *Follow-up:* commit stamp + regeneration at the evaluation tag still outstanding (applies to every diagram).
 - [x] Component/interface diagram: API, worker, queue, DB, model server, external tools — *Abdullah* — §8.2 — **done** (`diagrams/components.tex` + `rendered/components.pdf`, `d2d7d0c`, wired into ch5 §Architectural Components). *Follow-up:* commit stamp + evaluation-tag regeneration.
@@ -253,7 +253,7 @@ Skeleton: `docs/F26 FYP1 Mid Report LaTeX/` — owner writes, the other two revi
 
 - [ ] Which GPU/VRAM the group actually has (decides the model ceiling — §1.2)
 - [ ] Whether live GitHub/Jira/Figma OAuth is obtainable now, or the mock/exported-data fallback leads (proposal §13.4 sanctions either)
-- [ ] Diagram tooling of record (draw.io vs. Mermaid vs. TikZ) — one choice, one folder, everyone uses it — **TikZ de facto in use** since `717a7af` (four diagrams, `docs/F26 FYP1 Mid Report LaTeX/diagrams/`); needs a yes/no from all three, then either draw.io/Mermaid work is stopped or Mishal's four are re-drawn
+- [ ] Diagram tooling of record (draw.io vs. Mermaid vs. TikZ) — one choice, one folder, everyone uses it — **folder settled**: all twelve diagrams (three owners) now live in `docs/F26 FYP1 Mid Report LaTeX/diagrams/` with one `build.sh` covering them (`717a7af` / `ae0a03c` / `d2d7d0c`); only the tooling yes/no from all three remains, then either draw.io/Mermaid work stops or TikZ is ratified
 - [ ] Board of record and review rule (who reviews whom)
 - [ ] Annotation tooling format for blind double-labelling (two files per case, no discussion before both submitted)
 - [ ] Sign-off of the §16 ownership rows by all three members

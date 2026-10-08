@@ -1,0 +1,53 @@
+% =============================================================================
+% UNIFY -- shared TikZ style used by Haaniah's self-contained diagrams
+%          (05_ingestion_sequence.tex, 06_state_machines.tex, 11_deployment.tex)
+%
+% Those three files each start with \documentclass{standalone} + \input{unifystyle}
+% and are compiled on their own ("pdflatex <file>.tex"), unlike Mishal's and
+% Abdullah's sources, which are fragments wrapped by build.sh.
+%
+% The original unifystyle.tex was never committed. This file was reconstructed
+% so the folder is self-contained again: the palette below was sampled directly
+% from the committed renders (rendered/*.png, 200 dpi), and the geometry was
+% matched against them. A rebuild should reproduce the committed PDFs closely;
+% if you edit a style here, re-render all three and eyeball the diff.
+%
+% Layout note: like unify-diagram-styles.tex, this is plain TikZ (no tikz-uml),
+% so it compiles in any TeX Live.
+% =============================================================================
+\usepackage{tikz}
+\usepackage{pgffor} % \foreach (05_ingestion_sequence lifelines)
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,
+                shapes.geometric,shapes.multipart,decorations.pathreplacing}
+
+% ---- palette: exact fills sampled from the committed renders ----------------
+\definecolor{extgrey}{HTML}{EDEDED}    % vendor / superseded (neutral)
+\definecolor{relblue}{HTML}{CFE2F3}    % pipeline steps, fresh path
+\definecolor{graphgreen}{HTML}{D9EAD3} % evidence graph / applied
+\definecolor{verorange}{HTML}{FCE5CD}  % verification / findings / model
+\definecolor{badred}{HTML}{F8D7DA}     % rejected / SOURCE_STALE
+\definecolor{okgreen}{HTML}{DFF0D8}    % discarded / ignored / resolved
+\definecolor{warnamber}{HTML}{FCE8C3}  % degraded / disputed
+\definecolor{hynote}{HTML}{FFF9D6}     % side-note boxes
+
+\tikzset{
+  % ---- 05: sequence diagram --------------------------------------------------
+  lane/.style={draw, fill=#1, rounded corners=2pt, inner sep=4pt,
+               align=center, font=\bfseries\scriptsize},
+  frame/.style={draw},                       % sdframe rectangles
+  ftab/.style={draw, fill=white, font=\scriptsize, inner sep=1.5pt}, % alt A tab
+  msg/.style={-{Stealth[length=2.5mm]}},     % call arrow
+  ret/.style={-{Stealth[length=2.5mm]}, dashed}, % return arrow
+  box/.style={draw, fill=#1, rounded corners=2pt, inner sep=4pt, align=center},
+  % ---- 06: state machines ----------------------------------------------------
+  st/.style={draw, fill=#1, rounded corners=2pt, inner sep=4pt,
+             align=center, font=\scriptsize},
+  dec/.style={diamond, aspect=1.75, draw, fill=white, font=\scriptsize,
+              align=center, text width=1.5cm, inner sep=1pt},
+  tr/.style={-{Stealth[length=2.2mm]}},       % state transition
+  % ---- shared ----------------------------------------------------------------
+  lbl/.style={font=\scriptsize, fill=white, inner sep=1pt},
+  note/.style={draw, fill=hynote, font=\scriptsize, align=left,
+               text width=#1, inner sep=4pt, rounded corners=2pt},
+  note/.default=4.6cm,
+}
