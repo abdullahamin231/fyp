@@ -1,0 +1,141 @@
+% =============================================================================
+% UNIFY -- Component / interface diagram (owner: Abdullah Amin)
+% Sources: proposal \S8.2 (external dependencies, data flow, boundaries),
+%          \S8.3 (normalised envelope), \S8.4 (checkpoints/reconciliation),
+%          \S9.5 (graph-delta pipeline), \S9.7 (role-edge routing),
+%          \S9.8 (algorithms by component), \S9.9 (PostgreSQL sole store),
+%          \S11.1 (no hosted model API), \S11.5/\S11.6/\S11.8 (packet, verdict, gate),
+%          \S14 (queue, async verification, pinning), TODO \S2 (repo layout,
+%          Zod contracts, tools/mock-vendor).
+% Logical components + labelled interfaces; container/host footprint is the
+% separate \S14 deployment diagram (Haaniah).
+% Commit: <stamp at evaluation tag> -- regenerate rendered/*.pdf at that tag.
+% =============================================================================
+\begin{tikzpicture}[x=1cm,y=1cm]
+\tikzset{bi/.style={draw=uLine, line width=0.6pt, >=Stealth, <->},
+         dsh/.style={draw=uInk, dashed, line width=0.6pt, >=Stealth,
+                     -{Stealth[length=2.2mm]}}}
+
+% ---- deployment boundary ------------------------------------------------------
+\draw[uline, draw=uInk, dashed, line width=1.1pt, rounded corners=4pt]
+      (-0.5,-0.5) rectangle (17.9,13.7);
+\node[anchor=south west, text width=10.6cm, align=left, font=\scriptsize,
+      fill=white, inner sep=1pt] at (-0.5,13.85)
+     {UNIFY deployment boundary --- single host/VM; repository, ticket and design
+      content never leaves it; all inference local (\S8.2, \S14).};
+
+% ---- external sources / sinks (left) ------------------------------------------
+\node[extsys, text width=2.4cm, minimum height=1.0cm] (gh) at (-5.9,10.5)
+     {\guillemotleft system\guillemotright\\GitHub\\change + test-evidence source};
+\node[extsys, text width=2.4cm, minimum height=1.0cm] (jira) at (-5.9,9.0)
+     {\guillemotleft system\guillemotright\\Jira\\work-item source};
+\node[extsys, text width=2.4cm, minimum height=1.0cm] (figma) at (-5.9,7.5)
+     {\guillemotleft system\guillemotright\\Figma\\design-intent source};
+% webhook corridor: every source (incl. the replay harness) joins one junction
+\draw[flow] (-4.7,10.5) -- (-1.0,10.5);
+\draw[flow] (-4.7,9.0)  -- (-1.0,9.0);
+\draw[flow] (-4.7,7.5)  -- (-1.0,7.5);
+\draw[uline, line width=0.6pt] (-1.0,5.0) -- (-1.0,10.5);
+\draw[bi]  (-1.0,9.4) -- (0.6,9.4);
+\node[anchor=north, text width=3.4cm, align=left, font=\scriptsize,
+      text=uMuted] at (-2.8,7.1)
+     {webhooks in: normalised envelope (\S8.3) / REST + GraphQL out: read-only
+      least-privilege scopes, polling reconciliation (\S8.4)};
+
+% ---- dev-only replay harness (dashed) ------------------------------------------
+\node[draw=uMuted, dashed, fill=gray!10, font=\scriptsize, align=center,
+      text width=2.4cm, minimum height=1.0cm, inner sep=3pt] (mock) at (-5.9,5.0)
+     {tools/mock-vendor\\replay harness\\CI \& demo only};
+\draw[dsh] (-4.7,5.0) -- (-1.0,5.0);
+\node[anchor=north, text width=3.4cm, align=left, font=\scriptsize,
+      text=uMuted] at (-2.8,4.7)
+     {fixtures/ replay --- same envelope, never production traffic};
+
+% ---- reviewer surface + API ----------------------------------------------------
+\node[step=4.4cm, fill=uIngest!45, minimum height=1.6cm, align=left] (web)
+     at (2.9,12.25)
+     {\textbf{Web --- reviewer surface} \texttt{apps/web}\\
+      change selection \textperiodcentered evidence case \textperiodcentered confirm/reject links \textperiodcentered resolution};
+\node[step=4.4cm, fill=uIngest!45, minimum height=2.0cm, align=left] (api)
+     at (2.9,9.5)
+     {\textbf{API} \texttt{apps/api}\\
+      webhook receiver (\S8.3) \textperiodcentered query/mutation endpoint \textperiodcentered enqueue only};
+\draw[flow] (2.9,11.45) -- (2.9,10.5);
+\node[anchor=center, text width=2.4cm, align=center, font=\scriptsize,
+      text=uMuted, fill=white] at (4.15,10.97)
+     {HTTP/JSON per Zod contracts};
+
+% ---- job queue + storage --------------------------------------------------------
+\node[step=3.0cm, fill=uLine!14, minimum height=1.8cm, align=left] (redis)
+     at (2.1,1.8)
+     {\textbf{Redis --- job queue}\\ingest \textperiodcentered verify \textperiodcentered notify};
+\node[step=6.6cm, fill=uLine!14, minimum height=2.4cm, align=left] (pg)
+     at (8.0,1.9)
+     {\textbf{PostgreSQL --- sole committed store (\S9.9)}\\
+      nodes \textperiodcentered edges \textperiodcentered artifact\_snapshots \textperiodcentered events \textperiodcentered checkpoints \textperiodcentered findings \textperiodcentered
+      context\_packets \textperiodcentered audit};
+\draw[bi] (1.6,8.5) -- (1.6,2.7);
+\node[anchor=center, text width=3.4cm, align=center, font=\scriptsize,
+      text=uMuted, fill=white] at (3.7,7.0)
+     {enqueue: ingest \textperiodcentered verify \textperiodcentered notify};
+\draw[flow] (redis.east) -- (4.2,1.8) -- (4.2,5.9) -- (6.2,5.9);
+\node[anchor=center, text width=1.7cm, align=center, font=\scriptsize,
+      text=uMuted, fill=white] at (5.2,6.35) {consume jobs};
+
+% ---- worker (the pipeline) --------------------------------------------------------
+\node[step=7.0cm, fill=uGraph!35, minimum height=5.0cm, align=left] (worker)
+     at (9.8,8.0)
+     {\textbf{Worker --- \texttt{apps/worker} (background)}\\[2pt]
+      \begin{tabular}{@{}l@{}}
+      normalise $\to$ idempotency \textperiodcentered checkpoint \textperiodcentered reconcile (\S8.4)\\
+      $\to$ graph delta emitted on every mutation (\S9.5) --- deltas, not rescans\\
+      $\to$ indexed rule dispatch + criterion queue (\S9.8)\\
+      $\to$ context builder (\S11.5) $\to$ verdict gate (\S11.8)\\
+      $\to$ findings \textperiodcentered role-edge routing 1--2 hops (\S9.7) \textperiodcentered audit
+      \end{tabular}};
+\draw[bi] (8.4,5.5) -- (8.4,3.1);
+\node[anchor=center, text width=3.6cm, align=center, font=\scriptsize,
+      text=uMuted, fill=white] at (10.5,4.3)
+     {SQL: graph, snapshots, findings, packets, provenance/audit};
+
+% ---- local model server ------------------------------------------------------------
+\node[step=3.0cm, fill=uVerify!50, minimum height=2.8cm, align=left] (model)
+     at (15.8,8.1)
+     {\textbf{Local model server}\\team-owned container: pinned model,
+      tokenizer, quantisation, settings recorded per run (\S14)};
+\draw[bi] (13.4,8.1) -- (14.2,8.1);
+\node[anchor=north west, text width=3.6cm, align=left, font=\scriptsize,
+      text=uMuted] at (14.0,11.35)
+     {local HTTP, queued async so model latency never blocks ingestion (\S14):
+      \texttt{context\_packet} (\S11.5) in $\to$ structured verdict (\S11.6) out;
+      gate (\S11.8) before any write};
+
+% ---- notification sink (outside) -----------------------------------------------------
+\node[extsys, text width=2.6cm, minimum height=1.0cm] (slack) at (16.0,1.6)
+     {\guillemotleft system\guillemotright\\Slack\\delivery channel only};
+\draw[flow] (12.6,5.5) -- (12.6,4.4) -- (16.0,4.4) -- (16.0,2.15);
+\node[anchor=north, text width=3.2cm, align=left, font=\scriptsize,
+      text=uMuted] at (14.2,4.1)
+     {Slack Web API --- delivery receipt only, never an input to reasoning
+      (\S8.2, \S9.7)};
+
+% ---- shared contracts (dashed) ---------------------------------------------------------
+\node[draw=uInk, dashed, fill=uIntent!50, font=\scriptsize, align=left,
+      text width=4.2cm, minimum height=1.6cm, inner sep=4pt] (contracts)
+     at (8.4,12.25)
+     {\textbf{packages/contracts (Zod)} --- constrains web \textperiodcentered api \textperiodcentered worker:
+      envelope \textperiodcentered node/edge \textperiodcentered rule \textperiodcentered packet \textperiodcentered verdict = single source of truth
+      (TODO \S2)};
+\draw[dsh] (6.2,12.6) -- (5.2,12.6);
+\draw[dsh] (8.4,11.45) -- (8.4,10.5);
+\node[anchor=center, text width=1.6cm, align=center, font=\scriptsize,
+      text=uMuted, fill=white] at (9.3,10.97) {constrains};
+
+% ---- hosted model API: explicitly not in the loop ------------------------------------------
+\node[draw=uMuted, dashed, fill=gray!12, font=\scriptsize, align=center,
+      text width=4.6cm, inner sep=4pt] at (8.1,-1.5)
+     {Hosted model API --- outside the loop (\S11.1)};
+\draw[uLine, dashed] (8.1,-1.05) -- (8.1,-0.5);
+\draw[uBad, line width=1.1pt] (7.9,-1.0) -- (8.3,-0.6);
+\draw[uBad, line width=1.1pt] (7.9,-0.6) -- (8.3,-1.0);
+\end{tikzpicture}

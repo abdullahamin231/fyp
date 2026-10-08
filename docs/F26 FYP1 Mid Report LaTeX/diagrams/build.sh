@@ -4,7 +4,7 @@
 set -e
 cd "$(dirname "$0")"
 mkdir -p rendered .build
-figs=("$@"); [ ${#figs[@]} -eq 0 ] && figs=(usecase erd domain-model anchor-reanchoring)
+figs=("$@"); [ ${#figs[@]} -eq 0 ] && figs=(usecase erd domain-model anchor-reanchoring layered-arch components dfd verifier-loop autonomy-ladder)
 for f in "${figs[@]}"; do
   cat > .build/$f.tex <<TEX
 \documentclass[border=10pt]{standalone}

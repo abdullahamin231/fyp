@@ -1,0 +1,168 @@
+% =============================================================================
+% UNIFY -- Data-flow diagram of the full pipeline (owner: Abdullah Amin)
+% Sources: proposal §8.2 (the canonical data-flow string, external deps),
+%          §8.3 (normalised envelope), §8.4 (reliability state machine,
+%          checkpoints, reconciliation), §9.5 (graph deltas, no rescans),
+%          §9.7 (role-edge notification routing), §9.8 (algorithms),
+%          §11.4-§11.6 (loop, packet, output schema), §11.8 (verdict gate).
+% Notation: rounded numbered boxes = processes, open-top boxes = data stores
+% (D1..D4), rectangles = external entities, labelled arrows = data flows.
+% §8.2 order, verbatim: webhook/poll -> normalisation -> version store ->
+% evidence-graph update -> (a) rule evaluation / (b) criterion queue ->
+% context packet -> bounded local verification -> verdict gate -> evidence
+% case -> notification routing -> reviewer UI / audit.
+% Commit: <stamp at evaluation tag> -- regenerate rendered/*.pdf at that tag.
+% =============================================================================
+\begin{tikzpicture}[x=1cm,y=1cm]
+\tikzset{bi/.style={draw=uLine, line width=0.6pt, >=Stealth, <->},
+         dfstore/.style={draw=uLine, line width=0.6pt, fill=uIngest!20}}
+% #1=cx #2=cy #3=w #4=h #5=text width(cm) #6=text
+\newcommand{\dfstore}[6]{%
+  \draw[dfstore] ({#1-#3/2},{#2-#4/2}) rectangle ({#1+#3/2},{#2+#4/2});
+  \draw[uline] ({#1-#3/2},{#2+#4/2-0.3}) -- ({#1+#3/2},{#2+#4/2-0.3});
+  \node[align=center, font=\scriptsize, text width=#5cm]
+       at ({#1},{#2-0.16}) {#6};}
+
+% ---- band 1: ingestion (left to right) ---------------------------------------
+\node[extsys, text width=3.0cm, minimum height=1.5cm] (vend) at (-4.9,14.0)
+     {\guillemotleft system\guillemotright\\GitHub · Jira · Figma\\webhook / poll};
+\node[step=3.0cm, fill=uIngest!45, align=left] (p1) at (-1.25,14.0)
+     {\textbf{1 · Receive} — authenticate webhook / poll response; stamp
+      received\_at (\S8.4)};
+\node[step=3.0cm, fill=uIngest!45, align=left] (p2) at (3.0,14.0)
+     {\textbf{2 · Normalise} → persist raw → idempotency by event\_id →
+      version guard (\S8.4)};
+\node[decision, text width=2.0cm] (d1) at (7.0,14.0)
+     {duplicate or older version?};
+\node[step=3.6cm, fill=uIngest!45, align=left] (p3) at (12.4,14.0)
+     {\textbf{3 · Transactional apply} — snapshot write + graph mutation;
+      checkpoint advances (\S8.4)};
+
+\draw[flow] (vend.east) -- (p1.west);
+\draw[flow] (p1.east) -- (p2.west);
+\draw[flow] (p2.east) -- (d1.west);
+\draw[flow] (d1.east) -- (p3.west);
+\node[anchor=south, text width=2.6cm, align=center, font=\scriptsize,
+      text=uMuted] at (-3.075,14.9)  {raw vendor payload (webhook / poll)};
+\node[anchor=south, text width=2.4cm, align=center, font=\scriptsize,
+      text=uMuted] at (0.875,14.85)  {normalised envelope (\S8.3)};
+\node[anchor=south, text width=2.4cm, align=center, font=\scriptsize,
+      text=uMuted] at (5.2,14.85)    {checked: event\_id · version};
+\node[lbl, anchor=south] at (9.4,14.05) {no — apply (\S8.4)};
+
+% duplicate / stale -> no-op (first-class outcome, §8.4)
+\draw[flow] (d1.north) -- (7.0,16.32);
+\draw[fill=white, draw=uLine, line width=0.8pt] (7.0,16.5) circle (0.15);
+\draw[fill=uInk, draw=none]  (7.0,16.5) circle (0.07);
+\node[anchor=west, text width=4.6cm, align=left, font=\scriptsize,
+      text=uMuted] at (7.35,16.5)
+     {duplicate or stale → no-op discard (\S8.4) — no duplicate finding};
+
+% ---- stores fed by band 1 ------------------------------------------------------
+\dfstore{3.0}{11.6}{3.2}{1.25}{2.8}{\textbf{D1} · events +\\checkpoints
+  (idempotency)}
+\draw[flow] (3.0,13.35) -- (3.0,12.25);
+\node[anchor=north west, text width=2.2cm, align=left, font=\scriptsize,
+      text=uMuted] at (3.15,13.25)
+     {persist before evaluation (\S8.4)};
+
+\dfstore{11.0}{11.6}{3.6}{1.25}{3.2}{\textbf{D2} · artifact \& version
+  store —\\immutable snapshots}
+\draw[flow] (12.4,13.35) -- (12.4,12.25);
+
+\dfstore{15.4}{11.6}{3.6}{1.25}{3.2}{\textbf{D3} · evidence graph —\\nodes ·
+  edges · provenance}
+\draw[flow] (14.2,14.0) -- (15.4,14.0) -- (15.4,12.25);
+\node[anchor=south, text width=2.8cm, align=center, font=\scriptsize,
+      text=uMuted] at (14.9,14.85) {graph delta (\S9.5)};
+
+% reconciliation re-enters at 1
+\node[note=3.0cm, anchor=center] (recon) at (-4.9,11.6)
+     {Reconciliation polling synthesises gap events from checkpoints
+      (\S8.4) → re-enter at 1};
+\draw[dashed, draw=uMuted, line width=0.6pt, >=Stealth,
+      -{Stealth[length=2.2mm]}]
+      (recon.east) -- (-1.4,11.6) -- (-1.4,13.33);
+
+% ---- band 2: (a) rules / (b) queue -> packet -> local verification --------------
+\node[step=3.6cm, fill=uGraph!35, align=left] (p4a) at (14.6,9.4)
+     {\textbf{4a · Deterministic rule evaluation} — indexed dispatch
+      (\S9.8) → findings};
+\node[step=3.6cm, fill=uGraph!35, align=left] (p4b) at (14.6,6.4)
+     {\textbf{4b · Criterion queue} — reverse-index invalidation, bounded
+      hops (\S9.8)};
+\node[step=4.0cm, fill=uGraph!35, align=left] (p5) at (8.6,8.0)
+     {\textbf{5 · Context packet builder} — bounded slots, fixed order,
+      truncation manifest (\S11.5)};
+\node[step=3.6cm, fill=uVerify!50, align=left] (p6) at (2.0,8.0)
+     {\textbf{6 · Bounded local verification} — 3 passes max, stop reason
+      logged (\S11.4)};
+\node[extsys, text width=3.0cm, minimum height=1.4cm] (model) at (2.0,5.2)
+     {\guillemotleft system\guillemotright\\local model server\\(pinned,
+      team-owned)};
+
+% delta fan-out: (a) rules, (b) criterion queue
+\draw[flow] (14.6,11.0) -- (p4a.north);
+\node[lbl, anchor=west] at (14.75,10.55) {(a)};
+\draw[uline, line width=0.6pt] (17.2,11.6) -- (17.6,11.6) -- (17.6,6.4);
+\draw[flow] (17.6,6.4) -- (p4b.east);
+\node[lbl, anchor=east] at (17.45,9.0) {(b)};
+
+\draw[flow] (p4a.west) -- (11.6,9.4) -- (11.6,8.0) -- (p5.east);
+\node[anchor=south, text width=2.2cm, align=center, font=\scriptsize,
+      text=uMuted] at (11.6,9.45) {findings + rule context};
+\draw[flow] (p4b.west) -- (8.6,6.4) -- (p5.south);
+\node[anchor=north, text width=3.0cm, align=center, font=\scriptsize,
+      text=uMuted] at (9.5,6.25) {criteria to (re)verify};
+
+\draw[flow] (9.8,11.0) -- (9.8,9.6) -- (8.6,9.6) -- (8.6,8.75);
+\node[anchor=east, text width=3.2cm, align=right, font=\scriptsize,
+      text=uMuted] at (9.65,10.3) {snapshots + diff hunks};
+
+\draw[flow] (p5.west) -- (p6.east);
+\node[anchor=south, text width=2.6cm, align=center, font=\scriptsize,
+      text=uMuted] at (5.2,8.1) {packet (\S11.5)};
+\draw[bi] (p6.south) -- (model.north);
+\node[anchor=north west, text width=3.0cm, align=left, font=\scriptsize,
+      text=uMuted] at (3.65,7.1)
+     {packet in (\S11.5) → verdict out (\S11.6); queued async so latency
+      never blocks ingestion (\S14)};
+
+% ---- band 3: gate -> evidence case -> sinks -------------------------------------
+\node[step=4.6cm, fill=uVerify!50, align=left] (p7) at (2.4,2.8)
+     {\textbf{7 · Verdict / provenance gate} — schema → citation resolution →
+      applicability · eligibility · freshness · thresholds → downgrade with
+      logged reason (\S11.8)};
+\node[step=4.2cm, fill=uIntent!50, align=left] (p8) at (8.8,2.8)
+     {\textbf{8 · Evidence case + role routing} (bounded BFS 1--2 hops,
+      \S9.7) · audit history};
+\node[extsys, text width=3.0cm, minimum height=1.4cm] (rev) at (16.0,4.4)
+     {\guillemotleft actor\guillemotright\\human reviewer\\+ audit trail};
+\node[extsys, text width=3.0cm, minimum height=1.1cm] (slk) at (16.0,0.7)
+     {\guillemotleft system\guillemotright\\Slack\\delivery channel only};
+
+\draw (p6.west) -- (-2.4,8.0) -- (-2.4,2.8);
+\draw[flow] (-2.4,2.8) -- (p7.west);
+\node[anchor=east, text width=2.8cm, align=right, font=\scriptsize,
+      text=uMuted] at (-2.55,5.6) {structured verdict + citations (\S11.6)};
+
+\draw[flow] (p7.east) -- (p8.west);
+\node[lbl, align=center, anchor=south, text width=1.7cm]
+     at (5.7,2.9) {decisive, or downgrade (\S11.8)};
+
+\dfstore{13.0}{2.9}{3.0}{1.25}{2.6}{\textbf{D4} · findings · provenance ·\\
+  audit — idempotent}
+\draw[flow] (p8.east) -- (11.5,2.9);
+\node[anchor=north, text width=2.8cm, align=center, font=\scriptsize,
+      text=uMuted] at (13.0,2.2) {findings + evidence case};
+
+\draw[flow] (p8.north) -- (8.8,4.4) -- (rev.west);
+\node[anchor=north west, text width=4.0cm, align=left, font=\scriptsize,
+      text=uMuted] at (10.0,5.5)
+     {reviewer UI / audit — confirm · resolve · dispute · override};
+
+\draw[flow] (p8.south) -- (8.8,1.5) -- (16.0,1.5) -- (slk.north);
+\node[anchor=north, text width=2.6cm, align=center, font=\scriptsize,
+      text=uMuted] at (12.9,1.45)
+     {role-routed notification (bounded BFS, \S9.7) — delivery only (\S8.2)};
+\end{tikzpicture}

@@ -1,0 +1,158 @@
+% =============================================================================
+% UNIFY -- LLM autonomy ladder and usage register (owner: Abdullah Amin)
+% Sources: proposal \S24 (usage register: one rule governs the whole table),
+%          \S24.1 (autonomy ladder L0--L4 + system-state column),
+%          \S24.2 (register rows, technique, level, fallback, degraded mode,
+%          chain summarization removed from committed scope),
+%          \S11.1 (architectural freeze: all inference local, no hosted model),
+%          \S11.2 (model bounded rather than central),
+%          \S11.8 (deterministic verdict/provenance gate),
+%          \S14 (local model failure -> deterministic Rules 1--3, verification
+%          marked unavailable, never fabricated), TODO \S1.4 (seven rows).
+% Two panels: the ascending ladder L0--L4 (L4 crossed out, uBad device as in
+% layered-arch.tex) and the register table (stage / what the LLM may do / rung /
+% deterministic fallback), under the invariant banner.
+% Commit: <stamp at evaluation tag> -- regenerate rendered/*.pdf at that tag.
+% =============================================================================
+\begin{tikzpicture}[x=1cm,y=1cm]
+
+% ---- local macros ------------------------------------------------------------
+% #1=y0 #2=y1 #3=xleft #4=rowfill #5=edge colour #6=badge fill
+% #7=badge text #8=meaning #9=state-change answer (coloured inside)
+\newcommand{\alrow}[9]{%
+  \pgfmathsetmacro{\alsw}{4.15-#3}%
+  \draw[uline, draw=#5, fill=#4, line width=0.7pt] (#3,#1) rectangle (10.9,#2);
+  \draw[uline, draw=#5, fill=#6, line width=0.7pt]
+       (#3,#1) rectangle ({#3+0.95},#2);
+  \node[font=\small\bfseries, anchor=center] at ({#3+0.475},{(#1+#2)/2}) {#7};
+  \draw[uline, line width=0.4pt] ({#3+6.5},{(#1+0.14)}) -- ({#3+6.5},{(#2-0.14)});
+  \node[anchor=west, text width=5.25cm, align=left, font=\scriptsize, text=uInk]
+       at ({#3+1.05},{(#1+#2)/2}) {#8};
+  \node[anchor=west, text width=\alsw cm, align=left, font=\scriptsize\bfseries]
+       at ({#3+6.6},{(#1+#2)/2}) {#9};}
+
+% #1=y0 #2=y1 #3=row fill #4=stage #5=what the LLM may do
+% #6=rung fill #7=rung #8=deterministic fallback
+\newcommand{\alreg}[8]{%
+  \draw[uline, fill=#3] (11.4,#1) rectangle (24.0,#2);
+  \draw[fill=#6, draw=none] (18.65,#1) rectangle (19.95,#2);
+  \node[anchor=west, text width=1.65cm, align=left, font=\scriptsize\bfseries]
+       at (11.52,{(#1+#2)/2}) {#4};
+  \node[anchor=west, text width=5.15cm, align=left, font=\scriptsize]
+       at (13.37,{(#1+#2)/2}) {#5};
+  \node[anchor=center, text width=1.15cm, align=center, font=\scriptsize\bfseries]
+       at (19.30,{(#1+#2)/2}) {#7};
+  \node[anchor=west, text width=3.85cm, align=left, font=\scriptsize]
+       at (20.07,{(#1+#2)/2}) {#8};}
+
+% ---- invariant banner ---------------------------------------------------------
+\draw[draw=uInk, fill=uSpan!70, line width=1pt, rounded corners=2pt]
+      (0,12.45) rectangle (24.0,13.65);
+\node[anchor=west, font=\small\bfseries, text=uInk] at (0.3,13.05)
+     {\textbf{Invariant (\S24):} no LLM output writes to the graph of truth;
+      no LLM output fires a policy on its own.};
+
+% ---- panel titles + column headers --------------------------------------------
+\node[anchor=west, font=\small, text=uInk] at (0.15,12.10)
+     {Autonomy ladder (\S24.1) --- autonomy vs. system state};
+\node[anchor=west, font=\small, text=uInk] at (11.4,12.10)
+     {Usage register (\S24.2) --- every stage has a deterministic fallback};
+\node[anchor=west, font=\scriptsize\bfseries, text=uMuted] at (0.15,11.58)
+     {level \textperiodcentered{} meaning \textperiodcentered{} can it change
+      system state?};
+
+% ---- ladder: L0 (bottom) to L4 (top), ascending steps --------------------------
+\alrow{1.60}{3.35}{0.3}{uLine!10}{uLine}{uLine!30}{L0}
+     {No model. Deterministic parsing or rule evaluation}
+     {\textcolor{uInk}{Yes --- it is the ground truth}}
+\alrow{3.47}{5.22}{0.8}{uIngest!45}{uLine}{uIngest!95}{L1}
+     {Retrieve and rank only. Embeddings, no generation}
+     {\textcolor{uInk}{No. Produces an ordered candidate list}}
+\alrow{5.34}{7.09}{1.3}{uSpan!55}{uLine}{uSpan}{L2}
+     {Suggest. Generates a proposal requiring confirmation or a threshold pass}
+     {\textcolor{uInk}{No, until confirmed}}
+\alrow{7.21}{8.96}{1.8}{uVerify!50}{uOk}{uOk}{\textcolor{white}{L3}}
+     {Explain or verify over already-confirmed facts, citing evidence spans}
+     {\textcolor{uInk}{No. Adds explanation, not facts}}
+
+% ---- ceiling: L3 is the highest permitted level --------------------------------
+\draw[uOk, dashed, line width=0.8pt] (0,9.22) -- (10.9,9.22);
+\node[anchor=center, font=\scriptsize, text=uOk, fill=white, inner sep=1.5pt]
+     at (5.6,9.22)
+     {L3 is the highest level permitted --- L4 is prohibited (\S24.1)};
+
+\alrow{9.48}{11.23}{2.3}{uBad!10}{uBad}{uBad}{\textcolor{white}{L4}}{}{\textcolor{uBad}{}}
+
+% ---- red-cross device on L4 (technique from layered-arch.tex), behind the text ---
+\draw[uBad, line width=1.3pt] (2.45,9.63)  -- (10.75,11.08);
+\draw[uBad, line width=1.3pt] (2.45,11.08) -- (10.75,9.63);
+\node[anchor=west, text width=5.25cm, align=left, font=\scriptsize, text=uInk]
+     at (3.35,10.355) {Autonomous write or autonomous resolution};
+\node[anchor=west, text width=1.85cm, align=left, font=\scriptsize\bfseries]
+     at (8.95,10.355) {\textcolor{uBad}{Prohibited in this project}};
+
+% ---- register header -------------------------------------------------------------
+\draw[uline, fill=uLine!20] (11.4,11.33) rectangle (24.0,11.83);
+\node[anchor=west, text width=1.65cm, align=left, font=\scriptsize\bfseries]
+     at (11.52,11.58) {stage};
+\node[anchor=west, text width=5.15cm, align=left, font=\scriptsize\bfseries]
+     at (13.37,11.58) {what the LLM may do};
+\node[anchor=center, text width=1.15cm, align=center, font=\scriptsize\bfseries]
+     at (19.30,11.58) {rung};
+\node[anchor=west, text width=3.85cm, align=left, font=\scriptsize\bfseries]
+     at (20.07,11.58) {deterministic fallback};
+
+% ---- register rows (seven stages, TODO \S1.4) ------------------------------------
+\alreg{10.18}{11.33}{white}{Ingestion}
+     {Extract symbols, signatures, docstrings, comments, imports; tree-sitter
+      parsing}
+     {uLine!30}{L0}{None needed --- deterministic}
+\alreg{9.03}{10.18}{uLine!6}{Candidate generation}
+     {Propose requirement-to-code candidates; hybrid BM25 and code embeddings,
+      fused by reciprocal rank}
+     {uIngest!95}{L1}{Lexical retrieval alone}
+\alreg{7.88}{9.03}{white}{Adjudication}
+     {Decide whether a candidate is a real trace link; local instruct model over
+      a context packet, constrained JSON verdict with cited spans}
+     {uSpan}{L2}{Similarity threshold only, reported as a baseline}
+\alreg{6.73}{7.88}{uLine!6}{Drift review}
+     {Does this anchor still hold after this diff? The model reads the diff hunk
+      and the anchored symbol}
+     {uSpan}{L2}{Symbol-name and content-hash re-anchoring only}
+\alreg{5.58}{6.73}{white}{Conflict explanation}
+     {Render why a policy fired; template filled from the evidence path, the
+      model may rephrase, never add facts}
+     {uOk}{\textcolor{white}{L3}}{Raw template text}
+\alreg{4.43}{5.58}{uLine!6}{Adaptation}
+     {LoRA fine-tune for verdict format and domain vocabulary; committed work,
+      not a contingency}
+     {uSpan}{L2}{Base model with few-shot prompting}
+\alreg{3.28}{4.43}{white}{Verdicting}
+     {Structured criterion-level verdict with citations over one immutable
+      packet; deterministic verdict gate before any write (\S11.8)}
+     {uSpan}{L2 + gate}{Deterministic Rules 1--3 plus unresolved-evidence
+      reporting; verification marked unavailable (\S14)}
+
+% ---- register column separators -------------------------------------------------
+\draw[uline] (13.25,3.28)  -- (13.25,11.83);
+\draw[uline] (18.65,3.28)  -- (18.65,11.83);
+\draw[uline] (19.95,3.28)  -- (19.95,11.83);
+
+% ---- dropped row + bounded-model note ---------------------------------------------
+\node[anchor=north west, text width=12.4cm, align=left, font=\scriptsize,
+      text=uMuted] at (11.4,3.18)
+     {Chain summarization --- removed from committed scope (\S24.2)
+      \textperiodcentered{} the model is bounded, not central: one structured
+      verdict with citations over one immutable packet; it does not choose
+      evidence, create edges or fire alerts (\S11.2).};
+
+% ---- degraded mode (model server off) ----------------------------------------------
+\node[note=12.2cm, anchor=north west] at (11.4,2.40)
+     {\textbf{Degraded mode (\S14, \S24.2):} with the model server switched off
+      the deterministic paths survive --- tree-sitter ingestion (L0), lexical
+      retrieval alone (L1), symbol-name/content-hash re-anchoring, raw template
+      text and deterministic Rules 1--3. L2/L3 inference is unavailable, so
+      findings are downgraded and verification is marked unavailable, never
+      fabricated. Demonstrated as one full benchmark pass with the model server
+      off, showing which capabilities survive and which numbers drop.};
+\end{tikzpicture}
