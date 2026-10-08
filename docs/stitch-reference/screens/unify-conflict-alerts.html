@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Conflict Detection &amp; Alerts | Unify Dev</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;family=JetBrains+Mono:wght@450&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #031427;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #464555;
+        }
+        .conflict-card-hover:hover {
+            border-color: #ffb95f;
+            background-color: #1b2b3f;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#005048",
+                        "inverse-primary": "#4d44e3",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-container-low": "#0b1c30",
+                        "tertiary-fixed": "#ffddb8",
+                        "surface": "#031427",
+                        "secondary": "#4fdbc8",
+                        "outline": "#918fa1",
+                        "surface-tint": "#c3c0ff",
+                        "secondary-container": "#04b4a2",
+                        "outline-variant": "#464555",
+                        "secondary-fixed": "#71f8e4",
+                        "tertiary-container": "#885500",
+                        "primary": "#c3c0ff",
+                        "on-tertiary-fixed": "#2a1700",
+                        "tertiary": "#ffb95f",
+                        "on-surface-variant": "#c7c4d8",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-primary-container": "#dad7ff",
+                        "surface-variant": "#26364a",
+                        "on-background": "#d3e4fe",
+                        "on-surface": "#d3e4fe",
+                        "on-primary": "#1d00a5",
+                        "on-secondary-fixed": "#00201c",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed": "#0f0069",
+                        "surface-bright": "#2a3a4f",
+                        "error-container": "#93000a",
+                        "primary-fixed": "#e2dfff",
+                        "on-secondary-container": "#003f38",
+                        "surface-container": "#102034",
+                        "inverse-on-surface": "#213145",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "secondary-fixed-dim": "#4fdbc8",
+                        "surface-dim": "#031427",
+                        "inverse-surface": "#d3e4fe",
+                        "primary-container": "#4f46e5",
+                        "background": "#031427",
+                        "on-tertiary": "#472a00",
+                        "on-error": "#690005",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary": "#003731",
+                        "surface-container-highest": "#26364a",
+                        "surface-container-high": "#1b2b3f",
+                        "surface-container-lowest": "#000f21"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "gutter": "16px",
+                        "margin-page": "24px",
+                        "stack-compact": "8px",
+                        "stack-comfortable": "16px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "mono-code": ["JetBrains Mono"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-sm": ["18px", {"lineHeight": "26px", "fontWeight": "600"}],
+                        "mono-code": ["13px", {"lineHeight": "20px", "fontWeight": "450"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-primary selection:text-on-primary">
+<div class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="h-screen w-[240px] sticky left-0 top-0 bg-surface-container border-r border-outline-variant flex flex-col py-margin-page z-50">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-primary rounded flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<div>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Unify Dev</h1>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Engineering Hub</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 rounded" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 rounded" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-body-md">Graph Explorer</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 rounded" href="#">
+<span class="material-symbols-outlined">rss_feed</span>
+<span class="font-body-md">Activity Feed</span>
+</a>
+<!-- Active Tab -->
+<a class="flex items-center gap-3 px-3 py-2 text-primary font-bold border-r-2 border-primary bg-surface-container-high cursor-pointer active:scale-95" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">warning</span>
+<span class="font-body-md">Conflict Alerts</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 rounded" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="font-body-md">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 rounded" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md">Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<div class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer active:scale-95 rounded">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-body-md">Profile</span>
+</div>
+</div>
+</aside>
+<div class="flex-1 flex flex-col min-w-0">
+<!-- TopNavBar -->
+<header class="sticky top-0 w-full z-40 bg-surface border-b border-outline-variant flex items-center justify-between px-margin-page py-stack-compact">
+<div class="flex items-center gap-6">
+<span class="font-headline-md text-headline-md font-black text-on-surface">Unify</span>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-sm">search</span>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-lg pl-9 pr-4 py-1.5 text-body-sm font-mono-code focus:border-primary focus:ring-0 w-64 transition-all" placeholder="CMD + K to search..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-lowest rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-tertiary rounded-full"></span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant mx-1"></div>
+<a class="text-primary font-bold text-body-sm hover:underline" href="#">Link Item</a>
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A sharp, professional headshot of a software engineer in a dark workspace. The lighting is moody with subtle indigo rim lighting, reflecting a high-end corporate developer aesthetic. The background features a blurred code editor on a large monitor, maintaining a focused and technical atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnq4HrV5s3bazT_bwZCI6zzbA0t2tPLR_xln6qX37nTZBy6Nhb_0DYsnLamzmSko7VS8dOkIbM855SsQqBgraKvLhnRvktqTo6cn-YlS8BMCOV9QDaCeehz-ZLNaZtDogosnoOsAE_D_iJaZ-rKN07Ba93oR-137pEROCKiYRdGLn5HrsRzLh8ZuQiAbUifnTezk7kB9YeTtaKv4qvTkdEH_TwTKUSD3iYbKlk59Z4jCgQjHMhckt0OtiUjnaBlFcncwepG9J5td6V"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex overflow-hidden p-margin-page gap-gutter">
+<!-- Left Pane: Alerts Feed -->
+<div class="flex-1 flex flex-col min-w-0 gap-stack-comfortable">
+<!-- AI Summary Banner -->
+<div class="bg-tertiary-container/10 border border-tertiary/20 rounded-xl p-4 flex items-start gap-4">
+<div class="p-2 bg-tertiary/20 rounded-lg">
+<span class="material-symbols-outlined text-tertiary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="flex-1">
+<h3 class="text-tertiary font-bold text-body-md mb-1">AI Health Summary</h3>
+<p class="text-on-surface-variant text-body-md leading-relaxed">
+                                You have <span class="text-tertiary font-bold underline">3 critical conflicts</span> blocking the 1.2 release. Most are due to the recent checkout redesign synchronization lag between Figma and the main branch.
+                            </p>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Filter Tabs -->
+<div class="flex items-center justify-between border-b border-outline-variant mt-2">
+<div class="flex gap-8">
+<button class="pb-3 border-b-2 border-primary text-primary font-bold text-body-sm">All Alerts (14)</button>
+<button class="pb-3 text-on-surface-variant hover:text-on-surface transition-colors font-medium text-body-sm">Critical (3)</button>
+<button class="pb-3 text-on-surface-variant hover:text-on-surface transition-colors font-medium text-body-sm">Design Drift (8)</button>
+<button class="pb-3 text-on-surface-variant hover:text-on-surface transition-colors font-medium text-body-sm">Status Mismatch (3)</button>
+</div>
+<div class="pb-3">
+<button class="flex items-center gap-2 text-on-surface-variant text-body-sm hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                                Sort by Recency
+                            </button>
+</div>
+</div>
+<!-- Conflict Feed -->
+<div class="space-y-gutter overflow-y-auto pr-2 pb-10">
+<!-- Card 1: Critical -->
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden conflict-card-hover transition-all group">
+<div class="flex items-center justify-between px-4 py-2 border-b border-outline-variant bg-surface-container-high/50">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-tertiary text-on-tertiary-fixed">Critical</span>
+<span class="text-on-surface-variant text-body-sm">Detected 12m ago</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-base cursor-pointer hover:text-on-surface">push_pin</span>
+<span class="material-symbols-outlined text-on-surface-variant text-base cursor-pointer hover:text-on-surface">more_vert</span>
+</div>
+</div>
+<div class="p-4 flex gap-6">
+<div class="flex-1">
+<h4 class="text-on-surface font-bold text-headline-sm mb-2">Checkout Flow State Mismatch</h4>
+<p class="text-on-surface-variant mb-4">Figma Frame <code class="bg-surface-variant px-1 rounded text-primary">User Profile</code> has changed. Linked GitHub PR <code class="bg-surface-variant px-1 rounded text-primary">#104</code> is still based on v2.</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-3 bg-surface-container-lowest border border-outline-variant rounded-lg">
+<div class="flex items-center gap-2 mb-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">palette</span>
+<span class="font-label-caps uppercase text-[10px]">Figma Asset</span>
+</div>
+<p class="font-bold text-body-md">v3.2 - Redesigned Modal</p>
+<p class="text-on-surface-variant text-body-sm mt-1">Updated by @sarah_ux</p>
+</div>
+<div class="p-3 bg-surface-container-lowest border border-outline-variant rounded-lg">
+<div class="flex items-center gap-2 mb-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">code</span>
+<span class="font-label-caps uppercase text-[10px]">GitHub Repository</span>
+</div>
+<p class="font-bold text-body-md">v2.0 - Legacy Logic</p>
+<p class="text-on-surface-variant text-body-sm mt-1">PR #104 (In Review)</p>
+</div>
+</div>
+</div>
+<div class="w-48 flex flex-col gap-2 justify-center">
+<button class="w-full py-2 bg-primary text-on-primary font-bold rounded-lg active:scale-95 transition-transform">Review Change</button>
+<button class="w-full py-2 bg-transparent border border-outline-variant text-on-surface font-bold rounded-lg hover:bg-surface-container-high active:scale-95 transition-transform">Resolve</button>
+</div>
+</div>
+</div>
+<!-- Card 2: Design Drift -->
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden conflict-card-hover transition-all group">
+<div class="flex items-center justify-between px-4 py-2 border-b border-outline-variant bg-surface-container-high/50">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant">Design Drift</span>
+<span class="text-on-surface-variant text-body-sm">Detected 2h ago</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-base cursor-pointer hover:text-on-surface">more_vert</span>
+</div>
+</div>
+<div class="p-4 flex gap-6">
+<div class="flex-1">
+<h4 class="text-on-surface font-bold text-headline-sm mb-2">Primary Button Padding Inconsistency</h4>
+<p class="text-on-surface-variant mb-4">Production CSS defines <code class="font-mono-code text-secondary">px-6 py-2</code>, but the latest Design Token 'Global/Action' was updated to <code class="font-mono-code text-secondary">px-8 py-3</code>.</p>
+<div class="flex items-center gap-4 text-body-sm">
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">history</span>
+                                            Drift detected in 14 components
+                                        </div>
+<div class="w-1 h-1 bg-outline-variant rounded-full"></div>
+<div class="flex items-center gap-1.5 text-tertiary">
+<span class="material-symbols-outlined text-sm">warning</span>
+                                            High visual impact
+                                        </div>
+</div>
+</div>
+<div class="w-48 flex flex-col gap-2 justify-center">
+<button class="w-full py-2 bg-primary text-on-primary font-bold rounded-lg active:scale-95 transition-transform">Review Change</button>
+<button class="w-full py-2 bg-transparent border border-outline-variant text-on-surface font-bold rounded-lg hover:bg-surface-container-high active:scale-95 transition-transform">Resolve</button>
+</div>
+</div>
+</div>
+<!-- Card 3: Status Mismatch -->
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden conflict-card-hover transition-all group">
+<div class="flex items-center justify-between px-4 py-2 border-b border-outline-variant bg-surface-container-high/50">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-surface-variant text-on-surface-variant">Status Mismatch</span>
+<span class="text-on-surface-variant text-body-sm">Detected 5h ago</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-base cursor-pointer hover:text-on-surface">more_vert</span>
+</div>
+</div>
+<div class="p-4 flex gap-6">
+<div class="flex-1">
+<h4 class="text-on-surface font-bold text-headline-sm mb-2">Jira Ticket Out of Sync</h4>
+<p class="text-on-surface-variant mb-4">Ticket <code class="bg-surface-variant px-1 rounded text-primary">UNI-452</code> marked as 'Done' in Jira, but relevant code branch <code class="bg-surface-variant px-1 rounded text-primary">feat/auth-v2</code> is still in 'In Progress' status.</p>
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary rounded-full"></span>
+<span class="text-body-sm font-bold">Jira: Done</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 bg-tertiary rounded-full"></span>
+<span class="text-body-sm font-bold">Git: In Progress</span>
+</div>
+</div>
+</div>
+<div class="w-48 flex flex-col gap-2 justify-center">
+<button class="w-full py-2 bg-primary text-on-primary font-bold rounded-lg active:scale-95 transition-transform">Review Change</button>
+<button class="w-full py-2 bg-transparent border border-outline-variant text-on-surface font-bold rounded-lg hover:bg-surface-container-high active:scale-95 transition-transform">Resolve</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Pane: Charts & Context -->
+<div class="w-[320px] flex flex-col gap-gutter">
+<!-- Conflict Frequency Chart -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-4">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-bold text-body-md text-on-surface">Conflict Frequency</h3>
+<span class="text-tertiary text-body-sm font-bold">+12% vs LW</span>
+</div>
+<div class="h-32 w-full relative group">
+<!-- Simple SVG Trend Line -->
+<svg class="w-full h-full stroke-tertiary fill-none stroke-[2] overflow-visible" viewbox="0 0 100 40">
+<path d="M0,35 Q10,32 20,25 T40,28 T60,15 T80,20 T100,5"></path>
+<path class="fill-tertiary/10 stroke-none" d="M0,35 Q10,32 20,25 T40,28 T60,15 T80,20 T100,5 L100,40 L0,40 Z"></path>
+</svg>
+<!-- Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+<div class="border-t border-outline-variant w-full"></div>
+<div class="border-t border-outline-variant w-full"></div>
+<div class="border-t border-outline-variant w-full"></div>
+</div>
+</div>
+<div class="flex justify-between mt-2 text-[10px] text-on-surface-variant font-mono-code uppercase">
+<span>Mon</span>
+<span>Wed</span>
+<span>Fri</span>
+<span>Sun</span>
+</div>
+</div>
+<!-- Contributors Breakdown -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-4">
+<h3 class="font-bold text-body-md text-on-surface mb-4">Active Resolution</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A close-up portrait of a female UI designer with glasses, working in a dimly lit studio. A soft orange glow from a second monitor illuminates her face. Professional, high-quality photograph, minimalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDItpTkhD408qbhIcgYTE5ymC-sJWz2vZq6W16PZepWhX2176AwgIwt5v9FN8sOq0_7wJm9nVWt4PejSHrIF-owMtKPzvdI2I9j2PCHGTFtyEToV9QUqI1dukXCwzQR3fjtgGYa2vn-3Zv-oP7-A1ZYQtGDnBSAxQ9PNWK2_bFajWsvqmQfsuYKTTFz1fUXNkPNIJQcYMCDPISyGLlHQSbrrFjNjInXvX2won6mp5yFJxiTiJwmO2bt0sDjRHN6TYrZ0FghCw-oUvTz"/>
+</div>
+<div>
+<p class="text-body-sm font-bold">Sarah Chen</p>
+<p class="text-[10px] text-on-surface-variant">4 Resolved today</p>
+</div>
+</div>
+<span class="text-secondary material-symbols-outlined text-sm">verified</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center border border-outline-variant overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male backend developer in his late 20s, wearing a dark hoodie, sitting in a modern office with neon blue accents. The scene is crisp and focused, emphasizing a technical, productive environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9il22S2t97TQlWxm3CLZ5n7kiIb_Y1MBDGWJf5FxL01ZU4fpTGa4qaxie_ng50AAu9S-IIpMGGP4MxLivUPFRukxeictj9px4jrjyI3LvtxehLzVynrdPOYxmdM9iwtey5d8fMpB2ELQYVxpeZjuLBhPF-9KH5HNDa3DqUxWWgZBkKkjj9_b9OQU5asybzo-hC8tSwOLg7nSXBVjCNO0bX3Du-5e6MbWCD4P-1d4zpNqkJN9UK2Cctl1MjAXIcS8f2uMFq2G90d3t"/>
+</div>
+<div>
+<p class="text-body-sm font-bold">Marcus Thorne</p>
+<p class="text-[10px] text-on-surface-variant">1 Resolved today</p>
+</div>
+</div>
+<span class="text-on-surface-variant material-symbols-outlined text-sm">pending</span>
+</div>
+</div>
+<button class="w-full mt-6 py-2 border border-outline-variant text-[11px] font-bold uppercase tracking-widest rounded-lg hover:bg-surface-container-high transition-colors">View All Activity</button>
+</div>
+<!-- System Status -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 mt-auto">
+<div class="flex items-center gap-2 mb-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-xs">sync</span>
+<span class="text-[10px] font-bold uppercase">Integrations</span>
+</div>
+<div class="space-y-2">
+<div class="flex items-center justify-between text-body-sm">
+<span>GitHub</span>
+<span class="text-secondary font-bold">Connected</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span>Figma</span>
+<span class="text-secondary font-bold">Connected</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span>Jira</span>
+<span class="text-tertiary font-bold">Syncing...</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<!-- Micro-interaction for feedback -->
+<script>
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function() {
+                this.classList.add('scale-95');
+                setTimeout(() => this.classList.remove('scale-95'), 100);
+            });
+        });
+    </script>
+</body></html>

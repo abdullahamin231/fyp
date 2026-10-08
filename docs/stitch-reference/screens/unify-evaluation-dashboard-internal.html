@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Unify Platform</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error": "#690005", "primary-container": "#4f46e5", "surface-container-highest": "#26364a", "outline": "#918fa1", "surface-variant": "#26364a", "on-tertiary-container": "#ffd4a4", "error-container": "#93000a", "tertiary-container": "#885500", "secondary": "#4fdbc8", "tertiary-fixed": "#ffddb8", "on-surface": "#d3e4fe", "surface-tint": "#c3c0ff", "on-tertiary-fixed": "#2a1700", "tertiary-fixed-dim": "#ffb95f", "on-primary": "#1d00a5", "secondary-container": "#04b4a2", "surface": "#031427", "on-primary-container": "#dad7ff", "secondary-fixed-dim": "#4fdbc8", "background": "#031427", "primary-fixed": "#e2dfff", "error": "#ffb4ab", "primary-fixed-dim": "#c3c0ff", "on-secondary-fixed": "#00201c", "on-secondary-fixed-variant": "#005048", "inverse-surface": "#d3e4fe", "surface-bright": "#2a3a4f", "on-primary-fixed": "#0f0069", "on-error-container": "#ffdad6", "outline-variant": "#464555", "surface-container": "#102034", "surface-dim": "#031427", "surface-container-high": "#1b2b3f", "on-background": "#d3e4fe", "on-surface-variant": "#c7c4d8", "on-primary-fixed-variant": "#3323cc", "on-secondary": "#003731", "primary": "#c3c0ff", "inverse-primary": "#4d44e3", "surface-container-lowest": "#000f21", "on-tertiary-fixed-variant": "#653e00", "surface-container-low": "#0b1c30", "on-tertiary": "#472a00", "on-secondary-container": "#003f38", "secondary-fixed": "#71f8e4", "tertiary": "#ffb95f", "inverse-on-surface": "#213145" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin-page": "24px", "gutter": "16px", "stack-compact": "8px", "stack-comfortable": "16px", "unit": "4px" }, "fontFamily": { "headline-sm": ["Inter"], "label-caps": ["Inter"], "headline-md": ["Inter"], "headline-lg": ["Inter"], "mono-code": ["JetBrains Mono"], "body-lg": ["Inter"], "body-sm": ["Inter"], "body-md": ["Inter"] }, "fontSize": { "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }], "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }], "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "mono-code": ["13px", { "lineHeight": "20px", "fontWeight": "450" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }] } } } };</script></head><body class="bg-background text-on-surface font-body-md text-body-md"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low border-r border-outline-variant z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-14 px-margin-page flex items-center justify-between border-b border-outline-variant"><div class="flex items-center gap-unit"><div class="w-6 h-6 rounded bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[16px]">token</span></div><span class="font-headline-sm text-headline-sm font-bold tracking-tight text-on-surface ml-1">UNIFY</span></div><span class="px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant font-mono-code text-[10px] text-on-surface-variant font-medium">v2.4</span></div><div class="p-gutter border-b border-outline-variant bg-surface-container-lowest/50"><button class="w-full flex items-center justify-between px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-left transition-colors"><div class="flex items-center gap-stack-compact overflow-hidden"><div class="w-5 h-5 rounded-full bg-secondary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-secondary text-[13px]">domain</span></div><span class="font-body-sm text-body-sm font-semibold text-on-surface truncate">Acme Eng</span></div><span class="material-symbols-outlined text-outline text-[18px]">unfold_more</span></button></div><div class="px-stack-comfortable pt-stack-comfortable pb-stack-compact"><span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Intelligence &amp; Rules</span></div><nav class="px-stack-compact flex flex-col gap-unit" data-active-classes="bg-primary-container text-on-primary-container font-semibold"><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="conflict-inbox" href="#"><div class="flex items-center gap-stack-comfortable"><span class="material-symbols-outlined text-[18px]">inbox</span><span class="font-body-sm text-body-sm">Conflict Inbox</span></div><span class="px-1.5 py-0.5 rounded bg-error-container text-error font-mono-code text-[11px] font-bold">14</span></a><a aria-current="page" class="flex items-center gap-stack-comfortable px-3 py-2 rounded transition-colors bg-primary-container text-on-primary-container font-semibold" data-path="conflict-detail" href="#"><span class="material-symbols-outlined text-[18px]">troubleshoot</span><span class="font-body-sm text-body-sm">Conflict Detail</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="policy-configuration" href="#"><span class="material-symbols-outlined text-[18px]">rule</span><span class="font-body-sm text-body-sm">Policy Configuration</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="policy-simulation" href="#"><div class="flex items-center gap-stack-comfortable"><span class="material-symbols-outlined text-[18px]">labs</span><span class="font-body-sm text-body-sm">Policy Simulation</span></div><span class="px-1.5 py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-mono-code text-[10px]">TEST</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="graph-explorer" href="#"><span class="material-symbols-outlined text-[18px]">account_tree</span><span class="font-body-sm text-body-sm">Graph Explorer</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="link-management" href="#"><span class="material-symbols-outlined text-[18px]">link</span><span class="font-body-sm text-body-sm">Link Management</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="audit-trail" href="#"><span class="material-symbols-outlined text-[18px]">history</span><span class="font-body-sm text-body-sm">Audit Trail</span></a></nav></div><div class="flex flex-col border-t border-outline-variant p-stack-compact bg-surface-container-lowest/40"><nav data-active-classes="bg-primary-container text-on-primary-container font-semibold"><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span><span class="font-body-sm text-body-sm">Settings</span></a></nav></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface/90 backdrop-blur-md border-b border-outline-variant z-40 flex items-center justify-between px-margin-page"><div class="flex items-center gap-stack-comfortable flex-1 max-w-xl"><div class="relative w-full"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input class="w-full pl-9 pr-16 py-1.5 rounded bg-surface-container border border-outline-variant text-on-surface placeholder-outline font-mono-code text-mono-code focus:outline-none focus:border-primary-container transition-colors" placeholder="Search artifacts, conflicts, policies (Cmd+K)" type="text"/><kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant font-mono-code text-[11px] text-on-surface-variant">⌘K</kbd></div></div><div class="flex items-center gap-stack-comfortable"><div class="flex items-center gap-2 px-2.5 py-1 rounded bg-secondary/10 border border-secondary/30"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-label-caps text-label-caps text-secondary uppercase font-bold tracking-wider">Production Sync Active</span></div><div class="h-4 w-px bg-outline-variant"></div><button aria-label="Notifications" class="relative p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full ring-2 ring-surface"></span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 px-margin-page bg-background min-h-screen"><div class="flex flex-col w-full pb-16">
+<!-- Dev Warning Ambient Scrim & Top Controls -->
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low p-6 mb-6 shadow-md">
+<div class="absolute -right-16 -top-16 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -left-12 -bottom-12 w-64 h-64 bg-secondary/5 rounded-full blur-2xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center gap-2 flex-wrap">
+<span class="px-2 py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-mono-code text-label-caps uppercase tracking-wider font-bold">
+            SYSTEM BENCHMARK &amp; EVALUATION // INTERNAL DEV ONLY
+          </span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-outline font-mono-code text-[11px]">
+            RESTRICTED: NON-TENANT VISIBLE
+          </span>
+</div>
+<h1 class="font-headline-lg text-headline-lg font-bold text-on-surface tracking-tight">
+          System Evaluation &amp; Benchmark Metrics
+        </h1>
+<p class="font-mono-code text-body-sm text-on-surface-variant flex items-center gap-2 flex-wrap">
+<span class="inline-flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span>Evaluation Engine v3.2</span>
+</span>
+<span class="text-outline">/</span>
+<span>Model Horizon: 30d Replay</span>
+<span class="text-outline">/</span>
+<span class="text-primary font-semibold">Ground Truth Set: 1,482 Confirmed Pairs</span>
+</p>
+</div>
+<!-- Action Cluster -->
+<div class="flex items-center gap-2.5 flex-wrap">
+<button class="px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-sm" id="btn-compare">
+<span class="material-symbols-outlined text-[18px] text-outline">compare_arrows</span>
+<span>Compare with Baseline</span>
+</button>
+<button class="px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-sm" id="btn-download">
+<span class="material-symbols-outlined text-[18px] text-secondary">terminal</span>
+<span>LaTeX / CSV Export</span>
+</button>
+<button class="px-3.5 py-2 rounded bg-primary-container hover:bg-inverse-primary text-on-primary font-body-sm font-bold transition-all flex items-center gap-2 shadow-sm" id="btn-run-suite">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+<span>Run Evaluation Suite</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Key Academic Metrics Grid (4 Columns) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+<!-- Conflict Detection Card -->
+<div class="rounded-xl bg-surface-container p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-caps text-label-caps uppercase text-outline tracking-wider">Detection Accuracy</span>
+<span class="material-symbols-outlined text-primary text-[20px]">verified</span>
+</div>
+<div class="flex items-baseline gap-2 mb-4">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface">98.1%</span>
+<span class="font-mono-code text-[12px] text-secondary font-semibold">F1-Score</span>
+</div>
+<div class="space-y-2.5 bg-surface-container-lowest/60 rounded-lg p-3">
+<div class="flex justify-between items-center text-body-sm">
+<span class="text-on-surface-variant font-mono-code text-[12px]">Conflict Precision</span>
+<div class="flex items-center gap-2">
+<span class="font-mono-code font-bold text-on-surface">97.4%</span>
+<span class="text-[10px] font-mono-code px-1 rounded bg-secondary/10 text-secondary">&gt;95% Target</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 97.4%"></div>
+</div>
+<div class="flex justify-between items-center text-body-sm pt-1">
+<span class="text-on-surface-variant font-mono-code text-[12px]">Conflict Recall</span>
+<div class="flex items-center gap-2">
+<span class="font-mono-code font-bold text-on-surface">98.8%</span>
+<span class="text-[10px] font-mono-code px-1 rounded bg-secondary/10 text-secondary">&gt;95% Target</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 98.8%"></div>
+</div>
+</div>
+</div>
+<!-- Link Heuristics Quality -->
+<div class="rounded-xl bg-surface-container p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-caps text-label-caps uppercase text-outline tracking-wider">Link Heuristics</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">hub</span>
+</div>
+<div class="flex items-baseline gap-2 mb-4">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface">95.3%</span>
+<span class="font-mono-code text-[12px] text-primary font-semibold">F1-Score</span>
+</div>
+<div class="space-y-2.5 bg-surface-container-lowest/60 rounded-lg p-3">
+<div class="flex justify-between items-center text-body-sm">
+<span class="text-on-surface-variant font-mono-code text-[12px]">Link Precision</span>
+<span class="font-mono-code font-bold text-on-surface">94.2%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 94.2%"></div>
+</div>
+<div class="flex justify-between items-center text-body-sm pt-1">
+<span class="text-on-surface-variant font-mono-code text-[12px]">Link Recall</span>
+<span class="font-mono-code font-bold text-on-surface">96.5%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 96.5%"></div>
+</div>
+</div>
+</div>
+<!-- Recipient Routing Quality -->
+<div class="rounded-xl bg-surface-container p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-caps text-label-caps uppercase text-outline tracking-wider">Recipient Routing</span>
+<span class="material-symbols-outlined text-tertiary text-[20px]">alt_route</span>
+</div>
+<div class="flex items-baseline gap-2 mb-4">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface">99.0%</span>
+<span class="font-mono-code text-[12px] text-tertiary font-semibold">Recall Bound</span>
+</div>
+<div class="space-y-2.5 bg-surface-container-lowest/60 rounded-lg p-3">
+<div class="flex justify-between items-center text-body-sm">
+<span class="text-on-surface-variant font-mono-code text-[12px]">Routing Precision</span>
+<span class="font-mono-code font-bold text-on-surface">96.1%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full rounded-full" style="width: 96.1%"></div>
+</div>
+<div class="flex justify-between items-center text-body-sm pt-1">
+<span class="text-on-surface-variant font-mono-code text-[12px]">Target Saturation</span>
+<span class="font-mono-code font-bold text-secondary">Optimized</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 99%"></div>
+</div>
+</div>
+</div>
+<!-- Noise Control & Suppression -->
+<div class="rounded-xl bg-surface-container p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-caps text-label-caps uppercase text-outline tracking-wider">Noise Suppression</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">filter_vintage</span>
+</div>
+<div class="flex items-baseline gap-2 mb-4">
+<span class="font-headline-lg text-headline-lg font-bold text-secondary">0</span>
+<span class="font-mono-code text-[12px] text-on-surface-variant">Duplicate Alerts</span>
+</div>
+<div class="space-y-2.5 bg-surface-container-lowest/60 rounded-lg p-3">
+<div class="flex justify-between items-center text-body-sm">
+<span class="text-on-surface-variant font-mono-code text-[12px]">Alerts / User / Day</span>
+<div class="flex items-center gap-1.5">
+<span class="font-mono-code font-bold text-on-surface">1.4</span>
+<span class="text-[10px] font-mono-code px-1 rounded bg-surface-container-highest text-outline">&lt;3.0</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full rounded-full" style="width: 46%"></div>
+</div>
+<div class="flex justify-between items-center text-body-sm pt-1">
+<span class="text-on-surface-variant font-mono-code text-[12px]">Duplicate Ratio</span>
+<span class="font-mono-code font-bold text-secondary">0.00% Zero-Leak</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 100%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Benchmarking & Latency Analytics Engine -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+<!-- Latency Deep Dive (7 Cols) -->
+<div class="lg:col-span-7 rounded-xl bg-surface-container p-6 shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-4">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps uppercase text-outline tracking-wider">Internal Processing Latency</span>
+<span class="font-headline-md text-headline-md font-bold text-on-surface">Pipeline Quantiles</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container-low px-2 py-1 rounded">
+<span class="font-mono-code text-[11px] text-secondary">Kernel Replay v2</span>
+</div>
+</div>
+<!-- Latency Metrics Summary Strip -->
+<div class="grid grid-cols-3 gap-3 mb-6 bg-surface-container-lowest p-3 rounded-lg">
+<div class="flex flex-col">
+<span class="font-mono-code text-[11px] text-outline">Median (p50)</span>
+<span class="font-headline-sm text-headline-sm font-bold text-secondary">38ms</span>
+<span class="font-mono-code text-[10px] text-on-surface-variant">Baseline: 62ms</span>
+</div>
+<div class="flex flex-col border-l border-outline-variant pl-3">
+<span class="font-mono-code text-[11px] text-outline">95th %ile (p95)</span>
+<span class="font-headline-sm text-headline-sm font-bold text-primary">142ms</span>
+<span class="font-mono-code text-[10px] text-on-surface-variant">SLA: 250ms</span>
+</div>
+<div class="flex flex-col border-l border-outline-variant pl-3">
+<span class="font-mono-code text-[11px] text-outline">Tail (p99)</span>
+<span class="font-headline-sm text-headline-sm font-bold text-tertiary">310ms</span>
+<span class="font-mono-code text-[10px] text-on-surface-variant">Max Cap: 500ms</span>
+</div>
+</div>
+<!-- Latency Sparkline & Histogram Visual -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-center text-body-sm text-on-surface-variant">
+<span class="font-mono-code text-[11px] uppercase">Replay Cycle Distribution (1,482 iterations)</span>
+<span class="font-mono-code text-[11px] text-secondary">Smooth Kernel Density</span>
+</div>
+<div class="w-full h-32 bg-surface-container-lowest/80 rounded-lg p-2 relative overflow-hidden flex items-end">
+<!-- Inline SVG Curve Chart -->
+<svg class="w-full h-24 text-secondary" fill="none" preserveaspectratio="none" viewbox="0 0 500 100">
+<defs>
+<lineargradient id="latencyGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#4fdbc8" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#4fdbc8" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,95 Q40,90 70,75 T140,20 T190,55 T260,82 T340,90 T420,95 T500,98 L500,100 L0,100 Z" fill="url(#latencyGradient)"></path>
+<path d="M0,95 Q40,90 70,75 T140,20 T190,55 T260,82 T340,90 T420,95 T500,98" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- p50 Marker line -->
+<line stroke="#c3c0ff" stroke-dasharray="3 3" stroke-width="1.5" x1="140" x2="140" y1="0" y2="100"></line>
+<!-- p95 Marker line -->
+<line stroke="#ffb95f" stroke-dasharray="3 3" stroke-width="1.5" x1="260" x2="260" y1="0" y2="100"></line>
+</svg>
+<div class="absolute top-2 left-28 bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px] font-mono-code text-primary">p50: 38ms</div>
+<div class="absolute top-8 left-56 bg-surface-container-highest px-1.5 py-0.5 rounded text-[10px] font-mono-code text-tertiary">p95: 142ms</div>
+</div>
+</div>
+</div>
+<!-- Rescan vs Incremental Sub-panel -->
+<div class="mt-6 pt-4 border-t border-outline-variant grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-3.5 rounded-lg flex flex-col justify-between">
+<div>
+<span class="font-label-caps text-label-caps uppercase text-outline">Incremental Eval (Stream B)</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">42ms</span>
+<span class="font-mono-code text-[11px] text-secondary">per ingested event</span>
+</div>
+</div>
+<div class="mt-2 text-[12px] font-body-sm text-on-surface-variant">
+            Delta recalculation of conflict graph over active workspace nodes.
+          </div>
+</div>
+<div class="bg-surface-container-lowest p-3.5 rounded-lg flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps uppercase text-outline">Full Graph Rescan</span>
+<span class="px-1.5 py-0.5 rounded bg-secondary/10 text-secondary text-[10px] font-mono-code font-bold">114x Acceleration</span>
+</div>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">4.8s</span>
+<span class="font-mono-code text-[11px] text-on-surface-variant">for 100k nodes</span>
+</div>
+</div>
+<div class="mt-2 text-[12px] font-body-sm text-on-surface-variant">
+            Baseline unindexed evaluation required 547.2s.
+          </div>
+</div>
+</div>
+</div>
+<!-- Vendor Observation & Fault Resilience (5 Cols) -->
+<div class="lg:col-span-5 flex flex-col gap-4">
+<!-- Vendor Delay Ingestion -->
+<div class="rounded-xl bg-surface-container p-6 shadow-md flex-1">
+<div class="flex items-center justify-between mb-4">
+<div>
+<span class="font-label-caps text-label-caps uppercase text-outline tracking-wider">Upstream Ingestion Latency</span>
+<h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">Vendor Observation Delay</h2>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px]">cloud_sync</span>
+</div>
+<div class="space-y-4">
+<!-- GitHub Item -->
+<div class="bg-surface-container-lowest p-3 rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-on-surface text-[18px]">code</span>
+</div>
+<div>
+<p class="font-body-sm font-semibold text-on-surface">GitHub Webhook</p>
+<p class="font-mono-code text-[11px] text-outline">PRs, Commits, Branches</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-mono-code font-bold text-secondary">1.2s avg</p>
+<p class="font-mono-code text-[10px] text-on-surface-variant">jitter: ±0.3s</p>
+</div>
+</div>
+<!-- Figma Item -->
+<div class="bg-surface-container-lowest p-3 rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-[18px]">draw</span>
+</div>
+<div>
+<p class="font-body-sm font-semibold text-on-surface">Figma Poller / Webhook</p>
+<p class="font-mono-code text-[11px] text-outline">Component variants, tokens</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-mono-code font-bold text-tertiary">4.1s avg</p>
+<p class="font-mono-code text-[10px] text-on-surface-variant">jitter: ±1.4s</p>
+</div>
+</div>
+<!-- Jira Item -->
+<div class="bg-surface-container-lowest p-3 rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[18px]">task_alt</span>
+</div>
+<div>
+<p class="font-body-sm font-semibold text-on-surface">Jira Cloud Webhook</p>
+<p class="font-mono-code text-[11px] text-outline">Issue updates, fields</p>
+</div>
+</div>
+<div class="text-right">
+<p class="font-mono-code font-bold text-on-surface">2.8s avg</p>
+<p class="font-mono-code text-[10px] text-on-surface-variant">jitter: ±0.8s</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Outage Recovery State Card -->
+<div class="rounded-xl bg-surface-container-high p-5 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">sync_saved_locally</span>
+<span class="font-label-caps text-label-caps uppercase text-secondary font-bold">Simulated Outage Recovery</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-mono-code text-[11px] font-bold">100.0% RECONCILED</span>
+</div>
+<p class="font-body-sm text-on-surface-variant">
+          Injected partition test (4h synthetic drop, 12.4k queued updates). Zero orphaned edges detected during ground-truth reconciliation checkpoint.
+        </p>
+</div>
+</div>
+</div>
+<!-- Ingestion Pipeline & Adapter Health Matrix -->
+<div class="rounded-xl bg-surface-container p-6 shadow-md mb-6">
+<div class="flex items-center justify-between mb-4">
+<div>
+<span class="font-label-caps text-label-caps uppercase text-outline tracking-wider">Live Pipeline Telemetry</span>
+<h2 class="font-headline-md text-headline-md font-bold text-on-surface">Adapter Health &amp; Ingestion Pipeline</h2>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span class="font-mono-code text-body-sm text-on-surface font-semibold">4 / 4 Adapters Nominal</span>
+</div>
+</div>
+<!-- Table of Adapters -->
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm">
+<thead>
+<tr class="bg-surface-container-lowest/80 text-outline font-label-caps text-[11px] uppercase tracking-wider">
+<th class="py-3 px-4 rounded-l">Adapter Subsystem</th>
+<th class="py-3 px-4">State</th>
+<th class="py-3 px-4">Last Ingestion Sync</th>
+<th class="py-3 px-4">Backpressure Queue</th>
+<th class="py-3 px-4">Checkpoint Age</th>
+<th class="py-3 px-4 rounded-r text-right">Reliability Index</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 space-y-1">
+<!-- GitHub Adapter -->
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="py-3 px-4 font-mono-code font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">terminal</span>
+<span>github-ingress-v2</span>
+</td>
+<td class="py-3 px-4">
+<span class="px-2 py-0.5 rounded bg-secondary/10 text-secondary font-mono-code text-[11px] font-bold inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> OK
+              </span>
+</td>
+<td class="py-3 px-4 font-mono-code text-on-surface-variant">6s ago</td>
+<td class="py-3 px-4 font-mono-code text-secondary font-semibold">0 items</td>
+<td class="py-3 px-4 font-mono-code text-on-surface-variant">14s</td>
+<td class="py-3 px-4 font-mono-code text-right text-secondary font-bold">99.99%</td>
+</tr>
+<!-- Figma Adapter -->
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="py-3 px-4 font-mono-code font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">palette</span>
+<span>figma-webhook-sync</span>
+</td>
+<td class="py-3 px-4">
+<span class="px-2 py-0.5 rounded bg-secondary/10 text-secondary font-mono-code text-[11px] font-bold inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> OK
+              </span>
+</td>
+<td class="py-3 px-4 font-mono-code text-on-surface-variant">22s ago</td>
+<td class="py-3 px-4 font-mono-code text-tertiary font-semibold">2 items</td>
+<td class="py-3 px-4 font-mono-code text-on-surface-variant">28s</td>
+<td class="py-3 px-4 font-mono-code text-right text-secondary font-bold">99.94%</td>
+</tr>
+<!-- Jira Adapter -->
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="py-3 px-4 font-mono-code font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">receipt_long</span>
+<span>jira-cloud-worker</span>
+</td>
+<td class="py-3 px-4">
+<span class="px-2 py-0.5 rounded bg-secondary/10 text-secondary font-mono-code text-[11px] font-bold inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> OK
+              </span>
+</td>
+<td class="py-3 px-4 font-mono-code text-on-surface-variant">14s ago</td>
+<td class="py-3 px-4 font-mono-code text-secondary font-semibold">0 items</td>
+<td class="py-3 px-4 font-mono-code text-on-surface-variant">19s</td>
+<td class="py-3 px-4 font-mono-code text-right text-secondary font-bold">99.97%</td>
+</tr>
+<!-- Slack Worker -->
+<tr class="hover:bg-surface-container-highest/50 transition-colors">
+<td class="py-3 px-4 font-mono-code font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[18px]">chat_bubble_outline</span>
+<span>slack-notify-outbound</span>
+</td>
+<td class="py-3 px-4">
+<span class="px-2 py-0.5 rounded bg-secondary/10 text-secondary font-mono-code text-[11px] font-bold inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> OK
+              </span>
+</td>
+<td class="py-3 px-4 font-mono-code text-on-surface-variant">3s ago</td>
+<td class="py-3 px-4 font-mono-code text-secondary font-semibold">0 items</td>
+<td class="py-3 px-4 font-mono-code text-on-surface-variant">8s</td>
+<td class="py-3 px-4 font-mono-code text-right text-secondary font-bold">99.98%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Academic Methodology & Evaluation Artifact Details -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="rounded-xl bg-surface-container-low p-5 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-[18px]">description</span>
+<h3 class="font-headline-sm text-[16px] font-semibold text-on-surface">Reproducibility Package</h3>
+</div>
+<p class="font-body-sm text-on-surface-variant mb-4">
+          Pre-computed confusion matrices, ROC curves, and ground-truth seed 0x7F9A ready for submission appendices.
+        </p>
+</div>
+<div class="flex items-center justify-between text-mono-code text-[11px]">
+<span class="text-outline">Sha256: 4b29...91e3</span>
+<button class="text-primary hover:underline flex items-center gap-1">
+<span>Download (ZIP)</span>
+<span class="material-symbols-outlined text-[14px]">download</span>
+</button>
+</div>
+</div>
+<div class="rounded-xl bg-surface-container-low p-5 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">database</span>
+<h3 class="font-headline-sm text-[16px] font-semibold text-on-surface">Replay Corpus Volume</h3>
+</div>
+<p class="font-body-sm text-on-surface-variant mb-4">
+          30 days historical activity across 12 high-velocity repos, 48 UI libraries, and 1,840 cross-referenced PRs.
+        </p>
+</div>
+<div class="flex items-center justify-between text-mono-code text-[11px]">
+<span class="text-secondary font-bold">142,900 Total Events</span>
+<span class="text-outline">Clean Horizon</span>
+</div>
+</div>
+<div class="rounded-xl bg-surface-container-low p-5 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">tune</span>
+<h3 class="font-headline-sm text-[16px] font-semibold text-on-surface">Heuristic Calibration</h3>
+</div>
+<p class="font-body-sm text-on-surface-variant mb-4">
+          Cosine similarity threshold: 0.82 · Levenshtein distance cap: 3 · Token overlapping weight: 0.65.
+        </p>
+</div>
+<div class="flex items-center justify-between text-mono-code text-[11px]">
+<span class="text-tertiary font-bold">Auto-tuned via Optuna</span>
+<span class="text-outline">Epoch 18</span>
+</div>
+</div>
+</div>
+<!-- Client-side Interactive Feedback Toast -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none" id="eval-toast">
+<div class="bg-surface-bright text-on-surface px-4 py-3 rounded-lg shadow-xl flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+<span class="font-body-sm font-semibold" id="eval-toast-message">Evaluation run queued</span>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const runBtn = document.getElementById('btn-run-suite');
+    const downloadBtn = document.getElementById('btn-download');
+    const compareBtn = document.getElementById('btn-compare');
+    const toast = document.getElementById('eval-toast');
+    const toastMsg = document.getElementById('eval-toast-message');
+
+    function triggerToast(text) {
+      if (!toast || !toastMsg) return;
+      toastMsg.innerText = text;
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      }, 3500);
+    }
+
+    if (runBtn) {
+      runBtn.addEventListener('click', () => {
+        triggerToast('Evaluation Suite triggered: Running 1,482 test pairs across 30d replay...');
+      });
+    }
+
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', () => {
+        triggerToast('Generating LaTeX & CSV benchmark packet (v3.2)...');
+      });
+    }
+
+    if (compareBtn) {
+      compareBtn.addEventListener('click', () => {
+        triggerToast('Baseline loaded: Comparing current v3.2 with v2.8 Golden Set...');
+      });
+    }
+  })();
+</script></main></div></body></html>
