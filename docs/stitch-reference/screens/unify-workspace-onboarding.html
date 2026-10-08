@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Unify Platform</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error": "#690005", "primary-container": "#4f46e5", "surface-container-highest": "#26364a", "outline": "#918fa1", "surface-variant": "#26364a", "on-tertiary-container": "#ffd4a4", "error-container": "#93000a", "tertiary-container": "#885500", "secondary": "#4fdbc8", "tertiary-fixed": "#ffddb8", "on-surface": "#d3e4fe", "surface-tint": "#c3c0ff", "on-tertiary-fixed": "#2a1700", "tertiary-fixed-dim": "#ffb95f", "on-primary": "#1d00a5", "secondary-container": "#04b4a2", "surface": "#031427", "on-primary-container": "#dad7ff", "secondary-fixed-dim": "#4fdbc8", "background": "#031427", "primary-fixed": "#e2dfff", "error": "#ffb4ab", "primary-fixed-dim": "#c3c0ff", "on-secondary-fixed": "#00201c", "on-secondary-fixed-variant": "#005048", "inverse-surface": "#d3e4fe", "surface-bright": "#2a3a4f", "on-primary-fixed": "#0f0069", "on-error-container": "#ffdad6", "outline-variant": "#464555", "surface-container": "#102034", "surface-dim": "#031427", "surface-container-high": "#1b2b3f", "on-background": "#d3e4fe", "on-surface-variant": "#c7c4d8", "on-primary-fixed-variant": "#3323cc", "on-secondary": "#003731", "primary": "#c3c0ff", "inverse-primary": "#4d44e3", "surface-container-lowest": "#000f21", "on-tertiary-fixed-variant": "#653e00", "surface-container-low": "#0b1c30", "on-tertiary": "#472a00", "on-secondary-container": "#003f38", "secondary-fixed": "#71f8e4", "tertiary": "#ffb95f", "inverse-on-surface": "#213145" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin-page": "24px", "gutter": "16px", "stack-compact": "8px", "stack-comfortable": "16px", "unit": "4px" }, "fontFamily": { "headline-sm": ["Inter"], "label-caps": ["Inter"], "headline-md": ["Inter"], "headline-lg": ["Inter"], "mono-code": ["JetBrains Mono"], "body-lg": ["Inter"], "body-sm": ["Inter"], "body-md": ["Inter"] }, "fontSize": { "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }], "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }], "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "mono-code": ["13px", { "lineHeight": "20px", "fontWeight": "450" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }] } } } };</script></head><body class="bg-background text-on-surface font-body-md text-body-md"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low border-r border-outline-variant z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-14 px-margin-page flex items-center justify-between border-b border-outline-variant"><div class="flex items-center gap-unit"><div class="w-6 h-6 rounded bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[16px]">token</span></div><span class="font-headline-sm text-headline-sm font-bold tracking-tight text-on-surface ml-1">UNIFY</span></div><span class="px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant font-mono-code text-[10px] text-on-surface-variant font-medium">v2.4</span></div><div class="p-gutter border-b border-outline-variant bg-surface-container-lowest/50"><button class="w-full flex items-center justify-between px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-left transition-colors"><div class="flex items-center gap-stack-compact overflow-hidden"><div class="w-5 h-5 rounded-full bg-secondary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-secondary text-[13px]">domain</span></div><span class="font-body-sm text-body-sm font-semibold text-on-surface truncate">Acme Eng</span></div><span class="material-symbols-outlined text-outline text-[18px]">unfold_more</span></button></div><div class="px-stack-comfortable pt-stack-comfortable pb-stack-compact"><span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Intelligence &amp; Rules</span></div><nav class="px-stack-compact flex flex-col gap-unit" data-active-classes="bg-primary-container text-on-primary-container font-semibold"><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="conflict-inbox" href="#"><div class="flex items-center gap-stack-comfortable"><span class="material-symbols-outlined text-[18px]">inbox</span><span class="font-body-sm text-body-sm">Conflict Inbox</span></div><span class="px-1.5 py-0.5 rounded bg-error-container text-error font-mono-code text-[11px] font-bold">14</span></a><a aria-current="page" class="flex items-center gap-stack-comfortable px-3 py-2 rounded transition-colors bg-primary-container text-on-primary-container font-semibold" data-path="conflict-detail" href="#"><span class="material-symbols-outlined text-[18px]">troubleshoot</span><span class="font-body-sm text-body-sm">Conflict Detail</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="policy-configuration" href="#"><span class="material-symbols-outlined text-[18px]">rule</span><span class="font-body-sm text-body-sm">Policy Configuration</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="policy-simulation" href="#"><div class="flex items-center gap-stack-comfortable"><span class="material-symbols-outlined text-[18px]">labs</span><span class="font-body-sm text-body-sm">Policy Simulation</span></div><span class="px-1.5 py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-mono-code text-[10px]">TEST</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="graph-explorer" href="#"><span class="material-symbols-outlined text-[18px]">account_tree</span><span class="font-body-sm text-body-sm">Graph Explorer</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="link-management" href="#"><span class="material-symbols-outlined text-[18px]">link</span><span class="font-body-sm text-body-sm">Link Management</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="audit-trail" href="#"><span class="material-symbols-outlined text-[18px]">history</span><span class="font-body-sm text-body-sm">Audit Trail</span></a></nav></div><div class="flex flex-col border-t border-outline-variant p-stack-compact bg-surface-container-lowest/40"><nav data-active-classes="bg-primary-container text-on-primary-container font-semibold"><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span><span class="font-body-sm text-body-sm">Settings</span></a></nav></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface/90 backdrop-blur-md border-b border-outline-variant z-40 flex items-center justify-between px-margin-page"><div class="flex items-center gap-stack-comfortable flex-1 max-w-xl"><div class="relative w-full"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input class="w-full pl-9 pr-16 py-1.5 rounded bg-surface-container border border-outline-variant text-on-surface placeholder-outline font-mono-code text-mono-code focus:outline-none focus:border-primary-container transition-colors" placeholder="Search artifacts, conflicts, policies (Cmd+K)" type="text"/><kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant font-mono-code text-[11px] text-on-surface-variant">⌘K</kbd></div></div><div class="flex items-center gap-stack-comfortable"><div class="flex items-center gap-2 px-2.5 py-1 rounded bg-secondary/10 border border-secondary/30"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-label-caps text-label-caps text-secondary uppercase font-bold tracking-wider">Production Sync Active</span></div><div class="h-4 w-px bg-outline-variant"></div><button aria-label="Notifications" class="relative p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full ring-2 ring-surface"></span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 px-margin-page bg-background min-h-screen"><div class="flex flex-col w-full pb-16">
+<!-- Top Ambient Glow -->
+<div class="relative w-full">
+<div class="absolute -top-6 left-1/4 w-96 h-32 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -top-10 right-1/4 w-96 h-40 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+</div>
+<!-- Wizard Breadcrumb / Setup Timeline -->
+<section class="w-full mb-8">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-[11px] text-primary tracking-wider uppercase">Pipeline Provisioning</span>
+<span class="text-outline text-body-sm font-mono-code">/</span>
+<span class="font-mono-code text-[11px] text-on-surface-variant">Setup Wizard ID: #WIZ-8821</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Connect Workspace Ecosystem</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Bind your cross-functional toolchain to populate continuous synchronization graphs across specs, code, and tickets.</p>
+</div>
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-2 rounded-lg">
+<div class="text-right">
+<div class="font-label-caps text-label-caps uppercase text-outline">Progress</div>
+<div class="font-mono-code text-[15px] font-semibold text-secondary">Step 4 of 5 (80%)</div>
+</div>
+<div class="relative w-10 h-10 flex items-center justify-center">
+<svg class="w-10 h-10 -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-highest" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<path class="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="80, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<span class="absolute font-mono-code text-[10px] text-on-surface font-bold">4/5</span>
+</div>
+</div>
+</div>
+<!-- Stepper Navigation Bar -->
+<div class="grid grid-cols-5 gap-2 bg-surface-container-lowest p-2 rounded-xl">
+<!-- Step 1: Completed -->
+<button class="flex flex-col gap-1 p-2.5 rounded bg-surface-container-low text-left transition-all group">
+<div class="flex items-center justify-between">
+<span class="font-mono-code text-[10px] text-outline">01</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">check_circle</span>
+</div>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface">Workspace</span>
+<span class="font-mono-code text-[11px] text-secondary truncate">acme-eng</span>
+</button>
+<!-- Step 2: Completed -->
+<button class="flex flex-col gap-1 p-2.5 rounded bg-surface-container-low text-left transition-all group">
+<div class="flex items-center justify-between">
+<span class="font-mono-code text-[10px] text-outline">02</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">check_circle</span>
+</div>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface">Figma</span>
+<span class="font-mono-code text-[11px] text-secondary truncate">@sarah_ux</span>
+</button>
+<!-- Step 3: Completed -->
+<button class="flex flex-col gap-1 p-2.5 rounded bg-surface-container-low text-left transition-all group">
+<div class="flex items-center justify-between">
+<span class="font-mono-code text-[10px] text-outline">03</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">check_circle</span>
+</div>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface">GitHub</span>
+<span class="font-mono-code text-[11px] text-secondary truncate">acme-corp</span>
+</button>
+<!-- Step 4: Active -->
+<div class="flex flex-col gap-1 p-2.5 rounded bg-primary-container text-on-primary-container shadow-md">
+<div class="flex items-center justify-between">
+<span class="font-mono-code text-[10px] text-on-primary-container/80">04</span>
+<span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span>
+</div>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-on-primary-container">Jira Cloud</span>
+<span class="font-mono-code text-[11px] text-on-primary-container truncate font-medium">OAuth 2.0 Auth</span>
+</div>
+<!-- Step 5: Upcoming -->
+<div class="flex flex-col gap-1 p-2.5 rounded bg-surface-container-lowest text-left opacity-60">
+<div class="flex items-center justify-between">
+<span class="font-mono-code text-[10px] text-outline">05</span>
+<span class="material-symbols-outlined text-outline text-[16px]">lock</span>
+</div>
+<span class="font-label-caps text-label-caps uppercase tracking-wider text-outline">Team Invite</span>
+<span class="font-mono-code text-[11px] text-outline truncate">Pending step</span>
+</div>
+</div>
+</section>
+<!-- Security Protocol Architecture Banner -->
+<section class="w-full mb-8 bg-surface-container-low rounded-xl p-5 shadow-sm">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-secondary text-[22px]">shield_lock</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">Enterprise Zero-Knowledge Token Vault</span>
+<span class="px-2 py-0.2 rounded-full bg-secondary/10 text-secondary font-mono-code text-[11px] uppercase font-semibold">AES-256-GCM Active</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-4xl mt-1">
+            All third-party OAuth access tokens are encrypted at rest using envelope-encrypted HSM keys. Raw credentials, tokens, or personal access tokens are never displayed, logged, or exposed client-side. Webhook signatures are verified asynchronously on dedicated egress nodes.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-2 self-end lg:self-center flex-shrink-0 bg-surface-container px-3 py-1.5 rounded">
+<span class="material-symbols-outlined text-outline text-[16px]">verified_user</span>
+<span class="font-mono-code text-[11px] text-outline">SOC2 Type II Compliant</span>
+</div>
+</div>
+</section>
+<!-- Main Asymmetric Bento Workspace -->
+<div class="grid grid-cols-12 gap-6 items-start">
+<!-- Left Column: Primary Active Card (Step 4 Jira OAuth) -->
+<div class="col-span-12 lg:col-span-7 flex flex-col gap-6">
+<div class="bg-surface-container rounded-xl p-6 shadow-md flex flex-col gap-6">
+<!-- Active Source Header -->
+<div class="flex items-center justify-between pb-4 bg-surface-container-lowest/50 -m-6 mb-0 p-6 rounded-t-xl">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[24px]">task_alt</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-headline-md text-headline-md text-on-surface">Connect Atlassian Jira</h2>
+<span class="px-2 py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-mono-code text-[10px] uppercase font-bold tracking-wider">Required</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Sync sprint backlogs, release epics, and engineering issue resolutions.</p>
+</div>
+</div>
+<span class="px-2 py-1 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-[11px]">OAuth 2.0 (3LO)</span>
+</div>
+<!-- Tenant Identification Input -->
+<div class="flex flex-col gap-2">
+<label class="font-label-caps text-label-caps uppercase text-outline">Atlassian Cloud Site / Domain</label>
+<div class="flex items-center bg-surface-container-lowest rounded px-3 py-2">
+<span class="material-symbols-outlined text-outline text-[18px] mr-2">dns</span>
+<input class="bg-transparent text-on-surface font-mono-code text-mono-code focus:outline-none flex-1 font-semibold" placeholder="organization" type="text" value="acme"/>
+<span class="text-outline font-mono-code text-mono-code select-none">.atlassian.net</span>
+</div>
+<span class="font-body-sm text-[12px] text-on-surface-variant">Verify this domain has active Jira Software or Jira Work Management instances.</span>
+</div>
+<!-- Scope & Permissions Matrix -->
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps uppercase text-outline">Requested Granular Scopes</span>
+<span class="font-mono-code text-[11px] text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">lock_reset</span> Read-Only Enforced
+            </span>
+</div>
+<div class="grid grid-cols-1 gap-2">
+<div class="bg-surface-container-low p-3 rounded flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-[18px]">visibility</span>
+<div>
+<div class="font-mono-code text-[13px] text-on-surface font-medium">read:jira-work</div>
+<div class="font-body-sm text-[12px] text-on-surface-variant">Ingest issue titles, priority fields, transitions, and epics for dependency tracking.</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-[10px] text-on-surface-variant">Non-destructive</span>
+</div>
+<div class="bg-surface-container-low p-3 rounded flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-[18px]">badge</span>
+<div>
+<div class="font-mono-code text-[13px] text-on-surface font-medium">read:jira-user</div>
+<div class="font-body-sm text-[12px] text-on-surface-variant">Map assignees &amp; reporters to Unify developer identities via verified email hashes.</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-[10px] text-on-surface-variant">Privacy safe</span>
+</div>
+<div class="bg-surface-container-low p-3 rounded flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-[18px]">webhook</span>
+<div>
+<div class="font-mono-code text-[13px] text-on-surface font-medium">manage:jira-webhook</div>
+<div class="font-body-sm text-[12px] text-on-surface-variant">Stream real-time status updates without polling overhead or rate limits.</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-[10px] text-on-surface-variant">Event-driven</span>
+</div>
+</div>
+</div>
+<!-- Live Auth Simulator Block -->
+<div class="bg-surface-container-lowest p-4 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4" id="authStatusBox">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center" id="authSpinner">
+<span class="material-symbols-outlined text-outline text-[18px]">radio_button_unchecked</span>
+</div>
+<div>
+<div class="font-body-sm font-semibold text-on-surface" id="authStatusLabel">Awaiting Atlassian Consent</div>
+<div class="font-mono-code text-[11px] text-outline truncate">Callback: https://api.unify.dev/v1/auth/atlassian/callback</div>
+</div>
+</div>
+<button class="px-4 py-2 rounded bg-secondary text-on-secondary hover:bg-secondary-container transition-colors flex items-center gap-2 font-label-caps uppercase tracking-wider font-bold shadow-sm" id="authTriggerBtn" onclick="simulateOAuth()">
+<span class="material-symbols-outlined text-[16px]">open_in_new</span>
+            Authorize with Atlassian
+          </button>
+</div>
+<!-- Step Footnote -->
+<div class="flex items-center justify-between text-outline text-body-sm pt-2">
+<span class="font-mono-code text-[12px] flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">info</span>
+            You can modify repository access and scope permissions anytime in Settings.
+          </span>
+<a class="font-mono-code text-[12px] text-primary hover:underline" href="#">View OAuth Manifest</a>
+</div>
+</div>
+<!-- Live Sync Diagnostic Preview -->
+<div class="bg-surface-container-low rounded-xl p-5 shadow-sm">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-caps text-label-caps uppercase text-outline">Ecosystem Pipeline Telemetry</span>
+<span class="font-mono-code text-[11px] text-secondary">All systems operational</span>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<div class="bg-surface-container p-3 rounded">
+<div class="font-mono-code text-[10px] text-outline uppercase">Egress Region</div>
+<div class="font-mono-code text-on-surface font-semibold mt-0.5">us-east-2 (VA)</div>
+</div>
+<div class="bg-surface-container p-3 rounded">
+<div class="font-mono-code text-[10px] text-outline uppercase">Handshake Latency</div>
+<div class="font-mono-code text-secondary font-semibold mt-0.5">14ms average</div>
+</div>
+<div class="bg-surface-container p-3 rounded">
+<div class="font-mono-code text-[10px] text-outline uppercase">Rate Reserve</div>
+<div class="font-mono-code text-on-surface font-semibold mt-0.5">4,920 req/hr</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Status of Preceding and Upcoming Steps -->
+<div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+<!-- Workspace Config Summary (Step 1 Recap) -->
+<div class="bg-surface-container-low rounded-xl p-5 shadow-sm">
+<div class="flex items-center justify-between pb-3 mb-3 bg-surface-container-lowest/40 -m-5 mb-3 p-5 rounded-t-xl">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">verified</span>
+<span class="font-headline-sm text-[16px] text-on-surface font-semibold">Workspace Profile</span>
+</div>
+<button class="font-mono-code text-[11px] text-primary hover:underline">Edit</button>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-[24px]">corporate_fare</span>
+</div>
+<div class="overflow-hidden">
+<div class="font-body-md font-semibold text-on-surface truncate">Acme Engineering Core</div>
+<div class="font-mono-code text-[12px] text-outline">unify.dev/org/acme-eng</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-4 pt-4 bg-surface-container-lowest/30 rounded p-2.5">
+<div>
+<span class="font-label-caps text-[10px] uppercase text-outline">Primary Region</span>
+<div class="font-mono-code text-body-sm text-on-surface font-medium">US-East (N. Virginia)</div>
+</div>
+<div>
+<span class="font-label-caps text-[10px] uppercase text-outline">Audit Logging</span>
+<div class="font-mono-code text-body-sm text-secondary font-medium">Enforced (Ret. 365d)</div>
+</div>
+</div>
+</div>
+<!-- Connected Toolchains (Steps 2 & 3 Recap) -->
+<div class="bg-surface-container rounded-xl p-5 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between pb-2">
+<span class="font-label-caps text-label-caps uppercase text-outline">Connected Upstream Sources</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-[10px] text-on-surface">2 of 3 linked</span>
+</div>
+<!-- Figma Connected Card -->
+<div class="bg-surface-container-low p-3.5 rounded-lg flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-[20px]">palette</span>
+</div>
+<div>
+<div class="font-body-sm font-semibold text-on-surface">Figma Enterprise</div>
+<div class="font-mono-code text-[11px] text-outline">Connected as <span class="text-on-surface">@sarah_ux</span></div>
+</div>
+</div>
+<div class="flex items-center gap-1 text-secondary font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Active
+            </div>
+</div>
+<div class="flex items-center justify-between pt-2 text-[11px] font-mono-code text-on-surface-variant bg-surface-container-lowest/40 px-2.5 py-1.5 rounded">
+<span>Scopes: file:read, dev_mode:read</span>
+<span class="text-outline">Sync: 4m ago</span>
+</div>
+</div>
+<!-- GitHub Connected Card -->
+<div class="bg-surface-container-low p-3.5 rounded-lg flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-[20px]">code</span>
+</div>
+<div>
+<div class="font-body-sm font-semibold text-on-surface">GitHub Organization</div>
+<div class="font-mono-code text-[11px] text-outline">Connected to <span class="text-on-surface">acme-corp</span></div>
+</div>
+</div>
+<div class="flex items-center gap-1 text-secondary font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Active
+            </div>
+</div>
+<div class="flex items-center justify-between pt-2 text-[11px] font-mono-code text-on-surface-variant bg-surface-container-lowest/40 px-2.5 py-1.5 rounded">
+<span>Repos: 18 Selected (All Core)</span>
+<span class="text-secondary">Webhook 200 OK</span>
+</div>
+</div>
+</div>
+<!-- Preview of Step 5: Invite Members (Pending preview) -->
+<div class="bg-surface-container-low rounded-xl p-5 shadow-sm opacity-70">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[18px]">group_add</span>
+<span class="font-label-caps text-label-caps uppercase text-outline">Up Next: Step 5</span>
+</div>
+<span class="font-mono-code text-[10px] text-outline">Team Permissions</span>
+</div>
+<div class="flex flex-col gap-2">
+<div class="font-body-sm text-on-surface font-semibold">Invite Engineers &amp; Product Leads</div>
+<p class="font-body-sm text-on-surface-variant text-[12px]">Assign zero-trust roles across Admin, Member, and Security Auditor before granting team-wide graph explorer rights.</p>
+</div>
+<div class="flex items-center gap-2 mt-3 flex-wrap">
+<span class="px-2 py-1 rounded bg-surface-container font-mono-code text-[11px] text-outline">@sarah_ux (Admin)</span>
+<span class="px-2 py-1 rounded bg-surface-container font-mono-code text-[11px] text-outline">+ invite by email...</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Persistent Setup Action Bar -->
+<footer class="mt-8 pt-4 pb-2 bg-surface-container-lowest rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-2">
+<button class="px-3.5 py-2 rounded text-outline hover:text-on-surface font-body-sm transition-colors" onclick="simulateSkip()">
+        Skip Jira for now
+      </button>
+<span class="text-outline/40">|</span>
+<span class="font-mono-code text-[12px] text-outline">Step 4 of 5 (80% complete)</span>
+</div>
+<div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+<button class="px-4 py-2 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-body-sm transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span> Back
+      </button>
+<button class="px-6 py-2 rounded bg-primary-container hover:bg-indigo-600 text-on-primary-container font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-md" id="nextStepBtn" onclick="completeStep()">
+<span>Save &amp; Continue to Next Step</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</footer>
+<!-- Micro-interaction Script -->
+<script>
+    let isAuthorized = false;
+
+    function simulateOAuth() {
+      const btn = document.getElementById('authTriggerBtn');
+      const box = document.getElementById('authStatusBox');
+      const spinner = document.getElementById('authSpinner');
+      const label = document.getElementById('authStatusLabel');
+      const nextBtn = document.getElementById('nextStepBtn');
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> Authorizing...';
+      btn.className = 'px-4 py-2 rounded bg-surface-container-highest text-outline font-label-caps uppercase tracking-wider font-bold cursor-not-allowed';
+
+      spinner.innerHTML = '<span class="material-symbols-outlined text-secondary text-[20px] animate-spin">sync</span>';
+      label.innerText = 'Exchanging OAuth code with Atlassian identity service...';
+
+      setTimeout(() => {
+        isAuthorized = true;
+        btn.className = 'px-4 py-2 rounded bg-secondary/20 text-secondary font-label-caps uppercase tracking-wider font-bold flex items-center gap-1.5';
+        btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check_circle</span> Connected';
+        btn.disabled = true;
+
+        spinner.className = 'w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center';
+        spinner.innerHTML = '<span class="material-symbols-outlined text-secondary text-[20px]">check</span>';
+        
+        label.className = 'font-body-sm font-semibold text-secondary';
+        label.innerText = 'Connected to acme.atlassian.net (Read-Only Granted)';
+
+        nextBtn.className = 'px-6 py-2 rounded bg-secondary text-on-secondary hover:bg-secondary-container font-body-sm font-bold transition-all flex items-center gap-2 shadow-lg';
+      }, 1500);
+    }
+
+    function simulateSkip() {
+      if(confirm("Skip connecting Jira for now? You can configure it anytime later in Link Management.")) {
+        alert("Proceeding to Step 5: Invite Team Members.");
+      }
+    }
+
+    function completeStep() {
+      if (!isAuthorized) {
+        if(confirm("Jira authorization is pending. Do you wish to authorize first? Click Cancel to proceed anyway.")) {
+          simulateOAuth();
+          return;
+        }
+      }
+      alert("Advancing to Step 5: Invite Team Members & Permissions.");
+    }
+  </script>
+</div></main></div></body></html>

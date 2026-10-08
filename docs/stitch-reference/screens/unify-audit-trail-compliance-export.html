@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>Unify Platform</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-error": "#690005", "primary-container": "#4f46e5", "surface-container-highest": "#26364a", "outline": "#918fa1", "surface-variant": "#26364a", "on-tertiary-container": "#ffd4a4", "error-container": "#93000a", "tertiary-container": "#885500", "secondary": "#4fdbc8", "tertiary-fixed": "#ffddb8", "on-surface": "#d3e4fe", "surface-tint": "#c3c0ff", "on-tertiary-fixed": "#2a1700", "tertiary-fixed-dim": "#ffb95f", "on-primary": "#1d00a5", "secondary-container": "#04b4a2", "surface": "#031427", "on-primary-container": "#dad7ff", "secondary-fixed-dim": "#4fdbc8", "background": "#031427", "primary-fixed": "#e2dfff", "error": "#ffb4ab", "primary-fixed-dim": "#c3c0ff", "on-secondary-fixed": "#00201c", "on-secondary-fixed-variant": "#005048", "inverse-surface": "#d3e4fe", "surface-bright": "#2a3a4f", "on-primary-fixed": "#0f0069", "on-error-container": "#ffdad6", "outline-variant": "#464555", "surface-container": "#102034", "surface-dim": "#031427", "surface-container-high": "#1b2b3f", "on-background": "#d3e4fe", "on-surface-variant": "#c7c4d8", "on-primary-fixed-variant": "#3323cc", "on-secondary": "#003731", "primary": "#c3c0ff", "inverse-primary": "#4d44e3", "surface-container-lowest": "#000f21", "on-tertiary-fixed-variant": "#653e00", "surface-container-low": "#0b1c30", "on-tertiary": "#472a00", "on-secondary-container": "#003f38", "secondary-fixed": "#71f8e4", "tertiary": "#ffb95f", "inverse-on-surface": "#213145" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin-page": "24px", "gutter": "16px", "stack-compact": "8px", "stack-comfortable": "16px", "unit": "4px" }, "fontFamily": { "headline-sm": ["Inter"], "label-caps": ["Inter"], "headline-md": ["Inter"], "headline-lg": ["Inter"], "mono-code": ["JetBrains Mono"], "body-lg": ["Inter"], "body-sm": ["Inter"], "body-md": ["Inter"] }, "fontSize": { "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }], "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }], "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "headline-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "mono-code": ["13px", { "lineHeight": "20px", "fontWeight": "450" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }] } } } };</script></head><body class="bg-background text-on-surface font-body-md text-body-md"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-low border-r border-outline-variant z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-14 px-margin-page flex items-center justify-between border-b border-outline-variant"><div class="flex items-center gap-unit"><div class="w-6 h-6 rounded bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[16px]">token</span></div><span class="font-headline-sm text-headline-sm font-bold tracking-tight text-on-surface ml-1">UNIFY</span></div><span class="px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant font-mono-code text-[10px] text-on-surface-variant font-medium">v2.4</span></div><div class="p-gutter border-b border-outline-variant bg-surface-container-lowest/50"><button class="w-full flex items-center justify-between px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-left transition-colors"><div class="flex items-center gap-stack-compact overflow-hidden"><div class="w-5 h-5 rounded-full bg-secondary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-secondary text-[13px]">domain</span></div><span class="font-body-sm text-body-sm font-semibold text-on-surface truncate">Acme Eng</span></div><span class="material-symbols-outlined text-outline text-[18px]">unfold_more</span></button></div><div class="px-stack-comfortable pt-stack-comfortable pb-stack-compact"><span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Intelligence &amp; Rules</span></div><nav class="px-stack-compact flex flex-col gap-unit" data-active-classes="bg-primary-container text-on-primary-container font-semibold"><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="conflict-inbox" href="#"><div class="flex items-center gap-stack-comfortable"><span class="material-symbols-outlined text-[18px]">inbox</span><span class="font-body-sm text-body-sm">Conflict Inbox</span></div><span class="px-1.5 py-0.5 rounded bg-error-container text-error font-mono-code text-[11px] font-bold">14</span></a><a aria-current="page" class="flex items-center gap-stack-comfortable px-3 py-2 rounded transition-colors bg-primary-container text-on-primary-container font-semibold" data-path="conflict-detail" href="#"><span class="material-symbols-outlined text-[18px]">troubleshoot</span><span class="font-body-sm text-body-sm">Conflict Detail</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="policy-configuration" href="#"><span class="material-symbols-outlined text-[18px]">rule</span><span class="font-body-sm text-body-sm">Policy Configuration</span></a><a class="flex items-center justify-between px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="policy-simulation" href="#"><div class="flex items-center gap-stack-comfortable"><span class="material-symbols-outlined text-[18px]">labs</span><span class="font-body-sm text-body-sm">Policy Simulation</span></div><span class="px-1.5 py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-mono-code text-[10px]">TEST</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="graph-explorer" href="#"><span class="material-symbols-outlined text-[18px]">account_tree</span><span class="font-body-sm text-body-sm">Graph Explorer</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="link-management" href="#"><span class="material-symbols-outlined text-[18px]">link</span><span class="font-body-sm text-body-sm">Link Management</span></a><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="audit-trail" href="#"><span class="material-symbols-outlined text-[18px]">history</span><span class="font-body-sm text-body-sm">Audit Trail</span></a></nav></div><div class="flex flex-col border-t border-outline-variant p-stack-compact bg-surface-container-lowest/40"><nav data-active-classes="bg-primary-container text-on-primary-container font-semibold"><a class="flex items-center gap-stack-comfortable px-3 py-2 rounded text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span><span class="font-body-sm text-body-sm">Settings</span></a></nav></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-14 bg-surface/90 backdrop-blur-md border-b border-outline-variant z-40 flex items-center justify-between px-margin-page"><div class="flex items-center gap-stack-comfortable flex-1 max-w-xl"><div class="relative w-full"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span><input class="w-full pl-9 pr-16 py-1.5 rounded bg-surface-container border border-outline-variant text-on-surface placeholder-outline font-mono-code text-mono-code focus:outline-none focus:border-primary-container transition-colors" placeholder="Search artifacts, conflicts, policies (Cmd+K)" type="text"/><kbd class="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant font-mono-code text-[11px] text-on-surface-variant">⌘K</kbd></div></div><div class="flex items-center gap-stack-comfortable"><div class="flex items-center gap-2 px-2.5 py-1 rounded bg-secondary/10 border border-secondary/30"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-label-caps text-label-caps text-secondary uppercase font-bold tracking-wider">Production Sync Active</span></div><div class="h-4 w-px bg-outline-variant"></div><button aria-label="Notifications" class="relative p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full ring-2 ring-surface"></span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-14 px-margin-page bg-background min-h-screen"><div class="flex flex-col w-full pb-16 space-y-gutter">
+<!-- Subtle Ambient Glow -->
+<div class="relative w-full">
+<div class="absolute -top-12 left-1/4 w-96 h-36 bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute -top-8 right-1/6 w-80 h-32 bg-secondary/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<!-- Top Bar: Breadcrumbs & Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-gutter pt-stack-compact">
+<div class="flex flex-col space-y-1">
+<div class="flex items-center gap-2 text-on-surface-variant font-mono-code text-[11px] tracking-wider uppercase">
+<span>Governance</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span>Audit &amp; Compliance</span>
+<span class="material-symbols-outlined text-[12px]">chevron_right</span>
+<span class="text-secondary font-semibold">Workspace Ledger</span>
+</div>
+<div class="flex items-center gap-stack-comfortable flex-wrap">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Audit Trail &amp; Compliance Export</h1>
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-secondary/10 text-secondary">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-label-caps text-label-caps uppercase tracking-wider">Immutable Ledger SHA-256</span>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center gap-stack-compact self-start md:self-auto">
+<button class="inline-flex items-center gap-2 px-3.5 py-2 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface text-body-sm font-body-sm font-medium shadow-sm transition-all active:scale-95" id="verifyLedgerBtn" onclick="runIntegrityCheck()">
+<span class="material-symbols-outlined text-[18px] text-secondary">security_update_good</span>
+<span>Verify Integrity</span>
+</button>
+<!-- Export Dropdown -->
+<div class="relative inline-block text-left">
+<button class="inline-flex items-center gap-2 px-4 py-2 rounded bg-primary-container hover:bg-primary-container/90 text-on-primary-container text-body-sm font-body-sm font-semibold shadow-md transition-all active:scale-95" id="exportDropdownBtn" onclick="toggleExportMenu()">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Export Filtered Records</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+<div class="hidden absolute right-0 mt-2 w-72 rounded bg-surface-container-high shadow-xl p-3 z-30" id="exportMenu">
+<div class="px-2 py-1 mb-2">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider block">Cryptographic Export</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant text-[11px] leading-tight mt-1">Tokens &amp; raw vendor payloads automatically redacted via policy #901.</p>
+</div>
+<div class="flex flex-col gap-1">
+<button class="flex items-center justify-between px-3 py-2 rounded hover:bg-surface-bright text-on-surface text-left transition-colors" onclick="downloadExport('csv')">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">table_chart</span>
+<span class="font-body-sm text-body-sm font-medium">Delimited CSV (.csv)</span>
+</div>
+<span class="font-mono-code text-[11px] text-on-surface-variant">Cleaned</span>
+</button>
+<button class="flex items-center justify-between px-3 py-2 rounded hover:bg-surface-bright text-on-surface text-left transition-colors" onclick="downloadExport('json')">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-secondary">data_object</span>
+<span class="font-body-sm text-body-sm font-medium">Full Merkle JSON (.jsonl)</span>
+</div>
+<span class="font-mono-code text-[11px] text-on-surface-variant">Signed</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Summary Metric Cards (4 Bento Cards) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Card 1 -->
+<div class="p-gutter rounded bg-surface-container shadow-sm flex flex-col justify-between relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Total Audit Events</span>
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</div>
+</div>
+<div class="mt-3 flex items-baseline justify-between">
+<span class="font-mono-code text-headline-md text-on-surface font-semibold tracking-tight">142,891</span>
+<span class="font-mono-code text-body-sm text-secondary font-medium">+1,240 today</span>
+</div>
+<div class="mt-3 w-full bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-secondary h-full rounded-full w-[84%] transition-all duration-700"></div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="p-gutter rounded bg-surface-container shadow-sm flex flex-col justify-between relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Conflict Transitions</span>
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[18px]">troubleshoot</span>
+</div>
+</div>
+<div class="mt-3 flex items-baseline justify-between">
+<span class="font-mono-code text-headline-md text-on-surface font-semibold tracking-tight">3,410</span>
+<span class="font-mono-code text-body-sm text-on-surface-variant">99.4% resolved</span>
+</div>
+<div class="mt-3 w-full bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-tertiary h-full rounded-full w-[92%] transition-all duration-700"></div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="p-gutter rounded bg-surface-container shadow-sm flex flex-col justify-between relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Provenance Link Mutations</span>
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</div>
+</div>
+<div class="mt-3 flex items-baseline justify-between">
+<span class="font-mono-code text-headline-md text-on-surface font-semibold tracking-tight">8,924</span>
+<span class="font-mono-code text-body-sm text-secondary font-medium">+310 ops</span>
+</div>
+<div class="mt-3 w-full bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-secondary h-full rounded-full w-[67%] transition-all duration-700"></div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="p-gutter rounded bg-surface-container shadow-sm flex flex-col justify-between relative overflow-hidden group">
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">Policy &amp; Governance</span>
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">policy</span>
+</div>
+</div>
+<div class="mt-3 flex items-baseline justify-between">
+<span class="font-mono-code text-headline-md text-on-surface font-semibold tracking-tight">412</span>
+<span class="font-mono-code text-body-sm text-on-surface-variant">v2.4 Active</span>
+</div>
+<div class="mt-3 w-full bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-primary h-full rounded-full w-[45%] transition-all duration-700"></div>
+</div>
+</div>
+</div>
+<!-- Filter & Query Control Bar -->
+<div class="p-gutter rounded bg-surface-container shadow-sm space-y-stack-comfortable">
+<div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-stack-comfortable">
+<!-- Search -->
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+<input class="w-full pl-9 pr-4 py-2 rounded bg-surface-container-lowest text-on-surface placeholder-outline font-mono-code text-body-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all" id="auditSearchInput" oninput="filterLogs()" placeholder="Filter by Actor (@alex), Artifact (PR #142, Figma), or TxHash..." type="text"/>
+</div>
+<!-- Controls Row -->
+<div class="flex items-center flex-wrap gap-stack-compact">
+<!-- Actor Filter -->
+<select class="px-3 py-2 rounded bg-surface-container-lowest text-on-surface font-body-sm text-body-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer" id="actorFilter" onchange="filterLogs()">
+<option value="all">All Actors</option>
+<option value="system">Invariant Systems Engine</option>
+<option value="@alex_mgr">@alex_mgr (Alex Rivera)</option>
+<option value="@sarah_ux">@sarah_ux (Sarah Chen)</option>
+<option value="@marcus_dev">@marcus_dev (Marcus Taylor)</option>
+</select>
+<!-- Action Multi-select Dropdown equivalent -->
+<select class="px-3 py-2 rounded bg-surface-container-lowest text-on-surface font-body-sm text-body-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer" id="actionFilter" onchange="filterLogs()">
+<option value="all">All Action Types</option>
+<option value="CONFLICT_RESOLVED">CONFLICT_RESOLVED</option>
+<option value="LINK_MANUAL_ASSERTION">LINK_MANUAL_ASSERTION</option>
+<option value="POLICY_VERSION_BUMP">POLICY_VERSION_BUMP</option>
+<option value="CONFLICT_SUPPRESSED">CONFLICT_SUPPRESSED</option>
+<option value="TOKEN_SCOPE_AUDIT">TOKEN_SCOPE_AUDIT</option>
+</select>
+<!-- Date Range -->
+<div class="inline-flex items-center gap-1 px-3 py-2 rounded bg-surface-container-lowest text-on-surface font-body-sm text-body-sm cursor-pointer hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[16px] text-outline">calendar_month</span>
+<span>Last 30 Days</span>
+<span class="material-symbols-outlined text-[16px] text-outline">expand_more</span>
+</div>
+<!-- Reset Button -->
+<button class="p-2 rounded bg-surface-container-lowest hover:bg-surface-container-high text-outline hover:text-on-surface transition-colors" onclick="resetFilters()" title="Reset Filters">
+<span class="material-symbols-outlined text-[18px]">restart_alt</span>
+</button>
+</div>
+</div>
+<!-- Quick Compliance Presets Bar -->
+<div class="flex items-center justify-between flex-wrap gap-stack-compact pt-1 border-t-0">
+<div class="flex items-center gap-stack-compact flex-wrap">
+<span class="font-label-caps text-label-caps text-outline uppercase tracking-wider">Quick Presets:</span>
+<button class="px-2.5 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] font-medium transition-colors flex items-center gap-1.5" onclick="applyPreset('soc2')">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+          SOC2 Compliance Snapshot
+        </button>
+<button class="px-2.5 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] font-medium transition-colors flex items-center gap-1.5" onclick="applyPreset('sprint')">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+          Sprint 42 Replay Dump
+        </button>
+<button class="px-2.5 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] font-medium transition-colors flex items-center gap-1.5" onclick="applyPreset('benchmark')">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+          Benchmark Metrics JSON
+        </button>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant font-mono-code text-[12px]">
+<span class="material-symbols-outlined text-[15px] text-secondary animate-pulse">lock</span>
+<span>SHA-256 Proof Valid</span>
+</div>
+</div>
+</div>
+<!-- Chronological Audit Log Table -->
+<div class="rounded bg-surface-container shadow-sm overflow-hidden flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm text-on-surface border-collapse">
+<thead class="bg-surface-container-low font-label-caps text-label-caps text-outline uppercase tracking-wider select-none">
+<tr>
+<th class="py-3 px-4">Timestamp (UTC)</th>
+<th class="py-3 px-4">Actor</th>
+<th class="py-3 px-4">Action Type</th>
+<th class="py-3 px-4">Affected Artifact</th>
+<th class="py-3 px-4">Reason / Integrity Proof</th>
+<th class="py-3 px-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-none" id="auditTableBody">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high transition-colors log-row" data-action="CONFLICT_RESOLVED" data-actor="system" data-search="pr #142 ast match invariant">
+<td class="py-3 px-4 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
+<span class="text-on-surface font-medium">2023-10-24 14:32:08</span>
+<span class="text-outline text-[11px] block">12m ago</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary/20 text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-on-surface text-[12px]">System Engine</span>
+<span class="font-label-caps text-label-caps text-secondary text-[10px]">DAEMON-CORE</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-secondary/15 text-secondary font-mono-code text-[11px] font-semibold">
+                CONFLICT_RESOLVED
+              </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-[13px] text-primary">merge</span>
+<span class="font-semibold text-primary">PR #142</span>
+<span class="text-outline text-[10px]">• repo/auth</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-col max-w-md">
+<span class="text-on-surface text-body-sm line-clamp-1">Deterministic AST match verified by Invariant Engine</span>
+<span class="font-mono-code text-[11px] text-outline truncate">SHA-256: 8f2a41d99e0134bca810...9c41</span>
+</div>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] transition-colors" onclick="openInspectModal('8f2a41d99e0134bca810')">JSON</button>
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-secondary font-mono-code text-[11px] transition-colors" onclick="openDiffModal('PR #142')">Diff</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high transition-colors log-row" data-action="LINK_MANUAL_ASSERTION" data-actor="@sarah_ux" data-search="checkoutmodal figma sarah_ux">
+<td class="py-3 px-4 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
+<span class="text-on-surface font-medium">2023-10-24 13:14:02</span>
+<span class="text-outline text-[11px] block">1h 30m ago</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-mono-code text-[11px] font-bold">
+                  SC
+                </div>
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-on-surface text-[12px]">@sarah_ux</span>
+<span class="font-body-sm text-outline text-[11px]">Sarah Chen (Staff Product)</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-primary/20 text-primary font-mono-code text-[11px] font-semibold">
+                LINK_MANUAL_ASSERTION
+              </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-[13px] text-tertiary">design_services</span>
+<span class="font-semibold text-on-surface">CheckoutModal_v3.2</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-col max-w-md">
+<span class="text-on-surface text-body-sm line-clamp-1">Linked Figma node 239:104 to React component &lt;CartModal /&gt;</span>
+<span class="font-mono-code text-[11px] text-outline truncate">SHA-256: d49c301aef871b9012a4...51ff</span>
+</div>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] transition-colors" onclick="openInspectModal('d49c301aef871b9012a4')">JSON</button>
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-secondary font-mono-code text-[11px] transition-colors" onclick="openDiffModal('CheckoutModal_v3.2')">Diff</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high transition-colors log-row" data-action="POLICY_VERSION_BUMP" data-actor="@alex_mgr" data-search="policy p1-v2.2 alex_mgr tolerance">
+<td class="py-3 px-4 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
+<span class="text-on-surface font-medium">2023-10-24 11:45:20</span>
+<span class="text-outline text-[11px] block">3h ago</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-tertiary-container text-on-tertiary flex items-center justify-center font-mono-code text-[11px] font-bold">
+                  AR
+                </div>
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-on-surface text-[12px]">@alex_mgr</span>
+<span class="font-body-sm text-outline text-[11px]">Alex Rivera (Lead PM)</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-tertiary/20 text-tertiary font-mono-code text-[11px] font-semibold">
+                POLICY_VERSION_BUMP
+              </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-[13px] text-primary">gavel</span>
+<span class="font-semibold text-primary">Policy P1-v2.2</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-col max-w-md">
+<span class="text-on-surface text-body-sm line-clamp-1">Adjusted design discrepancy drift tolerance from 4px to 2px for mobile screens</span>
+<span class="font-mono-code text-[11px] text-outline truncate">SHA-256: 3c91b72a44bb01fec991...a110</span>
+</div>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] transition-colors" onclick="openInspectModal('3c91b72a44bb01fec991')">JSON</button>
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-secondary font-mono-code text-[11px] transition-colors" onclick="openDiffModal('Policy P1-v2.2')">Diff</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-high transition-colors log-row" data-action="CONFLICT_SUPPRESSED" data-actor="@marcus_dev" data-search="jira proj-88 marcus_dev suppressed margin">
+<td class="py-3 px-4 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
+<span class="text-on-surface font-medium">2023-10-24 10:12:33</span>
+<span class="text-outline text-[11px] block">4h 20m ago</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-bright text-secondary flex items-center justify-center font-mono-code text-[11px] font-bold">
+                  MT
+                </div>
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-on-surface text-[12px]">@marcus_dev</span>
+<span class="font-body-sm text-outline text-[11px]">Marcus Taylor (Senior Eng)</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-outline-variant/30 text-outline font-mono-code text-[11px] font-semibold">
+                CONFLICT_SUPPRESSED
+              </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-[13px] text-tertiary">task_alt</span>
+<span class="font-semibold text-on-surface">Jira PROJ-88</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-col max-w-md">
+<span class="text-on-surface text-body-sm line-clamp-1">Acknowledged: temporary layout margin waiver granted for iOS beta release</span>
+<span class="font-mono-code text-[11px] text-outline truncate">SHA-256: e801aa48c89b027734fa...901e</span>
+</div>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] transition-colors" onclick="openInspectModal('e801aa48c89b027734fa')">JSON</button>
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-secondary font-mono-code text-[11px] transition-colors" onclick="openDiffModal('Jira PROJ-88')">Diff</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-high transition-colors log-row" data-action="TOKEN_SCOPE_AUDIT" data-actor="system" data-search="github-enterprise-app token scope audit">
+<td class="py-3 px-4 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
+<span class="text-on-surface font-medium">2023-10-24 09:00:01</span>
+<span class="text-outline text-[11px] block">5h 32m ago</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-secondary/20 text-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-on-surface text-[12px]">System Engine</span>
+<span class="font-label-caps text-label-caps text-secondary text-[10px]">OAUTH-RECON</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-surface-variant text-on-surface font-mono-code text-[11px] font-semibold">
+                TOKEN_SCOPE_AUDIT
+              </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-[13px] text-secondary">vpn_key</span>
+<span class="font-semibold text-on-surface">OAuth: github-app</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-col max-w-md">
+<span class="text-on-surface text-body-sm line-clamp-1">Zero permission escalation detected across 40 webhook endpoints</span>
+<span class="font-mono-code text-[11px] text-outline truncate">SHA-256: 71be892a00bf8a9144cc...6622</span>
+</div>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] transition-colors" onclick="openInspectModal('71be892a00bf8a9144cc')">JSON</button>
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-secondary font-mono-code text-[11px] transition-colors" onclick="openDiffModal('OAuth: github-app')">Diff</button>
+</div>
+</td>
+</tr>
+<!-- Row 6 -->
+<tr class="hover:bg-surface-container-high transition-colors log-row" data-action="CONFLICT_RESOLVED" data-actor="@alex_mgr" data-search="pr #139 color tokens alex_mgr">
+<td class="py-3 px-4 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
+<span class="text-on-surface font-medium">2023-10-24 07:15:19</span>
+<span class="text-outline text-[11px] block">7h ago</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-tertiary-container text-on-tertiary flex items-center justify-center font-mono-code text-[11px] font-bold">
+                  AR
+                </div>
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-on-surface text-[12px]">@alex_mgr</span>
+<span class="font-body-sm text-outline text-[11px]">Alex Rivera (Lead PM)</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-secondary/15 text-secondary font-mono-code text-[11px] font-semibold">
+                CONFLICT_RESOLVED
+              </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-[13px] text-primary">merge</span>
+<span class="font-semibold text-primary">PR #139</span>
+<span class="text-outline text-[10px]">• tokens-sync</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-col max-w-md">
+<span class="text-on-surface text-body-sm line-clamp-1">Approved Dark Mode semantic scale refactor across mobile and desktop palettes</span>
+<span class="font-mono-code text-[11px] text-outline truncate">SHA-256: 12ff903bcde448821034...77ab</span>
+</div>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] transition-colors" onclick="openInspectModal('12ff903bcde448821034')">JSON</button>
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-secondary font-mono-code text-[11px] transition-colors" onclick="openDiffModal('PR #139')">Diff</button>
+</div>
+</td>
+</tr>
+<!-- Row 7 -->
+<tr class="hover:bg-surface-container-high transition-colors log-row" data-action="LINK_MANUAL_ASSERTION" data-actor="@marcus_dev" data-search="paymentbutton.tsx storybook marcus_dev">
+<td class="py-3 px-4 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
+<span class="text-on-surface font-medium">2023-10-23 21:50:44</span>
+<span class="text-outline text-[11px] block">16h ago</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-surface-bright text-secondary flex items-center justify-center font-mono-code text-[11px] font-bold">
+                  MT
+                </div>
+<div class="flex flex-col">
+<span class="font-mono-code font-semibold text-on-surface text-[12px]">@marcus_dev</span>
+<span class="font-body-sm text-outline text-[11px]">Marcus Taylor (Senior Eng)</span>
+</div>
+</div>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded bg-primary/20 text-primary font-mono-code text-[11px] font-semibold">
+                LINK_MANUAL_ASSERTION
+              </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<div class="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+<span class="material-symbols-outlined text-[13px] text-secondary">code</span>
+<span class="font-semibold text-on-surface">PaymentButton.tsx</span>
+</div>
+</td>
+<td class="py-3 px-4">
+<div class="flex flex-col max-w-md">
+<span class="text-on-surface text-body-sm line-clamp-1">Linked Storybook isolate #401 to prod PaymentButton module</span>
+<span class="font-mono-code text-[11px] text-outline truncate">SHA-256: 994a2e88102bdc6130aa...bb41</span>
+</div>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-1">
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] transition-colors" onclick="openInspectModal('994a2e88102bdc6130aa')">JSON</button>
+<button class="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-secondary font-mono-code text-[11px] transition-colors" onclick="openDiffModal('PaymentButton.tsx')">Diff</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Empty State helper (hidden initially) -->
+<div class="hidden p-8 text-center flex-col items-center justify-center" id="noResultsNotice">
+<span class="material-symbols-outlined text-[36px] text-outline mb-2">find_in_page</span>
+<p class="font-body-md text-body-md text-on-surface font-medium">No matching audit records found</p>
+<p class="font-body-sm text-body-sm text-outline mt-1">Try relaxing actor or query constraints.</p>
+</div>
+<!-- Table Footer / Pagination -->
+<div class="px-4 py-3 bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-stack-comfortable select-none">
+<span class="font-mono-code text-[12px] text-on-surface-variant">
+        Showing <span class="font-semibold text-on-surface">1-7</span> of <span class="font-semibold text-on-surface">142,891</span> events
+      </span>
+<div class="flex items-center gap-1 font-mono-code text-[12px]">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant disabled:opacity-40 transition-colors" disabled="">
+          Prev
+        </button>
+<button class="w-7 h-7 rounded bg-primary-container text-on-primary-container font-semibold flex items-center justify-center">
+          1
+        </button>
+<button class="w-7 h-7 rounded hover:bg-surface-container text-on-surface-variant transition-colors flex items-center justify-center">
+          2
+        </button>
+<button class="w-7 h-7 rounded hover:bg-surface-container text-on-surface-variant transition-colors flex items-center justify-center">
+          3
+        </button>
+<span class="px-1 text-outline">...</span>
+<button class="px-2 h-7 rounded hover:bg-surface-container text-on-surface-variant transition-colors flex items-center justify-center">
+          20,413
+        </button>
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">
+          Next
+        </button>
+</div>
+</div>
+</div>
+<!-- Live Integrity & Cryptographic Ledger Status Bar -->
+<div class="p-gutter rounded bg-surface-container-lowest shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-stack-comfortable">
+<div class="flex items-center gap-stack-comfortable flex-wrap">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary animate-ping"></span>
+<span class="font-label-caps text-label-caps uppercase text-secondary tracking-widest font-bold">Immutable Ledger Live</span>
+</div>
+<div class="h-4 w-px bg-surface-container-highest hidden md:block"></div>
+<div class="flex items-center gap-2 font-mono-code text-[12px] text-on-surface-variant">
+<span class="text-outline">Block Height:</span>
+<span class="text-on-surface font-semibold">84,219</span>
+</div>
+<div class="h-4 w-px bg-surface-container-highest hidden md:block"></div>
+<div class="flex items-center gap-2 font-mono-code text-[12px] text-on-surface-variant">
+<span class="text-outline">Merkle Root:</span>
+<span class="text-primary font-medium">0x9b4f7e22c8a1...31ad</span>
+</div>
+</div>
+<div class="flex items-center gap-stack-comfortable">
+<div class="flex items-center gap-1.5 font-mono-code text-[12px] text-secondary">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span>Zero Payload Leaks Detected</span>
+</div>
+<span class="font-mono-code text-[11px] text-outline">Latency: 18ms</span>
+</div>
+</div>
+<!-- Inspection Modal Backdrop -->
+<div class="fixed inset-0 bg-surface-container-lowest/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-margin-page" id="inspectorModal">
+<div class="w-full max-w-2xl rounded bg-surface-container-high shadow-2xl p-margin-page relative flex flex-col space-y-stack-comfortable">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">terminal</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Event Proof Inspector</span>
+</div>
+<button class="p-1 rounded hover:bg-surface-bright text-outline hover:text-on-surface transition-colors" onclick="closeInspectorModal()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="flex items-center justify-between bg-surface-container-lowest px-3 py-2 rounded font-mono-code text-[11px]">
+<span class="text-outline">VERIFICATION HASH:</span>
+<span class="text-secondary font-medium" id="modalHashDisplay">0x...</span>
+</div>
+<div class="bg-surface-container-lowest p-3.5 rounded font-mono-code text-[12px] text-on-surface-variant max-h-72 overflow-y-auto leading-relaxed">
+<pre class="whitespace-pre-wrap text-primary-fixed-dim" id="modalJsonDisplay"></pre>
+</div>
+<div class="flex items-center justify-between pt-stack-compact">
+<span class="font-body-sm text-body-sm text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-secondary">check_circle</span>
+          Redacted Vendor Secrets: None Present
+        </span>
+<button class="px-3 py-1.5 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[12px] transition-colors" onclick="copyEventPayload()">
+          Copy Payload
+        </button>
+</div>
+</div>
+</div>
+<!-- Diff Inspector Modal Backdrop -->
+<div class="fixed inset-0 bg-surface-container-lowest/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-margin-page" id="diffModal">
+<div class="w-full max-w-2xl rounded bg-surface-container-high shadow-2xl p-margin-page relative flex flex-col space-y-stack-comfortable">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">difference</span>
+<span class="font-headline-sm text-headline-sm text-on-surface" id="diffModalTitle">Artifact State Diff</span>
+</div>
+<button class="p-1 rounded hover:bg-surface-bright text-outline hover:text-on-surface transition-colors" onclick="closeDiffModal()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="space-y-2 font-mono-code text-[12px]">
+<div class="p-3 rounded bg-error-container/20 text-error flex items-start gap-2">
+<span class="font-bold select-none">-</span>
+<div class="break-all font-mono-code">"layout_tolerance_px": 4, "mode": "legacy_soft_assert", "auto_heal": false</div>
+</div>
+<div class="p-3 rounded bg-secondary-container/20 text-secondary flex items-start gap-2">
+<span class="font-bold select-none">+</span>
+<div class="break-all font-mono-code">"layout_tolerance_px": 2, "mode": "strict_invariant_sha256", "auto_heal": true</div>
+</div>
+</div>
+<div class="flex justify-end pt-stack-compact">
+<button class="px-4 py-1.5 rounded bg-primary-container text-on-primary-container font-body-sm text-body-sm font-semibold transition-colors" onclick="closeDiffModal()">
+          Dismiss Diff
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function toggleExportMenu() {
+    const menu = document.getElementById('exportMenu');
+    menu.classList.toggle('hidden');
+  }
+
+  // Close dropdown on click outside
+  window.addEventListener('click', function(e) {
+    const btn = document.getElementById('exportDropdownBtn');
+    const menu = document.getElementById('exportMenu');
+    if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.add('hidden');
+    }
+  });
+
+  function filterLogs() {
+    const searchVal = (document.getElementById('auditSearchInput').value || '').toLowerCase();
+    const actorVal = document.getElementById('actorFilter').value;
+    const actionVal = document.getElementById('actionFilter').value;
+    const rows = document.querySelectorAll('.log-row');
+
+    let visibleCount = 0;
+    rows.forEach(row => {
+      const rActor = row.getAttribute('data-actor');
+      const rAction = row.getAttribute('data-action');
+      const rSearch = row.getAttribute('data-search') || '';
+      const textContent = row.textContent.toLowerCase();
+
+      const matchActor = (actorVal === 'all' || rActor === actorVal);
+      const matchAction = (actionVal === 'all' || rAction === actionVal);
+      const matchSearch = (!searchVal || rSearch.includes(searchVal) || textContent.includes(searchVal));
+
+      if (matchActor && matchAction && matchSearch) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    const notice = document.getElementById('noResultsNotice');
+    if (visibleCount === 0) {
+      notice.classList.remove('hidden');
+      notice.classList.add('flex');
+    } else {
+      notice.classList.add('hidden');
+      notice.classList.remove('flex');
+    }
+  }
+
+  function resetFilters() {
+    document.getElementById('auditSearchInput').value = '';
+    document.getElementById('actorFilter').value = 'all';
+    document.getElementById('actionFilter').value = 'all';
+    filterLogs();
+  }
+
+  function applyPreset(type) {
+    if (type === 'soc2') {
+      document.getElementById('actionFilter').value = 'TOKEN_SCOPE_AUDIT';
+      document.getElementById('actorFilter').value = 'all';
+      document.getElementById('auditSearchInput').value = '';
+    } else if (type === 'sprint') {
+      document.getElementById('actionFilter').value = 'all';
+      document.getElementById('actorFilter').value = '@marcus_dev';
+      document.getElementById('auditSearchInput').value = '';
+    } else if (type === 'benchmark') {
+      document.getElementById('actionFilter').value = 'CONFLICT_RESOLVED';
+      document.getElementById('actorFilter').value = 'system';
+      document.getElementById('auditSearchInput').value = '';
+    }
+    filterLogs();
+  }
+
+  function runIntegrityCheck() {
+    const btn = document.getElementById('verifyLedgerBtn');
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = `<span class="material-symbols-outlined text-[18px] text-secondary animate-spin">refresh</span><span>Verifying SHA-256 Tree...</span>`;
+    setTimeout(() => {
+      btn.innerHTML = `<span class="material-symbols-outlined text-[18px] text-secondary">verified</span><span>142,891 Blocks Validated</span>`;
+      setTimeout(() => {
+        btn.innerHTML = originalContent;
+      }, 3000);
+    }, 900);
+  }
+
+  function downloadExport(format) {
+    toggleExportMenu();
+    alert('Preparing verified cryptographic ' + format.toUpperCase() + ' export with sanitized enterprise claims...');
+  }
+
+  function openInspectModal(hash) {
+    document.getElementById('modalHashDisplay').innerText = '0x' + hash + '440188b65e9021';
+    const payload = {
+      event_id: "evt_" + hash.substring(0, 8),
+      merkle_root: "0x9b4f7e22c8a1...31ad",
+      block_height: 84219,
+      timestamp: new Date().toISOString(),
+      sanitization_tier: "ENTERPRISE_REDACTED",
+      assertions: [
+        { key: "ast.match.strict", status: "VALID", divergence_score: 0.000 },
+        { key: "token_scrub", status: "CLEARED", dropped_fields: ["oauth_secret", "client_key"] }
+      ]
+    };
+    document.getElementById('modalJsonDisplay').innerText = JSON.stringify(payload, null, 2);
+    document.getElementById('inspectorModal').classList.remove('hidden');
+  }
+
+  function closeInspectorModal() {
+    document.getElementById('inspectorModal').classList.add('hidden');
+  }
+
+  function openDiffModal(artifact) {
+    document.getElementById('diffModalTitle').innerText = 'Diff: ' + artifact;
+    document.getElementById('diffModal').classList.remove('hidden');
+  }
+
+  function closeDiffModal() {
+    document.getElementById('diffModal').classList.add('hidden');
+  }
+
+  function copyEventPayload() {
+    const text = document.getElementById('modalJsonDisplay').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Event JSON copied to clipboard.');
+    });
+  }
+</script></main></div></body></html>
