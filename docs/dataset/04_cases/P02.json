@@ -1,0 +1,113 @@
+{
+  "case_id": "P02",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "RHF",
+    "url": "https://github.com/react-hook-form/react-hook-form",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "65599cce839bfdf5c90017de2d1e44da98754beb",
+    "head_sha": "937828856fc5bab74a61b5eba03de248c4aca20b",
+    "head_patch": null,
+    "head_patch_sha256": null
+  },
+  "change_under_review": {
+    "pr": 13594,
+    "title": "\ud83d\udc1e fix #13592 setValue with shouldDirty not marking dirty state when form is disabled (#13594)"
+  },
+  "intent": {
+    "criterion_id": "P02-C1",
+    "criterion": "On a disabled form, setValue(name, value, { shouldDirty: true }) must update fieldState.isDirty, formState.isDirty and formState.dirtyFields.",
+    "source": "Squash-merge commit message and body of PR #13594 (restates issue #13592)",
+    "source_quote": "an explicit programmatic setValue(name, value, { shouldDirty: true }) could never update fieldState.isDirty, formState.isDirty or dirtyFields.",
+    "issue_url": "https://github.com/react-hook-form/react-hook-form/issues/13592",
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "src/logic/createFormControl.ts",
+        "start_line": 444,
+        "end_line": 446,
+        "kind": "code",
+        "lines_added": 3
+      },
+      {
+        "file": "src/logic/createFormControl.ts",
+        "start_line": 757,
+        "end_line": 760,
+        "kind": "code",
+        "lines_added": 4
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [
+      {
+        "file": "src/__tests__/useForm/formState.test.tsx",
+        "start_line": 883,
+        "end_line": 933,
+        "kind": "test",
+        "lines_added": 51
+      }
+    ],
+    "test_runs": [
+      {
+        "command": "pnpm test -- src/__tests__/useForm/formState.test.tsx -t 'disabled form|form is disabled'",
+        "result": "PASS (3 passed, 34 skipped)",
+        "log": "test_logs/P02.log"
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P02-S1",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "updateTouchAndDirty",
+      "start_line": 429,
+      "end_line": 502,
+      "content_sha256": "b69ca2c3cee8411fe215c7705722f33ad54742167297389ce3905f0c1a175442"
+    },
+    {
+      "span_id": "P02-S2",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "_getDirty",
+      "start_line": 757,
+      "end_line": 760,
+      "content_sha256": "9654893534868b89c4c2af14c81466775a2800a06655e128bad1796137e4bd3c"
+    },
+    {
+      "span_id": "P02-S3",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "_setDisabledField",
+      "start_line": 1471,
+      "end_line": 1487,
+      "content_sha256": "a394d89b2eb785ad8150eaa433ff6d67431aa54c10e6292c52fe8d8e92779ab3"
+    },
+    {
+      "span_id": "P02-S4",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "_updateDirtyFields",
+      "start_line": 267,
+      "end_line": 274,
+      "content_sha256": "7f1eeacdb63eac14f535cf337975a4e765f94264995db1bcc9aabc770c2604c9"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #13594",
+      "occurred_at": "2026-07-12T16:30:06+05:30",
+      "delivered_order": 1,
+      "evidence": "commit 937828856"
+    }
+  ]
+}

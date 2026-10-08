@@ -1,0 +1,112 @@
+{
+  "case_id": "P15",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "MAN",
+    "url": "https://github.com/mantinedev/mantine",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "3c3796d421c633a6256b8e75392dc3eb97a86f64",
+    "head_sha": "0c08e6a3329843b7a71e1804a439c9fab6a17494",
+    "head_patch": null,
+    "head_patch_sha256": null
+  },
+  "change_under_review": {
+    "pr": 9205,
+    "title": "[@mantine/core] Combobox: Fix incorrect `aria-selected` setting on up/down arrows press (#9205)"
+  },
+  "intent": {
+    "criterion_id": "P15-C1",
+    "criterion": "A Select without searchable must close its dropdown when focus leaves the input.",
+    "source": "Criterion from PR #9215 (see P12), deliberately paired with a different PR in the same module",
+    "source_quote": "Select: Fix dropdown not closing on blur when searchable is not set",
+    "issue_url": null,
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "packages/@mantine/core/src/components/Combobox/use-combobox/use-combobox.ts",
+        "start_line": 167,
+        "end_line": 167,
+        "kind": "code",
+        "lines_added": 0
+      },
+      {
+        "file": "packages/@mantine/core/src/components/Combobox/use-combobox/use-combobox.ts",
+        "start_line": 187,
+        "end_line": 187,
+        "kind": "code",
+        "lines_added": 0
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [
+      {
+        "file": "packages/@mantine/core/src/components/Combobox/use-combobox/use-combobox.shadow-dom.test.tsx",
+        "start_line": 64,
+        "end_line": 64,
+        "kind": "test",
+        "lines_added": 1
+      },
+      {
+        "file": "packages/@mantine/core/src/components/MultiSelect/MultiSelect.test.tsx",
+        "start_line": 282,
+        "end_line": 300,
+        "kind": "test",
+        "lines_added": 19
+      }
+    ],
+    "test_runs": [
+      {
+        "command": "none relevant: the PR's tests cover aria-selected in MultiSelect, not blur behaviour",
+        "result": "NOT_AVAILABLE",
+        "log": null
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P15-S1",
+      "file": "packages/@mantine/core/src/components/Select/Select.tsx",
+      "symbol": "Select \u203a onBlur",
+      "start_line": 380,
+      "end_line": 393,
+      "content_sha256": "d34e63b4474bc1873468830aa5692841a6a3d1e6e11f004ce21e1310637ca05f"
+    },
+    {
+      "span_id": "P15-S2",
+      "file": "packages/@mantine/core/src/components/Combobox/use-combobox/use-combobox.ts",
+      "symbol": "selectNextOption",
+      "start_line": 216,
+      "end_line": 223,
+      "content_sha256": "fb320c6b1699cf9dfd111692dc4f72880d50459a6a81c397b96f01a5279c1c7e"
+    },
+    {
+      "span_id": "P15-S3",
+      "file": "packages/@mantine/core/src/components/Combobox/use-combobox/use-combobox.ts",
+      "symbol": "selectPreviousOption",
+      "start_line": 225,
+      "end_line": 232,
+      "content_sha256": "ca7ee3c81a8ad5e0a59c35f3f1329dc9091a12ec6e4b76d14a82993934c9bb45"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #9205",
+      "occurred_at": "2026-09-18T21:29:52+03:00",
+      "delivered_order": 1,
+      "evidence": "commit 0c08e6a33"
+    }
+  ]
+}

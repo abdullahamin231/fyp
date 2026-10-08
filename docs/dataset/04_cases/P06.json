@@ -1,0 +1,112 @@
+{
+  "case_id": "P06",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "RHF",
+    "url": "https://github.com/react-hook-form/react-hook-form",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "c42eccd64bb1719e187fa8c804bd5d6ae64bcde1",
+    "head_sha": "63537bb13e35503761f4da47d9af19a2fd993a4e",
+    "head_patch": null,
+    "head_patch_sha256": null
+  },
+  "change_under_review": {
+    "pr": 13709,
+    "title": "\ud83d\udc1e fix #13706 react-server build unpublished (#13709)"
+  },
+  "intent": {
+    "criterion_id": "P06-C1",
+    "criterion": "The published package must include a react-server build and expose it through a \"react-server\" export condition.",
+    "source": "Squash-merge commit message of PR #13709 (restates issue #13706)",
+    "source_quote": "fix #13706 react-server build unpublished",
+    "issue_url": "https://github.com/react-hook-form/react-hook-form/issues/13706",
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "package.json",
+        "start_line": 21,
+        "end_line": 21,
+        "kind": "code",
+        "lines_added": 1
+      },
+      {
+        "file": "scripts/rollup/rollup.config.js",
+        "start_line": 13,
+        "end_line": 17,
+        "kind": "code",
+        "lines_added": 5
+      },
+      {
+        "file": "src/index.react-server.ts",
+        "start_line": 1,
+        "end_line": 2,
+        "kind": "code",
+        "lines_added": 2
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [],
+    "test_runs": [
+      {
+        "command": "none: no test added or changed; no existing test references the react-server build",
+        "result": "NOT_AVAILABLE",
+        "log": null
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P06-S1",
+      "file": "src/index.react-server.ts",
+      "symbol": "react-server entry",
+      "start_line": 1,
+      "end_line": 2,
+      "content_sha256": "a16535867a1a3f3a49cf78b72f9a73f568175f6fdd26e014c166a6e2ec14385e"
+    },
+    {
+      "span_id": "P06-S2",
+      "file": "scripts/rollup/rollup.config.js",
+      "symbol": "rollup react-server build entry",
+      "start_line": 13,
+      "end_line": 17,
+      "content_sha256": "0ee85872c735665236d6cd096f47fdf62c68954d490efb43ff894df0f42983b4"
+    },
+    {
+      "span_id": "P06-S3",
+      "file": "package.json",
+      "symbol": "exports \u203a react-server condition",
+      "start_line": 21,
+      "end_line": 21,
+      "content_sha256": "7d41b503f626ebac62556ca805a5bef7244fb638045e279eb183fdbcc5c6ceb0"
+    },
+    {
+      "span_id": "P06-S4",
+      "file": "src/index.ts",
+      "symbol": "main entry",
+      "start_line": 1,
+      "end_line": 12,
+      "content_sha256": "5ace1910f6c7a755f6294721278732085c1da3838ac4ae4c2b682ad87f72f786"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #13709",
+      "occurred_at": "2026-09-06T12:12:24+10:00",
+      "delivered_order": 1,
+      "evidence": "commit 63537bb13"
+    }
+  ]
+}

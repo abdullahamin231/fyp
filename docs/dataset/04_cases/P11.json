@@ -1,0 +1,90 @@
+{
+  "case_id": "P11",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "EXC",
+    "url": "https://github.com/excalidraw/excalidraw",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "19135995942a671192a0182cbe30b580576a4f8a",
+    "head_sha": "a18b139a60a50f1db73444140443254961655a55",
+    "head_patch": null,
+    "head_patch_sha256": null
+  },
+  "change_under_review": {
+    "pr": 9427,
+    "title": "fix: laser pointer trail disappearing on pointerup (#9413) (#9427)"
+  },
+  "intent": {
+    "criterion_id": "P11-C1",
+    "criterion": "The laser pointer trail must stay visible after pointerup and fade out instead of disappearing immediately.",
+    "source": "Squash-merge commit message and body of PR #9427 (Fixes #9413)",
+    "source_quote": "Previously, the laser pointer trail would disappear as soon as the pointerup event was triggered.",
+    "issue_url": "https://github.com/excalidraw/excalidraw/issues/9413",
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "packages/excalidraw/animated-trail.ts",
+        "start_line": 131,
+        "end_line": 131,
+        "kind": "code",
+        "lines_added": 0
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [],
+    "test_runs": [
+      {
+        "command": "none: no test added; no existing test references AnimatedTrail, pastTrails or the laser pointer",
+        "result": "NOT_AVAILABLE",
+        "log": null
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P11-S1",
+      "file": "packages/excalidraw/animated-trail.ts",
+      "symbol": "AnimatedTrail.update",
+      "start_line": 131,
+      "end_line": 137,
+      "content_sha256": "94da9342a924b1525420f4358ea9906d22d8be3d27b40598b306ab0f5cbcd5e4"
+    },
+    {
+      "span_id": "P11-S2",
+      "file": "packages/excalidraw/animated-trail.ts",
+      "symbol": "AnimatedTrail.clearTrails",
+      "start_line": 125,
+      "end_line": 129,
+      "content_sha256": "f7eb70cc4ac9a6869afe820552a2d3cf9e7ba45bcbf616d437ccaa2d9663c3eb"
+    },
+    {
+      "span_id": "P11-S3",
+      "file": "packages/excalidraw/animated-trail.ts",
+      "symbol": "AnimatedTrail.endPath",
+      "start_line": 111,
+      "end_line": 119,
+      "content_sha256": "426fb2df64d5bde5fd19bde26b6320b7813c13672389c00b7ff211644d0dcf3d"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #9427",
+      "occurred_at": "2025-04-24T05:35:08+05:30",
+      "delivered_order": 1,
+      "evidence": "commit a18b139a6"
+    }
+  ]
+}
