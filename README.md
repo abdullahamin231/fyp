@@ -61,7 +61,8 @@ screens stay checkable against their source. Screens currently render typed mock
 data (`apps/web/src/lib/mock/`); the contracts/API layer lands next.
 
 ```sh
-npm install        # npm workspaces, from the repo root
+cd apps/web
+npm install        # deps live in the app, not the repo root
 npm run dev        # → http://localhost:3000
 npm run build
 ```

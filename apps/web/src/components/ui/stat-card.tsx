@@ -60,11 +60,14 @@ export function PageHeader({
   description,
   actions,
   breadcrumb,
+  meta,
 }: {
   title: string;
   description?: string;
   actions?: ReactNode;
   breadcrumb?: string;
+  /** Optional chip/pill row rendered under the description (status, sync state…). */
+  meta?: ReactNode;
 }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
@@ -78,6 +81,7 @@ export function PageHeader({
             {description}
           </p>
         ) : null}
+        {meta ? <div className="mt-2 flex flex-wrap items-center gap-2">{meta}</div> : null}
       </div>
       {actions ? <div className="flex items-center gap-2 shrink-0">{actions}</div> : null}
     </div>
