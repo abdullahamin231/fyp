@@ -1,0 +1,126 @@
+{
+  "case_id": "P13",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "MAN",
+    "url": "https://github.com/mantinedev/mantine",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "bdf802ecfcbd7632a8faf74872e00a9371dfeabc",
+    "head_sha": "1a560ba11a4f19e6cab9ad042c415a94c0787c71",
+    "head_patch": "patches/P13.head.patch",
+    "head_patch_sha256": "ef67b87f33be4165457e030d927bc13d0b10f88bd109c27511c9d8943145f80e"
+  },
+  "change_under_review": {
+    "pr": 9221,
+    "title": "[@mantine/dates] DateTimePicker: Fix time not being limited by minDate and maxDate (#9221)"
+  },
+  "intent": {
+    "criterion_id": "P13-C1",
+    "criterion": "When the selected date is on the same day as minDate or maxDate, DateTimePicker must limit the time to minDate's time and maxDate's time respectively.",
+    "source": "Squash-merge commit message of PR #9221",
+    "source_quote": "DateTimePicker: Fix time not being limited by minDate and maxDate",
+    "issue_url": null,
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.ts",
+        "start_line": 11,
+        "end_line": 11,
+        "kind": "code",
+        "lines_added": 1
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [
+      {
+        "file": "packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.test.ts",
+        "start_line": 12,
+        "end_line": 19,
+        "kind": "test",
+        "lines_added": 8
+      },
+      {
+        "file": "packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.test.ts",
+        "start_line": 21,
+        "end_line": 29,
+        "kind": "test",
+        "lines_added": 9
+      },
+      {
+        "file": "packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.test.ts",
+        "start_line": 53,
+        "end_line": 60,
+        "kind": "test",
+        "lines_added": 8
+      },
+      {
+        "file": "packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.test.ts",
+        "start_line": 62,
+        "end_line": 70,
+        "kind": "test",
+        "lines_added": 9
+      },
+      {
+        "file": "packages/@mantine/dates/src/components/InlineDateTimePicker/InlineDateTimePicker.test.tsx",
+        "start_line": 111,
+        "end_line": 146,
+        "kind": "test",
+        "lines_added": 36
+      }
+    ],
+    "test_runs": [
+      {
+        "command": "npx jest packages/@mantine/dates/src/components/DateTimePicker packages/@mantine/dates/src/components/InlineDateTimePicker -t 'minDate|maxDate'",
+        "result": "FAIL (3 failed, 13 passed): both getMaxTime unit tests and the InlineDateTimePicker maxDate test fail; all minDate tests pass",
+        "log": "test_logs/P13.log"
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P13-S1",
+      "file": "packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.ts",
+      "symbol": "getMinTime",
+      "start_line": 9,
+      "end_line": 16,
+      "content_sha256": "4793fb6f21b680a5cceb354ff58af1050598f04ca26377ca536d2b2a33526516"
+    },
+    {
+      "span_id": "P13-S2",
+      "file": "packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.ts",
+      "symbol": "getMaxTime",
+      "start_line": 23,
+      "end_line": 30,
+      "content_sha256": "287c35552867d0a5f9b87dbcd2fd90a0cdf7c8b9923c25c48afad715303120c4"
+    },
+    {
+      "span_id": "P13-S3",
+      "file": "packages/@mantine/dates/src/components/TimePicker/utils/clamp-time/clamp-time.ts",
+      "symbol": "clampTime",
+      "start_line": 3,
+      "end_line": 26,
+      "content_sha256": "3c1e14c0a7f1607381c9b0f9eac2417204cf2d001bfc6359d84b3708ae07b6ca"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #9221",
+      "occurred_at": "2026-10-06T19:08:19+07:00",
+      "delivered_order": 1,
+      "evidence": "commit 1a560ba11"
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "case_id": "P10",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "EXC",
+    "url": "https://github.com/excalidraw/excalidraw",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "258605d1d59c4f6f45ba4d0783d621dc6e73dbe3",
+    "head_sha": "4eadb891f87ffb8d2b2761b7fff843389cec8100",
+    "head_patch": null,
+    "head_patch_sha256": null
+  },
+  "change_under_review": {
+    "pr": 9715,
+    "title": "fix(toast): prevent toast from re-rendering and resetting timeout  Fixes #9714 (#9715)"
+  },
+  "intent": {
+    "criterion_id": "P10-C1",
+    "criterion": "A toast's auto-close timer must not restart when the App re-renders while the toast is shown.",
+    "source": "Squash-merge commit message of PR #9715 (Fixes #9714)",
+    "source_quote": "fix(toast): prevent toast from re-rendering and resetting timeout",
+    "issue_url": "https://github.com/excalidraw/excalidraw/issues/9714",
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "packages/excalidraw/components/App.tsx",
+        "start_line": 596,
+        "end_line": 599,
+        "kind": "code",
+        "lines_added": 4
+      },
+      {
+        "file": "packages/excalidraw/components/App.tsx",
+        "start_line": 1714,
+        "end_line": 1714,
+        "kind": "code",
+        "lines_added": 1
+      },
+      {
+        "file": "packages/excalidraw/components/App.tsx",
+        "start_line": 1718,
+        "end_line": 1718,
+        "kind": "code",
+        "lines_added": 1
+      },
+      {
+        "file": "packages/excalidraw/components/App.tsx",
+        "start_line": 1723,
+        "end_line": 1723,
+        "kind": "code",
+        "lines_added": 1
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [],
+    "test_runs": [
+      {
+        "command": "none: no test added; no existing test references Toast, handleToastClose or the toast timer",
+        "result": "NOT_AVAILABLE",
+        "log": null
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P10-S1",
+      "file": "packages/excalidraw/components/App.tsx",
+      "symbol": "handleToastClose",
+      "start_line": 596,
+      "end_line": 598,
+      "content_sha256": "02b4c8f36c92ab2230942eb8b37295bf9a7c88e5a093d1418970e32f3630d6d8"
+    },
+    {
+      "span_id": "P10-S2",
+      "file": "packages/excalidraw/components/App.tsx",
+      "symbol": "Toast render",
+      "start_line": 1715,
+      "end_line": 1722,
+      "content_sha256": "a7389352c458970301fe9742374040b0d11853811955220a3d45c08188eb8636"
+    },
+    {
+      "span_id": "P10-S3",
+      "file": "packages/excalidraw/components/Toast.tsx",
+      "symbol": "Toast \u203a scheduleTimeout + effect",
+      "start_line": 28,
+      "end_line": 41,
+      "content_sha256": "ecba4b749314ed3da22a98bbf948fcaf2ad9b9e7271a9e2d45e1893a7c4784d3"
+    },
+    {
+      "span_id": "P10-S4",
+      "file": "packages/excalidraw/components/App.tsx",
+      "symbol": "setToast",
+      "start_line": 3799,
+      "end_line": 3807,
+      "content_sha256": "e9cc4b9c395225b01c9cb0f60aecc35f071267a6cfdb4dd6c4f0ce94ea287cb6"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #9715",
+      "occurred_at": "2025-07-03T12:37:26+05:30",
+      "delivered_order": 1,
+      "evidence": "commit 4eadb891f"
+    }
+  ]
+}

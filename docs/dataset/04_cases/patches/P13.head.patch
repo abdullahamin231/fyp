@@ -1,0 +1,13 @@
+diff --git a/packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.ts b/packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.ts
+index 3db5f9513..fa02e413d 100644
+--- a/packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.ts
++++ b/packages/@mantine/dates/src/components/DateTimePicker/get-min-max-time/get-min-max-time.ts
+@@ -22,7 +22,7 @@ interface GetMaxTimeInput {
+ 
+ export function getMaxTime({ maxDate, value }: GetMaxTimeInput): string | undefined {
+   const maxTime = maxDate ? dayjs(maxDate).format('HH:mm:ss') : null;
+-  return value && maxDate && dayjs(value).isSame(maxDate, 'day')
++  return value && maxDate && value === maxDate
+     ? maxTime != null
+       ? maxTime
+       : undefined

@@ -1,0 +1,113 @@
+{
+  "case_id": "P01",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "RHF",
+    "url": "https://github.com/react-hook-form/react-hook-form",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "3413809d6b02aa9108496dc8457b54e2204f7138",
+    "head_sha": "0d24669b8cb0f0cb2a5b6757e47fb26881ef72bc",
+    "head_patch": null,
+    "head_patch_sha256": null
+  },
+  "change_under_review": {
+    "pr": 13791,
+    "title": "\ud83d\udc1e fix #13790: setError and clearErrors produce a new errors reference (#13791)"
+  },
+  "intent": {
+    "criterion_id": "P01-C1",
+    "criterion": "Calling setError or clearErrors must give formState.errors a new object reference, so that memoized child components reading errors re-render.",
+    "source": "Squash-merge commit message of PR #13791 (restates issue #13790)",
+    "source_quote": "fix #13790: setError and clearErrors produce a new errors reference",
+    "issue_url": "https://github.com/react-hook-form/react-hook-form/issues/13790",
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "src/logic/createFormControl.ts",
+        "start_line": 1569,
+        "end_line": 1569,
+        "kind": "code",
+        "lines_added": 1
+      },
+      {
+        "file": "src/logic/createFormControl.ts",
+        "start_line": 1603,
+        "end_line": 1603,
+        "kind": "code",
+        "lines_added": 1
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [
+      {
+        "file": "src/__tests__/useForm/formState.test.tsx",
+        "start_line": 1846,
+        "end_line": 1916,
+        "kind": "test",
+        "lines_added": 71
+      }
+    ],
+    "test_runs": [
+      {
+        "command": "pnpm test -- src/__tests__/useForm/formState.test.tsx -t 'new errors reference'",
+        "result": "PASS (2 passed, 40 skipped)",
+        "log": "test_logs/P01.log"
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P01-S1",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "clearErrors",
+      "start_line": 1562,
+      "end_line": 1582,
+      "content_sha256": "10c053a1033edf0aa6301607a40602bba9694e5a0e8b500b77fcf588d444a693"
+    },
+    {
+      "span_id": "P01-S2",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "setError",
+      "start_line": 1584,
+      "end_line": 1612,
+      "content_sha256": "279dd33927f2241089d89ea0eec29aa1c980066697d0b09385ce8fc0a9aabea6"
+    },
+    {
+      "span_id": "P01-S3",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "_setErrors",
+      "start_line": 387,
+      "end_line": 396,
+      "content_sha256": "4afddfe51c960a5ab6a47b32aacfd82f01c6cd9d28f1309012c627ed077139b3"
+    },
+    {
+      "span_id": "P01-S4",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "resetField",
+      "start_line": 2001,
+      "end_line": 2037,
+      "content_sha256": "40cd88c42c75d14dc6bb642431e80ad528004d6b9ec2d5d8087f587c7fedeab5"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #13791",
+      "occurred_at": "2026-09-27T01:05:08+03:00",
+      "delivered_order": 1,
+      "evidence": "commit 0d24669b8"
+    }
+  ]
+}

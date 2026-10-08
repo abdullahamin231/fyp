@@ -1,0 +1,86 @@
+diff --git a/packages/@mantine/core/src/components/NumberInput/NumberInput.tsx b/packages/@mantine/core/src/components/NumberInput/NumberInput.tsx
+index 3ed150dc0..e32b874a9 100644
+--- a/packages/@mantine/core/src/components/NumberInput/NumberInput.tsx
++++ b/packages/@mantine/core/src/components/NumberInput/NumberInput.tsx
+@@ -296,40 +296,29 @@ const varsResolver = createVarsResolver<NumberInputFactory>((_, { size }) => ({
+   },
+ }));
+ 
+-function withTrailingSeparator(value: number, hasTrailingDecimalSeparator: boolean) {
+-  return hasTrailingDecimalSeparator ? `${value}.` : value;
+-}
+-
+-interface SanitizeInputOnBlurOptions {
+-  min: number | undefined;
+-  max: number | undefined;
+-  trim: boolean;
+-  clamp: boolean;
+-}
++function clampAndSanitizeInput(sanitizedValue: string | number, max?: number, min?: number) {
++  const stringValue = sanitizedValue.toString();
++  const hasTrailingDecimalSeparator = trailingDecimalSeparatorPattern.test(stringValue);
+ 
+-function sanitizeInputOnBlur(value: string, options: SanitizeInputOnBlurOptions) {
+-  const hasTrailingDecimalSeparator = trailingDecimalSeparatorPattern.test(value);
+-  const trimmed = options.trim ? value.replace(/^0+(?=\d)/, '') : value;
+-  const parsedValue = parseFloat(trimmed);
++  const replaced = stringValue.replace(/^0+(?=\d)/, '');
++  const parsedValue = parseFloat(replaced);
+ 
+   if (Number.isNaN(parsedValue)) {
+-    return trimmed;
++    return replaced;
+   }
+ 
+-  if (!options.clamp) {
+-    return options.trim ? withTrailingSeparator(parsedValue, hasTrailingDecimalSeparator) : value;
++  if (parsedValue > Number.MAX_SAFE_INTEGER) {
++    return max !== undefined ? max : replaced;
+   }
+ 
+-  const clamped =
+-    parsedValue > Number.MAX_SAFE_INTEGER && options.max !== undefined
+-      ? options.max
+-      : clamp(parsedValue, options.min, options.max);
++  const clamped = clamp(parsedValue, min, max);
+ 
+-  if (!options.trim && clamped === parsedValue) {
+-    return value;
++  if (hasTrailingDecimalSeparator) {
++    const clampedString = clamped.toString().replace(/^0+(?=\d)/, '');
++    return `${clampedString}.`;
+   }
+ 
+-  return withTrailingSeparator(clamped, hasTrailingDecimalSeparator);
++  return clamped;
+ }
+ 
+ function clampAndSanitizeBigIntInput(
+@@ -754,17 +743,18 @@ export const NumberInput = genericFactory<NumberInputFactory>(
+             clampBehavior,
+           });
+         }
+-      } else if (typeof sanitizedValue === 'number') {
+-        if (clampBehavior === 'blur') {
++      } else {
++        if (clampBehavior === 'blur' && typeof sanitizedValue === 'number') {
+           sanitizedValue = clamp(sanitizedValue, minNumber, maxNumber);
+         }
+-      } else if (typeof sanitizedValue === 'string') {
+-        sanitizedValue = sanitizeInputOnBlur(sanitizedValue, {
+-          min: minNumber,
+-          max: maxNumber,
+-          trim: !!trimLeadingZeroesOnBlur && getDecimalPlaces(sanitizedValue) < 15,
+-          clamp: clampBehavior === 'blur',
+-        });
++
++        if (
++          trimLeadingZeroesOnBlur &&
++          typeof sanitizedValue === 'string' &&
++          getDecimalPlaces(sanitizedValue) < 15
++        ) {
++          sanitizedValue = clampAndSanitizeInput(sanitizedValue, maxNumber, minNumber);
++        }
+       }
+ 
+       if (_value !== sanitizedValue) {

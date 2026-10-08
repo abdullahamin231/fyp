@@ -1,0 +1,2 @@
+# keep patches byte-exact so their recorded SHA-256 matches and git apply works on Windows
+*.patch -text
