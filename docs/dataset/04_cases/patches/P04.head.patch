@@ -1,0 +1,19 @@
+diff --git a/src/logic/createFormControl.ts b/src/logic/createFormControl.ts
+index d40c6e14..49a016ac 100644
+--- a/src/logic/createFormControl.ts
++++ b/src/logic/createFormControl.ts
+@@ -754,10 +754,10 @@ export function createFormControl<
+     _names.unMount = new Set();
+   };
+ 
+-  const _getDirty: GetIsDirty = (name, data) => (
+-    name && data && set(_formValues, name, data),
+-    !deepEqual(_state.mount ? _formValues : _defaultValues, _defaultValues)
+-  );
++  const _getDirty: GetIsDirty = (name, data) =>
++    !_options.disabled &&
++    (name && data && set(_formValues, name, data),
++    !deepEqual(_state.mount ? _formValues : _defaultValues, _defaultValues));
+ 
+   const _getWatch: WatchInternal<TFieldValues> = (
+     names,

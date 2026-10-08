@@ -1,0 +1,7 @@
+repo_id,url,split,status,reason
+RHF,https://github.com/react-hook-form/react-hook-form,train_dev,PROPOSED,Opened during pilot construction; cannot be a test repository
+EXC,https://github.com/excalidraw/excalidraw,train_dev,PROPOSED,Opened during pilot construction; cannot be a test repository
+MAN,https://github.com/mantinedev/mantine,train_dev,PROPOSED,Opened during pilot construction; cannot be a test repository
+ZUS+JOT,https://github.com/pmndrs,excluded,REJECTED,Same organisation (pmndrs); would have to share one split; rejected on intent evidence
+(to screen),,validation,OPEN,2-3 repositories not used for training; to be screened
+(to screen),,test,OPEN,2-3 repositories; at least one left unopened until model/prompt/retrieval/thresholds are frozen

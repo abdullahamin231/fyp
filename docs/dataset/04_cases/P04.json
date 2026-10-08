@@ -1,0 +1,98 @@
+{
+  "case_id": "P04",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "RHF",
+    "url": "https://github.com/react-hook-form/react-hook-form",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "65599cce839bfdf5c90017de2d1e44da98754beb",
+    "head_sha": "937828856fc5bab74a61b5eba03de248c4aca20b",
+    "head_patch": "patches/P04.head.patch",
+    "head_patch_sha256": "2955d56919338d8e3a8c9ca091562d7c5425e5ddff015ce60da41591d401c28a"
+  },
+  "change_under_review": {
+    "pr": 13594,
+    "title": "\ud83d\udc1e fix #13592 setValue with shouldDirty not marking dirty state when form is disabled (#13594)"
+  },
+  "intent": {
+    "criterion_id": "P04-C1",
+    "criterion": "On a disabled form, setValue(name, value, { shouldDirty: true }) must update fieldState.isDirty, formState.isDirty and formState.dirtyFields.",
+    "source": "Squash-merge commit message and body of PR #13594 (restates issue #13592)",
+    "source_quote": "an explicit programmatic setValue(name, value, { shouldDirty: true }) could never update fieldState.isDirty, formState.isDirty or dirtyFields.",
+    "issue_url": "https://github.com/react-hook-form/react-hook-form/issues/13592",
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "src/logic/createFormControl.ts",
+        "start_line": 444,
+        "end_line": 446,
+        "kind": "code",
+        "lines_added": 3
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [
+      {
+        "file": "src/__tests__/useForm/formState.test.tsx",
+        "start_line": 883,
+        "end_line": 933,
+        "kind": "test",
+        "lines_added": 51
+      }
+    ],
+    "test_runs": [
+      {
+        "command": "pnpm test -- src/__tests__/useForm/formState.test.tsx -t 'disabled form|form is disabled'",
+        "result": "FAIL (2 failed, 1 passed): getFieldState('test').isDirty is true but formState.isDirty is false (line 902)",
+        "log": "test_logs/P04.log"
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P04-S1",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "updateTouchAndDirty",
+      "start_line": 429,
+      "end_line": 502,
+      "content_sha256": "b69ca2c3cee8411fe215c7705722f33ad54742167297389ce3905f0c1a175442"
+    },
+    {
+      "span_id": "P04-S2",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "_getDirty",
+      "start_line": 757,
+      "end_line": 760,
+      "content_sha256": "0d7d0b123d8599bd5db4aefba3353578c4e2fd891c6cad7e423f840b5fd88b7c"
+    },
+    {
+      "span_id": "P04-S3",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "_setDisabledField",
+      "start_line": 1471,
+      "end_line": 1487,
+      "content_sha256": "a394d89b2eb785ad8150eaa433ff6d67431aa54c10e6292c52fe8d8e92779ab3"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #13594",
+      "occurred_at": "2026-07-12T16:30:06+05:30",
+      "delivered_order": 1,
+      "evidence": "commit 937828856"
+    }
+  ]
+}

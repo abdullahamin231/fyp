@@ -1,0 +1,13 @@
+diff --git a/src/logic/createFormControl.ts b/src/logic/createFormControl.ts
+index a8e5287d..493b6855 100644
+--- a/src/logic/createFormControl.ts
++++ b/src/logic/createFormControl.ts
+@@ -1750,8 +1750,6 @@ export function createFormControl<
+       });
+ 
+       _subjects.state.next({
+-        name: undefined,
+-        type: undefined,
+         values: { ...values } as TFieldValues,
+       });
+     }
