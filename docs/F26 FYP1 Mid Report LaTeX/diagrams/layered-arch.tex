@@ -1,0 +1,163 @@
+% =============================================================================
+% UNIFY -- Layered reference architecture + trust boundary (owner: Abdullah Amin)
+% Sources: proposal \S8.1 (layer table, source roles, cross-cutting concerns),
+%          \S8.2 (data flow string, security/privacy boundaries),
+%          \S11.1 (architectural freeze: all inference local, hosted API is an
+%          offline baseline only), \S11.2 (model bounded rather than central).
+% Grouping into the four super-bands is presentational; the ten sub-rows are
+% the \S8.1 layers verbatim, in \S8.2 flow order (adapter at the bottom).
+% Commit: <stamp at evaluation tag> -- regenerate rendered/*.pdf at that tag.
+% =============================================================================
+\begin{tikzpicture}[x=1cm,y=1cm]
+
+% ---- local macros ------------------------------------------------------------
+% #1=y0 #2=y1 #3=colour #4=title  -- one super-band group box with a title bar
+\newcommand{\uband}[4]{%
+  \draw[uline, fill=#3!18, rounded corners=2pt] (0,#1) rectangle (13.9,#2);
+  \draw[uline, fill=#3!70] (0.15,{#2-0.5}) rectangle (13.75,{#2-0.05});
+  \node[anchor=west, font=\small, inner sep=1pt] at (0.35,{#2-0.275}) {#4};}
+% #1=y0 #2=y1 #3=colour #4=layer #5=responsibility #6=trust-boundary property
+\newcommand{\urow}[6]{%
+  \draw[uline, fill=white] (0.15,#1) rectangle (13.75,#2);
+  \draw[fill=#3!25, draw=none] (8.45,#1) rectangle (13.75,#2);
+  \draw[uline] (2.85,#1) -- (2.85,#2);
+  \draw[uline] (8.45,#1) -- (8.45,#2);
+  \node[anchor=west, text width=2.45cm, align=left, font=\scriptsize\bfseries]
+       at (0.27,{(#1+#2)/2}) {#4};
+  \node[text width=5.3cm, align=left, font=\scriptsize]
+       at (5.6,{(#1+#2)/2}) {#5};
+  \node[text width=5.05cm, align=left, font=\scriptsize]
+       at (11.1,{(#1+#2)/2}) {#6};}
+
+% ---- trust boundary (everything inside; no artifact content leaves) ----------
+\draw[uline, draw=uInk, dashed, line width=1.1pt, rounded corners=4pt]
+      (-0.9,-0.5) rectangle (15.75,12.7);
+\node[anchor=south west, text width=9.5cm, align=left, font=\scriptsize,
+      fill=white, inner sep=1pt] at (-0.9,12.85)
+     {UNIFY local deployment boundary --- no artifact content leaves; all
+      inference local (\S8.2, \S11.1).};
+
+% ---- super-band 1: ingestion & reliability (bottom) --------------------------
+\uband{0}{3.2}{uIngest}{1 \textperiodcentered INGESTION \& RELIABILITY --- deterministic; vendor
+  logic only in the adapter}
+\urow{0.1}{0.95}{uIngest}{Adapter layer}
+     {one connector contract per source role; read-only ingestion + normalised
+      envelope}
+     {deterministic; preserves raw source ID, version, timestamp; vendor-specific
+      logic exists only here}
+\urow{0.95}{1.8}{uIngest}{Event reliability layer}
+     {idempotency by event key, checkpoints, reconciliation, ordering, version
+      guards}
+     {duplicate and out-of-order delivery converge to the same final state}
+\urow{1.8}{2.65}{uIngest}{Artifact \& version store}
+     {immutable snapshots of criteria, design nodes, commits, diffs, test runs}
+     {never overwrites evidence cited by an earlier finding}
+
+% ---- super-band 2: evidence & rules ------------------------------------------
+\uband{3.55}{6.75}{uGraph}{2 \textperiodcentered EVIDENCE \& RULES --- typed, versioned,
+  provenance-carrying}
+\urow{3.65}{4.5}{uGraph}{Analysis layer}
+     {change/symbol/dependency extraction, test-evidence linkage, criterion
+      decomposition}
+     {marks unresolved relations rather than inventing them}
+\urow{4.5}{5.35}{uGraph}{Evidence graph}
+     {typed cross-tool relationships with provenance, confidence, validity
+      interval}
+     {every edge observed, deterministically derived, retrieval candidate or
+      unresolved}
+\urow{5.35}{6.2}{uGraph}{Policy \& rule engine}
+     {deterministic temporal/coordination rules; invalidation + queueing on each
+      delta}
+     {versioned, declarative rules; no vendor semantics leak upward}
+
+% ---- super-band 3: local verification ----------------------------------------
+\uband{7.1}{10.3}{uVerify}{3 \textperiodcentered LOCAL VERIFICATION --- all inference local; the
+  model is bounded, not central (\S11.2)}
+\urow{7.2}{8.05}{uVerify}{Context builder}
+     {criterion-specific bounded evidence packet from graph + repository}
+     {deterministic retrieval with a recorded truncation manifest}
+\urow{8.05}{8.9}{uVerify}{Local verifier}
+     {structured criterion-level judgement over the packet, fixed pass count}
+     {cannot create source facts, graph edges or findings by itself}
+\urow{8.9}{9.75}{uVerify}{Verdict \& provenance gate}
+     {schema validation, citation resolution, thresholds, downgrade, abstention}
+     {rejects unsupported decisive output; converts it to review or insufficient
+      evidence}
+
+% ---- super-band 4: human surface (top) ---------------------------------------
+\uband{10.65}{12.15}{uIntent}{4 \textperiodcentered HUMAN SURFACE --- the human reviewer owns the
+  final decision}
+\urow{10.75}{11.6}{uIntent}{Evidence case and reviewer surface}
+     {findings, role routing, resolution, override, audit history}
+     {the human reviewer owns the final decision}
+
+% ---- column headers -----------------------------------------------------------
+\node[font=\scriptsize\bfseries, text=uMuted, fill=white] at (1.5,12.45)
+     {layer (\S8.1)};
+\node[font=\scriptsize\bfseries, text=uMuted, fill=white] at (5.6,12.45)
+     {responsibility};
+\node[font=\scriptsize\bfseries, text=uMuted, fill=white] at (11.1,12.45)
+     {trust-boundary property};
+
+% ---- \S8.2 data flow, rising through the gaps ---------------------------------
+\draw[flow] (-0.45,3.25) -- (-0.45,3.5);
+\draw[flow] (-0.45,6.8)  -- (-0.45,7.05);
+\draw[flow] (-0.45,10.35) -- (-0.45,10.6);
+\node[font=\scriptsize, text=uMuted, fill=white] at (7.0,3.375)
+     {version store $\to$ evidence-graph update};
+\node[font=\scriptsize, text=uMuted, fill=white] at (7.0,6.925)
+     {deterministic rule evaluation + criterion queue $\to$ context packet};
+\node[font=\scriptsize, text=uMuted, fill=white] at (7.0,10.475)
+     {bounded local verification $\to$ verdict gate $\to$ evidence case $\to$ notification
+      routing};
+
+% ---- cross-cutting concerns (span every layer, inside the boundary) ----------
+\draw[uline, fill=uLine!12] (14.15,0.05) rectangle (14.55,12.15);
+\draw[uline, fill=uLine!12] (14.6,0.05)  rectangle (15.0,12.15);
+\draw[uline, fill=uLine!12] (15.05,0.05) rectangle (15.45,12.15);
+\node[rotate=90, font=\scriptsize, text=uInk] at (14.35,6.1)  {provenance \& audit};
+\node[rotate=90, font=\scriptsize, text=uInk] at (14.8,6.1)   {policy versioning};
+\node[rotate=90, font=\scriptsize, text=uInk] at (15.25,6.1)  {access control};
+
+% ---- external source systems (outside the boundary) --------------------------
+\node[extsys, text width=2.7cm, minimum height=0.85cm] (gh) at (-6.4,2.675)
+     {\guillemotleft system\guillemotright\\GitHub\\change + test-evidence source};
+\node[extsys, text width=2.7cm, minimum height=0.85cm] (jira) at (-6.4,1.575)
+     {\guillemotleft system\guillemotright\\Jira\\work-item source};
+\node[extsys, text width=2.7cm, minimum height=0.85cm] (figma) at (-6.4,0.475)
+     {\guillemotleft system\guillemotright\\Figma\\design-intent source};
+\draw[flow] (-5.0,2.675) -- (-3.6,2.675) -- (-3.6,0.75) -- (0.2,0.75);
+\draw[flow] (-5.0,1.575) -- (-3.0,1.575) -- (-3.0,0.55) -- (0.2,0.55);
+\draw[flow] (-5.0,0.475) -- (-2.4,0.475) -- (-2.4,0.35) -- (0.2,0.35);
+\node[anchor=north west, text width=3.0cm, align=left, font=\scriptsize,
+      text=uMuted] at (-4.1,0.0)
+     {webhooks / REST + polling reconciliation (\S8.4) $\to$ normalisation};
+
+% ---- outbound delivery (never an input to reasoning) --------------------------
+\node[extsys, text width=2.7cm, minimum height=0.85cm] (slack) at (-6.4,11.075)
+     {\guillemotleft system\guillemotright\\Slack\\delivery channel only};
+\draw[flow] (0.2,11.075) -- (-5.0,11.075);
+\node[anchor=south east, text width=3.0cm, align=left, font=\scriptsize,
+      text=uMuted] at (-1.1,11.15)
+     {role-routed findings (\S9.7): delivery receipt only, never an input to
+      reasoning};
+
+% ---- hosted frontier API: offline reference only, never a dependency ----------
+\node[draw=uMuted, dashed, fill=gray!12, font=\scriptsize, align=center,
+      text width=4.4cm, inner sep=4pt] at (2.75,-1.3)
+     {Hosted frontier API --- offline reference ceiling on sanitised data;
+      never a runtime dependency (\S11.1)};
+\draw[uLine, dashed] (2.75,-0.75) -- (2.75,-0.5);
+\draw[uBad, line width=1.1pt] (2.55,-0.73) -- (2.95,-0.52);
+\draw[uBad, line width=1.1pt] (2.55,-0.52) -- (2.95,-0.73);
+
+% ---- human reviewer (outside the boundary) ------------------------------------
+\actor{rev}{(11.5,14.4)}{Code reviewer /\\PM (human decision)}
+\draw[assoc] (11.9,14.6) -- (13.4,14.6) -- (13.4,12.15);
+
+% ---- flow legend ---------------------------------------------------------------
+\node[anchor=north west, text width=3.4cm, align=left, font=\scriptsize,
+      text=uMuted] at (-7.8,-0.85)
+     {$\uparrow$ data flow (\S8.2), bottom $\to$ top: events rise from the adapters to the
+      human reviewer.};
+\end{tikzpicture}

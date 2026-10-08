@@ -1,0 +1,93 @@
+% =============================================================================
+% Figure blocks for Abdullah's diagrams -- each block is wired into
+% chapter5_design.tex at the section noted below (kept here as the master
+% copy, mirroring figures-mishal.tex).
+%
+%   fig:layered-arch      -> ch5 §System Architecture
+%   fig:components        -> ch5 §Architectural Components
+%   fig:autonomy-ladder   -> ch5 §Architecture Decisions and Rationale
+%   fig:dfd               -> ch5 §Process / Behavior Design
+%   fig:verifier-loop     -> ch5 §Process / Behavior Design
+%
+% Preamble of main.tex needs (once) -- already present:
+%     \usepackage{graphicx}
+%     \usepackage{pdflscape}
+%     \input{diagrams/unify-diagram-styles}
+% =============================================================================
+
+% ------------------------------------------------------- System Architecture ----
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/layered-arch}}
+  \caption{Layered architecture and trust boundary (proposal §8.1). The ten
+           design layers are grouped into named super-bands, flows rise from
+           the vendor adapter at the bottom to the reviewer surface at the
+           top, only the adapter and the outbound notification channel cross
+           the boundary, and no hosted model API is used — the model server
+           is local and team-owned.}
+  \label{fig:layered-arch}
+\end{figure}
+\end{landscape}
+
+% ---------------------------------------------- Architectural Components --------
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/components}}
+  \caption{Component and interface view (proposal §8.2/§8.3): web, API,
+           worker, PostgreSQL, Redis and the local model server with their
+           labelled interfaces; GitHub, Jira and Figma enter through the
+           adapter, Slack leaves through notification routing. Dashed boxes
+           are dev-only artefacts (\texttt{tools/mock-vendor},
+           \texttt{packages/contracts}) that exist for testing and contract
+           discipline, not at runtime.}
+  \label{fig:components}
+\end{figure}
+\end{landscape}
+
+% ---------------------------------- Architecture Decisions and Rationale ---------
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/autonomy-ladder}}
+  \caption{LLM autonomy ladder and usage register (proposal §24): L0–L3 with
+           the deterministic fallback each stage keeps, and L4 autonomous
+           write prohibited. The invariant holds across every register row —
+           no LLM output writes to the graph of truth, and no LLM output
+           fires a policy on its own.}
+  \label{fig:autonomy-ladder}
+\end{figure}
+\end{landscape}
+
+% ------------------------------------------- Process / Behavior Design -----------
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/dfd}}
+  \caption{Data-flow diagram of the full pipeline (proposal §8.2):
+           webhook/poll → normalisation → version store → evidence-graph
+           update → (a) deterministic rule evaluation and (b) criterion
+           queue → context packet → bounded local verification → verdict
+           gate → evidence case → notification routing → reviewer UI/audit,
+           with the four data stores (D1–D4), the no-op duplicate path
+           (§8.4) and the reconciliation re-entry shown.}
+  \label{fig:dfd}
+\end{figure}
+\end{landscape}
+
+\begin{landscape}
+\begin{figure}[p]
+  \centering
+  \resizebox{\linewidth}{!}{\input{diagrams/verifier-loop}}
+  \caption{Activity diagram of the bounded verifier loop (proposal §11.4)
+           and the verdict/provenance gate (§11.8): pass 1 scope, pass 2
+           verify, and the conditional pass 3 critic under a fixed pass cap,
+           with every pass's inputs, outputs and stop reason logged. Clean
+           results route straight to the gate; any failed check downgrades
+           to review or \texttt{INSUFFICIENT\_EVIDENCE} with a logged reason.
+           Hard gate 1 (a verdict citing no evidence span is rejected as an
+           abstention) sits inside check 4.}
+  \label{fig:verifier-loop}
+\end{figure}
+\end{landscape}
