@@ -10,8 +10,11 @@ export function Panel({
   className?: string;
   as?: "section" | "div" | "aside" | "article";
 }) {
+  // `shadow-sm` is the default, but a caller-supplied `shadow-*` wins instead of
+  // fighting it in the stylesheet.
+  const shadow = /(^|\s)shadow/.test(className) ? "" : "shadow-sm";
   return (
-    <Tag className={`rounded-xl bg-surface-container-low shadow-sm ${className}`}>{children}</Tag>
+    <Tag className={`rounded-xl bg-surface-container-low ${shadow} ${className}`}>{children}</Tag>
   );
 }
 

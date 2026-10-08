@@ -8,12 +8,27 @@ PNG render per screen).
 
 ## Run it
 
+Run everything from `apps/web` — the package manifest, lockfile and
+`node_modules` all live here (there is no repo-root `package.json`):
+
 ```sh
-npm install            # from the repo root (npm workspaces)
+npm install            # in apps/web
 npm run dev            # → http://localhost:3000
 npm run build          # production build
 npm run typecheck      # tsc --noEmit
 npm run lint           # eslint
+```
+
+## Routes
+
+```
+/                            /conflicts/[id]         /policies/simulation
+/activity                    /evaluation             /profile
+/alerts                      /graph                  /search
+/audit                       /graph/artifacts        /settings/notifications
+/links                       /onboarding             /settings/slack
+/conflicts                   /policies               /settings/workspace
+                                                     /study
 ```
 
 ## Layout
