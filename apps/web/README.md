@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UNIFY — reviewer web app (`apps/web`)
 
-## Getting Started
+Next.js 16 (App Router) + TypeScript + Tailwind CSS v4 implementation of the UNIFY
+reviewer surface. Every screen is ported from the Google Stitch project
+**Unified Dev Collaboration Hub** (`projects/14858991041797474900`); the exported
+designs are vendored in `docs/stitch-reference/screens/` (HTML source of truth +
+PNG render per screen).
 
-First, run the development server:
+## Run it
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```sh
+npm install            # from the repo root (npm workspaces)
+npm run dev            # → http://localhost:3000
+npm run build          # production build
+npm run typecheck      # tsc --noEmit
+npm run lint           # eslint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Layout
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/app/                 routes (one folder per Stitch screen)
+src/components/layout/   AppShell — 240px side rail + sticky omnibar top bar
+src/components/ui/       shared kit: Icon, Panel, Badge/ToolPill, Button,
+                         SegmentedTabs, StatCard, PageHeader
+src/lib/types.ts         domain model (Finding, CriterionResult, Verdict, …)
+src/lib/mock/            typed mock data — replaced by the API client later
+src/lib/nav.ts           side-rail navigation
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Design tokens
 
-## Learn More
+`src/app/globals.css` carries a `@theme` block that is a 1:1 port of the
+`tailwind.config` embedded in the Stitch screen exports: the Material 3-ish
+colour set (`surface*`, `primary`, `secondary`, `tertiary`, `error`, `outline*`),
+the type scale (`headline-lg/md/sm`, `body-lg/md/sm`, `label-caps`,
+`mono-code`), spacing (`gutter`, `margin-page`, `stack-*`) and radius. Do not
+introduce ad-hoc hex values or font sizes — extend the token block instead.
 
-To learn more about Next.js, take a look at the following resources:
+Fonts are self-hosted: Inter + JetBrains Mono via `next/font`, Material Symbols
+via `/fonts/material-symbols-outlined.woff2`, so the app runs fully offline
+(the project's local-first commitment).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Domain rules baked into the UI
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Verdicts are only `SUPPORTED | CONTRADICTED | PARTIAL | INSUFFICIENT_EVIDENCE`,
+  with freshness (`CURRENT/STALE/UNKNOWN`), `review_required` and `reason_code`
+  kept as separate fields.
+- Links that are `inferred`/`unconfirmed` may be listed and confirmed, but never
+  produce a decisive finding or notification.
+- Slack is delivery-only — never an input to reasoning.
+- No external image CDNs: avatars are initials, thumbnails are gradients.
 
-## Deploy on Vercel
+## Status
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Screens are implemented against the Stitch reference with typed mock data.
+The next step is the API/contracts layer (`packages/contracts`, Zod) and the
+real ingestion/verdict back end; the mock modules are shaped so they can be
+swapped for a client without touching the screens.

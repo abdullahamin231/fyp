@@ -59,6 +59,40 @@ const slackMessages = [
   },
 ];
 
+function GraphNode({
+  x,
+  y,
+  tone,
+  icon,
+  label,
+  muted = false,
+}: {
+  x: number;
+  y: number;
+  tone: string;
+  icon: string;
+  label: string;
+  muted?: boolean;
+}) {
+  return (
+    <div
+      className="absolute group cursor-pointer -translate-x-1/2 -translate-y-1/2"
+      style={{ left: `${x}%`, top: `${y}%` }}
+    >
+      <div
+        className={`w-24 p-2 border rounded-lg text-center transition-all group-hover:scale-110 shadow-lg ${
+          muted ? "bg-surface-container-high opacity-80" : "bg-surface-container"
+        } ${tone}`}
+      >
+        <div className="flex justify-center mb-1">
+          <Icon name={icon} className="text-[20px]" />
+        </div>
+        <div className="text-[10px] font-bold truncate">{label}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   return (
     <AppShell>
@@ -229,58 +263,26 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+            {/* Edges share the 0–100 coordinate space with the node cards, so
+                lines stay attached to their nodes at any panel size. */}
             <svg
-              className="absolute w-full h-full pointer-events-none"
-              viewBox="0 0 1000 400"
-              preserveAspectRatio="xMidYMid meet"
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
             >
-              <path className="graph-line" d="M200,200 L400,100" fill="none" stroke="#4fdbc8" strokeWidth="1.5" />
-              <path className="graph-line" d="M200,200 L400,300" fill="none" stroke="#4fdbc8" strokeWidth="1.5" />
-              <path className="graph-line" d="M400,100 L700,200" fill="none" stroke="#c3c0ff" strokeWidth="1.5" />
-              <path className="graph-line" d="M400,300 L700,200" fill="none" stroke="#c3c0ff" strokeWidth="1.5" />
-              <path className="graph-line" d="M700,200 L850,200" fill="none" stroke="#ffb95f" strokeWidth="1.5" />
+              <path className="graph-line" d="M20,55 L40,25" fill="none" stroke="#4fdbc8" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+              <path className="graph-line" d="M20,55 L40,75" fill="none" stroke="#4fdbc8" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+              <path className="graph-line" d="M40,25 L70,50" fill="none" stroke="#c3c0ff" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+              <path className="graph-line" d="M40,75 L70,50" fill="none" stroke="#c3c0ff" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+              <path className="graph-line" d="M70,50 L88,50" fill="none" stroke="#ffb95f" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
             </svg>
 
-            <div className="absolute left-[150px] top-[180px] group cursor-pointer">
-              <div className="w-24 p-2 bg-surface-container border border-secondary rounded-lg text-center transition-all group-hover:scale-110 shadow-lg shadow-secondary/10">
-                <div className="flex justify-center mb-1">
-                  <Icon name="design_services" className="text-secondary text-[20px]" />
-                </div>
-                <div className="text-[10px] font-bold truncate">CheckoutModal_v3</div>
-              </div>
-            </div>
-            <div className="absolute left-[360px] top-[70px] group cursor-pointer">
-              <div className="w-24 p-2 bg-surface-container border border-primary rounded-lg text-center transition-all group-hover:scale-110 shadow-lg shadow-primary/10">
-                <div className="flex justify-center mb-1">
-                  <Icon name="code" className="text-primary text-[20px]" />
-                </div>
-                <div className="text-[10px] font-bold truncate">PR #142</div>
-              </div>
-            </div>
-            <div className="absolute left-[360px] top-[270px] group cursor-pointer">
-              <div className="w-24 p-2 bg-surface-container border border-primary rounded-lg text-center transition-all group-hover:scale-110 shadow-lg shadow-primary/10">
-                <div className="flex justify-center mb-1">
-                  <Icon name="code" className="text-primary text-[20px]" />
-                </div>
-                <div className="text-[10px] font-bold truncate">PROJ-88</div>
-              </div>
-            </div>
-            <div className="absolute left-[650px] top-[170px] group cursor-pointer">
-              <div className="w-24 p-2 bg-surface-container border border-tertiary rounded-lg text-center transition-all group-hover:scale-110 shadow-lg shadow-tertiary/10">
-                <div className="flex justify-center mb-1">
-                  <Icon name="chat" className="text-tertiary text-[20px]" />
-                </div>
-                <div className="text-[10px] font-bold truncate">#dev-sync</div>
-              </div>
-            </div>
-            <div className="absolute right-[50px] top-[180px] group cursor-pointer">
-              <div className="w-28 p-2 bg-surface-container-high border border-outline rounded-lg text-center opacity-70">
-                <div className="flex justify-center mb-1">
-                  <Icon name="cloud_done" className="text-outline text-[20px]" />
-                </div>
-                <div className="text-[10px] font-bold truncate">Verdict Gate</div>
-              </div>
-            </div>
+            <GraphNode x={20} y={55} tone="border-secondary text-secondary" icon="design_services" label="CheckoutModal_v3" />
+            <GraphNode x={40} y={25} tone="border-primary text-primary" icon="code" label="PR #142" />
+            <GraphNode x={40} y={75} tone="border-primary text-primary" icon="confirmation_number" label="PROJ-88" />
+            <GraphNode x={70} y={50} tone="border-tertiary text-tertiary" icon="chat" label="#dev-sync" />
+            <GraphNode x={88} y={50} tone="border-outline text-outline" icon="cloud_done" label="Verdict Gate" muted />
+
             <div className="absolute bottom-4 right-6 bg-surface-container/80 backdrop-blur-sm p-3 rounded-lg border border-outline-variant max-w-xs">
               <p className="text-[11px] text-on-surface-variant italic">
                 system-confirmed link between Figma frame `CheckoutModal_v3` and GitHub PR #142 —
