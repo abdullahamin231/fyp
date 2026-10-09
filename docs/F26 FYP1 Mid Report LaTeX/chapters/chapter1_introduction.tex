@@ -1,23 +1,337 @@
 \chapter{Introduction and Project Vision}
+
 \section{Project Overview}
-Describe the product/application/system and its intended purpose.
+
+Unify is a locally deployed system that checks whether a proposed code change
+actually does what the ticket and design it claims to implement say it should,
+and shows the code and tests that support that conclusion.
+
+A software team's record of a single piece of work is normally scattered across
+three tools. The intended appearance and behaviour live in a design tool. The
+requirement and its workflow state live in an issue tracker. The implementation
+lives in a repository. Each tool versions its own record independently and none
+of them understands what a change in one implies for the others. Unify
+subscribes to all three, resolves which records refer to the same unit of work,
+stores them with their versions and their provenance, and evaluates each
+proposed change against the intent it is linked to.
+
+The output is not a score and not a recommendation to merge. For each acceptance
+criterion, the system reports whether the available evidence supports it,
+contradicts it, supports it only in part, or is insufficient to decide, and every
+decisive finding is accompanied by the file, line range and artifact version it
+was derived from. A finding that cannot cite its evidence is not shown as a
+finding.
+
+All model inference runs on infrastructure the team owns. No repository content,
+ticket text or design data is transmitted to a third-party model interface.
+
 \section{Problem Statement}
-Clearly formulate the problem being addressed.
+
+Work drifts out of alignment across the tools that hold it, and the
+inconsistency is discovered late.
+
+A designer updates a screen after the corresponding implementation has already
+been written. A ticket is marked complete while the code that implements it is
+still changing. A pull request is reviewed against acceptance criteria that were
+edited after the branch was cut. In each case the individual tools are behaving
+correctly: each has an accurate record of its own artifact. What is missing is
+any representation of the relationship between those artifacts, and therefore
+any mechanism by which a change to one can raise a question about another.
+
+The concrete decision that fails is a code review. A reviewer opening a pull
+request must determine whether the change still matches the intent it claims to
+implement. Doing so requires opening the tracker for the acceptance criteria,
+opening the design tool and checking whether the approved design has moved since
+the branch was created, reading the diff, and forming a judgement about whether
+the tests actually exercise the criterion in question. That reasoning is
+performed from memory across several interfaces, and no artifact records what
+evidence supported the decision, so it is lost the moment the change is merged.
+
+The consequence is that mismatches surface during testing, at deployment, or in
+a status meeting, after the cost of building the wrong thing has already been
+incurred.
+
 \section{Problem Context and Motivation}
-Explain the context, stakeholders, motivation, and significance.
+
+The problem is a consequence of tool specialisation. Teams adopt a design tool,
+an issue tracker and a version control platform because each is substantially
+better at its own task than a single integrated product would be. The cost of
+that choice is that the relationships between their contents exist only in the
+heads of the people doing the work.
+
+Existing integrations address a narrower problem than the one described here.
+Field synchronisation tools copy values between systems but do not reason about
+whether the copied values remain consistent with one another. Pairwise
+integrations connect two specific tools and notify on change, but see neither the
+code nor the tests. Recent commercial code-review assistants do compare a pull
+request against a linked issue, which overlaps directly with part of this
+project's scope; they operate as hosted services, they do not preserve the
+versioned evidence behind a conclusion, and they do not treat uncertainty as a
+reportable outcome.
+
+To confirm that the problem is real rather than assumed, the team consulted a
+practising senior software engineer about his team's workflow. Three findings
+shaped the design. Relationships between pull requests and tickets are currently
+tracked manually by technical leads. Implementations built against
+subsequently-changed designs have occurred repeatedly and have caused
+rework. And the team already receives more automated notifications than it
+reads, so a system that raises alerts of uncertain accuracy will be disabled
+rather than tuned.
+
+That third finding is the one that most constrains the design. It establishes
+that precision matters more than coverage, and it is the reason the system is
+built to abstain when evidence is insufficient rather than to guess.
+
 \section{Project Vision}
-State what the project intends to achieve.
+
+A reviewer should be able to answer the question ``does this change do what it
+says'' from one place, with the evidence attached, and the system should say
+plainly when it cannot answer rather than producing a confident guess.
+
+The longer-term intent is that the reasoning behind a review decision stops
+being ephemeral. Today it exists only while the reviewer holds it; afterwards
+the repository records that a change was approved but not what was checked.
+Unify produces a durable, versioned evidence case for each change, which means
+the basis for a past decision can be re-read against the artifact versions that
+were current when it was made.
+
 \section{Project Objectives}
-List measurable project objectives.
+
+\begin{enumerate}
+  \item Resolve the identity of a single unit of work across a design source, a
+        work-item source and a change source, recording which version of each
+        artifact a relationship was established against, and achieve high
+        precision on links derived from explicit references.
+  \item Process notifications from those sources such that duplicate and
+        out-of-order delivery converge to the same final state, and an event
+        the source never delivered is recovered by reconciliation rather than
+        silently missed.
+  \item Extract, for a declared set of languages, the changed files, symbols,
+        dependency neighbourhood and test evidence associated with a proposed
+        change.
+  \item Verify each atomic acceptance criterion against a deterministically
+        assembled evidence packet, using a bounded local inference loop, and
+        return a structured verdict with cited evidence spans.
+  \item Prevent any verdict whose citations cannot be resolved against the
+        evidence packet from being presented as a decisive finding.
+  \item Anchor functional requirements to specific symbols and line ranges,
+        pinned to a commit, and maintain those anchors as the code changes,
+        reporting the proportion that survive.
+  \item Evaluate the system against a manually constructed and independently
+        labelled set of cases, and against stated baselines including the
+        current manual workflow, reporting performance per class rather than as
+        a single aggregate.
+\end{enumerate}
+
 \section{Project Scope}
-Define included and excluded functionality.
+
+\subsection*{Included}
+
+Read-only ingestion from one design-intent source, one work-item source and one
+change source. Deterministic and manually confirmed linking across those
+sources. An immutable, versioned artifact store. A typed evidence graph carrying
+provenance on every relationship. Deterministic policies covering design-version
+drift, workflow-state inconsistency, overlapping change scope and
+requirement--implementation divergence. Code and test analysis for the declared
+languages. Criterion decomposition and deterministic context assembly. A bounded
+local verification loop. A deterministic verdict and provenance gate. A reviewer
+interface presenting evidence cases with resolution and audit history.
+Role-based routing of findings and outbound delivery to one channel.
+
+\subsection*{Excluded}
+
+Autonomous code generation or repair. Any claim of general program correctness.
+Support for languages beyond those declared. Unrestricted conversational
+interaction with the system. Two-way write-back of data to the source systems.
+Any hosted model interface in the committed system. Pixel-level certification
+that an implementation matches a design. Additional source integrations beyond
+those bound at the proposal stage.
+
+The exclusions are stated as firmly as the inclusions because several of them
+describe capabilities the system could plausibly be extended to offer, and an
+unstated boundary tends to be assumed away during evaluation.
+
 \section{Project Modules}
-Describe the major modules and their responsibilities.
+
+\begin{longtable}{p{0.26\textwidth}p{0.68\textwidth}}
+\toprule
+Module & Responsibility \\
+\midrule
+\endhead
+Source adapters
+  & Authenticated read-only access per source role; notification receipt with
+    polling fallback; translation of vendor payloads into the normalised event
+    envelope. \\
+Event reliability
+  & Idempotency by stable event identifier; per-resource checkpointing;
+    reconciliation of undelivered events; version guards; stale-source
+    detection. \\
+Artifact and version store
+  & Immutable snapshots of every artifact version, so that evidence cited by a
+    finding remains readable after the source changes. \\
+Code and test analyser
+  & Base and head resolution; changed files and diff hunks; changed and
+    affected symbols; bounded dependency neighbourhood; test evidence; explicit
+    markers where a relation cannot be resolved statically. \\
+Evidence graph
+  & Typed nodes and edges with source class, confidence, resolver and validity
+    interval; requirement anchors; deterministic and manual linking. \\
+Policy and rule engine
+  & Versioned declarative policies evaluated incrementally against graph
+    deltas; criterion invalidation and queueing. \\
+Context builder
+  & Deterministic per-criterion evidence packets under a fixed token budget,
+    with recorded truncation and a stored manifest. \\
+Local verifier
+  & Bounded multi-pass inference over one packet, producing a structured verdict
+    with cited spans, executed on team-operated infrastructure. \\
+Verdict and provenance gate
+  & Schema validation, citation resolution, eligibility and threshold checks,
+    and downgrade of any decisive output that fails them. \\
+Reviewer surface and routing
+  & Evidence case presentation; acknowledge, resolve, dispute and suppress
+    actions; role-based routing; audit history. \\
+\bottomrule
+\end{longtable}
+
 \section{Stakeholders and User Classes}
-Identify users, stakeholders, and their characteristics.
+
+\begin{longtable}{p{0.22\textwidth}p{0.34\textwidth}p{0.38\textwidth}}
+\toprule
+User class & Characteristics & What they need from the system \\
+\midrule
+\endhead
+Code reviewer or technical lead \emph{(primary)}
+  & Technically expert; time-constrained; accountable for the decision to
+    approve.
+  & To establish quickly whether a change is adequately supported by its linked
+    intent, with evidence they can inspect rather than trust. \\
+Developer
+  & Author of the change; familiar with the code, less so with the design
+    history.
+  & Notification when the design or requirement they are implementing against
+    has changed, and visibility of what evidence their change is missing. \\
+Designer
+  & Owns the design source; not necessarily a reader of code.
+  & To be told when an implementation diverges from an approved structured
+    constraint, and to have their design treated as versioned intent. \\
+Product owner or manager
+  & Owns acceptance criteria and workflow state; non-technical in many teams.
+  & Project-level visibility of unresolved evidence without commit-level noise;
+    approval rather than authorship of configuration. \\
+\bottomrule
+\end{longtable}
+
+A secondary consideration applies to the product owner. Reducing that role's
+operational involvement is an explicit design objective arising from evaluation
+feedback: configuration that would previously have been authored by hand is
+derived from the project's own observed behaviour and presented for approval,
+and link confirmation is routed to the code owner rather than to the manager.
+
 \section{Success Criteria}
-Define measurable criteria that will indicate project success.
+
+Success is defined by measurement against stated baselines rather than by
+completion of features. The criteria below are the targets the system is built
+to meet; the figures are those baselined at the proposal stage and are
+reconfirmed after the technical spike.
+
+\begin{longtable}{p{0.46\textwidth}p{0.46\textwidth}}
+\toprule
+Criterion & Target \\
+\midrule
+\endhead
+Precision of links derived from explicit references & At or above 0.95 \\
+Retrieval of relevant evidence for a criterion, within the top five candidates
+  & Recall at or above 0.90 \\
+Precision of findings reporting a contradiction & At or above 0.90 \\
+Rate of confident assertions unsupported by valid evidence & At or below 2\% \\
+Provenance completeness for every decisive finding & 100\% \\
+Correct abstention on cases labelled ambiguous & At or above 80\% \\
+Convergence of final state under duplicate and out-of-order delivery & 100\% on
+  the controlled event suite \\
+Equivalence between incremental and full evaluation & At or above 99\% \\
+Agreement between independent annotators on the evaluation set & At or above the
+  stated coefficient threshold, or the labelling guide is revised and the set
+  relabelled \\
+\bottomrule
+\end{longtable}
+
+Beyond these component measures, the system is assessed at the workflow level
+against the current manual process: whether a reviewer reaches a correct
+decision more often, or locates the relevant evidence faster, without an
+increase in findings they dismiss.
+
 \section{Constraints and Assumptions}
-Document relevant constraints and assumptions.
+
+\subsection*{Constraints}
+
+\textbf{Deployment and privacy.} The system runs within a single self-hosted
+deployment boundary, and artifact content does not leave it. This rules out
+hosted model interfaces in the committed system and bounds model selection to
+what the available hardware can serve.
+
+\textbf{Source system behaviour.} Notification coverage, delivery guarantees and
+rate limits are set by the external products and cannot be altered. The design
+accommodates them rather than assuming they are uniform.
+
+\textbf{Language coverage.} Code analysis requires a parser, and parsers are
+language-specific. The committed analyser supports a declared set of language
+families, and extending it is additional work rather than configuration.
+
+\textbf{Evaluation data.} No public dataset links a design artifact, a work item
+and a code change for the same unit of work. The evaluation set is therefore
+constructed and labelled by the team, which bounds its size and requires that
+its construction be independently validated.
+
+\textbf{Team and schedule.} Three members across two semesters, each owning one
+technical stream together with the evidence demonstrating it.
+
+\subsection*{Assumptions}
+
+That teams reference tickets in pull requests and link designs to tickets often
+enough for deterministic linking to establish a useful proportion of
+relationships, with manual linking covering the remainder. That acceptance
+criteria, where present, are specific enough to be decomposed into atomic
+statements. That a structured design constraint can be confirmed by a designer
+or product owner, since unstructured visual similarity is explicitly not treated
+as sufficient evidence. And that a reviewer will act on a finding that cites its
+evidence, which is the premise the entire output format rests on.
+
 \section{Ethical, Legal and DEI Considerations}
-Document relevant ethical, legal, accessibility, privacy, or diversity considerations where applicable.
+
+\textbf{Privacy and data minimisation.} The system processes workflow metadata
+and the content necessary to verify a criterion. It does not perform
+individual-level performance measurement, and the audit record exists to make
+findings re-readable rather than to attribute productivity to people. Because
+inference is local, source code and design material remain inside the team's own
+infrastructure, which also makes the system usable by organisations whose
+policies prevent sending code to an external service.
+
+\textbf{Access and credentials.} All access to source systems is read-only and
+least-privilege. Credentials are encrypted at rest and a revocation path is
+documented. The system never writes to the connected tools.
+
+\textbf{Treatment of untrusted content.} Issue text, commit messages and design
+metadata are treated as untrusted input. The verifier does not act on
+instructions embedded in artifact content, and model output is constrained to a
+schema and validated against a source allowlist before it can influence
+anything.
+
+\textbf{Accountability for decisions.} The system does not approve or reject
+changes. It presents evidence and the human decides. This is a deliberate
+ethical position rather than a limitation of the implementation: the highest
+autonomy level, in which a model writes to the system of record or resolves a
+finding on its own, is prohibited in this project.
+
+\textbf{Inclusion across roles.} Designers, developers and product owners
+currently inspect the same work through tools that are legible to some of them
+and opaque to others. Presenting one evidence case, routed to the role
+accountable for it, is intended to make cross-disciplinary review possible
+without requiring every participant to read code.
+
+\textbf{Legal and licensing.} Integrations operate within the developer terms of
+each connected product. The open-weight model, its serving runtime and the
+project's dependencies are used in accordance with their licences, which are
+recorded as part of model selection rather than assumed. Evaluation repositories
+are selected for permissive licensing, and no retained artefact contains
+credentials or secrets.

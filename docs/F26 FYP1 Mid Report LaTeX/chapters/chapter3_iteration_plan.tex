@@ -1,25 +1,377 @@
 \chapter{Proposal Feedback and Iteration Plan}
+
 \section{Proposal Feedback Summary}
-Summarize feedback received during the proposal stage.
-\section{Proposal Action Register}
-\begin{longtable}{p{0.06\textwidth}p{0.28\textwidth}p{0.25\textwidth}p{0.14\textwidth}p{0.17\textwidth}}
+
+The proposal was defended before the evaluation panel, which returned eleven
+substantive comments. Taken together the comments were not a rejection of the
+problem or of the architecture; they asked for depth in four specific places:
+the project's treatment of language models had to be made explicit rather than
+implied, the system had to demonstrate traceability down to the level of code
+rather than stopping at artifact relationships, the construction of our
+evaluation data had to be defensible rather than asserted, and the dependence
+of the design on a human operator had to be reduced and then measured.
+
+The comments and their origin are listed below. Two were raised by more than one
+panel member and are recorded once.
+
+\begin{longtable}{p{0.05\textwidth}p{0.52\textwidth}p{0.33\textwidth}}
 \toprule
-No. & Feedback / Required Change & Action Taken & Status & Evidence\\
+No. & Comment as received & Theme \\
 \midrule
-1 & & & &\\
-2 & & & &\\
-3 & & & &\\
+\endhead
+1  & Research how the involvement of the project manager in the loop can be reduced. & Human-in-the-loop cost \\
+2  & Do more research on what kind of language model and what resources will be used. & Model and resource selection \\
+3  & Add a traceability aspect to the project. & Traceability \\
+4  & Discuss where language models are used, to what capacity or level, and which models are required. & Transparency of model use \\
+5  & Dataset validation should also be done. & Evaluation data \\
+6  & Code comments carry semantics; take projects with proper code comments. & Retrieval signal and scope \\
+7  & Scope should be limited to projects with informative names, comments, directory structure and filenames. & Scope eligibility \\
+8  & Robust context management should be factored in. & Context engineering \\
+9  & Explore how to use the language model for large code design. & Scalability \\
+10 & Include the validation process. & Validation \\
+11 & Can functional and non-functional requirements be linked to exact lines of code? & Anchoring granularity \\
 \bottomrule
 \end{longtable}
+
+Our position on the feedback is that every comment is accepted. Six enter the
+committed scope exactly as the panel stated them. Four are accepted with an
+explicit stated limit, because the comment as phrased has no natural boundary
+and an unbounded commitment cannot be defended at the final evaluation; in each
+of those cases the limit is published and measurable rather than left to
+judgement. One is deferred to the second phase of the project, contingent on the
+committed core being stable.
+
+Accepting this much new work required removing work of comparable size. Two
+items left the committed scope to pay for the additions, and the scope changes
+are recorded in Section~\ref{sec:ch3-progress} rather than applied silently.
+No extension of the project timeline was requested.
+
+\section{Proposal Action Register}
+
+The register below is the authoritative record of what each comment changed. The
+evidence column names the artefact that demonstrates the action, so that a
+reviewer can verify a claim rather than take it on trust. Status is reported as
+of \textbf{[DATE]} and uses three values: \emph{Complete} where the named
+evidence exists and has been reviewed by the two members who did not produce it,
+\emph{In progress} where work has started and partial evidence exists, and
+\emph{Planned} where the design decision is made and recorded but implementation
+has not begun.
+
+% ---------------------------------------------------------------------------
+% NOTE: Status column is filled with the honest current state. Update the
+% [DATE] above and any row whose status changes before submission.
+% ---------------------------------------------------------------------------
+
+\begin{longtable}{p{0.03\textwidth}p{0.21\textwidth}p{0.33\textwidth}p{0.10\textwidth}p{0.21\textwidth}}
+\toprule
+No. & Feedback & Action taken & Status & Evidence \\
+\midrule
+\endhead
+1 & Reduce project-manager involvement
+  & Configuration automated and demoted to approval, using state maps and grace
+    periods mined from the project's own history. Confirmation narrowed to a
+    confidence band and routed to the code owner. Resolution deliberately kept
+    human.
+  & In progress
+  & Use cases and actor split, Ch.~4; intervention metrics in the NFRs \\
+2 & Research which model and what resources
+  & Selection protocol and candidate matrix written before any model was
+    downloaded. No model named on reputation; the protocol fixes the split,
+    schema, metrics and thresholds, and the choice is recorded with its version
+    and date.
+  & In progress
+  & Model-selection protocol and candidate matrix, Ch.~5 \\
+3 & Add a traceability aspect
+  & New \texttt{Requirement} entity and \texttt{SATISFIES} relation carrying a
+    commit-pinned \texttt{CodeAnchor}, with re-anchoring by symbol, then content
+    hash, then diff hunk. A fourth policy detects requirement--implementation
+    divergence.
+  & In progress
+  & Anchoring diagram and domain model, Ch.~5; policy P4 \\
+4 & State where models are used, at what level
+  & Usage register added, declaring an autonomy level and a deterministic
+    fallback per stage. No model output writes to the graph of truth or fires a
+    policy alone; autonomous write is prohibited.
+  & Complete
+  & Autonomy ladder figure and register table, Ch.~5 \\
+5 & Validate the dataset
+  & Seven-phase construction and validation protocol defined. Two members label
+    each case independently and the third adjudicates; agreement is reported
+    against a stated threshold, below which the guide is rewritten and the set
+    relabelled.
+  & In progress
+  & Annotation guide; two annotation files and agreement report, Ch.~8 \\
+6 & Code comments carry semantics
+  & Each symbol produces a symbol card combining name, signature, docstring,
+    comments, path tokens, imports, callers and commit message. The card, not
+    the raw line range, is what is embedded and retrieved.
+  & Planned
+  & Symbol-card design, Ch.~5; comments-stripped ablation, Ch.~8 \\
+7 & Limit scope to well-documented projects
+  & Accepted with a stated limit. Eligibility score over comment coverage,
+    identifier informativeness, directory conventionality, documentation and
+    tests; threshold published. A low-documentation cohort is retained and
+    reported separately.
+  & In progress
+  & Eligibility rubric and scoring script; repository catalogue \\
+8 & Robust context management
+  & Deterministic context packet under a fixed token budget, with per-slot
+    allocation, fixed eviction order, syntax-tree-aligned chunking and hybrid
+    retrieval. A manifest is stored with every verdict.
+  & Planned
+  & Context-packet design and verifier-loop diagram, Ch.~5 \\
+9 & Use the model for large code design
+  & Accepted with a stated limit. Map-then-zoom over a repository map and symbol
+    index, full detail only for selected regions, under a fixed pass cap.
+    Committed limit: two languages, approximately 500k lines.
+  & Planned
+  & Scalability benchmark design, Ch.~8 \\
+10 & Include the validation process
+  & Five-layer plan covering data, component, system, comparative and human
+    validation, each with a named gate. Five ablations committed, plus two hard
+    gates on uncited verdicts and verdict stability.
+  & In progress
+  & Validation and acceptance plan, Ch.~8 \\
+11 & Link requirements to exact lines of code
+  & Accepted with an explicit distinction. Functional requirements anchor to a
+    symbol and line range, commit-pinned. Non-functional requirements are not
+    line-anchored; they link to an enforcement point and a verifying test, and
+    are scored by coverage.
+  & In progress
+  & Anchoring granularity table, Ch.~4; anchoring diagram, Ch.~5 \\
+\bottomrule
+\end{longtable}
+
 \section{Iteration Strategy}
-Describe the iterative development strategy.
+
+Development proceeds in four iterations across two semesters. The strategy is
+not iterative merely in the sense of building the product in instalments; each
+iteration is organised so that it terminates in something measurable rather than
+something merely built, because the central claims of this project are empirical
+and an iteration that produces no evidence cannot be assessed.
+
+Three principles govern the sequencing.
+
+\textbf{Risk is retired before it is built upon.} The components whose
+feasibility is least certain are scheduled earliest, even where that disturbs a
+natural build order. Running an open-weight model on the hardware actually
+available to the team, and confirming the event coverage each vendor interface
+provides, are both scheduled in the first iteration. Both are external
+constraints that cannot be engineered around, and discovering either late would
+invalidate work layered on top of it.
+
+\textbf{Deterministic foundations precede probabilistic components.} The event
+layer, the version store, the evidence graph and the deterministic rules are
+built before the verification layer that consumes them. This ordering follows
+from the architecture rather than from preference: the verifier reads evidence
+that the deterministic layers produce, and a verifier evaluated against an
+unreliable graph measures the graph, not the verifier.
+
+\textbf{Evaluation infrastructure is treated as a deliverable, not as a final
+step.} The labelled evaluation set is constructed during the second iteration,
+while the components it will eventually judge are still being written. Building
+the ground truth before the system that will be measured against it prevents a
+subtle failure mode in which cases are unconsciously selected to suit whatever
+the implementation happens to handle.
+
+Each iteration closes at a gate. A gate is passed when the named evidence exists
+and has been reviewed by the two members who did not produce it, not when the
+owning member considers the work finished.
+
 \section{Iteration 1 Plan}
-Define objectives, selected features, deliverables, and evidence.
+
+\textbf{Objective.} Establish the foundations on which every later component
+depends, and retire the two external unknowns that could still change the
+architecture.
+
+\textbf{Selected features.} Requirements and design baseline; read-only
+authenticated access to the three source systems; the relationship data model;
+deterministic linking from explicit references; local model serving with a
+technical spike.
+
+\textbf{Deliverables.} A reproducible repository scaffold with continuous
+integration and a container composition; the shared contracts that later work
+is written against, namely the normalised event envelope, the node and edge
+types and the verdict schema; one event ingested end to end and persisted in the
+normalised form; deterministic links resolved on a fixture repository; and a
+record of local inference latency, memory and quantisation on the hardware
+available to the team.
+
+\textbf{Evidence.} The contract definitions committed as code rather than
+described in prose; a passing end-to-end ingestion test; the recorded hardware
+measurements; the first set of labelled pilot cases with a measured agreement
+figure.
+
+\textbf{Gate.} The team can state, with numbers rather than estimates, what
+local inference costs on its own hardware, which vendor events are available and
+which are not, and that one event traverses the pipeline and arrives in the
+graph in the normalised form.
+
 \section{Iteration 2 Plan}
-Define objectives, selected features, deliverables, and evidence.
+
+\textbf{Objective.} Make ingestion survive the delivery behaviour that vendor
+interfaces actually exhibit, and construct the evidence on which verification
+will later operate.
+
+\textbf{Selected features.} Idempotency, checkpointing and reconciliation;
+manual linking and the reviewer-facing dashboard; the code analyser for the
+declared languages, producing changed files, symbols and test evidence;
+criterion decomposition; the deterministic context-packet builder; and the
+labelled evaluation set.
+
+\textbf{Deliverables.} An ingestion path that converges to the same final state
+under duplicate and out-of-order delivery and that recovers an event the vendor
+never delivered; a populated evidence graph with provenance on every edge; the
+analyser producing symbol and test evidence for a labelled pull request; a
+deterministically assembled context packet with a recorded truncation manifest;
+and the frozen pilot evaluation set with its annotation guide.
+
+\textbf{Evidence.} Controlled event-replay tests demonstrating convergence; the
+analyser's extracted output compared against the expected output for a labelled
+case; byte-identical packets produced from identical inputs; two independent
+annotation files, the agreement statistic computed from them, and a documented
+adjudication.
+
+\textbf{Gate.} Reliability is demonstrated rather than asserted, and the
+evaluation set is frozen before any component is tuned against it.
+
 \section{Work Breakdown and Responsibilities}
-Describe task allocation and ownership.
+
+Responsibility is divided by technical stream rather than by architectural
+layer, so that each member owns a coherent problem together with the evidence
+that demonstrates it works. The test applied to the division was whether
+removing any one member would remove a meaningful technical responsibility and
+its independent evaluation; a division in which one member owned only an
+interface would fail that test.
+
+% ---------------------------------------------------------------------------
+% NOTE: this table follows proposal Section 16. The Gantt chart and the
+% defence slide assign three of these rows differently. Settle which is
+% current and make all three documents agree before submission.
+% ---------------------------------------------------------------------------
+
+\begin{longtable}{p{0.16\textwidth}p{0.42\textwidth}p{0.34\textwidth}}
+\toprule
+Member & Primary ownership & Independent evaluation owned \\
+\midrule
+\endhead
+Haaniah Ismail
+  & Source adapters and authenticated read-only access; the normalised event
+    envelope; idempotency, checkpointing, reconciliation and stale-source
+    handling; the immutable artifact and version store.
+  & Duplicate and out-of-order convergence; freshness and recovery after a
+    simulated outage; ingestion latency; permission and failure behaviour. \\
+Mishal Fatima
+  & The code and test analyser for the declared languages; the evidence graph
+    and its provenance model; deterministic and manual linking; the
+    deterministic drift and policy rules; criterion invalidation and incremental
+    dispatch.
+  & Link precision and recall; graph correctness; equivalence between
+    incremental and full evaluation; rule precision and recall. \\
+Abdullah Amin
+  & The context-packet builder; local model serving and selection; the bounded
+    verifier loop; the parameter-efficient adaptation experiment; the verdict
+    and provenance gate; the reviewer evidence report and notification routing.
+  & Retrieval, verdict and grounding metrics; the base-versus-adapted
+    comparison; local latency and memory; the task-based user evaluation. \\
+\bottomrule
+\end{longtable}
+
+Four responsibilities are shared, because they cross every stream and cannot be
+owned by one member without distorting the result: maintaining one consistent
+terminology across the proposal, the report and the implementation;
+constructing and adjudicating the labelled evaluation set; end-to-end
+integration testing; and the documentation of ethical, privacy and tool-use
+disclosures. Within the evaluation set specifically, the member who constructs a
+case does not label it, and no member validates the data belonging to their own
+subsystem.
+
 \section{Progress Against Plan}
-Compare planned milestones with actual progress.
+\label{sec:ch3-progress}
+
+% ===========================================================================
+% TO COMPLETE BEFORE SUBMISSION.
+% Fill from real evidence, not from memory. One row per planned milestone.
+% Keep honest statuses: a register in which every row is complete three weeks
+% before the evaluation is less credible than one with accurate statuses.
+% ===========================================================================
+
+Progress is reported against the plan baselined at the proposal stage, as of
+\textbf{[DATE]}. Planned dates are those recorded in the revised schedule;
+actual dates are taken from the repository history and the task record rather
+than reconstructed afterwards.
+
+\begin{longtable}{p{0.30\textwidth}p{0.14\textwidth}p{0.14\textwidth}p{0.12\textwidth}p{0.22\textwidth}}
+\toprule
+Milestone & Planned & Actual & Status & Evidence \\
+\midrule
+\endhead
+Proposal revision and panel response & & & & \\
+Diagram set (thirteen diagrams) & & & & \\
+Repository scaffold, CI, container composition & & & & \\
+Shared contracts frozen & & & & \\
+Model-selection protocol & & & & \\
+Technical spike: local inference measured & & & & \\
+Vendor access confirmed & & & & \\
+Ingestion: normalised envelope end to end & & & & \\
+Evidence graph schema and deterministic linking & & & & \\
+Pilot evaluation set constructed & & & & \\
+Annotation round and agreement measured & & & & \\
+\bottomrule
+\end{longtable}
+
+\paragraph{Summary.} [Two or three sentences: how many milestones met on
+schedule, how many late, and whether the iteration objective was achieved. State
+the overall position plainly rather than presenting the table alone.]
+
+\paragraph{Scope changes since the proposal.} Two items left the committed
+scope to pay for the additions accepted in the action register. Narrative
+summarisation of change chains was removed: it was already a stretch item, it
+produces no evaluable claim, and it is the first element a panel would identify
+as decorative. Support for languages beyond the two declared families was
+removed, because each additional language multiplies grammar work, convention
+modelling and labelling effort without adding a contribution. Additional source
+integrations remain outside the committed scope; the adapter layer is defined by
+source role rather than by product, so any further source is one adapter written
+against an existing contract rather than new architecture, and none produces a
+new evaluable claim. [Confirm this paragraph still matches the agreed position
+before submission.]
+
 \section{Delays, Deviations and Recovery Plan}
-Explain deviations and recovery actions.
+
+% ===========================================================================
+% TO COMPLETE BEFORE SUBMISSION.
+% One row per real deviation. Do not invent deviations, and do not omit one
+% that is visible in the repository history -- an unexplained gap in the
+% commit record is worse than a declared delay.
+% ===========================================================================
+
+\begin{longtable}{p{0.22\textwidth}p{0.26\textwidth}p{0.24\textwidth}p{0.22\textwidth}}
+\toprule
+Deviation & Cause & Impact & Recovery action \\
+\midrule
+\endhead
+ & & & \\
+ & & & \\
+ & & & \\
+\bottomrule
+\end{longtable}
+
+\paragraph{Deviations accepted rather than recovered.} [Where a deviation is
+not being recovered because the change was deliberate, state that explicitly
+here and give the reasoning. A deliberate re-plan is a legitimate outcome; an
+undeclared one is not.]
+
+\paragraph{Risk carried into the next iteration.} [Name the risks that remain
+open, with the mitigation already prepared for each. The three carried from the
+proposal risk register are: vendor interface access or rate limits; criterion to
+code retrieval recall falling below the level needed for useful verification;
+and local inference latency or memory exceeding the available hardware. Confirm
+whether each is still open as of the reporting date.]
+
+\paragraph{Change control.} Every change recorded in this chapter is subject to
+the change-control rule adopted at the proposal stage: each change is recorded
+with its date, the evidence motivating it, the approver, the effect on the
+schedule and the impact on traceability. Optional features do not enter the
+committed scope merely because routine implementation finishes ahead of
+schedule.
