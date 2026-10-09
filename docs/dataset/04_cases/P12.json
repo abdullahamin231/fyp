@@ -1,0 +1,98 @@
+{
+  "case_id": "P12",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "MAN",
+    "url": "https://github.com/mantinedev/mantine",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "b21152babb23e42cc96f10921cc709b3c44ebb2d",
+    "head_sha": "83eabe4a34fd7899683ff965f4b1e66c1927b413",
+    "head_patch": null,
+    "head_patch_sha256": null
+  },
+  "change_under_review": {
+    "pr": 9215,
+    "title": "[@mantine/core] Select: Fix dropdown not closing on blur when searchable is not set (#9215)"
+  },
+  "intent": {
+    "criterion_id": "P12-C1",
+    "criterion": "A Select without searchable must close its dropdown when focus leaves the input.",
+    "source": "Squash-merge commit message of PR #9215",
+    "source_quote": "Select: Fix dropdown not closing on blur when searchable is not set",
+    "issue_url": null,
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "packages/@mantine/core/src/components/Select/Select.tsx",
+        "start_line": 385,
+        "end_line": 385,
+        "kind": "code",
+        "lines_added": 1
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [
+      {
+        "file": "packages/@mantine/core/src/components/Select/Select.test.tsx",
+        "start_line": 93,
+        "end_line": 116,
+        "kind": "test",
+        "lines_added": 24
+      }
+    ],
+    "test_runs": [
+      {
+        "command": "npx jest packages/@mantine/core/src/components/Select/Select.test.tsx -t 'non-searchable select'",
+        "result": "PASS (3 passed, 105 skipped)",
+        "log": "test_logs/P12.log"
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P12-S1",
+      "file": "packages/@mantine/core/src/components/Select/Select.tsx",
+      "symbol": "Select \u203a onBlur",
+      "start_line": 380,
+      "end_line": 393,
+      "content_sha256": "fce2205037fc6fc12426600f9bcf113eb872a9061931edce1206cdc159c87f95"
+    },
+    {
+      "span_id": "P12-S2",
+      "file": "packages/@mantine/core/src/components/Autocomplete/Autocomplete.tsx",
+      "symbol": "Autocomplete \u203a onBlur",
+      "start_line": 238,
+      "end_line": 245,
+      "content_sha256": "ad28f8d275cedd515d2f7ea0a089034de40735043d3f4613b7fca8c29441fbbd"
+    },
+    {
+      "span_id": "P12-S3",
+      "file": "packages/@mantine/core/src/components/MultiSelect/MultiSelect.tsx",
+      "symbol": "MultiSelect \u203a onBlur",
+      "start_line": 530,
+      "end_line": 534,
+      "content_sha256": "c135146650b420ceef247bdd04a128e80150f6022263f863bb36bdab04f2d7cd"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #9215",
+      "occurred_at": "2026-09-26T10:47:07+03:00",
+      "delivered_order": 1,
+      "evidence": "commit 83eabe4a3"
+    }
+  ]
+}
