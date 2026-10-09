@@ -1,5 +1,38 @@
 \chapter{System Design}
+
 \section{System Architecture}
+
+The architecture is organised around a single question: for one proposed change,
+does the available evidence support the intent that change claims to implement?
+Every layer exists either to establish that evidence reliably or to prevent an
+unsupported answer from reaching the person who must act on it.
+
+Two properties shape the structure more than any other requirement.
+
+The first is that the system reads from external tools it does not control.
+Those tools version their records on independent clocks, deliver notifications
+on a best-effort basis, and occasionally do not deliver them at all. The lower
+layers therefore cannot assume ordered, exactly-once delivery, and the
+architecture isolates that uncertainty rather than allowing it to propagate
+upward: by the time an event reaches the evidence graph it has been normalised,
+de-duplicated and version-guarded, so every layer above the reliability band
+operates on a consistent view.
+
+The second is that one component of the system is probabilistic. A language
+model participates in verification, and its output cannot be trusted on its own.
+Rather than treating this as a quality problem to be reduced by better prompting,
+the architecture treats it as a structural problem: the model is surrounded by
+deterministic components on both sides. Retrieval decides what the model may
+see, and a gate decides whether what the model produced may be shown. Neither of
+those is a model.
+
+Figure~\ref{fig:layered-arch} shows the ten design layers grouped into named
+bands. Flow rises from the vendor adapter at the bottom to the reviewer surface
+at the top. The boundary drawn around the system is a deployment boundary, not a
+diagram convention: only two paths cross it, the read-only adapter inbound and
+the notification channel outbound. No repository content, ticket text or design
+data leaves the deployment, because all inference is performed by a local,
+team-operated model server rather than by a hosted interface.
 
 \begin{landscape}
 \begin{figure}[p]
@@ -15,7 +48,35 @@
 \end{figure}
 \end{landscape}
 
+A deliberate choice in this architecture is that the source systems are
+represented by \emph{role} rather than by product. The adapter layer defines one
+contract per role: a design-intent source contributing versioned artifacts and
+approved structured constraints, a work-item source contributing acceptance
+criteria and workflow state, a change source contributing commits and diffs, a
+test-evidence source, and an outbound delivery channel. The products currently
+bound to those roles are an implementation detail recorded in a binding table,
+not an architectural commitment. Replacing one product with another changes a
+single adapter and leaves every layer above it untouched, provided the
+replacement satisfies the same contract. This is what allows the project to
+state a scope limit on integrations without that limit being a limit on the
+design.
+
 \section{Architectural Components}
+
+The system deploys as a small set of containers on a single host. The division
+between them follows failure behaviour rather than code organisation: each
+component is separated from the others at the point where their failure modes
+differ.
+
+Figure~\ref{fig:components} shows the runtime components with their interfaces.
+The web frontend serves the reviewer surface. The backend interface exposes the
+read and action endpoints and receives inbound notifications from the source
+systems. The background worker performs ingestion, reconciliation polling, rule
+evaluation and criterion queue processing, so that no long-running analysis
+blocks an inbound request. PostgreSQL holds events, immutable artifact
+snapshots, the evidence graph, findings and the audit record. Redis provides the
+job queue and the locks that keep concurrent workers from applying the same
+delta twice. The model server runs the local open-weight verifier.
 
 \begin{landscape}
 \begin{figure}[p]
@@ -32,8 +93,106 @@
 \end{figure}
 \end{landscape}
 
+The model server is a separate container for two reasons that are worth stating
+explicitly, because the separation looks like over-engineering at this scale. It
+is the only component with a hardware dependency, so isolating it allows the
+rest of the system to be deployed and tested on machines without a graphics
+processor. More importantly, it is the only component whose failure must degrade
+the system rather than stop it. When the model server is unavailable, ingestion
+continues, the deterministic policies continue to fire, and criterion
+verification is reported as unavailable. It is never silently skipped, because
+an absent verdict that looks like a clean result is worse than a declared
+outage.
+
+Two artefacts in the figure are marked as development-only. The mock vendor
+replays recorded and synthetic event sequences against the adapter contract,
+which is how duplicate, out-of-order and outage behaviour is tested without
+depending on a live external service. The shared contracts package holds the
+event envelope, the node and edge type definitions and the verdict schema as
+code, so that the three implementation streams compile against the same
+definitions rather than against prose in a document.
+
 \section{Interfaces and Dependencies}
+
+Interfaces fall into three categories, and the distinction matters because the
+failure behaviour and the trust assumptions differ for each.
+
+\textbf{Inbound from source systems.} Each adapter consumes a vendor
+notification where one is available and falls back to polling where it is not.
+Notification coverage is not uniform across the three bound products, and the
+design does not assume it is: the reconciliation mechanism exists precisely
+because a source may not notify on every state change that matters. All access
+is read-only and least-privilege. Credentials are held by one component and are
+encrypted at rest. Artifact content arriving through these interfaces is treated
+as untrusted input throughout the system, including by the verifier, which never
+executes instructions found inside issue text, commit messages or design
+metadata.
+
+\textbf{Internal between components.} The backend and the worker communicate
+through the queue rather than directly, so that an ingestion burst produces
+queue depth rather than request timeouts. The worker calls the model server
+synchronously but under a bounded timeout, and treats a timeout as an
+unavailable verdict rather than as a failure of the pipeline. Both read and
+write PostgreSQL within transactions scoped to a single delta, so that a partial
+application cannot leave the graph in a state no event produced.
+
+\textbf{Outbound.} The only outbound interface carries notifications. It is
+deliberately one-directional: the delivery channel is not a source of evidence
+and never feeds reasoning, so a message in that channel cannot influence a
+verdict.
+
+The external dependencies of the committed system are therefore the three bound
+source products, the delivery channel, and the open-weight model and its serving
+runtime. There is no dependency on a hosted model interface. A hosted model may
+appear in the evaluation as an offline reference point measured on
+non-sensitive data, and that usage is labelled as a comparison rather than as
+part of the system.
+
 \section{Architecture Decisions and Rationale}
+
+Four decisions determine the shape of the system. Each is recorded with the
+alternative that was rejected, because a decision presented without its
+alternative is indistinguishable from a default.
+
+\textbf{Relational storage modelled as a property graph, rather than a graph
+database.} The committed traversal depth is small: one to three hops, scoped by
+artifact version. A node table with a type discriminator, an edge table carrying
+provenance, and an immutable snapshot table satisfy that within one database
+technology the team already operates. A dedicated graph database was considered
+and deferred rather than dismissed; it becomes justified when multi-hop pattern
+queries at scale are actually needed, and adopting it before that point would
+add an operational surface without a corresponding query requirement.
+Event-sourcing was considered for its audit properties, and the immutable
+snapshot table captures those properties without committing the whole project to
+replay-derived state.
+
+\textbf{Incremental, event-driven evaluation rather than periodic rescan.} Every
+mutation emits a delta. Rules subscribe to deltas filtered by edge type, and
+only the criteria actually affected by a change are queued for re-verification.
+The alternative, re-evaluating the graph on a schedule, is simpler to implement
+and was rejected because verification is the expensive operation in this system;
+re-verifying unaffected criteria would consume the inference budget on work
+whose result cannot have changed. The correctness obligation this creates is
+explicit and measured: incremental evaluation must produce the same findings as
+a full rescan, and that equivalence is a reported metric rather than an
+assumption.
+
+\textbf{A bounded verification loop rather than an open-ended agent.} The
+verifier runs a fixed number of passes: a scope pass that retrieves candidate
+evidence for one atomic criterion, a verification pass that inspects it, and a
+conditional critic pass invoked only when the evidence conflicts or the citations
+are weak. Each pass logs its inputs, outputs and stop reason. An unbounded
+agentic loop would likely produce better answers on difficult cases and was
+rejected because it cannot be reproduced, cannot be budgeted, and cannot be
+defended as a measurement instrument.
+
+\textbf{Deterministic gating of model output.} This is the decision the rest of
+the design depends on. Figure~\ref{fig:autonomy-ladder} shows the autonomy
+ladder that governs every stage at which a model is used. The ladder runs from
+no model at all, through retrieval and ranking, through suggestion requiring
+confirmation, to explanation over already-confirmed facts. The highest level,
+autonomous write or autonomous resolution, is prohibited outright in this
+project rather than left unimplemented.
 
 \begin{landscape}
 \begin{figure}[p]
@@ -48,9 +207,70 @@
 \end{figure}
 \end{landscape}
 
+Every row of the register carries a deterministic fallback, which is what gives
+the system a defined degraded mode rather than an undefined one. The fallbacks
+are not hypothetical: a full evaluation pass is run with the model server
+switched off, and the resulting figures show which capabilities survive and
+which measurements drop.
+
 \section{Design Evolution}
-Show important design changes since the proposal and justify them.
+
+The architecture has changed in four material ways since the proposal was
+baselined. Each change is recorded with the reason, because the differences are
+visible to anyone reading the two documents together.
+
+\textbf{Model inference became local throughout.} The earlier design used a
+hosted model for link suggestion and summarisation alongside a local model for
+detection. That split was removed. It created two incompatible positions on
+privacy within one system, and it made the strongest property of the
+architecture, that artifact content never leaves the deployment, conditional on
+which feature was running. Summarisation left the committed scope entirely and
+link suggestion is now either deterministic or served by the same local stack.
+
+\textbf{The unit of verification narrowed.} The proposal described a
+classifier producing an ordinal fidelity score for a change. That framing
+conflated design fidelity, requirement satisfaction, program behaviour and
+workflow state under one label with no single operational definition, and it
+implied that a model determines correctness. It was replaced by criterion-level
+evidence verification over one atomic criterion at a time, returning a closed
+set of states: supported, contradicted, partial, or insufficient evidence.
+Abstention became a first-class correct answer rather than a failure.
+
+\textbf{Traceability entered the design.} In response to panel feedback, the
+graph gained a requirement entity and a commit-pinned anchor relation, together
+with a policy detecting divergence between a requirement and the code anchored
+to it. This is the largest addition since the proposal and it changes the domain
+model, the schema and the policy set, all of which are described below.
+
+\textbf{The storage decision was frozen.} The proposal left the choice between
+relational and graph storage open pending measurement. The measurement question
+remains valid but the decision no longer blocks implementation: relational
+storage is committed, with migration treated as future work contingent on a
+query requirement that does not currently exist.
+
 \section{Domain Model}
+
+The domain model describes what the system reasons about, independently of how
+it is stored. Figure~\ref{fig:domain-model} shows the entities and their
+relationships.
+
+Artifacts are the versioned records the source systems own: design artifacts and
+the structured constraints approved against them, tickets and the atomic
+criteria decomposed from them, pull requests, commits, code symbols and test
+cases. People appear as entities because ownership and assignment are
+relationships in the graph rather than fields on a record, which is what allows
+a finding to be routed by traversing the graph rather than by consulting a
+separate configuration.
+
+The design decision that distinguishes this model from a conventional entity
+model is that \emph{every association is persisted as a typed edge carrying its
+own provenance}. An edge records how it came to exist, which resolver created
+it, how confident that resolver was, and the interval over which it is valid. A
+relationship derived from an explicit reference in a pull request title is
+therefore distinguishable, in the data and not merely in documentation, from a
+relationship proposed by similarity and never confirmed by a person. This is
+what allows the policy layer to require that only deterministic or confirmed
+edges may produce a decisive finding.
 
 \begin{landscape}
 \begin{figure}[p]
@@ -63,7 +283,43 @@ Show important design changes since the proposal and justify them.
 \end{figure}
 \end{landscape}
 
+The anchor between a requirement and the code satisfying it is modelled as an
+association class rather than as attributes on either entity, because the anchor
+has its own state and its own lifecycle. It records a repository, a file path, a
+fully-qualified symbol, a line range, a content hash and a commit, and it is
+either active or broken. That state changes independently of both the
+requirement and the code symbol it connects, which is precisely why it cannot be
+represented as a property of either.
+
 \section{Data Design}
+
+Figure~\ref{fig:erd} shows the relational schema. Three design rules govern it.
+
+\textbf{Graph entities share one table with a type discriminator.} Nodes of
+every type live in a single table carrying workspace, type, external identifier,
+version, validity interval and a payload column holding the source record as it
+arrived. Edges live in a single table carrying endpoints, type, source class,
+confidence, resolver and validity interval. The alternative, a table per entity
+type, was rejected because the traversal queries the system actually performs
+are type-agnostic: finding everything connected to a changed node should not
+require a union across a dozen tables, and adding an entity type should not
+require a schema migration in every query path.
+
+\textbf{Evidence tables are append-only or immutable.} The event table is
+append-only. Artifact snapshots are immutable: a new version of a source record
+creates a new snapshot rather than overwriting the previous one. This costs
+storage and it is deliberate. A finding cites the evidence it was computed from,
+and if that evidence can be overwritten then the finding becomes unverifiable
+the moment the source changes. Immutability is what makes a historical finding
+re-readable against the artifact versions it actually cited.
+
+\textbf{Uniqueness constraints carry the reliability guarantees.} The guarantees
+described in the reliability design are enforced by the schema rather than by
+application logic wherever that is possible. A unique constraint on the source
+tool and vendor delivery identifier makes duplicate processing a database-level
+no-op. A unique constraint on the finding idempotency key makes repeated
+evaluation incapable of producing duplicate findings. Enforcing these in the
+schema means a logic error in the worker cannot silently violate them.
 
 \begin{landscape}
 \begin{figure}[p]
@@ -76,8 +332,30 @@ Show important design changes since the proposal and justify them.
 \end{figure}
 \end{landscape}
 
+The context packet table deserves particular mention, because it is what makes a
+verdict auditable. Each packet records the criterion it was built for, the base
+and head commits, the token budget and per-slot allocation, a manifest of what
+was included and what was omitted under truncation, the prompt hash and a hash
+of the packet itself. A verdict references the packet it was produced from, so
+the question of what the model actually saw when it reached a conclusion has a
+recorded answer rather than a reconstructed one.
+
 \section{Process / Behavior Design}
-Include appropriate activity, sequence, state, DFD, ERD/schema, class, component, or other project-specific artefacts.
+
+Three behaviours carry the design and are shown separately: how data moves
+through the system, how a verdict is produced and gated, and how an anchor
+survives change in the code it points at.
+
+Figure~\ref{fig:dfd} shows the full pipeline. The path from an inbound
+notification to a reviewer-visible evidence case passes through normalisation,
+the version store and the graph update, after which it divides: deterministic
+rules are evaluated against the changed edges, and affected criteria are queued
+for verification. Both branches converge at the gate. Two paths in the figure
+are not part of the main flow and are drawn because they are the ones that are
+easy to get wrong: the duplicate path, where an event already committed is
+discarded without touching the graph, and the reconciliation re-entry, where an
+event the vendor never delivered is synthesised and injected into the same
+pipeline as an ordinary event.
 
 \begin{landscape}
 \begin{figure}[p]
@@ -93,6 +371,22 @@ Include appropriate activity, sequence, state, DFD, ERD/schema, class, component
   \label{fig:dfd}
 \end{figure}
 \end{landscape}
+
+Figure~\ref{fig:verifier-loop} shows verification and gating as an activity
+flow. The first pass establishes scope and retrieves candidate evidence for one
+atomic criterion; if nothing applicable exists it terminates immediately with
+insufficient evidence rather than proceeding to reason over an empty packet. The
+second pass produces a structured verdict with citations. The third pass is
+conditional and audits a result that is internally inconsistent or weakly cited.
+
+The gate that follows is deterministic and is where the architecture's central
+guarantee is enforced. It validates the output against the schema, resolves every
+citation against the immutable packet, checks rule applicability and link
+eligibility, and downgrades any decisive status that fails a check, recording the
+reason. A verdict that cites a file, line range or artifact version that does not
+exist in the packet cannot be shown as a decisive finding. The first hard
+validation gate, that a verdict citing no evidence span is rejected and counted
+as an abstention rather than as an answer, is enforced at this point.
 
 \begin{landscape}
 \begin{figure}[p]
@@ -110,6 +404,18 @@ Include appropriate activity, sequence, state, DFD, ERD/schema, class, component
 \end{figure}
 \end{landscape}
 
+Figure~\ref{fig:anchor} shows the third behaviour, which is specific to the
+traceability addition. A requirement anchored to a symbol and line range would
+become wrong on the next commit if line numbers were taken literally, so the
+anchor is pinned to a commit and re-resolved as the code moves. Re-anchoring
+attempts the fully-qualified symbol first, then the content hash, then a mapping
+through the diff hunks. Each successive method is weaker, and the recorded
+confidence reflects that. When all three fail, the anchor is marked broken and
+surfaced rather than being silently retained or quietly deleted, because an
+anchoring mechanism that degrades without saying so is worse than none at all.
+The proportion of anchors surviving across a commit window is therefore a
+reported metric of the system rather than an internal detail.
+
 \begin{landscape}
 \begin{figure}[p]
   \centering
@@ -121,3 +427,10 @@ Include appropriate activity, sequence, state, DFD, ERD/schema, class, component
   \label{fig:anchor}
 \end{figure}
 \end{landscape}
+
+Two further behaviours are described in the reliability design rather than shown
+here, and are covered by the sequence and state diagrams in the appendix: the
+convergence of duplicate and out-of-order delivery to a single final state, and
+the transition of a source into a stale condition when it cannot be reached,
+which downgrades every finding that depends on it rather than allowing stale
+data to be presented as current.
