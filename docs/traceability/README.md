@@ -53,7 +53,7 @@ cat > /tmp/trace-tex/wrapper.tex <<EOF
 \usepackage{longtable}
 \usepackage{array}
 \begin{document}
-\input{$PWD/docs/traceability/chapter4_table}
+\input{/work/docs/traceability/chapter4_table}
 \end{document}
 EOF
 docker run --rm -v "$PWD":/work:ro -v /tmp/trace-tex:/t -w /t texlive/texlive:latest-medium \

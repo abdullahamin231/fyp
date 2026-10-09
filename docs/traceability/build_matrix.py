@@ -292,7 +292,9 @@ def latex(rows: list[dict[str, str]], digest: str) -> str:
     # so that the fixed 2 x 3pt of tabcolsep per column boundary (42pt for 7
     # columns) leaves the p{} widths room for their longest unbreakable tokens.
     col = lambda w: f">{{\\raggedright\\arraybackslash\\hspace{{0pt}}}}p{{{w}\\linewidth}}"
-    spec = " ".join(col(w) for w in (0.07, 0.16, 0.17, 0.115, 0.06, 0.17, 0.085))
+    # ID widened to 0.085 so "NFR-08" style IDs never break mid-token; the
+    # slack comes from the design-element column, whose text wraps anyway.
+    spec = " ".join(col(w) for w in (0.085, 0.145, 0.17, 0.115, 0.06, 0.17, 0.085))
     header = ("\\textbf{ID} & \\textbf{Requirement} & \\textbf{Design element} & "
               "\\textbf{Module} & \\textbf{Test} & \\textbf{Status} & "
               "\\textbf{Demo} \\\\")
@@ -340,7 +342,7 @@ def latex(rows: list[dict[str, str]], digest: str) -> str:
 % To use it in place of the existing Table~\\ref{{tab:traceability}} in
 % chapters/chapter4_requirements.tex, replace that longtable with one line
 % (pdflatex runs from the report directory, so the path is relative to it):
-%     \\input{{../../traceability/chapter4_table}}
+%     \\input{{../traceability/chapter4_table}}
 % or copy this file next to main.tex and \\input{{chapter4_table}}.
 % (the fragment's label is tab:traceability-full; rename it if it replaces the
 % labelled table). Not yet wired in -- the chapter owner reviews first.
