@@ -1,9 +1,285 @@
+% =============================================================================
+% Chapter 10 -- Remaining FYP Plan              (owner: Abdullah Amin)
+% Derived from TODO.md \S{}3 (deliverables), \S{}4 (dataset), \S{}7 (mid-eval readiness)
+% and \S{}9 (frozen --- do not build). Dates are stated relative to the start of
+% FYP-2 because no calendar dates have been agreed with the supervisor yet.
+% =============================================================================
 \chapter{Remaining FYP Plan}
+\label{ch:fyp2plan}
+
+This chapter is the plan for what is left. It is written from the team's
+working checklist rather than from the proposal, so that the plan, the tasks the
+team actually works from, and the report all say the same thing. Every work
+package below has one accountable owner; others may help, but one name defends
+it at an evaluation.
+
+% ---------------------------------------------------------------------------
 \section{Remaining Scope}
+\label{sec:remaining-scope}
+
+Of the committed scope in Chapter~1, the reviewer surface, the requirements and
+design baseline, the diagram set and the evaluation-data pilot exist. Everything
+that turns the system from a described design into a running system remains:
+ingestion and reliability, the evidence graph and its rules, and the
+verification layer with its gate. Those are three work packages, they are
+ordered by dependency, and nothing new has been added to them.
+
+\subsection*{Frozen --- recorded so it cannot creep back}
+
+The following are explicitly \emph{not} planned, from the frozen list in the
+team checklist:
+
+\begin{itemize}
+  \item New integrations (GitLab, Linear, Notion, Vercel). The adapter layer is
+        defined by source role, so each of these would be one adapter against an
+        existing contract, and none adds an evaluable claim.
+  \item Autonomous code generation or repair, autonomy level L4, two-way
+        write-back to source systems, a hosted production LLM, or unrestricted
+        chat inside the product.
+  \item Pixel-perfect Figma certification and any screenshot, DOM or
+        vision-language comparison of design against implementation.
+  \item A dedicated graph database, full event sourcing, or Neo4j --- deferred
+        until multi-hop pattern queries are actually required.
+  \item AI chain summarisation, natural-language graph querying and standup
+        summaries: presentation features with no evaluable claim.
+  \item Multi-hop cascade analytics and community or centrality analytics.
+  \item Learned or adaptive confirmation thresholds, deferred to FYP-II and
+        contingent on the fixed-threshold version being stable at the second
+        mid evaluation.
+\end{itemize}
+
+% ---------------------------------------------------------------------------
 \section{Remaining Modules and Features}
+\label{sec:remaining-modules}
+
+\begin{longtable}{p{0.16\textwidth} p{0.22\textwidth} p{0.44\textwidth} p{0.14\textwidth}}
+\caption{Modules and features remaining for FYP-2, with the planned approach.}\label{tab:remaining-modules}\\
+\hline\textbf{Package} & \textbf{Module} & \textbf{Contents} & \textbf{Owner} \\
+\hline\endfirsthead
+\hline\textbf{Package} & \textbf{Module} & \textbf{Contents} & \textbf{Owner} \\
+\hline\endhead
+Slice A --- ingestion reliability & \texttt{ingestion/}, \texttt{store/} &
+  Mock-vendor replay harness (duplicate, out-of-order, delayed, missing
+  webhook, outage, replay); normalisation of the three sources into one
+  envelope; idempotency by stable event id; per-resource checkpoints with
+  reconciliation polling that synthesises gap events; \texttt{SOURCE\_STALE}
+  marking with dependent findings downgraded; immutable artifact and version
+  store; the \S{}8.4 reliability state machine.
+  & Haaniah \\
+Slice B --- code/test evidence graph & \texttt{graph/}, \texttt{analyser/},
+  \texttt{conflicts/}, \texttt{resolution/} &
+  Postgres property graph (\texttt{nodes}, \texttt{edges},
+  \texttt{artifact\_snapshots} with the planned indexes); deterministic linking
+  from explicit references plus manual confirm/reject with resolver provenance;
+  the link-eligibility gate; TypeScript/React analyser producing base/head diffs,
+  changed symbols, a bounded import/call neighbourhood and test evidence;
+  symbol cards; requirement anchors with re-anchoring; Rules 1--3 and policy P4
+  as versioned records; indexed rule dispatch with reverse-index invalidation;
+  role-edge notification routing.
+  & Mishal \\
+Slice C --- verification and reviewer surface & \texttt{verify/}, \texttt{ui/},
+  \texttt{notify/} &
+  Deterministic context-packet builder with per-slot budgets and a truncation
+  manifest; local model-serving container with pinned model and settings;
+  bounded three-pass verifier producing the structured schema; the
+  verdict/provenance gate with citation resolution and downgrade reasons; the
+  four-verdict semantics with freshness and review fields kept separate;
+  binding the existing front end to the API; findings lifecycle and audit;
+  Slack delivery adapter (delivery only).
+  & Abdullah \\
+End-to-end scenarios & \texttt{tests/} (all three) &
+  T1--T11 from Chapter~3: explicit-reference chain, Rules 1--3 positive and
+  negative, duplicate/out-of-order convergence, outage to
+  \texttt{SOURCE\_STALE} to recovery, role routing, fabricated-citation
+  downgrade (T10, the demo's failure case), incremental-versus-full
+  equivalence, and a degraded-mode run with the model server off.
+  & All three \\
+\hline\end{longtable}
+
+Three research deliverables from the panel feedback also remain and are
+deliverables in their own right: the model-selection study with its resource
+budget table (no model may be downloaded before the protocol and the hardware
+are recorded); the three-loop analysis showing what the product manager does
+versus what the system does, with the intervention metrics that make the claim
+measurable; and the completed traceability matrix
+(requirement $\rightarrow$ design element $\rightarrow$ module $\rightarrow$ test
+case $\rightarrow$ demo step), regenerated at each gate.
+
+% ---------------------------------------------------------------------------
 \section{Remaining Iterations}
+\label{sec:remaining-iterations}
+
+Development continues in iterations that each terminate in something
+measurable, closing at a gate where the named evidence has been reviewed by the
+two members who did not produce it.
+
+\begin{longtable}{p{0.14\textwidth} p{0.32\textwidth} p{0.30\textwidth} p{0.20\textwidth}}
+\caption{Remaining iterations and the scope assigned to each.}\label{tab:remaining-iterations}\\
+\hline\textbf{Iteration} & \textbf{Objective} & \textbf{Gate} & \textbf{State} \\
+\hline\endfirsthead
+\hline\textbf{Iteration} & \textbf{Objective} & \textbf{Gate} & \textbf{State} \\
+\hline\endhead
+Iteration 1 (this report) & Requirements and design baseline; reviewer surface;
+  evaluation-data pilot & Partially met: the baseline, the surface and the
+  pilot exist; the ingestion, linking and spike deliverables did not start
+  & Closed with a declared variance \\
+Iteration 2 & Ingestion that survives real delivery behaviour; the evidence
+  graph and the analyser; criterion decomposition; the context-packet builder;
+  the frozen evaluation set & Reliability demonstrated rather than asserted,
+  and the evaluation set frozen before any component is tuned against it
+  & Not started \\
+Iteration 3 & The bounded verifier, the verdict gate, deterministic rules and
+  notification routing end to end; the front end bound to the real API &
+  Scenario matrix T1--T11 passing, degraded mode demonstrated, hard gates 1 and
+  2 enforced & Not started \\
+Iteration 4 & Evaluation: benchmark against every baseline, the adaptation
+  experiment with its pre-committed go/no-go rule, the crossover workflow study
+  & Per-class results reported whether favourable or not; provisional targets
+    finalised with evidence & Not started \\
+\hline\end{longtable}
+
+% ---------------------------------------------------------------------------
 \section{Implementation Plan}
+\label{sec:implementation-plan}
+
+Sequenced by dependency, with each item's definition of done fixed in advance:
+tests green, an evidence row on the board, the diagram updated if structure
+changed, a report note drafted, and any GenAI assistance logged at its level.
+
+\begin{enumerate}
+  \item \textbf{Bootstrap the foundation} --- scaffold the remaining workspace
+        (\texttt{apps/api}, \texttt{apps/worker},
+        \texttt{packages/contracts}, \texttt{db/migrations},
+        \texttt{fixtures/}, \texttt{tools/mock-vendor/}); write the Zod
+        contracts first (event envelope, node and edge types, rule schema,
+        context-packet schema, verdict schema) because the database, the tests,
+        the UI and this report all read from them; add
+        \texttt{docker-compose.yml} and CI with one other member's review
+        required.
+  \item \textbf{Slice A} --- normalisation, idempotency, checkpoints,
+        reconciliation, staleness and the version store, exercised by the
+        replay harness rather than by a live vendor.
+  \item \textbf{Slice B} --- the graph schema, deterministic linking with
+        provenance, the analyser for the committed language, symbol cards,
+        requirement anchors, then the rule set with incremental dispatch.
+  \item \textbf{Slice C} --- the packet builder and its manifest, the local model
+        container, the three-pass verifier, the gate, and the API binding that
+        removes the mock layer from the front end.
+  \item \textbf{Integrate} --- the scenario set T1--T11 as end-to-end tests, plus
+        the degraded-mode pass with the model server switched off.
+\end{enumerate}
+
+The riskiest open question is scheduled as early as it can be: the local
+inference spike runs as soon as a contract-stable packet exists, because the
+hardware ceiling changes what the rest of Slice C is allowed to promise.
+
+% ---------------------------------------------------------------------------
 \section{Testing and Validation Plan}
+\label{sec:testing-plan}
+
+\paragraph{Five layers, in order.}
+\emph{Data} --- agreement statistics, adjudication, the integrity report and a
+dataset card; \emph{Component} --- per-stage metrics measured in isolation
+(linking precision, retrieval Recall@k, rule precision, packet byte-identity);
+\emph{System} --- an acceptance test per functional requirement from
+Chapter~4 plus reliability tests for duplicate, out-of-order and outage
+delivery and a security scan; \emph{Comparative} --- baselines including exact
+linking, lexical and embedding retrieval, a fixed base-model prompt, a
+deterministic-rules-only configuration, a full rescan and the manual workflow;
+\emph{Human} --- expert verdict review and the crossover task study against the
+manual baseline.
+
+\paragraph{Two hard gates.}
+A verdict citing no evidence span is rejected automatically and counted as an
+abstention, enforced every time. And the same packet run three times at
+temperature 0 must agree at 95\% or the configuration is declared unfit to be
+measured, before any other number from it is reported.
+
+\paragraph{Ablations committed in advance.}
+Comments and docstrings stripped from symbol cards; path and file-name tokens
+removed; structural chunking replaced by fixed windows; the verifier removed so
+only the threshold remains; and base versus adapted model under identical
+retrieval. Each answers a question the panel asked, and each is reported even if
+the answer is that the feature does not help.
+
+\paragraph{Dataset phases still to run.}
+Complete the annotation round and compute agreement (gate: Cohen's
+$\kappa \geq 0.70$, otherwise revise the manual and re-pilot); adjudicate every
+disagreement; expand from the 15-case pilot toward a development set of 20--30
+cases and a gold oracle of 30--50, with a training pool of 200--500 for the
+adaptation experiment; run the audit and freeze phase (integrity report,
+supervisor audit of 10--20\% of the gold set plus all rare classes and all
+demonstration cases, split manifest frozen); and only then open the test labels,
+after the model, prompt, retrieval and thresholds are frozen. Splits stay
+by repository, never by example.
+
+% ---------------------------------------------------------------------------
 \section{Deployment Plan}
+\label{sec:deployment-plan}
+
+The target footprint has not changed: one self-hosted host running Docker Compose
+with the web frontend, the API service, the worker, PostgreSQL, Redis and a local
+model-serving container, with read-only connections to the three source systems
+and an optional Slack delivery adapter. Two properties are acceptance criteria
+rather than aspirations: artifact content does not leave the deployment boundary,
+and the deployment must be reproducible by a person who did not write it.
+
+The front end is already deployable as a static bundle today, which is what
+makes the mid-evaluation demonstration independent of any back-end availability.
+The composition file, the migrations and the container definitions are part of
+Slice A's bootstrap and do not exist yet.
+
+% ---------------------------------------------------------------------------
 \section{Tentative Timeline}
+\label{sec:timeline}
+
+Dates below are relative to the start of FYP-2, because no calendar dates have
+been agreed with the supervisor; they are stated as a sequence with rough
+proportions rather than as commitments.
+\textbf{[TODO: verify --- replace with supervisor-agreed dates before
+submission.]}
+
+\begin{longtable}{p{0.20\textwidth} p{0.44\textwidth} p{0.32\textwidth}}
+\caption{Tentative FYP-2 timeline of phases and deliverables.}\label{tab:timeline}\\
+\hline\textbf{Period (relative)} & \textbf{Work} & \textbf{Checkpoint} \\
+\hline\endfirsthead
+\hline\textbf{Period (relative)} & \textbf{Work} & \textbf{Checkpoint} \\
+\hline\endhead
+Weeks 1--2 & Bootstrap, contracts, CI, containers; annotation round completed
+  and agreement reported & Foundation reviewable; dataset pilot evidence closed \\
+Weeks 3--6 & Slice A end to end with the replay harness; Slice B graph and
+  linking & Reliability scenarios T7 and T8 demonstrated \\
+Weeks 7--9 & Analyser, symbol cards, anchors, rules; local inference spike &
+  Hardware ceiling recorded; retrieval measured \\
+Weeks 10--12 & Slice C: packets, verifier, gate; API binding replaces the mock
+  layer & T1--T6, T9--T11 passing; T10 demonstrated as the failure case \\
+Weeks 13--15 & Dataset expansion and freeze; benchmark against baselines;
+  ablations & Frozen oracle; per-class results \\
+Weeks 16--18 & Adaptation experiment and its go/no-go decision; user study;
+  final report and repository freeze & Evaluation tag; submission \\
+\hline\end{longtable}
+
+% ---------------------------------------------------------------------------
 \section{Expected Final Deliverables}
+\label{sec:deliverables}
+
+\begin{enumerate}
+  \item \textbf{A working system} for one workflow: one pull request verified
+        against its linked criteria, design version, changed code and tests,
+        with an evidence case per criterion and a human resolution recorded.
+  \item \textbf{An evaluated system}: benchmark results per class against every
+        declared baseline, the ablation table, the two hard gates demonstrated,
+        the degraded-mode comparison, and the adaptation experiment reported
+        either way under its pre-committed rule.
+  \item \textbf{A validated dataset package}: repository catalogue, frozen
+        taxonomy and manual, development and gold sets with agreement and
+        adjudication records, integrity output, split manifest and dataset card.
+  \item \textbf{Evidence of process}: the action register closed or explicitly
+        carried, twelve stamped diagrams, the traceability matrix, a task and
+        commit record with per-member contributions, the GenAI register and
+        prompt journal, and the external dependency table.
+  \item \textbf{Reproducibility}: a tagged evaluation commit, a deployment a
+        non-author can bring up from the documented steps, and this report in
+        its final form with every claim traceable to a commit, test, diagram,
+        log or dataset file.
+\end{enumerate}

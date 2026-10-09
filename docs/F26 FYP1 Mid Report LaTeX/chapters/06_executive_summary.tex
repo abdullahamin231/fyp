@@ -1,3 +1,94 @@
 \chapter*{Executive Summary}
 \addcontentsline{toc}{chapter}{Executive Summary}
-Provide a one- to two-page overview of the project, motivation, scope, research findings, current implementation, validation status, risks, and remaining work.
+
+\section*{The problem}
+
+Product teams deliberately use separate tools for design, requirements and
+implementation, because each is better at its own task than a combined product
+would be. The cost is that the relationships between their contents exist only
+in the heads of the people doing the work. When a designer moves a screen after
+the code was written, or a ticket is closed while the implementation is still
+changing, no artifact notices. The failure surfaces in a code review, where a
+reviewer must decide whether one pull request still matches the intent it
+claims to implement --- a judgement formed across several interfaces, from
+memory, with nothing recording what evidence supported it. The reasoning is lost
+the moment the change is merged.
+
+\section*{What UNIFY does}
+
+UNIFY subscribes to one design source, one work-item source and one change
+source, normalises their events into a single envelope, and stores every
+artifact version as an immutable snapshot. Relationships between artifacts are
+persisted as typed edges that record how they were established and how confident
+the resolver was, so an explicit reference in a pull request title is
+distinguishable in the data from an unconfirmed inference. For each atomic
+acceptance criterion the system assembles a bounded evidence packet
+deterministically, runs a fixed-pass local verification loop over it, and passes
+the structured result through a deterministic gate that resolves every citation
+against the stored packet. A verdict whose citations do not resolve is
+downgraded, and the reason is recorded. The output vocabulary is closed ---
+supported, contradicted, partial, or insufficient evidence --- with freshness
+and review-required carried as separate fields. All inference runs on
+infrastructure the team operates; no repository, ticket or design content is
+transmitted to a hosted model interface.
+
+\section*{Research position}
+
+Chapter~2 reviews the comparable systems from their own documentation. CodeRabbit
+pulls Jira issue context into a pull request review and returns addressed, not
+addressed or unclear per linked objective; Atlassian's Rovo Dev compares a pull
+request against the acceptance criteria of a linked Jira work item. Both overlap
+directly with part of this project, both are hosted, and neither preserves the
+versioned evidence behind a conclusion. The overlap is therefore conceded: the
+claimed differentiators are local execution, versioned provenance across tools,
+deterministic gating, and reconciliation of late, duplicated and out-of-order
+events. Prior research in requirements traceability and automated code review,
+and public evaluation corpora, are cited for what they establish rather than
+borrowed for authority.
+
+\section*{Status at this evaluation}
+
+\begin{longtable}{p{0.34\textwidth} p{0.22\textwidth} p{0.38\textwidth}}
+\caption{Status of the iteration 1 deliverables at the mid evaluation.}\label{tab:exec-status}\\
+\hline\textbf{Area} & \textbf{State} & \textbf{Evidence} \\
+\hline\endfirsthead
+\hline\textbf{Area} & \textbf{State} & \textbf{Evidence} \\
+\hline\endhead
+Requirements baseline & Complete & 29 functional and 14 non-functional
+  requirements, acceptance check per requirement (Ch.~4) \\
+Design baseline & Complete & Layered architecture, components, data flow,
+  domain model, ERD, verifier loop, anchoring and autonomy-ladder diagrams
+  (Ch.~5) \\
+Reviewer surface & Complete against typed mock data & 19 routes; typecheck, lint
+  and production build pass; 29 static pages generated (Ch.~6) \\
+Evaluation-data pilot & Protocol working, annotation incomplete & 15 cases from
+  3 TypeScript/React repositories; 138 integrity checks, 0 failures; second
+  annotation sheet pending (Ch.~8) \\
+Ingestion, evidence graph, rules & Not started & Declared honestly in Ch.~6 and
+  Ch.~8; sequenced in Ch.~10 \\
+Verifier, gate, local model & Not started & No model downloaded; hardware risk
+  still open \\
+Process evidence & Maintained & 65 commits, 6 merged pull requests, per-member
+  artefacts recorded, GenAI register maintained (Ch.~9) \\
+\hline\end{longtable}
+
+\section*{Risks and what comes next}
+
+Three risks carry into the second year. Local inference has never been measured
+on this team's hardware, so the ceiling on verification quality is unknown and
+the spike is scheduled as early as a stable packet exists. The reliability and
+verification work has not started, which is reported as a declared variance
+against the iteration plan rather than glossed. And the comparable products have
+been read but not trialled, so that comparison rests on documentation until the
+dated trials are recorded.
+
+FYP-2 proceeds in dependency order: shared contracts, CI and containers; then
+ingestion reliability proven by replay tests; then the evidence graph, analyser
+and rules; then the packet builder, bounded verifier and provenance gate, with
+the front end bound to the real API and the mock layer removed. Evaluation data
+is frozen before any component is tuned against it, two hard gates (rejection of
+uncited verdicts, and run-to-run agreement) are enforced before any metric is
+reported, and the fine-tuning experiment is decided by a rule written in advance,
+so a negative result is reported as such. The frozen scope list in the team
+checklist --- no new integrations, no autonomous write-back, no hosted model in
+the committed system, no visual certification --- remains in force.
