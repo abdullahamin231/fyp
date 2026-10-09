@@ -1,0 +1,98 @@
+{
+  "case_id": "P03",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "RHF",
+    "url": "https://github.com/react-hook-form/react-hook-form",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "f89388f5f60b8a8222a42b340f49b38e77d9ed26",
+    "head_sha": "6112441b8e61e943a612b2a75a23b2821c09d93d",
+    "head_patch": null,
+    "head_patch_sha256": null
+  },
+  "change_under_review": {
+    "pr": 13574,
+    "title": "\ud83d\udc1e fix #13569 calling reset triggers subscribe with latest name instead of undefined (#13574)"
+  },
+  "intent": {
+    "criterion_id": "P03-C1",
+    "criterion": "When reset() triggers a subscribe callback, the callback must receive name undefined, not the name of the last changed field.",
+    "source": "Squash-merge commit message of PR #13574 (restates issue #13569)",
+    "source_quote": "Calling reset triggers subscribe with latest name instead of undefined",
+    "issue_url": "https://github.com/react-hook-form/react-hook-form/issues/13569",
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "src/logic/createFormControl.ts",
+        "start_line": 1753,
+        "end_line": 1754,
+        "kind": "code",
+        "lines_added": 2
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [
+      {
+        "file": "src/__tests__/useForm/subscribe.test.tsx",
+        "start_line": 285,
+        "end_line": 326,
+        "kind": "test",
+        "lines_added": 42
+      }
+    ],
+    "test_runs": [
+      {
+        "command": "pnpm test -- src/__tests__/useForm/subscribe.test.tsx -t 'leak the last changed field name'",
+        "result": "PASS (1 passed, 12 skipped)",
+        "log": "test_logs/P03.log"
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P03-S1",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "_reset",
+      "start_line": 1672,
+      "end_line": 1822,
+      "content_sha256": "d7e06c1e57ff94e1e822aa0563a5dc7efc613d63111dd47707a1b767cacbaaa6"
+    },
+    {
+      "span_id": "P03-S2",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "_subscribe",
+      "start_line": 1330,
+      "end_line": 1377,
+      "content_sha256": "eda1627a19d7f39ade7436f76a56c1d7244daafde8f64543761c0178865305c8"
+    },
+    {
+      "span_id": "P03-S3",
+      "file": "src/logic/createFormControl.ts",
+      "symbol": "_setValue",
+      "start_line": 881,
+      "end_line": 945,
+      "content_sha256": "87caf41c4eb58c996f5213ca9ec20e90baa73d67f7c1c4fb0df01031d0387680"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #13574",
+      "occurred_at": "2026-07-04T11:19:09+10:00",
+      "delivered_order": 1,
+      "evidence": "commit 6112441b8"
+    }
+  ]
+}

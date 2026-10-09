@@ -1,6 +1,104 @@
+% =============================================================================
+% Chapter 4 -- Software Requirements                    (owner: Mishal Fatima)
+% Sources: proposal §1.1, §7, §9.4, §14, §15, §22, §23, §26, §27.3.
+% Needs in main.tex preamble: \usepackage{longtable} \usepackage{array}
+% Draft with GenAI assistance -- see docs/genai_register.md (8 Oct 2026).
+% =============================================================================
 \chapter{Software Requirements}
+\label{ch:requirements}
+
+This chapter states what UNIFY must do and how each requirement will be
+checked. The requirements are written around one decision: whether a single
+proposed code change (one pull request) is adequately supported by the intent
+it claims to implement. Everything below either feeds that decision, protects
+its evidence, or routes its outcome to the right person.
+
+Since the proposal defence, three groups of requirements have been added in
+response to the panel: requirement-to-code traceability
+(FR-22 to FR-24), code comments as semantic evidence with a repository quality
+gate (FR-25 to FR-27), and a reduced role for the product manager in the
+confirmation and configuration loops (FR-28, FR-29). These are marked as new in
+the tables.
+
+% ---------------------------------------------------------------------------
 \section{User Interactions / Use Cases}
+\label{sec:user-interactions}
+
+UNIFY has four human roles and four external systems. Table~\ref{tab:roles}
+summarises what each role needs from the system and how it interacts with it.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{p{0.2\linewidth} p{0.36\linewidth} p{0.34\linewidth}}
+\hline
+\textbf{Role} & \textbf{What they need} & \textbf{Main interactions} \\
+\hline
+Code reviewer / technical lead (primary) &
+  To decide whether one change is supported by its linked criteria, design and
+  tests, and to keep a record of why. &
+  Select a change, read the per-criterion evidence case, confirm or reject
+  links, resolve findings, export audit evidence. \\
+Developer &
+  To learn early when the design or requirement they are building against has
+  changed, and what evidence their change is missing. &
+  View evidence for their own change, confirm links on code they own, act on
+  findings and divergence alerts. \\
+Designer &
+  To have an approved design treated as versioned intent, and to know when an
+  implementation has drifted from it. &
+  Approve structured design constraints; receive drift notifications. \\
+Product owner / PM &
+  Project-level visibility of unresolved evidence without commit-level noise. &
+  Approve a system-proposed workflow configuration, connect repositories,
+  review requirement divergence. \\
+\hline
+\end{tabular}
+\caption{Stakeholder roles and their interactions with UNIFY.}\label{tab:roles}
+\end{table}
+
+GitHub, Jira and Figma are read-only sources: UNIFY receives their events and
+polls them to fill gaps, but never writes back. Slack is a delivery channel
+only. A Slack message is never used as evidence for a verdict.
+
+\paragraph{Reducing PM involvement.}
+The panel asked us to take the PM out of routine loops. The use cases separate
+three loops in which a human used to be involved:
+\begin{itemize}
+  \item \textbf{Configuration.} The system derives the workflow state map and a
+        default grace period from the project's own history; the PM
+        \emph{approves} the proposal rather than writing it (FR-29).
+  \item \textbf{Confirmation.} Links above an upper confidence threshold are
+        confirmed automatically and remain reversible; links inside the
+        uncertain band are sent to the code owner or assignee, not the PM; links
+        below the band are kept as silent suggestions (FR-28).
+  \item \textbf{Resolution.} Acknowledging or resolving a finding stays a human
+        judgement, made cheaper through grouping and bulk actions (FR-18).
+\end{itemize}
+
+\paragraph{Scope limit on repository quality.}
+UNIFY relies on the meaning that developers put into names, comments and
+directory structure. It therefore targets repositories with reasonable
+documentation and conventional layout. This is a stated limitation rather than
+a hidden assumption: each repository is scored when it is connected (FR-27),
+and a deliberately low-documentation group of repositories is evaluated
+separately so the drop in quality is measured, not asserted.
+
+\paragraph{Language scope.}
+The committed code analyser targets front-end repositories written in TypeScript and React.
+Indexing and retrieval support Python, TypeScript and JavaScript up to roughly
+500k lines of code; anything beyond that is future work (proposal §27.3, which
+supersedes §7.2 where they differ).
+
+% ---------------------------------------------------------------------------
 \section{Use Case Diagram}
+\label{sec:usecase-diagram}
+
+Figure~\ref{fig:usecase} shows the use cases, the roles that take part in each,
+and the external systems. The two \guillemotleft extend\guillemotright{}
+relations are optional steps: inspecting the individual verification passes
+while viewing an evidence case, and disputing a verdict while resolving a
+finding.
 
 \begin{figure}[htbp]
   \centering
@@ -12,16 +110,422 @@
   \label{fig:usecase}
 \end{figure}
 
+% ---------------------------------------------------------------------------
 \section{Detailed Use Cases}
+\label{sec:detailed-usecases}
+
+The six use cases below cover the core workflow and the three loops described
+above. The remaining use cases in Figure~\ref{fig:usecase} are simple views or
+exports and are covered by their functional requirements.
+
+\newcommand{\usecase}[8]{%
+\begin{table}[htbp]
+\centering\small
+\begin{tabular}{p{0.2\linewidth} p{0.72\linewidth}}
+\hline
+\multicolumn{2}{l}{\textbf{#1}} \\
+\hline
+Actors & #2 \\
+Trigger & #3 \\
+Preconditions & #4 \\
+Main flow & #5 \\
+Alternatives & #6 \\
+Outcome & #7 \\
+Requirements & #8 \\
+\hline
+\end{tabular}
+\end{table}}
+
+\usecase{UC-01 \quad Verify a change against its linked intent}
+  {Code reviewer (primary); developer.}
+  {A pull request is opened or updated, or the reviewer selects it.}
+  {The repository is connected; the PR is linked to at least one Jira ticket
+   with acceptance criteria.}
+  {(1) The reviewer selects the PR and its base/head commits.
+   (2) The system lists each atomic criterion from the linked ticket and any
+   approved design constraints.
+   (3) For each criterion it builds a bounded evidence packet and runs the local
+   verifier.
+   (4) The reviewer sees one evidence case per criterion: status, cited code and
+   test spans, reason and missing evidence.}
+  {If a linked source is stale, affected criteria show \texttt{SOURCE\_STALE}
+   instead of a verdict. If the model server is unavailable, deterministic rules
+   still run and verification is shown as unavailable. A verdict whose
+   citations do not resolve is downgraded to \texttt{INSUFFICIENT\_EVIDENCE}.}
+  {Every decisive status is backed by citations the reviewer can open.}
+  {FR-06 to FR-11, FR-16, FR-17.}
+
+\usecase{UC-02 \quad Confirm or reject a cross-tool link}
+  {Code owner or assignee; reviewer.}
+  {The system infers a link whose confidence falls inside the uncertain band.}
+  {The link is not explicit (no ticket key or design URL in the PR).}
+  {(1) The system notifies the owner of the affected code.
+   (2) The owner sees both artifacts and the evidence for the link.
+   (3) The owner confirms or rejects it; the decision, actor and reason are
+   recorded.}
+  {Above the upper threshold the link is confirmed automatically with
+   \emph{system-confirmed} provenance and can be reversed later. Below the band
+   it stays a silent suggestion.}
+  {Only confirmed or deterministic links can produce a decisive finding.}
+  {FR-04, FR-05, FR-28.}
+
+\usecase{UC-03 \quad Resolve or dispute a finding}
+  {Reviewer, developer, designer or PM, depending on the finding.}
+  {A finding is raised by a rule or a gated verdict and routed to the user.}
+  {The finding is open.}
+  {(1) The user opens the finding and its evidence.
+   (2) The user acknowledges, resolves, suppresses (with a reason and expiry)
+   or reopens it.
+   (3) The transition is written to the audit log with the actor, reason and an
+   evidence snapshot.}
+  {The user disputes the verdict. The correction is stored as a labelled
+   example for the next adaptation round, kept out of the current test split.}
+  {The finding's state and full history are recoverable later.}
+  {FR-15, FR-18, FR-20.}
+
+\usecase{UC-04 \quad Review a requirement--code divergence (P4)}
+  {Developer; PM.}
+  {A requirement changes while its anchored code does not, or anchored code
+   changes with no matching requirement or ticket change, beyond the grace
+   period.}
+  {The requirement has a confirmed anchor; the change is not formatting-only or
+   in a generated file.}
+  {(1) The system raises a divergence finding showing both sides of the anchor.
+   (2) The developer updates the code or the PM updates the requirement.
+   (3) The finding is resolved through UC-03.}
+  {If re-anchoring fails, the anchor is marked broken and the user is told,
+   rather than the old lines being kept silently.}
+  {Requirements and the code that implements them do not drift apart unnoticed.}
+  {FR-22, FR-23, FR-24.}
+
+\usecase{UC-05 \quad Approve a pre-filled workflow configuration}
+  {Product owner / PM.}
+  {A project is connected, or enough new history has accumulated to update the
+   proposal.}
+  {Jira workflow transitions and merge history are available.}
+  {(1) The system derives the canonical state map from observed transitions
+   and proposes a grace period from the observed merge-to-done delay.
+   (2) The PM reviews a preview of which findings the configuration would
+   produce.
+   (3) The PM approves or edits it; the result is stored as a new rule version.}
+  {The PM rejects the proposal and keeps the current version.}
+  {Rules run against a configuration the PM approved but did not have to write.}
+  {FR-19, FR-29.}
+
+\usecase{UC-06 \quad Connect a repository and view its eligibility score}
+  {Product owner / PM; reviewer.}
+  {A new repository is connected.}
+  {Read-only access to the repository has been granted.}
+  {(1) The system profiles comment and docstring coverage, identifier quality,
+   directory conventions, documentation files and tests.
+   (2) It shows the score against the published threshold.
+   (3) The repository is admitted and indexing starts.}
+  {Below the threshold, the repository is admitted only after an explicit
+   warning that link quality is not guaranteed.}
+  {Users know in advance how reliable UNIFY's links will be for this codebase.}
+  {FR-25, FR-27.}
+
+% ---------------------------------------------------------------------------
 \section{Functional Requirements}
-\subsection{Module 1}
-\subsection{Module 2}
+\label{sec:fr}
+
+Requirements are grouped by the module that implements them. The owner column
+names the team member accountable for each requirement (A~=~Abdullah,
+H~=~Haaniah, M~=~Mishal). FR-01 to FR-21 carry over from the proposal;
+FR-22 to FR-29 are new since the defence.
+
+\newcommand{\frhead}{%
+  \hline \textbf{ID} & \textbf{The system shall\ldots} & \textbf{Actor} & \textbf{Owner} \\ \hline}
+
+\subsection{Event Ingestion and Reliability}
+\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\caption{Functional requirements: ingestion and reliability.}\\
+\frhead
+FR-01 & Receive GitHub, Jira and Figma events by webhook, fall back to polling,
+        and normalise every event into one common envelope. & Integration layer & H \\
+FR-02 & Discard duplicate events and recover any gap between the last
+        checkpoint and the source's current state. & Integration layer & H \\
+FR-03 & Store each artifact version as an immutable snapshot and never overwrite
+        evidence that a finding cites. & Version store & H \\
+FR-16 & Mark an artifact \texttt{SOURCE\_STALE} when its source cannot confirm
+        current state, and downgrade findings that depend on it. & Integration layer, gate & H \\
+\hline
+\end{longtable}
+
+\subsection{Evidence Graph, Linking and Traceability}
+\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\caption{Functional requirements: evidence graph, linking and traceability.}\\
+\frhead
+FR-04 & Link artifacts across tools from explicit references (ticket keys,
+        design URLs) and allow manual links, recording who or what resolved each
+        link. & Reviewer, developer, PM & M \\
+FR-05 & Prevent an unconfirmed inferred link from producing a decisive finding.
+        & Evidence graph & M \\
+FR-22 \textit{(new)} & Store requirements as versioned graph entities and link
+        each to the code that satisfies it with a commit-pinned anchor (file,
+        symbol, line range, blob hash, commit, confidence, provenance).
+        & Evidence graph & M \\
+FR-23 \textit{(new)} & After each commit, re-anchor by symbol name, then content
+        hash, then diff-hunk mapping, and mark the anchor broken if all three
+        fail. & Evidence graph & M \\
+FR-28 \textit{(new)} & Auto-confirm links above an upper confidence threshold
+        (reversibly), route links inside the uncertain band to the code owner or
+        assignee, and hold links below it as suggestions. & Evidence graph,
+        notification & M \\
+\hline
+\end{longtable}
+
+\subsection{Code Analysis and Code Semantics}
+\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\caption{Functional requirements: code analysis and code semantics.}\\
+\frhead
+FR-06 & Extract the base/head diff, changed symbols, their dependency
+        neighbourhood and candidate test evidence for the committed language.
+        & Code analyser & M \\
+FR-25 \textit{(new)} & Build a symbol card for every indexed function or class:
+        fully-qualified name, signature, docstring, leading comments, path
+        tokens, imports and callers, and the introducing commit message.
+        & Code analyser & M \\
+FR-26 \textit{(new)} & Raise a finding when a comment or docstring claims
+        behaviour that the code contradicts. & Code analyser, verifier & M \\
+FR-27 \textit{(new)} & Score a repository's documentation quality when it is
+        connected, show the score, and warn before admitting a repository below
+        the threshold. & Code analyser & M \\
+\hline
+\end{longtable}
+
+\subsection{Criteria and Evidence Verification}
+\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\caption{Functional requirements: criteria and verification.}\\
+\frhead
+FR-07 & Treat atomic acceptance criteria and approved structured design
+        constraints as the unit of verification. & PM, designer, system & A, M \\
+FR-08 & Build a deterministic, size-bounded context packet per criterion, with
+        a manifest of anything left out. & Context builder & A \\
+FR-09 & Run the local verification loop within a fixed number of passes and log
+        each pass, its inputs and its stop reason. & Local verifier & A \\
+FR-10 & Check every citation against the immutable packet and downgrade any
+        decisive status whose citation is missing or invalid. & Verdict gate & A \\
+FR-11 & Produce a per-criterion evidence case with status, citations, reason and
+        missing evidence. & System & A \\
+\hline
+\end{longtable}
+
+\subsection{Rules and Incremental Evaluation}
+\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\caption{Functional requirements: rules and incremental evaluation.}\\
+\frhead
+FR-12 & Evaluate deterministic Rules 1--3 (design-version drift, workflow-state
+        inconsistency, overlapping change scope) and record the rule version and
+        grace-period evidence with each finding. & Rule engine & M \\
+FR-13 & Re-evaluate only the rules and criteria affected by a change.
+        & Rule engine & M \\
+FR-15 & Create exactly one finding per rule or criterion and evidence state,
+        however many times the triggering event arrives. & System & M \\
+FR-24 \textit{(new)} & Evaluate policy P4 and raise a divergence finding when a
+        requirement and its anchored code change independently beyond the grace
+        period. & Rule engine & M \\
+\hline
+\end{longtable}
+
+\subsection{Reviewer Surface, Notification and Governance}
+\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\caption{Functional requirements: reviewer surface, notification and governance.}\\
+\frhead
+FR-14 & Route each finding to the responsible role through configurable rules
+        and channels. & Notification engine & A \\
+FR-17 & Show one unified view of a change: versions, links, criteria, evidence
+        and drift findings. & Any authenticated user & A \\
+FR-18 & Support acknowledge, resolve, dispute, suppress and reopen, each with a
+        reason and audit history. & All roles & A \\
+FR-19 & Let an authorised user edit state maps, grace periods, thresholds and
+        rule activation, with every change versioned. & PM, admin & M \\
+FR-20 & Store disputed verdicts as labelled corrections for the next adaptation
+        round, respecting the repository-level data split. & Reviewer, developer & A \\
+FR-21 & Export benchmark and audit evidence without tokens or private raw
+        content. & System & All \\
+FR-29 \textit{(new)} & Propose the workflow state map and default grace period
+        from observed project history for PM approval. & Rule engine & M \\
+\hline
+\end{longtable}
+
+% ---------------------------------------------------------------------------
 \section{Non-Functional Requirements}
+\label{sec:nfr}
+
+Each non-functional requirement has a measurable target. Targets marked
+\emph{provisional} are frozen after the technical spike.
+
 \subsection{Reliability}
+\begin{itemize}
+  \item \textbf{NFR-01 Idempotency and convergence.} Duplicate delivery
+        produces zero duplicate findings; out-of-order delivery reaches the same
+        final state as ordered delivery in 100\% of controlled tests.
+  \item \textbf{NFR-02 Outage tolerance.} Ingestion survives a defined period of
+        vendor downtime without losing events, using the queue plus checkpoint
+        reconciliation.
+  \item \textbf{NFR-03 Incremental correctness.} Incremental and full-rescan
+        findings agree in at least 99\% of benchmark cases.
+  \item \textbf{NFR-04 Graceful degradation.} With the model server down,
+        ingestion and Rules 1--3 keep working and verification is reported as
+        unavailable, never silently skipped.
+\end{itemize}
+
 \subsection{Usability}
+\begin{itemize}
+  \item \textbf{NFR-05} A participant in the PM role completes the acceptance
+        task without help from a developer.
+  \item \textbf{NFR-06} PM-directed prompts per finding are reported separately
+        from developer- and designer-directed prompts, and human interventions
+        per 100 ingested events are reported against an all-manual baseline.
+\end{itemize}
+
 \subsection{Performance}
+\begin{itemize}
+  \item \textbf{NFR-07} p95 analysis time for one pull request is under 60
+        seconds on the declared hardware and repository class
+        (\emph{provisional}).
+  \item \textbf{NFR-08} The system runs within one Docker Compose deployment on a
+        single host, including the local model server.
+\end{itemize}
+
 \subsection{Security}
+\begin{itemize}
+  \item \textbf{NFR-09} GitHub, Jira and Figma access uses read-only,
+        least\-privilege scopes; OAuth tokens are encrypted at rest and held only
+        by the API service.
+  \item \textbf{NFR-10} Ticket, design and code text is treated as untrusted
+        input: the output schema is enforced and instructions found inside
+        artifacts are never followed or executed.
+\end{itemize}
+
+\subsection{Privacy, Grounding and Reproducibility}
+\begin{itemize}
+  \item \textbf{NFR-11 Locality.} No repository, ticket or design content leaves
+        the deployment boundary, checked by egress inspection during testing.
+  \item \textbf{NFR-12 Grounding.} 100\% of \texttt{SUPPORTED} and
+        \texttt{CONTRADICTED} findings carry valid provenance; unsupported
+        confident assertions stay at or below 2\% on the gold test set.
+  \item \textbf{NFR-13 Abstention.} At least 80\% correct abstention on
+        labelled ambiguous cases.
+  \item \textbf{NFR-14 Reproducibility.} The same packet with the same pinned
+        model and settings gives the same verdict class across runs.
+\end{itemize}
+
+% ---------------------------------------------------------------------------
 \section{Acceptance Criteria}
-Define objective acceptance checks for important requirements.
+\label{sec:acceptance}
+
+Table~\ref{tab:acceptance} gives the objective check for each functional
+requirement. A requirement is accepted only when its check passes on the
+evaluation commit and the evidence (test output, log or dataset file) is in the
+repository.
+
+\begin{longtable}{p{0.12\linewidth} p{0.8\linewidth}}
+\caption{Acceptance check for each functional requirement.}\label{tab:acceptance}\\
+\hline
+\textbf{ID} & \textbf{Acceptance check} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Acceptance check} \\
+\hline
+\endhead
+FR-01 & A test webhook from each source produces one normalised record in the
+        event log. \\
+FR-02 & Duplicate-delivery and simulated-outage tests each end in one correct
+        final state. \\
+FR-03 & A finding reopened after a newer version arrives still resolves to the
+        version it originally cited. \\
+FR-04 & On the labelled oracle sample, deterministic linking meets the target
+        precision. \\
+FR-05 & A low-confidence, unconfirmed link case produces no decisive finding. \\
+FR-06 & For a labelled PR, the extracted files, symbols and tests match the gold
+        expectation. \\
+FR-07 & A ticket with three criteria yields three independently verifiable
+        units. \\
+FR-08 & Identical inputs produce a byte-identical packet, and omitted sources are
+        listed in its manifest. \\
+FR-09 & Every finding has pass logs, and no run exceeds the pass limit. \\
+FR-10 & An injected fabricated citation never reaches the reviewer as a decisive
+        status. \\
+FR-11 & The evidence case for a labelled PR matches the gold expectation. \\
+FR-12 & Scenario-matrix cases for Rules 1--3 produce the expected findings,
+        logged with timestamps, and cosmetic or mapped-acceptable cases do not
+        fire. \\
+FR-13 & Incremental and full-rescan outputs match on the benchmark. \\
+FR-14 & In a controlled test, the finding reaches the correct role and the
+        delivery is logged. \\
+FR-15 & Replaying the same event does not create a second finding. \\
+FR-16 & A simulated outage yields \texttt{SOURCE\_STALE} rather than a stale
+        decisive finding. \\
+FR-17 & The change view loads and correctly shows a known linked chain for a
+        test change. \\
+FR-18 & Every lifecycle transition is accepted or rejected as specified, and each
+        accepted one appears in the audit log. \\
+FR-19 & A configuration change creates a new rule version and a preview of its
+        effect. \\
+FR-20 & A disputed verdict is logged with its correction and excluded from the
+        current test split. \\
+FR-21 & The export contains the required evidence and no tokens or private raw
+        content. \\
+FR-22 & A confirmed SATISFIES link stores all anchor fields, pinned to the
+        commit at which it was confirmed. \\
+FR-23 & On a scripted sequence of moves, renames, inlining and deletion, each
+        anchor is re-anchored by the expected method or marked broken; anchor
+        survival rate is reported. \\
+FR-24 & P4 fires on a requirement edit with unchanged anchored code past the
+        grace period, and does not fire on formatting-only or generated-file
+        edits. \\
+FR-25 & Each indexed symbol has a card containing all listed fields. \\
+FR-26 & On seeded comment--code contradictions, the check raises a finding with
+        both the comment and the contradicting code cited. \\
+FR-27 & Connecting a repository shows its score; a below-threshold repository
+        cannot be admitted without the warning being acknowledged. \\
+FR-28 & Links above, inside and below the band are auto-confirmed, routed to the
+        code owner, and held respectively; auto-confirmation precision is at
+        least manual-confirmation precision. \\
+FR-29 & On a project with recorded history, the proposed state map and grace
+        period are generated and stored only after PM approval. \\
+\hline
+\end{longtable}
+
+% ---------------------------------------------------------------------------
 \section{Requirements Traceability}
-Trace important requirements to modules, design elements, implementation, and tests.
+\label{sec:traceability}
+
+Table~\ref{tab:traceability} traces the functional requirements to the design
+element that realises them (System Design chapter), the module that
+implements them, and the end-to-end test scenario that checks them
+(Testing chapter). The full matrix, including NFRs and evaluation
+scenarios, is maintained in the repository and regenerated at each gate.
+Module paths are the planned packages for the mid-evaluation build; a dash in
+the test column means the requirement is checked by a component test rather
+than an end-to-end scenario.
+
+\begin{longtable}{p{0.1\linewidth} p{0.27\linewidth} p{0.27\linewidth} p{0.24\linewidth}}
+\caption{Traceability from functional requirements to design, module and test.}\label{tab:traceability}\\
+\hline
+\textbf{FR} & \textbf{Design element} & \textbf{Module} & \textbf{Test scenario} \\
+\hline
+\endfirsthead
+\hline
+\textbf{FR} & \textbf{Design element} & \textbf{Module} & \textbf{Test scenario} \\
+\hline
+\endhead
+FR-01, 02 & Event envelope; ingestion sequence & \texttt{ingestion/} & T7, T8 \\
+FR-03 & \texttt{artifact\_snapshots} (ERD) & \texttt{store/} & -- \\
+FR-04, 05 & \texttt{edges}, link eligibility (domain model) & \texttt{resolution/} & T1 \\
+FR-06, 25 & CodeSymbol / symbol card & \texttt{analyser/} (planned) & -- \\
+FR-07 to 11 & Context packet, verifier loop, verdict gate & \texttt{verify/} (planned) & T10 \\
+FR-12 & Rule records (\texttt{rules} table) & \texttt{conflicts/} & T2--T6 \\
+FR-13 & Reverse index, incremental dispatch & \texttt{conflicts/} & T11 \\
+FR-14 & Role-edge resolution (OWNS, ASSIGNED\_TO, WATCHES) & \texttt{notify/} & T9 \\
+FR-15 & \texttt{findings.}\allowbreak\texttt{idempotency\_key} & \texttt{conflicts/} & T7 \\
+FR-16 & Freshness state machine; \texttt{checkpoints} & \texttt{ingestion/} & T8 \\
+FR-17, 18 & Reviewer UI; finding lifecycle; \texttt{audit\_log} & \texttt{ui/} & -- \\
+FR-22, 23 & CodeAnchor; anchor diagram (Fig.~\ref{fig:anchor}) & \texttt{graph/} & -- \\
+FR-24 & Policy P4 rule record & \texttt{conflicts/} & -- \\
+FR-28, 29 & Confirmation and configuration loops & \texttt{resolution/},\newline \texttt{conflicts/} & -- \\
+\hline
+\end{longtable}

@@ -1,0 +1,112 @@
+{
+  "case_id": "P08",
+  "dataset_version": "pilot-0.1",
+  "repository": {
+    "repo_id": "EXC",
+    "url": "https://github.com/excalidraw/excalidraw",
+    "licence": "MIT"
+  },
+  "versions": {
+    "base_sha": "647a264a485a33bf1bf2cec9adcc8cc2151b253c",
+    "head_sha": "61fe15a51d1a74e5edd564b366889ea8789aec1c",
+    "head_patch": null,
+    "head_patch_sha256": null
+  },
+  "change_under_review": {
+    "pr": 11441,
+    "title": "fix(editor): cardinal direction arrows with label are invisible in exported SVG (#11441)"
+  },
+  "intent": {
+    "criterion_id": "P08-C1",
+    "criterion": "A perfectly horizontal or vertical arrow that has a bound text label must remain visible (not masked out) in SVG export.",
+    "source": "Squash-merge commit message and body of PR #11441 (Fixes #11439)",
+    "source_quote": "Axis-aligned (horizontal/vertical) arrows with a bound label vanished from SVG exports.",
+    "issue_url": "https://github.com/excalidraw/excalidraw/issues/11439",
+    "issue_body_retrieved": false,
+    "criterion_version": 1
+  },
+  "design_evidence": {
+    "status": "NOT_APPLICABLE",
+    "note": "No Figma file or structured design constraint exists for this public repository."
+  },
+  "code_evidence": {
+    "changed_hunks": [
+      {
+        "file": "packages/excalidraw/renderer/staticSvgScene.ts",
+        "start_line": 294,
+        "end_line": 301,
+        "kind": "code",
+        "lines_added": 8
+      }
+    ]
+  },
+  "test_evidence": {
+    "changed_test_hunks": [
+      {
+        "file": "packages/excalidraw/tests/scene/export.test.ts",
+        "start_line": 9,
+        "end_line": 10,
+        "kind": "test",
+        "lines_added": 2
+      },
+      {
+        "file": "packages/excalidraw/tests/scene/export.test.ts",
+        "start_line": 17,
+        "end_line": 18,
+        "kind": "test",
+        "lines_added": 2
+      },
+      {
+        "file": "packages/excalidraw/tests/scene/export.test.ts",
+        "start_line": 199,
+        "end_line": 237,
+        "kind": "test",
+        "lines_added": 39
+      }
+    ],
+    "test_runs": [
+      {
+        "command": "yarn vitest run packages/excalidraw/tests/scene/export.test.ts -t 11439",
+        "result": "PASS (1 passed, 15 skipped)",
+        "log": "test_logs/P08.log"
+      }
+    ]
+  },
+  "candidate_spans": [
+    {
+      "span_id": "P08-S1",
+      "file": "packages/excalidraw/renderer/staticSvgScene.ts",
+      "symbol": "renderElementToSvg \u203a bound-text mask",
+      "start_line": 285,
+      "end_line": 335,
+      "content_sha256": "a99fed0636b82aa811911b07fe2d306fb091b58e6c27b61c60fadfe3268b3383"
+    },
+    {
+      "span_id": "P08-S2",
+      "file": "packages/excalidraw/renderer/staticSvgScene.ts",
+      "symbol": "maybeWrapNodesInFrameClipPath",
+      "start_line": 66,
+      "end_line": 85,
+      "content_sha256": "4723453e0ceea84315591eddc3683b833ca0fd28eb3a6799b63507e3fcc78796"
+    },
+    {
+      "span_id": "P08-S3",
+      "file": "packages/excalidraw/renderer/staticSvgScene.ts",
+      "symbol": "renderElementToSvg \u203a image clipPath",
+      "start_line": 569,
+      "end_line": 592,
+      "content_sha256": "667382c201f515c4946026f4836a96f4f5b15ba97c183064131c92779024f62c"
+    }
+  ],
+  "events": [
+    {
+      "seq": 1,
+      "source": "github",
+      "type": "pull_request.merged",
+      "entity": "PR #11441",
+      "occurred_at": "2026-06-07T22:49:44+05:30",
+      "delivered_order": 1,
+      "evidence": "commit 61fe15a51"
+    }
+  ]
+}
