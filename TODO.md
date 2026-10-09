@@ -89,7 +89,7 @@ Each panel comment becomes one tracked action. Status values: `open · in progre
 
 - [ ] Agree and sign off the proposal §16 ownership table (named sign-off, recorded in the repo)
 - [ ] Scaffold monorepo: `apps/web`, `apps/api`, `apps/worker`, `packages/contracts`, `db/migrations`, `fixtures/`, `tools/mock-vendor/`, `docs/`
-- [ ] Put the **Zod contracts** in `packages/contracts` first: normalised event envelope, node/edge types, rule schema, context-packet schema, verdict/output schema — single source of truth for DB, tests, UI, diagrams and report
+- [x] Put the **Zod contracts** in `packages/contracts` first: normalised event envelope, node/edge types, rule schema, context-packet schema, verdict/output schema — single source of truth for DB, tests, UI, diagrams and report — **done** (`feat/contracts`: `packages/contracts`, 60 tests, strict schemas + FR-05/FR-10/hard-gate-1/FR-18 helpers; enum values still to sign off are listed in its README)
 - [ ] `docker-compose.yml`: postgres, redis, api, worker, web, local model-serving container
 - [ ] CI: lint + test + build on every PR; branch protection requiring one other member's review (worksheet wants a review practice, not just commits)
 - [ ] Task board with three swimlanes + an integration column; every work item has an owner

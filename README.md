@@ -46,9 +46,26 @@ Technical ownership (proposal §16):
 
 ```
 apps/web           Reviewer web app — Next.js 16 + TypeScript + Tailwind (see its README)
+packages/contracts Shared Zod contracts — event envelope, graph, rules, packets, verdicts (see its README)
 docs/              Project documents (see below)
 opencode.json      OpenCode config — official Stitch MCP server
 .env               Local secrets (gitignored) — STITCH_API_KEY
+```
+
+### Contracts
+
+`packages/contracts` holds the shared data shapes as code — the normalised
+event envelope, node/edge types, the rule schema, the context-packet schema and
+the verdict/output schema (TODO §2). It is standalone for now: each package
+carries its own lockfile until the workspace root is wired up with `apps/api`,
+so `cd packages/contracts && npm install && npm test` works today without
+disturbing the app's install.
+
+```sh
+cd packages/contracts
+npm install
+npm test           # 60 tests over the schemas and the gate invariants
+npm run build      # emits dist/ (ESM + declarations)
 ```
 
 ### Frontend
