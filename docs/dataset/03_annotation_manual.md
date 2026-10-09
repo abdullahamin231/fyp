@@ -1,6 +1,6 @@
-# UNIFY Annotation Manual — pilot v0.1
+# UNIFY Annotation Manual — v1
 
-**Status:** draft for the pilot. It will be revised after the pilot's agreement is measured, and frozen as v1 only once Cohen's κ reaches 0.70 (Action Plan §8).
+**Status:** v1, frozen 9 Oct 2026. The pilot (15 cases, 2 blind annotators) reached verdict κ = 0.90 (raw agreement 0.93), above the 0.70 gate (Action Plan §8). Rules R1 and R2 in §7 were added from the pilot adjudication.
 
 ## 1. What you are deciding
 
@@ -64,3 +64,9 @@ If one test for a part passes and another test for the **same** part fails, the 
 ## 6. After both files are in
 
 Disagreements go to the adjudicator, who records the final label, the evidence used, and any rule added to this manual (`06_adjudication_log.csv`). **Original labels are never edited.**
+
+## 7. Rules added after the pilot adjudication (v1)
+
+**R1. Runtime behaviour needs a test.** Claims about React re-renders, timers, animation or other runtime timing need a test that exercises them. Reasoning from the code alone, however convincing, is not enough for SUPPORTED: label it INSUFFICIENT_EVIDENCE with MISSING_TEST and set review_required to true. *(From P10: annotators split SUPPORTED vs INSUFFICIENT_EVIDENCE.)*
+
+**R2. On-path spans count as relevant.** A candidate span is relevant if it is on the code path that produces the behaviour the criterion describes, even if the change under review didn't modify it. A span that only shares vocabulary or sits in the same module, but is not on that path, is not relevant. *(From P03 and P05: annotators split on whether the unchanged subscription path counted.)*
