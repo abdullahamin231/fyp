@@ -1,4 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "P=$VERCEL_GIT_PREVIOUS_SHA; C=$VERCEL_GIT_COMMIT_SHA; if [ -z \"$P\" ] || [ \"$P\" = 0000000000000000000000000000000000000000 ]; then exit 1; fi; git diff --quiet \"$P\" \"$C\" -- :/apps/web :/package.json :/package-lock.json :/pnpm-workspace.yaml :/turbo.json 2>/dev/null || exit 1"
+  "ignoreCommand": "P=$VERCEL_GIT_PREVIOUS_SHA; C=$VERCEL_GIT_COMMIT_SHA; if [ -z \"$P\" ] || [ \"$P\" = 0000000000000000000000000000000000000000 ]; then exit 1; fi; git diff --quiet \"$P\" \"$C\" -- :/apps/web :/package.json :/package-lock.json :/turbo.json 2>/dev/null || exit 1"
 }
