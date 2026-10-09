@@ -1,0 +1,78 @@
+% =============================================================================
+% UNIFY traceability matrix -- GENERATED FILE, DO NOT EDIT BY HAND.
+% Source:  docs/traceability/traceability_matrix.csv (sha256 9ca6fcd2311b)
+% Generate: python3 docs/traceability/build_matrix.py
+% Rows: 43 (FR-01..FR-29 and NFR-01..NFR-14), identical to the CSV and to
+%        docs/traceability/traceability_matrix.md.
+% Needs in the preamble: \usepackage{longtable} \usepackage{array}
+% (array is required for the >{\raggedright\arraybackslash\hspace{0pt}}
+% column prefixes that keep long paths wrapping inside their column).
+% Columns: ID, Requirement, Design element [+figure], Module, Test, Status, Demo.
+% Owner and proposal reference live in the CSV and the markdown rendering.
+% Row text is \small with \tabcolsep=3pt, scoped to the fragment by \begingroup.
+% To use it in place of the existing Table~\ref{tab:traceability} in
+% chapters/chapter4_requirements.tex, replace that longtable with one line
+% (pdflatex runs from the report directory, so the path is relative to it):
+%     \input{../../traceability/chapter4_table}
+% or copy this file next to main.tex and \input{chapter4_table}.
+% (the fragment's label is tab:traceability-full; rename it if it replaces the
+% labelled table). Not yet wired in -- the chapter owner reviews first.
+% =============================================================================
+\begingroup
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{>{\raggedright\arraybackslash\hspace{0pt}}p{0.07\linewidth} >{\raggedright\arraybackslash\hspace{0pt}}p{0.16\linewidth} >{\raggedright\arraybackslash\hspace{0pt}}p{0.17\linewidth} >{\raggedright\arraybackslash\hspace{0pt}}p{0.115\linewidth} >{\raggedright\arraybackslash\hspace{0pt}}p{0.06\linewidth} >{\raggedright\arraybackslash\hspace{0pt}}p{0.17\linewidth} >{\raggedright\arraybackslash\hspace{0pt}}p{0.085\linewidth}}
+\caption{Requirements traceability matrix (FR and NFR) generated from the
+repository matrix.}\label{tab:traceability-full}\\
+\hline
+\textbf{ID} & \textbf{Requirement} & \textbf{Design element} & \textbf{Module} & \textbf{Test} & \textbf{Status} & \textbf{Demo} \\
+\hline
+FR-01 & Receive and normalise vendor events into the common envelope & Normalised event envelope (ch5 Interfaces); DFD webhook -> normalisation path [fig:\allowbreak{}dfd] & ingestion/\allowbreak{} & T7, T8 & designed & -- \\
+FR-02 & Discard duplicate events and reconcile checkpoint gaps & DFD no-op duplicate path; ingestion sequence for duplicate/\allowbreak{}out-of-order delivery [fig:\allowbreak{}dfd; diagrams/\allowbreak{}05\_\allowbreak{}ingestion\_\allowbreak{}sequence.\allowbreak{}tex (unwired)] & ingestion/\allowbreak{} & T7, T8 & designed & demo-failure \\
+FR-03 & Store each artifact version as an immutable snapshot & artifact\_\allowbreak{}snapshots table; append-only/\allowbreak{}immutable rule (ch5 Data Design) [fig:\allowbreak{}erd] & store/\allowbreak{} & -- & designed & -- \\
+FR-04 & Link artifacts across tools and record resolver provenance & Typed edges carrying provenance; link eligibility (ch5 Domain Model) [fig:\allowbreak{}domain-model] & resolution/\allowbreak{} & T1 & partially\newline implemented & demo-normal \\
+FR-05 & Prevent unconfirmed inferred links from producing decisive findings & Link eligibility gate; only deterministic or confirmed edges may fire (ch5 Domain Model) [fig:\allowbreak{}domain-model] & resolution/\allowbreak{} & T1 & designed & -- \\
+FR-06 & Extract base/\allowbreak{}head diff, changed symbols, neighbourhood and test evidence & CodeSymbol entity; analyser responsibilities (ch1 Project Modules) [fig:\allowbreak{}domain-model] & analyser/\allowbreak{} (planned) & -- & designed & demo-normal \\
+FR-07 & Treat atomic criteria and approved design constraints as the verification unit & Criterion decomposition; use case UC-01 (ch4 Detailed Use Cases) [fig:\allowbreak{}usecase] & verify/\allowbreak{} (planned) & T10 & designed & -- \\
+FR-08 & Build a deterministic, size-bounded context packet with a truncation manifest & context\_\allowbreak{}packets table and per-slot budgets (ch5 Data Design) [fig:\allowbreak{}erd] & verify/\allowbreak{} (planned) & T10 & designed & -- \\
+FR-09 & Run the bounded verification loop with per-pass logging & Bounded verifier loop, pass 1-2-3 with stop reasons (ch5 Process/\allowbreak{}Behavior Design) [fig:\allowbreak{}verifier-loop] & verify/\allowbreak{} (planned) & T10 & designed & -- \\
+FR-10 & Validate every citation and downgrade invalid decisive verdicts & Verdict/\allowbreak{}provenance gate and hard gate 1 (ch5 Process/\allowbreak{}Behavior Design) [fig:\allowbreak{}verifier-loop] & verify/\allowbreak{} (planned) & T10 & designed & demo-failure \\
+FR-11 & Produce a per-criterion evidence case & Evidence case view, UC-01 step 4 (ch4 Detailed Use Cases) [fig:\allowbreak{}usecase] & verify/\allowbreak{} (planned) & T10 & partially\newline implemented & demo-normal \\
+FR-12 & Evaluate deterministic Rules 1-3 with rule version and grace evidence & Versioned rule records (rules table, ch4 traceability; ERD) [fig:\allowbreak{}erd] & conflicts/\allowbreak{} & T2, T3, T4, T5, T6 & designed & -- \\
+FR-13 & Re-evaluate only the rules and criteria affected by a change & Reverse-index dispatch and incremental-vs-full equivalence decision (ch5 Architecture Decisions) [fig:\allowbreak{}dfd] & conflicts/\allowbreak{} & T11 & designed & -- \\
+FR-14 & Route findings to the responsible role through configurable rules and channels & Role-edge resolution over OWNS, ASSIGNED\_\allowbreak{}TO, WATCHES (ch5 Domain Model) [fig:\allowbreak{}domain-model] & notify/\allowbreak{} & T9 & designed & -- \\
+FR-15 & Create exactly one finding per rule/\allowbreak{}criterion/\allowbreak{}evidence state & findings.\allowbreak{}idempotency\_\allowbreak{}key unique constraint (ch5 Data Design) [fig:\allowbreak{}erd] & conflicts/\allowbreak{} & T7 & designed & demo-failure \\
+FR-16 & Mark artifacts SOURCE\_\allowbreak{}STALE and downgrade dependent findings & Source-freshness state machine and checkpoints [diagrams/\allowbreak{}06\_\allowbreak{}state\_\allowbreak{}machines.\allowbreak{}tex (unwired)] & ingestion/\allowbreak{} & T8 & designed & -- \\
+FR-17 & Show one unified view of a change & Reviewer surface; UC-01 select change and read evidence [fig:\allowbreak{}usecase] & ui/\allowbreak{} & -- & partially\newline implemented & demo-normal \\
+FR-18 & Support acknowledge, resolve, dispute, suppress and reopen with audit history & Finding lifecycle (UC-03) and audit\_\allowbreak{}log [fig:\allowbreak{}usecase; diagrams/\allowbreak{}06\_\allowbreak{}state\_\allowbreak{}machines.\allowbreak{}tex (unwired)] & ui/\allowbreak{} & -- & partially\newline implemented & -- \\
+FR-19 & Allow authorised, versioned configuration editing & UC-05 approval flow; versioned rule records [fig:\allowbreak{}usecase] & conflicts/\allowbreak{} & -- & partially\newline implemented & -- \\
+FR-20 & Store disputed verdicts as labelled corrections respecting the data split & UC-03 dispute alternative (labelled correction); dataset split policy [fig:\allowbreak{}usecase] & -- & -- & designed & -- \\
+FR-21 & Export benchmark and audit evidence without secrets & Export audit evidence (use case in fig:\allowbreak{}usecase); audit record (ch5 Data Design) [fig:\allowbreak{}usecase] & -- & -- & designed & -- \\
+FR-22 & Store versioned requirement entities with commit-pinned SATISFIES anchors & Requirement entity + CodeAnchor association class on SATISFIES (ch5 Domain Model) [fig:\allowbreak{}domain-model; fig:\allowbreak{}anchor] & graph/\allowbreak{} & -- & designed & -- \\
+FR-23 & Re-anchor after each commit and mark failed anchors broken & Re-anchoring order:\allowbreak{} symbol name -> content hash -> diff hunk -> broken (ch5 Process/\allowbreak{}Behavior Design) [fig:\allowbreak{}anchor] & graph/\allowbreak{} & -- & designed & -- \\
+FR-24 & Evaluate policy P4 and raise requirement-code divergence findings & Policy P4 rule record; UC-04 divergence review (ch4 Detailed Use Cases) [fig:\allowbreak{}usecase] & conflicts/\allowbreak{} & -- & designed & -- \\
+FR-25 & Build a symbol card for every indexed function or class & CodeSymbol /\allowbreak{} symbol card (ch4 traceability; proposal §26.1) [fig:\allowbreak{}domain-model] & analyser/\allowbreak{} (planned) & -- & designed & -- \\
+FR-26 & Raise a finding when a comment contradicts the code & Comment-code consistency check rendered by templates (proposal §26.1; TODO §1.6) & analyser/\allowbreak{} (planned) & -- & designed & -- \\
+FR-27 & Score repository documentation quality at connection time & UC-06 connect repository and view eligibility score (ch4 Detailed Use Cases) [fig:\allowbreak{}usecase] & analyser/\allowbreak{} (planned) & -- & designed & -- \\
+FR-28 & Auto-confirm, route or hold links by confidence band & Confirmation loop; UC-02 two-threshold link policy (ch4 User Interactions) [fig:\allowbreak{}usecase] & resolution/\allowbreak{} & -- & designed & -- \\
+FR-29 & Propose the workflow state map and default grace period for PM approval & Configuration loop; UC-05 approve a pre-filled workflow configuration [fig:\allowbreak{}usecase] & conflicts/\allowbreak{} & -- & designed & -- \\
+\hline
+\multicolumn{7}{l}{\textbf{Non-functional requirements (NFR-01--NFR-14)}} \\
+\hline
+NFR-01 & Idempotency and convergence & Reliability state machine; unique constraints on event id and finding key (ch5 Data Design) [fig:\allowbreak{}erd] & ingestion/\allowbreak{} & T7 & designed & -- \\
+NFR-02 & Outage tolerance & Queue plus checkpoint reconciliation (ch5 Interfaces and Dependencies) [diagrams/\allowbreak{}05\_\allowbreak{}ingestion\_\allowbreak{}sequence.\allowbreak{}tex (unwired)] & ingestion/\allowbreak{} & T8 & designed & -- \\
+NFR-03 & Incremental correctness (>=99\% agreement with full rescan) & Incremental-vs-full equivalence as a reported metric (ch5 Architecture Decisions) & conflicts/\allowbreak{} & T11 & designed & -- \\
+NFR-04 & Graceful degradation with the model server down & Autonomy-ladder fallbacks; model-server failure behaviour (ch5 Architectural Components) [fig:\allowbreak{}autonomy-ladder] & verify/\allowbreak{} (planned) & -- & designed & -- \\
+NFR-05 & PM completes the acceptance task without developer help & UC-05 configuration approval; reviewer surface [fig:\allowbreak{}usecase] & ui/\allowbreak{} & -- & designed & -- \\
+NFR-06 & PM-directed prompts and human interventions reported separately & Three-loop metrics:\allowbreak{} interventions per 100 events, prompts per finding (TODO §1.1) & -- & -- & designed & -- \\
+NFR-07 & p95 pull-request analysis under 60 seconds (provisional) & Single-host performance budget (ch5 Architectural Components) & -- & -- & designed & -- \\
+NFR-08 & Single-host Docker Compose deployment including the model server & Deployment footprint (proposal §14) [diagrams/\allowbreak{}11\_\allowbreak{}deployment.\allowbreak{}tex (unwired)] & -- & -- & designed & -- \\
+NFR-09 & Read-only least-privilege scopes with tokens encrypted at rest & Inbound interface:\allowbreak{} read-only, least privilege, credentials held by one service (ch5 Interfaces) [fig:\allowbreak{}components] & Source adapters (ch1 module name) & -- & designed & -- \\
+NFR-10 & Artifact text treated as untrusted input, output schema enforced & Verdict schema validation at the gate (ch5 Process/\allowbreak{}Behavior Design) [fig:\allowbreak{}verifier-loop] & verify/\allowbreak{} (planned) & -- & designed & -- \\
+NFR-11 & No repository, ticket or design content leaves the deployment & Trust boundary around the deployment (ch5 System Architecture) [fig:\allowbreak{}layered-arch] & -- & -- & designed & -- \\
+NFR-12 & 100\% provenance on decisive verdicts, <=2\% unsupported assertions & Verdict/\allowbreak{}provenance gate; hard gate 1 (ch5 Process/\allowbreak{}Behavior Design) [fig:\allowbreak{}verifier-loop] & verify/\allowbreak{} (planned) & -- & designed & -- \\
+NFR-13 & At least 80\% correct abstention on labelled ambiguous cases & INSUFFICIENT\_\allowbreak{}EVIDENCE as a first-class verdict (ch5 Design Evolution) [fig:\allowbreak{}verifier-loop] & verify/\allowbreak{} (planned) & -- & designed & -- \\
+NFR-14 & Same packet, pinned model and settings give the same verdict class & Packet manifest plus pinned model settings (ch5 Data Design) [fig:\allowbreak{}erd] & verify/\allowbreak{} (planned) & -- & designed & -- \\
+\hline
+\end{longtable}
+\endgroup
