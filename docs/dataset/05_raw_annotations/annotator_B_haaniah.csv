@@ -1,16 +1,16 @@
 case_id,annotator,manual_version,started_at,verdict,freshness_state,review_required,reason_code,relevant_span_ids,justification,minutes_spent
-P01,,pilot-0.1,,,,,,,,
-P02,,pilot-0.1,,,,,,,,
-P03,,pilot-0.1,,,,,,,,
-P04,,pilot-0.1,,,,,,,,
-P05,,pilot-0.1,,,,,,,,
-P06,,pilot-0.1,,,,,,,,
-P07,,pilot-0.1,,,,,,,,
-P08,,pilot-0.1,,,,,,,,
-P09,,pilot-0.1,,,,,,,,
-P10,,pilot-0.1,,,,,,,,
-P11,,pilot-0.1,,,,,,,,
-P12,,pilot-0.1,,,,,,,,
-P13,,pilot-0.1,,,,,,,,
-P14,,pilot-0.1,,,,,,,,
-P15,,pilot-0.1,,,,,,,,
+P01,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,SUPPORTED,CURRENT,false,,P01-S1;P01-S2,"The clearErrors and setError implementations in P01-S1 and P01-S2 create new errors objects, and the targeted ""new errors reference"" test passed (2 tests).",8
+P02,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,SUPPORTED,CURRENT,false,,P02-S1;P02-S2,"P02-S1 updates field dirty state and P02-S2 computes form dirty state without suppressing the disabled-form path; the targeted disabled-form tests passed (3 tests).",8
+P03,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,SUPPORTED,CURRENT,false,,P03-S1,"P03-S1 resets the state notification name to undefined before publishing reset values, and the targeted subscribe test passed.",8
+P04,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,CONTRADICTED,CURRENT,false,,P04-S1;P04-S2,"P04-S2 returns false for _getDirty when the form is disabled, so formState.isDirty is not updated; the targeted test failed with formState.isDirty false while fieldState.isDirty was true.",8
+P05,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,CONTRADICTED,CURRENT,false,,P05-S1,"P05-S1 removes name and type from the reset notification, allowing the previous field name to leak; the targeted subscribe test failed because the callback received that previous name.",8
+P06,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,SUPPORTED,CURRENT,false,,P06-S1;P06-S2;P06-S3,"P06-S1 supplies the react-server entry, P06-S2 adds its Rollup build, and P06-S3 exposes the react-server export condition. Together they directly establish the requested package build path.",8
+P07,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,INSUFFICIENT_EVIDENCE,STALE,true,SOURCE_STALE,P07-S1;P07-S2;P07-S3,"P07-S1 and P07-S2 support the reference update and P07-S3 is an error-setting path, but event 3 shows the issue was edited after the merge and its current wording could not be re-read.",8
+P08,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,SUPPORTED,CURRENT,false,,P08-S1,"P08-S1 sets the bound-text mask to user-space coordinates for the axis-aligned arrow case, and the targeted SVG export test passed.",8
+P09,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,CONTRADICTED,CURRENT,false,,P09-S1,"P09-S1 lacks the mask fix at the evaluated head, and the targeted export test failed with the maskUnits value null instead of userSpaceOnUse.",8
+P10,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,INSUFFICIENT_EVIDENCE,CURRENT,true,MISSING_TEST,P10-S2;P10-S3,"P10-S2 passes toast props through App re-renders and P10-S3 schedules and cleans up the timer, but no test exercises whether an App re-render restarts the timer.",8
+P11,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,INSUFFICIENT_EVIDENCE,CURRENT,true,MISSING_TEST,P11-S1;P11-S2;P11-S3,"P11-S3 retains the completed trail and P11-S1 updates its animation while P11-S2 can clear trails, but no test verifies visibility after pointerup followed by fade-out.",8
+P12,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,SUPPORTED,CURRENT,false,,P12-S1,"P12-S1 closes the non-searchable Select on blur, and the targeted non-searchable Select tests passed (3 tests).",8
+P13,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,PARTIAL,CURRENT,true,,P13-S1;P13-S2,"P13-S1 correctly applies minDate's time when the day matches, but P13-S2 compares exact values rather than the calendar day and breaks maxDate handling; min tests passed while max tests failed.",8
+P14,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,CONTRADICTED,CURRENT,false,,P14-S1,"P14-S1 skips string clamping when trimLeadingZeroesOnBlur is false, and the targeted test for clamping string values on blur failed.",8
+P15,Haaniah,pilot-0.1,2026-10-09T15:36:48+05:00,INSUFFICIENT_EVIDENCE,CURRENT,true,AMBIGUOUS_LINK,P15-S1,"P15-S1 is the relevant Select blur path, but the change only edits unrelated Combobox option-navigation spans and no blur test is available, so the link between the change and criterion is ambiguous.",8
