@@ -60,8 +60,16 @@ docker run --rm -v "$PWD":/work:ro -v /tmp/trace-tex:/t -w /t texlive/texlive:la
   pdflatex -interaction=nonstopmode -halt-on-error wrapper.tex
 ```
 
-Last verified: compiles clean (no errors, no overfull boxes, 8 pages) under
-`texlive/texlive:latest-medium`, 2026-10-09.
+Last verified 2026-10-09, both under `texlive/texlive:latest-medium`:
+
+- standalone: compiles with `-halt-on-error`, no errors, no overfull boxes, 9 pages;
+- in context: `\input{../traceability/chapter4_table}` swapped in for the existing
+  `tab:traceability` block in a throwaway copy of the full report builds to the same
+  error set as the unmodified report (the only errors are pre-existing: chapters 1 and 3
+  use `\toprule`/`\midrule`/`\bottomrule` without `\usepackage{booktabs}`, 84 undefined
+  control sequences), the label resolves as Table 4.9 on printed page 41, and both ends
+  of the table render correctly. This fragment needs only `longtable` + `array`, both
+  already in `main.tex`.
 
 ## Columns
 

@@ -374,6 +374,11 @@ def main() -> None:
         statuses[row["status"]] = statuses.get(row["status"], 0) + 1
     print(f"OK: {len(rows)} rows ({fr} FR + {nfr} NFR), no duplicate requirement_id")
     print("    status: " + ", ".join(f"{k}={v}" for k, v in sorted(statuses.items())))
+    gaps = {c: sum(1 for r in rows if r[c] == "--") for c in COLUMNS}
+    print(
+        "    '--' cells: "
+        + (", ".join(f"{c}={n}" for c, n in gaps.items() if n) or "none")
+    )
     print(f"    wrote {MD_PATH.relative_to(HERE.parent.parent)}")
     print(f"    wrote {TEX_PATH.relative_to(HERE.parent.parent)}")
 
