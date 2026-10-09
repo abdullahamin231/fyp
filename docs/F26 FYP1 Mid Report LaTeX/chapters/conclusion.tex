@@ -1,2 +1,75 @@
 \chapter{Conclusion}
-Summarize the problem, research findings, requirements, design, implementation completed so far, testing/validation status, risks, and planned continuation into FYP-2.
+\label{ch:conclusion}
+
+\section{Problem and Research Position}
+
+The problem this project addresses is that a single unit of work is recorded in
+three tools which version their own records independently, leaving the
+relationships between them in people's heads. The decision that fails as a
+result is the code review: a reviewer must decide whether one proposed change
+still matches the intent it claims to implement, from memory, across several
+interfaces, with nothing recording what evidence supported the decision.
+
+The research in Chapter~2 conceded the overlap rather than arguing it away.
+Commercial tools already compare a pull request against a linked issue, and one
+of them already returns an ``unclear'' outcome instead of forcing a verdict. The
+gap that survives that comparison is versioned provenance across tools,
+deterministic gating of model output against a stored evidence packet,
+reconciliation of asynchronous and imperfectly delivered events, and local
+execution. No public corpus labels a design version, a criterion, a diff and a
+test together, which is both the reason for this project's own evaluation data
+and the reason its claims have to be measured rather than asserted.
+
+\section{Requirements, Design and Implementation to Date}
+
+Chapters~4 and~5 froze the baseline: twenty-nine functional requirements and
+fourteen non-functional requirements with an acceptance check attached to each,
+a ten-layer architecture with a deployment boundary that only the read-only
+adapter and the outbound notification channel cross, a schema in which every
+association is a provenance-carrying edge, and a verification design in which
+the model is bounded on both sides --- retrieval decides what it may see, and a
+deterministic gate decides whether what it produced may be shown.
+
+What has been built in the first iteration is the reviewer surface: nineteen
+routes rendered against typed data that encodes the frozen label vocabulary, the
+design tokens ported from the exported screens, twelve committed diagrams, the
+requirements and design chapters, and the first validated package of evaluation
+data. The ingestion, evidence-graph and verification layers described in the
+design do not exist yet, and this report does not imply otherwise.
+
+\section{Testing and Validation Status}
+
+The artefacts that exist are checked and they pass: typecheck, lint and a
+production build that pre-renders every route; 138 integrity checks over the
+fifteen-case dataset pilot with zero failures; one of two blind annotation
+sheets complete, with the agreement statistic pending the second. Six defects
+are open with named owners, including a test module in the repository that
+cannot be collected and the absence of any CI. The claims that carry the
+project --- convergence under duplicate delivery, grounded verdicts, abstention
+quality, local inference cost --- remain design commitments with acceptance
+criteria attached, not measured results.
+
+\section{Risks Carried Forward}
+
+Three risks dominate. The hardware question is unanswered: no model has been
+downloaded, so the ceiling on verifier quality is unknown. The reliability and
+verification work has not started, which is why the iteration plan in
+Chapter~3 is reported with a declared variance instead of a completed status.
+And the comparable products have been read but not trialled, so the gap in
+Chapter~2 is documented rather than demonstrated under controlled conditions.
+
+\section{Continuation into FYP-2}
+
+The remaining plan in Chapter~10 is sequenced by dependency: contracts and CI
+first, then the ingestion reliability layer, then the graph and analyser, then
+the packet builder, verifier and gate, with the local-inference spike scheduled
+as early as a stable packet exists because its result bounds everything built
+after it. The evaluation set is frozen before any component is tuned against it,
+the two hard gates are enforced before any metric is reported, and the
+adaptation experiment will be reported under a rule written in advance, which
+means a negative result is an acceptable outcome.
+
+The project's position at this evaluation is therefore deliberate rather than
+defensive: a complete and defensible design, a working reviewer surface, an
+evaluated data protocol, and an honest statement of how much of the system
+remains to be built.
