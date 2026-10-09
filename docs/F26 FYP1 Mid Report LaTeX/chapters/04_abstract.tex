@@ -1,3 +1,21 @@
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
-\textbf{Replace this text with a concise summary of the problem, proposed solution, research gap, methodology/iteration approach, current implementation status, validation status, and expected continuation in FYP-2.}
+
+A software team records one unit of work across three tools --- a design file, a
+ticket and a repository --- and none of them holds the relationship between the
+others, so a reviewer must reconstruct by hand, across several interfaces,
+whether a proposed change still matches the intent it claims to implement. This
+report presents UNIFY, a locally deployable change-assurance system that
+reconciles asynchronous events from those tools into a versioned evidence graph
+and, for each atomic acceptance criterion, assembles a bounded evidence packet,
+runs a fixed-pass local verification loop over it, and passes the result through
+a deterministic gate that resolves every citation against the stored packet.
+Outcomes are restricted to supported, contradicted, partial or insufficient
+evidence, so abstention is a first-class result rather than a failure. Research
+against comparable products established that criterion-level checking already
+ships commercially; the differentiators claimed here are versioned provenance,
+deterministic gating, event reconciliation and local execution, each of which is
+measurable. At this evaluation the requirements, design, twelve diagrams,
+nineteen-route reviewer surface and a fifteen-case annotated data pilot exist
+and are verified by the checks reported in Chapter~8; the ingestion, evidence
+graph and verification layers remain to be built in FYP-2.
