@@ -66,9 +66,36 @@ via `/fonts/material-symbols-outlined.woff2`, so the app runs fully offline
 - Slack is delivery-only — never an input to reasoning.
 - No external image CDNs: avatars are initials, thumbnails are gradients.
 
+## Auth (Supabase)
+
+Email + password sign-in against the `unify` Supabase project (no email
+confirmation — auto-confirm is on). See `supabase/README.md` for the schema,
+RLS and the full rationale.
+
+```
+src/lib/supabase/client.ts   browser client (@supabase/supabase-js)
+src/lib/supabase/server.ts   server/route-handler client (@supabase/ssr)
+src/proxy.ts                 session refresh + route guard (PUBLIC_PATHS)
+src/app/login, /signup       auth pages (components/auth/auth-form.tsx)
+src/app/auth/callback         PKCE code exchange
+src/app/auth/signout          clear session → redirect
+```
+
+`src/proxy.ts` redirects any signed-out request to `/login?next=…`; only
+`/login`, `/signup` and `/auth/*` are public. The sign-out button is in the
+top bar of `components/layout/app-shell.tsx`.
+
+Env lives in `apps/web/.env.local` (gitignored):
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+**Creating a workspace:** call `supabase.rpc("create_workspace", { p_name, p_slug })`,
+not a direct `.insert().select()` — the latter hits a PostgREST
+data-modifying-CTE path where `auth.uid()` evaluates NULL in the RLS
+with-check. Full explanation in `supabase/README.md`.
+
 ## Status
 
-Screens are implemented against the Stitch reference with typed mock data.
-The next step is the API/contracts layer (`packages/contracts`, Zod) and the
-real ingestion/verdict back end; the mock modules are shaped so they can be
-swapped for a client without touching the screens.
+Auth is wired end-to-end (signup → session → guarded routes → sign-out).
+Screens still render typed mock data (`src/lib/mock/`); the next step is
+swapping those modules for the real API/contracts layer
+(`packages/contracts`, Zod) without touching the screens.
