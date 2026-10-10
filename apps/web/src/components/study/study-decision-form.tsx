@@ -54,7 +54,7 @@ export function StudyDecisionForm({
   return (
     <section
       id="decision-submission"
-      className="bg-surface-container rounded-xl p-6 shadow-xl space-y-5"
+      className="bg-surface-container rounded-xl p-4 shadow-xl space-y-4"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
@@ -70,7 +70,7 @@ export function StudyDecisionForm({
             </h3>
           </div>
         </div>
-        <span className="px-2 py-0.5 rounded bg-surface-container-highest text-outline font-mono-code text-[11px]">
+        <span className="px-2 py-0.5 rounded bg-surface-container-highest text-muted font-mono-code text-micro-label">
           Task {taskId} Final · {condition}
         </span>
       </div>
@@ -105,7 +105,7 @@ export function StudyDecisionForm({
                       {verdict.label}
                     </span>
                   </span>
-                  <span className="font-body-sm text-[11px] text-on-surface-variant pl-6">
+                  <span className="font-body-sm text-micro-label text-on-surface-variant pl-6">
                     {verdict.hint}
                   </span>
                 </label>
@@ -141,7 +141,7 @@ export function StudyDecisionForm({
         <div>
           <label className="font-body-sm text-body-sm font-semibold text-on-surface block mb-1.5">
             3. Required stakeholder notifications{" "}
-            <span className="font-mono-code text-[11px] text-on-surface-variant">
+            <span className="font-mono-code text-micro-label text-on-surface-variant">
               (select at least 2)
             </span>
           </label>
@@ -159,10 +159,10 @@ export function StudyDecisionForm({
                         : [...decision.stakeholders, person.id],
                     })
                   }
-                  className={`px-2.5 py-1 rounded font-mono-code text-[11px] flex items-center gap-1.5 transition ${
+                  className={`px-2.5 py-1 rounded font-mono-code text-micro-label flex items-center gap-1.5 transition ${
                     selected
                       ? "bg-surface-container-lowest text-on-surface"
-                      : "bg-surface-container-lowest text-outline hover:text-on-surface cursor-pointer"
+                      : "bg-surface-container-lowest text-muted hover:text-on-surface cursor-pointer"
                   }`}
                 >
                   <Icon
@@ -190,14 +190,14 @@ export function StudyDecisionForm({
             value={decision.justification}
             onChange={(event) => onChange({ justification: event.target.value })}
             placeholder="Enter justification based on the evidence you inspected (e.g. generate a patch PR bumping padding to 16px to match Figma v3.2, then notify the designer and assignee)…"
-            className="w-full p-3 rounded-lg bg-surface-container-lowest text-on-surface font-mono-code text-[12px] placeholder:text-outline focus:outline-none focus:bg-surface-container-high transition-colors"
+            className="w-full p-3 rounded-lg bg-surface-container-lowest text-on-surface font-mono-code text-[12px] placeholder:text-muted focus:outline-none focus:bg-surface-container-high transition-colors"
           />
         </div>
       </div>
 
       {/* Submission row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <div className="flex items-center gap-2 text-on-surface-variant font-mono-code text-[11px]">
+        <div className="flex items-center gap-2 text-on-surface-variant font-mono-code text-micro-label">
           <Icon name="verified_user" className="text-secondary text-[16px]" />
           <span>
             Subject P-14 · responses are timestamped and appended to the study dataset
@@ -207,7 +207,7 @@ export function StudyDecisionForm({
           type="button"
           onClick={onSubmit}
           disabled={submitting || complete}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-primary-container text-on-primary-container font-headline-sm text-[14px] font-semibold hover:bg-inverse-primary transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary-container text-on-primary-container font-headline-sm text-[14px] font-semibold hover:bg-inverse-primary transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {submitting ? (
             <>
@@ -229,7 +229,7 @@ export function StudyDecisionForm({
       </div>
 
       {!ready && !complete ? (
-        <p className="font-mono-code text-[11px] text-tertiary">
+        <p className="font-mono-code text-micro-label text-tertiary">
           Required outputs outstanding: verdict, root cause, ≥ 2 stakeholders, justification.
         </p>
       ) : null}

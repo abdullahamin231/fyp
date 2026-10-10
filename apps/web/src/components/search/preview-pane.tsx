@@ -64,7 +64,7 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
             Live Preview
           </span>
         </div>
-        <span className="font-mono-code text-[10px] text-outline uppercase tracking-wider">
+        <span className="font-mono-code text-eyebrow text-muted uppercase tracking-wider">
           Hover-linked
         </span>
       </div>
@@ -73,28 +73,28 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between gap-2">
           <span
-            className={`px-2 py-0.5 rounded font-mono-code text-[11px] font-bold truncate ${badgeToneClass[match.badgeTone]}`}
+            className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-bold truncate ${badgeToneClass[match.badgeTone]}`}
           >
             {match.badge}
           </span>
           <button
             type="button"
             onClick={copyId}
-            className="flex items-center gap-1 font-mono-code text-[11px] text-primary hover:text-primary-fixed shrink-0"
+            className="flex items-center gap-1 font-mono-code text-micro-label text-primary hover:text-primary-fixed shrink-0"
           >
             <span>{copied ? "Copied!" : match.id}</span>
             <Icon name="content_copy" className="text-[13px]" />
           </button>
         </div>
-        <h3 className="font-headline-sm text-headline-sm font-semibold text-on-surface leading-snug mt-1">
+        <h3 className="font-headline-sm text-headline-sm font-semibold text-on-surface leading-snug mt-1.5">
           {truncate(match.title, 120)}
         </h3>
-        <span className="font-mono-code text-[11px] text-outline mt-0.5">{match.meta}</span>
+        <span className="font-mono-code text-micro-label text-muted mt-0.5">{match.meta}</span>
       </div>
 
       {/* Snapshot blueprint */}
       <div className="relative rounded-lg overflow-hidden bg-surface-container-lowest p-2 shadow-inner">
-        <div className="flex items-center justify-between pb-1.5 px-1 text-[11px] font-mono-code text-outline">
+        <div className="flex items-center justify-between pb-1.5 px-1 text-micro-label font-mono-code text-muted">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-secondary" /> Packet snapshot
           </span>
@@ -102,7 +102,7 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
         </div>
         <div className="relative w-full h-36 rounded bg-surface-container-high overflow-hidden flex items-center justify-center">
           <svg
-            className="w-full h-full p-2 text-outline-variant"
+            className="w-full h-full p-2 text-muted"
             fill="none"
             viewBox="0 0 320 140"
             xmlns="http://www.w3.org/2000/svg"
@@ -128,10 +128,10 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
               x="35"
               y="48"
             />
-            <text className="fill-error font-mono-code text-[10px] font-bold" x="45" y="68">
+            <text className="fill-error font-mono-code text-micro-label font-bold" x="45" y="68">
               {truncate(`Matched: ${match.matched.join(", ")}`, 38)}
             </text>
-            <text className="fill-on-surface-variant font-mono-code text-[9px]" x="45" y="82">
+            <text className="fill-on-surface-variant font-mono-code text-micro-label" x="45" y="82">
               {truncate(
                 match.chain.length > 0
                   ? match.chain.map((node) => node.label).join(" ↔ ")
@@ -142,15 +142,15 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
             <rect className="fill-surface-bright" height="14" rx="3" width="48" x="180" y="100" />
             <rect className="fill-primary-container" height="14" rx="3" width="50" x="235" y="100" />
           </svg>
-          <span className="absolute bottom-1 right-2 font-mono-code text-[9px] text-outline bg-surface/80 px-1.5 py-0.5 rounded">
+          <span className="absolute bottom-1 right-2 font-mono-code text-micro-label text-muted bg-surface/80 px-1.5 py-0.5 rounded">
             Graph index live
           </span>
         </div>
       </div>
 
       {/* Provenance chain */}
-      <div className="bg-surface-container-lowest/60 p-3 rounded-lg flex flex-col gap-2">
-        <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+      <div className="bg-surface-container-lowest/60 p-3.5 rounded-lg flex flex-col gap-3">
+        <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
           Provenance graph chain
         </span>
         {match.chain.length === 0 ? (
@@ -169,7 +169,7 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
                   <span className="truncate text-on-surface">{node.label}</span>
                 </div>
                 {index < match.chain.length - 1 ? (
-                  <div className="flex justify-center text-outline py-0.5">
+                  <div className="flex justify-center text-muted py-0.5">
                     <Icon name="south" className="text-[14px]" />
                   </div>
                 ) : null}
@@ -181,14 +181,14 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
 
       {/* Matched signals */}
       <div className="flex flex-col gap-1.5">
-        <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+        <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
           Matched lexical signals
         </span>
         <div className="flex flex-wrap gap-1">
           {match.matched.map((signal) => (
             <span
               key={signal}
-              className="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-mono-code text-[11px]"
+              className="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-mono-code text-micro-label"
             >
               {signal}
             </span>
@@ -197,7 +197,7 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
       </div>
 
       {/* Quick actions */}
-      <div className="flex flex-col gap-2 pt-stack-compact">
+      <div className="flex flex-col gap-3 pt-stack-compact">
         {match.findingId ? (
           <Link
             href={`/conflicts/${match.findingId}`}
@@ -215,7 +215,7 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
             Open Primary Workspace Entity
           </button>
         )}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
             className="py-2 px-2 rounded bg-surface-container hover:bg-surface-bright text-on-surface font-body-sm text-body-sm font-medium flex items-center justify-center gap-1 transition-colors"

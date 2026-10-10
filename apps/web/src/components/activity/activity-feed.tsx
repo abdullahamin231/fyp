@@ -113,7 +113,6 @@ function FeedItem({
   const target = presentation?.target ?? toolLabel[event.tool];
   const verb = presentation?.verb ?? meta.verb;
   const findingId = event.findingId;
-  const showThumbnail = event.tool === "figma" && event.kind === "ingested";
 
   return (
     <div className="group flex gap-gutter py-stack-comfortable relative hover:bg-surface-container-lowest/50 rounded-lg transition-colors px-2 -mx-2">
@@ -122,7 +121,7 @@ function FeedItem({
       ) : null}
 
       <div className="relative z-10 flex flex-col items-center shrink-0">
-        <div className="w-12 h-12 rounded-full border border-outline-variant bg-gradient-to-br from-primary/40 to-secondary/20 grid place-items-center text-body-sm font-bold text-on-surface">
+        <div className="w-12 h-12 rounded-full border border-outline-variant bg-surface-container-highest grid place-items-center text-body-sm font-bold text-on-surface">
           {initialsOf(event.actor)}
         </div>
         <div className="absolute -bottom-1 -right-1 bg-surface-container-highest border border-outline-variant p-1 rounded-md">
@@ -141,12 +140,12 @@ function FeedItem({
               {target}
             </span>
           </div>
-          <span className="font-body-sm text-body-sm text-outline shrink-0">
+          <span className="font-body-sm text-body-sm text-muted shrink-0">
             {relativeTime(event.timestamp)}
           </span>
         </div>
 
-        <div className="font-headline-sm text-headline-sm text-on-surface mt-1">
+        <div className="font-headline-sm text-headline-sm text-on-surface mt-1.5">
           {event.title}
         </div>
 
@@ -174,16 +173,10 @@ function FeedItem({
         </div>
 
         <div className="flex items-start gap-2 mt-2 text-on-surface-variant">
-          <Icon name="notes" className="text-[14px] mt-0.5 shrink-0 text-outline" />
+          <Icon name="notes" className="text-[14px] mt-0.5 shrink-0 text-muted" />
           <p className="font-body-sm text-body-sm italic leading-relaxed">{event.detail}</p>
         </div>
 
-        {showThumbnail ? (
-          <div
-            className="mt-2 h-24 rounded-lg border border-outline-variant bg-gradient-to-br from-tertiary/30 via-primary-container/25 to-secondary/20"
-            aria-hidden
-          />
-        ) : null}
       </div>
     </div>
   );
@@ -250,7 +243,7 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
       {/* Feed */}
       <section className="flex flex-col min-w-0">
         {/* Daily pulse */}
-        <div className="mb-gutter p-6 bg-surface-container-high rounded-xl border border-outline-variant relative overflow-hidden group">
+        <div className="mb-gutter p-4 bg-surface-container-high rounded-xl border border-outline-variant relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
             <Icon name="auto_awesome" className="text-4xl text-primary" fill />
           </div>
@@ -261,7 +254,7 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
                 <h3 className="font-headline-sm text-headline-sm text-on-surface">Daily Pulse</h3>
-                <span className="font-label-caps text-label-caps text-outline uppercase">
+                <span className="font-label-caps text-label-caps text-muted uppercase">
                   AI Generated • 10:00 AM
                 </span>
               </div>
@@ -293,15 +286,15 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
               { id: "delivery", label: "Delivery", count: counts.get("delivery") ?? 0 },
             ]}
           />
-          <span className="font-mono-code text-[11px] text-on-surface-variant">
+          <span className="font-mono-code text-micro-label text-on-surface-variant">
             {filtered.length} of {events.length} events
           </span>
         </div>
 
         {/* Timeline */}
         {filtered.length === 0 ? (
-          <div className="rounded-xl border border-outline-variant/40 bg-surface-container-low p-8 text-center">
-            <Icon name="filter_alt_off" className="text-3xl text-outline" />
+          <div className="rounded-xl border border-outline-variant/40 bg-surface-container-low p-4 text-center">
+            <Icon name="filter_alt_off" className="text-3xl text-muted" />
             <p className="font-body-md text-body-md text-on-surface-variant mt-2">
               No activity matches the current filters.
             </p>
@@ -316,7 +309,7 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
           <div className="flex flex-col">
             {groups.map(([key, items]) => (
               <div key={key}>
-                <h2 className="font-label-caps text-label-caps text-outline uppercase mt-gutter mb-stack-comfortable tracking-widest border-b border-outline-variant pb-2">
+                <h2 className="font-label-caps text-label-caps text-muted uppercase mt-gutter mb-stack-comfortable tracking-widest border-b border-outline-variant pb-2">
                   {dayHeading(items[0].timestamp)}
                 </h2>
                 <div className="space-y-0">
@@ -333,12 +326,12 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
             ))}
             <div className="flex gap-gutter py-stack-comfortable mt-gutter">
               <div className="w-12 h-12 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center shrink-0">
-                <Icon name="more_horiz" className="text-outline" />
+                <Icon name="more_horiz" className="text-muted" />
               </div>
               <div className="flex-1 pt-3">
                 <Link
                   href="/audit"
-                  className="font-body-md text-body-md text-outline hover:text-primary transition-colors"
+                  className="font-body-md text-body-md text-muted hover:text-primary transition-colors"
                 >
                   Older events live in the Audit Trail →
                 </Link>
@@ -349,14 +342,14 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
       </section>
 
       {/* Filters sidebar */}
-      <aside className="rounded-xl bg-surface-container-low border border-outline-variant/30 p-6 flex flex-col gap-gutter shadow-sm">
+      <aside className="rounded-xl bg-surface-container-low border border-outline-variant/30 p-4 flex flex-col gap-gutter shadow-sm">
         <div className="space-y-gutter">
           <div>
             <h4 className="font-label-caps text-label-caps text-on-surface uppercase mb-stack-comfortable">
               Filters
             </h4>
             <div className="space-y-stack-compact">
-              <label className="flex items-center justify-between p-3 rounded-lg bg-surface-container hover:bg-surface-container-high cursor-pointer transition-colors border border-outline-variant/30">
+              <label className="flex items-center justify-between p-4 rounded-lg bg-surface-container hover:bg-surface-container-high cursor-pointer transition-colors border border-outline-variant/30">
                 <span className="flex items-center gap-3">
                   <Icon name="verified_user" className="text-primary" />
                   <span className="font-body-md text-body-md text-on-surface">Human decisions</span>
@@ -368,7 +361,7 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
                   className="rounded border-outline-variant bg-surface-container-lowest text-primary focus:ring-primary h-4 w-4 accent-primary"
                 />
               </label>
-              <label className="flex items-center justify-between p-3 rounded-lg bg-surface-container hover:bg-surface-container-high cursor-pointer transition-colors border border-outline-variant/30">
+              <label className="flex items-center justify-between p-4 rounded-lg bg-surface-container hover:bg-surface-container-high cursor-pointer transition-colors border border-outline-variant/30">
                 <span className="flex items-center gap-3">
                   <Icon name="error_outline" className="text-error" />
                   <span className="font-body-md text-body-md text-on-surface">
@@ -424,14 +417,14 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
               {TEAM.map((member) => (
                 <div key={member.name} className="flex items-center justify-between group">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full border border-outline-variant bg-gradient-to-br from-primary/40 to-secondary/20 grid place-items-center text-[10px] font-bold text-on-surface">
+                    <div className="w-8 h-8 rounded-full border border-outline-variant bg-surface-container-highest grid place-items-center text-micro-label font-bold text-on-surface">
                       {initialsOf(member.name)}
                     </div>
                     <span className="flex flex-col">
                       <span className="font-body-sm text-body-sm text-on-surface-variant group-hover:text-on-surface">
                         {member.name}
                       </span>
-                      <span className="font-mono-code text-[10px] text-outline">{member.role}</span>
+                      <span className="font-mono-code text-micro-label text-muted">{member.role}</span>
                     </span>
                   </div>
                   <span

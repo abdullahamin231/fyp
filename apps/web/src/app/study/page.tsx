@@ -10,14 +10,7 @@ export const metadata: Metadata = {
 
 export default function StudyPage() {
   return (
-    <AppShell
-      action={
-        <span className="font-mono-code text-[11px] text-error flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse" />
-          REC · P-14
-        </span>
-      }
-    >
+    <AppShell>
       <StudyRunner />
     </AppShell>
   );

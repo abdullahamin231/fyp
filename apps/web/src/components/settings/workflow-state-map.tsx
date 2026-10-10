@@ -63,7 +63,7 @@ export function WorkflowStateMap() {
     <>
       {/* Canonical workflow state map */}
       <section className="rounded-xl bg-surface-container-low shadow-sm overflow-hidden flex flex-col">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 pb-4 border-b border-outline-variant">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 pb-4 border-b border-outline-variant">
           <div className="flex flex-col">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded bg-primary-container/20 text-primary flex items-center justify-center">
@@ -112,7 +112,7 @@ export function WorkflowStateMap() {
                   </td>
                   <td className="py-3 px-4">
                     <span
-                      className={`px-2 py-0.5 rounded font-mono-code text-[11px] font-semibold ${canonicalTone[mapping.canonical]}`}
+                      className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-semibold ${canonicalTone[mapping.canonical]}`}
                     >
                       {mapping.canonical}
                     </span>
@@ -123,13 +123,13 @@ export function WorkflowStateMap() {
                         mapping.drives.map((policy) => (
                           <span
                             key={policy}
-                            className="px-1.5 py-0.5 rounded bg-surface-container-highest font-mono-code text-[11px] text-on-surface"
+                            className="px-1.5 py-0.5 rounded bg-surface-container-highest font-mono-code text-micro-label text-on-surface"
                           >
                             {policy}
                           </span>
                         ))
                       ) : (
-                        <span className="font-mono-code text-[11px] text-outline">—</span>
+                        <span className="font-mono-code text-micro-label text-muted">—</span>
                       )}
                     </span>
                   </td>
@@ -138,14 +138,14 @@ export function WorkflowStateMap() {
             </tbody>
           </table>
         </div>
-        <div className="px-4 py-3 border-t border-outline-variant/60 font-mono-code text-[11px] text-on-surface-variant">
+        <div className="px-4 py-3 border-t border-outline-variant/60 font-mono-code text-micro-label text-on-surface-variant">
           mapping changes apply to new evaluations only — open findings keep the map they were
           scored with
         </div>
       </section>
 
       {/* Grace-period defaults */}
-      <section className="rounded-xl bg-surface-container-low p-5 shadow-sm flex flex-col gap-4">
+      <section className="rounded-xl bg-surface-container-low p-4 shadow-sm flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-col">
             <div className="flex items-center gap-2.5">
@@ -161,7 +161,7 @@ export function WorkflowStateMap() {
               Workspace defaults; individual policies may override them.
             </p>
           </div>
-          <span className="font-mono-code text-[12px] text-outline self-start">
+          <span className="font-mono-code text-[12px] text-muted self-start">
             applied after the reconciliation pass
           </span>
         </div>
@@ -178,7 +178,7 @@ export function WorkflowStateMap() {
                     {policy.id}
                   </span>
                 </span>
-                <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                   Grace
                 </span>
               </div>
@@ -199,7 +199,7 @@ export function WorkflowStateMap() {
                   }
                   className="w-20 px-2 py-1.5 rounded bg-surface-container-lowest border border-outline-variant font-mono-code text-[13px] text-on-surface focus:outline-none focus:border-primary"
                 />
-                <span className="font-mono-code text-[11px] text-outline">
+                <span className="font-mono-code text-micro-label text-muted">
                   minutes · default {policy.graceMinutes}
                 </span>
               </div>

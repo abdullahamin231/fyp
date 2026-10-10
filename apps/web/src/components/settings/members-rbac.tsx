@@ -146,7 +146,7 @@ export function MembersRbac() {
               4 roles
             </span>
           </div>
-          <span className="font-mono-code text-[11px] text-on-surface-variant">
+          <span className="font-mono-code text-micro-label text-on-surface-variant">
             least-privilege by default
           </span>
         </div>
@@ -160,7 +160,7 @@ export function MembersRbac() {
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${role.iconClass}`}>
                   <Icon name={role.icon} className="text-[20px]" />
                 </div>
-                <span className="font-mono-code text-[11px] text-on-surface-variant">
+                <span className="font-mono-code text-micro-label text-on-surface-variant">
                   {role.count} members
                 </span>
               </div>
@@ -176,7 +176,7 @@ export function MembersRbac() {
                 {role.grants.map((grant) => (
                   <span
                     key={grant}
-                    className="px-2 py-0.5 rounded bg-surface-container-lowest font-mono-code text-[11px] text-on-surface-variant"
+                    className="px-2 py-0.5 rounded bg-surface-container-lowest font-mono-code text-micro-label text-on-surface-variant"
                   >
                     {grant}
                   </span>
@@ -202,14 +202,14 @@ export function MembersRbac() {
             <div className="relative">
               <Icon
                 name="search"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[16px]"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[16px]"
               />
               <input
                 type="text"
                 value={query}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
                 placeholder="Search member, email, or team..."
-                className="w-56 pl-9 pr-3 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-mono-code text-[12px] focus:outline-none placeholder:text-outline"
+                className="w-56 pl-9 pr-3 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-mono-code text-[12px] focus:outline-none placeholder:text-muted"
               />
             </div>
             <div className="relative">
@@ -226,7 +226,7 @@ export function MembersRbac() {
               </select>
               <Icon
                 name="expand_more"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -238,7 +238,7 @@ export function MembersRbac() {
                   if (e.key === "Enter") invite();
                 }}
                 placeholder="invite@unify.dev"
-                className="w-44 px-3 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-mono-code text-[12px] focus:outline-none placeholder:text-outline"
+                className="w-44 px-3 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-mono-code text-[12px] focus:outline-none placeholder:text-muted"
               />
               <select
                 aria-label="Role for invite"
@@ -267,11 +267,11 @@ export function MembersRbac() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-container-lowest/80 text-on-surface-variant font-label-caps text-label-caps uppercase tracking-wider">
-                <th className="py-3 px-4 min-w-[260px]">Member</th>
-                <th className="py-3 px-3 w-48">Role</th>
-                <th className="py-3 px-3 w-56">Team</th>
-                <th className="py-3 px-3 w-32">Status</th>
-                <th className="py-3 px-4 text-right w-24">Actions</th>
+                <th className="py-4 px-4 min-w-[260px]">Member</th>
+                <th className="py-4 px-4 w-48">Role</th>
+                <th className="py-4 px-4 w-56">Team</th>
+                <th className="py-4 px-4 w-32">Status</th>
+                <th className="py-4 px-4 text-right w-24">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/40 text-on-surface font-body-md text-body-md">
@@ -287,22 +287,22 @@ export function MembersRbac() {
                     key={member.id}
                     className="hover:bg-surface-container transition-colors align-middle"
                   >
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <span className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container ring-2 ring-surface-container-low grid place-items-center text-[11px] font-bold shrink-0">
+                        <span className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container ring-2 ring-surface-container-low grid place-items-center text-micro-label font-bold shrink-0">
                           {initials}
                         </span>
                         <div className="flex flex-col min-w-0">
                           <span className="text-body-sm font-semibold text-on-surface truncate">
                             {member.name}
                           </span>
-                          <span className="font-mono-code text-[11px] text-outline truncate">
+                          <span className="font-mono-code text-micro-label text-muted truncate">
                             {member.email}
                           </span>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3.5 px-4">
                       <div className="relative">
                         <select
                           aria-label={`Role for ${member.name}`}
@@ -318,21 +318,21 @@ export function MembersRbac() {
                         </select>
                         <Icon
                           name="expand_more"
-                          className="absolute right-1.5 top-1/2 -translate-y-1/2 text-outline text-[14px] pointer-events-none"
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted text-[14px] pointer-events-none"
                         />
                       </div>
                     </td>
-                    <td className="py-3 px-3 font-mono-code text-[12px] text-on-surface-variant">
+                    <td className="py-3.5 px-4 font-mono-code text-[12px] text-on-surface-variant">
                       {member.team}
                     </td>
-                    <td className="py-3 px-3">
+                    <td className="py-3.5 px-4">
                       <Badge tone={statusTone[member.status]}>{member.status}</Badge>
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right">
                       <button
                         title={`Remove ${member.name}`}
                         onClick={() => remove(member.id)}
-                        className="p-1.5 rounded text-outline hover:text-error hover:bg-surface-container-highest transition-colors"
+                        className="p-1.5 rounded text-muted hover:text-error hover:bg-surface-container-highest transition-colors"
                       >
                         <Icon name="person_remove" className="text-[18px]" />
                       </button>
@@ -342,7 +342,7 @@ export function MembersRbac() {
               })}
               {visible.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-body-sm text-on-surface-variant">
+                  <td colSpan={5} className="py-6 text-center text-body-sm text-on-surface-variant">
                     No members match this filter.
                   </td>
                 </tr>
@@ -350,7 +350,7 @@ export function MembersRbac() {
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/60 font-mono-code text-[11px] text-on-surface-variant">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/60 font-mono-code text-micro-label text-on-surface-variant">
           <span>role changes are recorded in the audit trail with actor and timestamp</span>
           <span>RBAC cache refreshed 40s ago</span>
         </div>

@@ -54,14 +54,14 @@ export function InspectModal({ event, onClose }: { event: AuditEvent | null; onC
             type="button"
             onClick={onClose}
             aria-label="Close inspector"
-            className="p-1 rounded hover:bg-surface-bright text-outline hover:text-on-surface transition-colors"
+            className="p-1 rounded hover:bg-surface-bright text-muted hover:text-on-surface transition-colors"
           >
             <Icon name="close" className="text-[20px]" />
           </button>
         </div>
 
-        <div className="flex items-center justify-between bg-surface-container-lowest px-3 py-2 rounded font-mono-code text-[11px] gap-3">
-          <span className="text-outline">VERIFICATION HASH:</span>
+        <div className="flex items-center justify-between bg-surface-container-lowest px-3 py-2 rounded font-mono-code text-micro-label gap-3">
+          <span className="text-muted">VERIFICATION HASH:</span>
           <span className="text-secondary font-medium truncate">0x{event.hash}</span>
         </div>
 
@@ -72,7 +72,7 @@ export function InspectModal({ event, onClose }: { event: AuditEvent | null; onC
         </div>
 
         <div className="flex items-center justify-between pt-stack-compact gap-3 flex-wrap">
-          <span className="font-body-sm text-body-sm text-outline flex items-center gap-1">
+          <span className="font-body-sm text-body-sm text-muted flex items-center gap-1">
             <Icon name="check_circle" className="text-[15px] text-secondary" />
             Redacted Vendor Secrets: None Present
           </span>
@@ -117,7 +117,7 @@ export function DiffModal({ event, onClose }: { event: AuditEvent | null; onClos
             type="button"
             onClick={onClose}
             aria-label="Close diff"
-            className="p-1 rounded hover:bg-surface-bright text-outline hover:text-on-surface transition-colors"
+            className="p-1 rounded hover:bg-surface-bright text-muted hover:text-on-surface transition-colors"
           >
             <Icon name="close" className="text-[20px]" />
           </button>
@@ -135,7 +135,7 @@ export function DiffModal({ event, onClose }: { event: AuditEvent | null; onClos
         </div>
 
         <div className="flex items-center justify-between gap-3 flex-wrap pt-stack-compact">
-          <span className="font-mono-code text-[11px] text-outline truncate">{event.hash}</span>
+          <span className="font-mono-code text-micro-label text-muted truncate">{event.hash}</span>
           <button
             type="button"
             onClick={onClose}

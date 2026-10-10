@@ -233,15 +233,15 @@ export function SearchWorkspace() {
       <div className="bg-surface-container-low rounded-xl p-margin-page shadow-xl flex flex-col gap-stack-comfortable">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-stack-compact">
-            <span className="font-mono-code text-[11px] uppercase tracking-wider text-secondary font-semibold">
+            <span className="font-mono-code text-eyebrow uppercase tracking-wider text-secondary font-semibold">
               Workspace Query Engine
             </span>
-            <span className="text-outline-variant font-mono-code text-[11px]">/</span>
-            <span className="font-mono-code text-[11px] text-on-surface-variant">
+            <span className="text-outline font-mono-code text-micro-label">/</span>
+            <span className="font-mono-code text-micro-label text-on-surface-variant">
               {searchMeta.engine}
             </span>
           </div>
-          <div className="flex items-center gap-stack-compact text-outline font-mono-code text-[11px] flex-wrap">
+          <div className="flex items-center gap-stack-compact text-muted font-mono-code text-micro-label flex-wrap">
             <span className="flex items-center gap-1 bg-surface-container-highest px-2 py-0.5 rounded text-on-surface-variant">
               <Icon name="keyboard" className="text-[13px]" /> ↑↓ Navigate
             </span>
@@ -268,7 +268,7 @@ export function SearchWorkspace() {
               setPage(0);
             }}
             placeholder="Search artifacts, conflicts, links, policies or type-syntax e.g. type:pr tool:figma..."
-            className="w-full pl-14 pr-32 py-3.5 bg-surface-container-lowest text-on-surface font-headline-sm text-headline-sm rounded-lg focus:outline-none focus:bg-surface-container shadow-inner transition-colors placeholder:text-outline placeholder:text-body-sm"
+            className="w-full pl-14 pr-32 py-3.5 bg-surface-container-lowest text-on-surface font-headline-sm text-headline-sm rounded-lg focus:outline-none focus:bg-surface-container shadow-inner transition-colors placeholder:text-muted placeholder:text-body-sm"
           />
           <div className="absolute right-3 flex items-center gap-stack-compact">
             <button
@@ -287,7 +287,7 @@ export function SearchWorkspace() {
 
         {/* Query token pills */}
         <div className="flex items-center gap-stack-compact flex-wrap text-body-sm">
-          <span className="text-outline font-mono-code text-[11px] uppercase tracking-wider mr-1">
+          <span className="text-muted font-mono-code text-eyebrow uppercase tracking-wider mr-1">
             Query tokens:
           </span>
           {activeTokens.map((token) => (
@@ -305,7 +305,7 @@ export function SearchWorkspace() {
                 {token.key}:
               </span>
               {token.value}
-              <Icon name="close" className="text-[14px] text-outline hover:text-error" />
+              <Icon name="close" className="text-[14px] text-muted hover:text-error" />
             </button>
           ))}
           {suggestions.map((token) => (
@@ -333,8 +333,8 @@ export function SearchWorkspace() {
                 {searchMeta.latencyMs}ms
               </span>
             </span>
-            <span className="text-outline-variant font-mono-code text-[11px]">•</span>
-            <span className="font-mono-code text-[11px] text-outline">
+            <span className="text-outline font-mono-code text-micro-label">•</span>
+            <span className="font-mono-code text-micro-label text-muted">
               Deterministic graph index SHA:{" "}
               <span className="text-on-surface-variant">{searchMeta.indexSha}</span>
             </span>

@@ -23,7 +23,7 @@ const tools: ToolCard[] = [
     rows: [
       { label: "Commit author:", value: "Verified GPG", tone: "text-secondary" },
       { label: "Mapped repos:", value: "14 repositories", tone: "text-on-surface font-bold" },
-      { label: "Scopes:", value: "repo, read:org, wf", tone: "text-outline truncate max-w-[140px]" },
+      { label: "Scopes:", value: "repo, read:org, wf", tone: "text-muted truncate max-w-[140px]" },
     ],
   },
   {
@@ -34,7 +34,7 @@ const tools: ToolCard[] = [
     rows: [
       { label: "Permissions:", value: "Viewer & commenter", tone: "text-on-surface font-medium" },
       { label: "Mapped teams:", value: "3 design spaces", tone: "text-on-surface font-bold" },
-      { label: "Token TTL:", value: "Expires in 42d", tone: "text-outline" },
+      { label: "Token TTL:", value: "Expires in 42d", tone: "text-muted" },
     ],
   },
   {
@@ -56,7 +56,7 @@ const tools: ToolCard[] = [
     rows: [
       { label: "Channel binding:", value: "#core-drift-feed", tone: "text-on-surface" },
       { label: "Direct alerts:", value: "Outbound DMs enabled", tone: "text-secondary font-medium" },
-      { label: "Quiet hours:", value: "22:00 – 07:00 PST", tone: "text-outline" },
+      { label: "Quiet hours:", value: "22:00 – 07:00 PST", tone: "text-muted" },
     ],
   },
 ];
@@ -106,7 +106,7 @@ export function ConnectedTools() {
         return (
           <div
             key={tool.id}
-            className="rounded-xl bg-surface-container p-5 flex flex-col justify-between shadow-md hover:shadow-xl transition-all group"
+            className="rounded-xl bg-surface-container p-4 flex flex-col justify-between shadow-md hover:shadow-xl transition-all group"
           >
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -118,10 +118,10 @@ export function ConnectedTools() {
                     <span className="font-headline-sm text-headline-sm text-on-surface block">
                       {tool.name}
                     </span>
-                    <span className="font-mono-code text-[12px] text-outline">{tool.handle}</span>
+                    <span className="font-mono-code text-[12px] text-muted">{tool.handle}</span>
                   </div>
                 </div>
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary/10 text-secondary font-label-caps text-[10px] font-bold">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary/10 text-secondary font-label-caps text-eyebrow font-bold">
                   <span
                     className={`w-1.5 h-1.5 rounded-full bg-secondary ${
                       tool.id === "github" ? "animate-pulse" : ""

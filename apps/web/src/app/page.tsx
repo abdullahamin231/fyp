@@ -1,64 +1,72 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
-import { Badge, ToolPill } from "@/components/ui/badge";
-import { PageHeader } from "@/components/ui/stat-card";
-import { SyncToast } from "@/components/dashboard/sync-toast";
 import { findings } from "@/lib/mock/findings";
-import { activity } from "@/lib/mock/activity";
+import { VERDICTS, type Severity, type Verdict } from "@/lib/types";
 
-const critical = findings.filter(
-  (f) => f.status === "open" && (f.severity === "critical" || f.severity === "warning"),
-);
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description:
+    "Unified dashboard — decisive findings, verdict distribution and the cross-platform evidence graph.",
+};
 
-const progress = [
-  { label: "Design Flow", value: "82%", width: 82, tone: "bg-secondary", delta: "↑ 4%", deltaTone: "text-secondary" },
-  { label: "Implementation", value: "65%", width: 65, tone: "bg-primary", delta: "↑ 12%", deltaTone: "text-primary" },
-  { label: "Tickets Done", value: "14/20", width: 70, tone: "bg-tertiary", delta: "Pending", deltaTone: "text-tertiary" },
-];
+/* ------------------------------------------------------------------ *
+ * Everything on this screen is derived from the typed mock layer in
+ * `src/lib/mock/` — the same shapes the API will return. No screen-local
+ * filler copy or invented widget data.
+ * ------------------------------------------------------------------ */
 
-const githubRepos = [
-  { name: "unify-core/main", branch: "feat: websocket-sync", age: "4m ago", status: "PASSED" },
-  { name: "unify-ui/refactor", branch: "fix: bento-spacing", age: "12m ago", status: "RUNNING" },
-  { name: "unify-web/release", branch: "chore: cut v2.0.1", age: "1h ago", status: "PASSED" },
-];
-
-const jiraTickets = [
-  { key: "PROJ-88", summary: "Checkout modal step indicator", state: "In Review", priority: "P1", tone: "border-primary" },
-  { key: "PROJ-91", summary: "Watcher mute controls", state: "In Progress", priority: "P2", tone: "border-tertiary" },
-  { key: "PROJ-102", summary: "Event contract priority field", state: "Todo", priority: "P3", tone: "border-outline-variant" },
-];
-
-const figmaUpdates = [
-  { name: "CheckoutModal_v3", meta: "Updated by Haaniah • 2h ago", swatch: "from-[#f24e1e]/40 to-[#4f46e5]/20" },
-  { name: "System Tokens / Spacing", meta: "Updated by Mishal • 5h ago", swatch: "from-secondary/30 to-primary-container/30" },
-];
-
-const slackMessages = [
-  {
-    author: "Jordan T.",
-    time: "10:45 AM",
-    initials: "JT",
-    body: (
-      <>
-        Hey <span className="text-primary">@Alex</span>, the{" "}
-        <span className="text-secondary">#PR-142</span> build is failing on staging. Can you take a
-        look?
-      </>
-    ),
+const verdictMeta: Record<
+  Verdict,
+  { label: string; short: string; color: string; bar: string; icon: string }
+> = {
+  SUPPORTED: {
+    label: "Supported",
+    short: "SUPPORTED",
+    color: "text-verdict-supported",
+    bar: "bg-verdict-supported",
+    icon: "check_circle",
   },
-  {
-    author: "Maria G.",
-    time: "9:12 AM",
-    initials: "MG",
-    body: (
-      <>
-        Just pushed the final frames for the <span className="text-primary">#unify-v2</span> release.
-      </>
-    ),
+  CONTRADICTED: {
+    label: "Contradicted",
+    short: "CONTRADICTED",
+    color: "text-verdict-contradicted",
+    bar: "bg-verdict-contradicted",
+    icon: "cancel",
   },
-];
+  PARTIAL: {
+    label: "Partial",
+    short: "PARTIAL",
+    color: "text-verdict-partial",
+    bar: "bg-verdict-partial",
+    icon: "adjust",
+  },
+  INSUFFICIENT_EVIDENCE: {
+    label: "Insufficient evidence",
+    short: "INSUFFICIENT",
+    color: "text-verdict-insufficient",
+    bar: "bg-verdict-insufficient",
+    icon: "help",
+  },
+};
 
+const severityTone: Record<Severity, string> = {
+  critical: "bg-error-container/25 text-error",
+  warning: "bg-tertiary-container/25 text-tertiary",
+  info: "bg-primary/15 text-primary",
+};
+
+const severityIcon: Record<Severity, string> = {
+  critical: "sync_problem",
+  warning: "variables",
+  info: "info",
+};
+
+/**
+ * Node card for the dependency graph panel. Positions are percentages of the
+ * panel so the cards and the SVG edges stay attached at any content width.
+ */
 function GraphNode({
   x,
   y,
@@ -80,188 +88,182 @@ function GraphNode({
       style={{ left: `${x}%`, top: `${y}%` }}
     >
       <div
-        className={`w-24 p-2 border rounded-lg text-center transition-all group-hover:scale-110 shadow-lg ${
-          muted ? "bg-surface-container-high opacity-80" : "bg-surface-container"
-        } ${tone}`}
+        className={`px-4 py-3 rounded-lg text-center transition-all group-hover:scale-105 ${
+          muted
+            ? "w-32 bg-surface-container-high border border-outline opacity-75"
+            : `w-32 bg-surface-container shadow-lg ${tone}`
+        }`}
       >
-        <div className="flex justify-center mb-1">
+        <div className="flex justify-center mb-1.5">
           <Icon name={icon} className="text-[20px]" />
         </div>
-        <div className="text-[10px] font-bold truncate">{label}</div>
+        <div className="text-micro-label font-semibold truncate">{label}</div>
       </div>
     </div>
   );
 }
 
 export default function DashboardPage() {
+  const criteria = findings.flatMap((finding) => finding.criteria);
+  const verdictCounts = VERDICTS.map((verdict) => ({
+    verdict,
+    count: criteria.filter((criterion) => criterion.verdict === verdict).length,
+  }));
+  const reviewed = criteria.filter((criterion) => criterion.reviewRequired).length;
+  const critical = findings.filter((finding) => finding.severity === "critical").slice(0, 3);
+
+  const nodes = [
+    { x: 18, y: 60, icon: "design_services", label: "Figma UI Kit", tone: "border border-secondary text-secondary" },
+    { x: 40, y: 28, icon: "code", label: "PR #244", tone: "border border-primary text-primary" },
+    { x: 40, y: 88, icon: "code", label: "PR #245", tone: "border border-primary text-primary" },
+    { x: 68, y: 58, icon: "chat", label: "#dev-sync", tone: "border border-tertiary text-tertiary" },
+    { x: 88, y: 60, icon: "confirmation_number", label: "PROJ-88", tone: "", muted: true },
+  ];
+
+  const edges = [
+    { from: [18, 60], to: [40, 28], stroke: "#34D399" },
+    { from: [18, 60], to: [40, 88], stroke: "#34D399" },
+    { from: [40, 28], to: [68, 58], stroke: "#8B8B93" },
+    { from: [40, 88], to: [68, 58], stroke: "#8B8B93" },
+    { from: [68, 58], to: [88, 60], stroke: "#FBBF24" },
+  ];
+
   return (
-    <AppShell>
-      <div className="flex items-end justify-between">
-        <PageHeader
-          title="Overview"
-          description="System integrity at 94%. 3 critical conflicts detected."
-        />
-        <span className="flex items-center gap-1.5 px-3 py-1 rounded bg-secondary/10 border border-secondary/20 text-secondary text-[12px] font-bold">
-          <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
-          Live Sync Active
-        </span>
+    <AppShell contentClassName="w-full space-y-gutter">
+      <div>
+        <h2 className="font-headline-lg text-headline-lg text-on-surface">Overview</h2>
       </div>
 
-      {/* Top row — critical conflicts + project status */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
-        <section className="glass-card rounded-xl overflow-hidden flex flex-col">
-          <div className="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
-            <div className="flex items-center gap-2">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-gutter">
+        {/* Decisive findings */}
+        <section className="lg:col-span-3 rounded-xl bg-surface-container-low shadow-sm overflow-hidden flex flex-col">
+          <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
               <Icon name="warning" className="text-error" fill />
               <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-                Critical Conflicts
+                Critical findings
               </h3>
             </div>
-            <span className="font-label-caps text-label-caps text-on-surface-variant">
-              {critical.length} Active
-            </span>
+            <Link
+              href="/conflicts"
+              className="font-label-caps text-label-caps text-primary hover:text-accent-hover transition-colors"
+            >
+              Open inbox
+            </Link>
           </div>
-          <div className="flex-1">
-            <div className="divide-y divide-outline-variant">
-              {critical.map((f) => (
-                <Link
-                  key={f.id}
-                  href={`/conflicts/${f.id}`}
-                  className="flex items-start gap-4 p-4 hover:bg-surface-container-high transition-colors cursor-pointer group"
+
+          <div className="flex-1 divide-y divide-outline-variant">
+            {critical.map((finding) => (
+              <Link
+                key={finding.id}
+                href={`/conflicts/${finding.id}`}
+                className="flex items-start gap-4 p-4 hover:bg-surface-container transition-colors group"
+              >
+                <div
+                  className={`mt-0.5 flex items-center justify-center w-9 h-9 rounded-lg shrink-0 ${severityTone[finding.severity]}`}
                 >
-                  <div
-                    className={`mt-1 flex items-center justify-center w-8 h-8 rounded ${
-                      f.severity === "critical"
-                        ? "bg-error-container/20 text-error"
-                        : "bg-tertiary-container/20 text-tertiary"
-                    }`}
-                  >
-                    <Icon
-                      name={f.severity === "critical" ? "sync_problem" : "variables"}
-                      className="text-[18px]"
-                    />
+                  <Icon name={severityIcon[finding.severity]} className="text-[19px]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-baseline gap-4 mb-1.5">
+                    <span className="text-body-md font-semibold text-on-surface group-hover:text-primary transition-colors">
+                      {finding.title}
+                    </span>
+                    <span className="text-micro-label text-muted shrink-0">
+                      {finding.ageLabel}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center mb-1 gap-3">
-                      <span className="text-body-md font-bold text-on-surface group-hover:text-primary transition-colors truncate">
-                        {f.title}
-                      </span>
-                      <span className="text-body-sm text-on-surface-variant shrink-0">
-                        {f.ageLabel} ago
-                      </span>
-                    </div>
-                    <p className="text-body-sm text-on-surface-variant leading-relaxed line-clamp-2">
-                      {f.summary}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Link
-                        href={`/conflicts/${f.id}`}
-                        className="px-3 py-1 bg-surface-container-highest border border-outline-variant text-[11px] font-bold rounded-md hover:bg-primary hover:text-on-primary transition-all"
-                      >
-                        Review evidence
-                      </Link>
-                      <span className="px-3 py-1 border border-outline-variant text-[11px] font-bold rounded-md text-on-surface-variant hover:bg-surface-container-low transition-all cursor-pointer">
-                        View Diff
-                      </span>
-                    </div>
+                  <p className="text-body-sm text-on-surface-variant leading-relaxed">
+                    {finding.summary}
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <span className="font-mono-code text-micro-label text-muted">
+                      {finding.id}
+                    </span>
+                    <span className="text-outline">•</span>
+                    <span className="font-mono-code text-micro-label text-muted">
+                      {finding.policy}
+                    </span>
+                    {finding.verdict ? (
+                      <>
+                        <span className="text-outline">•</span>
+                        <span
+                          className={`font-label-caps text-label-caps uppercase tracking-wider ${
+                            verdictMeta[finding.verdict].color
+                          }`}
+                        >
+                          {verdictMeta[finding.verdict].short}
+                        </span>
+                      </>
+                    ) : null}
                   </div>
-                </Link>
-              ))}
-            </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
 
-        <section className="glass-card rounded-xl overflow-hidden flex flex-col">
-          <div className="px-6 py-4 border-b border-outline-variant flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Icon name="rocket_launch" className="text-secondary" fill />
-              <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-                Unify Alpha v2.0
-              </h3>
-            </div>
-            <div className="flex -space-x-2">
-              {["AR", "HI", "MF"].map((initials) => (
-                <span
-                  key={initials}
-                  className="w-6 h-6 rounded-full border-2 border-surface bg-surface-container-high grid place-items-center text-[8px] font-bold text-on-surface-variant"
-                >
-                  {initials}
-                </span>
-              ))}
-              <span className="w-6 h-6 rounded-full bg-surface-container-high border-2 border-surface grid place-items-center text-[8px] font-bold text-on-surface-variant">
-                +4
-              </span>
-            </div>
+        {/* Verdict distribution — the product's headline signal */}
+        <section className="lg:col-span-2 rounded-xl bg-surface-container-low shadow-sm flex flex-col">
+          <div className="px-4 py-3 border-b border-outline-variant">
+            <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
+              Evidence verdicts
+            </h3>
+            <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+              {criteria.length} criteria evaluated · {reviewed} flagged for review
+            </p>
           </div>
-          <div className="p-6 space-y-6">
-            <div className="grid grid-cols-3 gap-4">
-              {progress.map((item) => (
-                <div key={item.label} className="space-y-2">
-                  <span className="font-label-caps text-label-caps text-on-surface-variant block uppercase tracking-wider">
-                    {item.label}
-                  </span>
-                  <div className="flex items-end gap-2">
-                    <span className="text-headline-sm text-headline-sm font-bold text-on-surface">
-                      {item.value}
-                    </span>
-                    <span className={`text-[10px] mb-1 font-bold ${item.deltaTone}`}>
-                      {item.delta}
-                    </span>
-                  </div>
-                  <div className="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
-                    <div className={`${item.tone} h-full`} style={{ width: `${item.width}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
 
-            <div className="bg-surface-container-lowest/50 rounded-lg p-4 border border-outline-variant/30">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-body-sm font-bold text-on-surface">Active Jira Cycles</span>
-                <Icon name="open_in_new" className="text-on-surface-variant text-[18px]" />
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-secondary" />
-                  <span className="text-body-sm flex-1 truncate">PROJ-88: Checkout modal steps</span>
-                  <span className="text-[10px] font-mono-code bg-surface-container-high px-2 py-0.5 rounded text-on-surface-variant">
-                    IN-REVIEW
-                  </span>
+          <div className="p-4 flex flex-col gap-4 flex-1">
+            {verdictCounts.map(({ verdict, count }) => {
+              const meta = verdictMeta[verdict];
+              const share = criteria.length ? (count / criteria.length) * 100 : 0;
+              return (
+                <div key={verdict}>
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <span className="flex items-center gap-2 min-w-0">
+                      <Icon name={meta.icon} className={`text-[17px] ${meta.color}`} />
+                      <span className="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant truncate">
+                        {meta.short}
+                      </span>
+                    </span>
+                    <span className={`font-mono-code text-body font-bold ${meta.color}`}>
+                      {count}
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${meta.bar}`}
+                      style={{ width: `${share}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-primary" />
-                  <span className="text-body-sm flex-1 truncate">
-                    PROJ-91: Watcher mute controls
-                  </span>
-                  <span className="text-[10px] font-mono-code bg-primary-container text-white px-2 py-0.5 rounded">
-                    ACTIVE
-                  </span>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </section>
       </div>
 
-      {/* Graph quick view */}
-      <section className="glass-card rounded-xl overflow-hidden h-96 relative">
+      {/* Cross-platform evidence graph */}
+      <section className="rounded-xl bg-surface-container-low shadow-sm overflow-hidden h-[440px] relative">
         <div className="relative z-10 h-full flex flex-col">
-          <div className="px-6 py-4 border-b border-outline-variant bg-surface/80 backdrop-blur-md flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="px-4 py-3 border-b border-outline-variant flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
               <Icon name="hub" className="text-primary" />
               <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-                Cross-Platform Dependency Graph
+                Cross-platform evidence graph
               </h3>
             </div>
             <div className="flex gap-2">
-              <span className="px-2 py-1 rounded bg-surface-container-high border border-outline-variant text-[10px] font-mono-code">
-                8 Nodes
+              <span className="px-2.5 py-1 rounded bg-surface-container-highest border border-outline-variant text-micro-label font-mono-code text-on-surface-variant">
+                {nodes.length} nodes
               </span>
-              <span className="px-2 py-1 rounded bg-surface-container-high border border-outline-variant text-[10px] font-mono-code">
-                6 Edges
+              <span className="px-2.5 py-1 rounded bg-surface-container-highest border border-outline-variant text-micro-label font-mono-code text-on-surface-variant">
+                {edges.length} edges
               </span>
             </div>
           </div>
+
           <div className="flex-1 relative flex items-center justify-center overflow-hidden">
             {/* Edges share the 0–100 coordinate space with the node cards, so
                 lines stay attached to their nodes at any panel size. */}
@@ -270,163 +272,33 @@ export default function DashboardPage() {
               viewBox="0 0 100 100"
               preserveAspectRatio="none"
             >
-              <path className="graph-line" d="M20,55 L40,25" fill="none" stroke="#4fdbc8" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-              <path className="graph-line" d="M20,55 L40,75" fill="none" stroke="#4fdbc8" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-              <path className="graph-line" d="M40,25 L70,50" fill="none" stroke="#c3c0ff" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-              <path className="graph-line" d="M40,75 L70,50" fill="none" stroke="#c3c0ff" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-              <path className="graph-line" d="M70,50 L88,50" fill="none" stroke="#ffb95f" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+              {edges.map((edge) => (
+                <path
+                  key={`${edge.from.join()}-${edge.to.join()}`}
+                  className="graph-line"
+                  d={`M${edge.from[0]},${edge.from[1]} L${edge.to[0]},${edge.to[1]}`}
+                  fill="none"
+                  stroke={edge.stroke}
+                  strokeWidth="1.5"
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
             </svg>
 
-            <GraphNode x={20} y={55} tone="border-secondary text-secondary" icon="design_services" label="CheckoutModal_v3" />
-            <GraphNode x={40} y={25} tone="border-primary text-primary" icon="code" label="PR #142" />
-            <GraphNode x={40} y={75} tone="border-primary text-primary" icon="confirmation_number" label="PROJ-88" />
-            <GraphNode x={70} y={50} tone="border-tertiary text-tertiary" icon="chat" label="#dev-sync" />
-            <GraphNode x={88} y={50} tone="border-outline text-outline" icon="cloud_done" label="Verdict Gate" muted />
-
-            <div className="absolute bottom-4 right-6 bg-surface-container/80 backdrop-blur-sm p-3 rounded-lg border border-outline-variant max-w-xs">
-              <p className="text-[11px] text-on-surface-variant italic">
-                system-confirmed link between Figma frame `CheckoutModal_v3` and GitHub PR #142 —
-                reversible, provenance recorded.
-              </p>
-            </div>
+            {nodes.map((node) => (
+              <GraphNode
+                key={node.label}
+                x={node.x}
+                y={node.y}
+                tone={node.tone}
+                icon={node.icon}
+                label={node.label}
+                muted={node.muted}
+              />
+            ))}
           </div>
         </div>
       </section>
-
-      {/* Tool widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
-        <div className="glass-card rounded-xl overflow-hidden flex flex-col h-72">
-          <div className="px-4 py-3 bg-[#24292e]/30 border-b border-outline-variant flex items-center gap-2">
-            <Icon name="merge_type" className="text-secondary text-[18px]" />
-            <span className="font-label-caps text-label-caps text-on-surface">GitHub Repos</span>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {githubRepos.map((repo) => (
-              <div
-                key={repo.name}
-                className="p-2.5 rounded bg-surface-container-low border border-outline-variant/30 hover:border-primary transition-all cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-1 gap-2">
-                  <span className="text-body-sm font-bold truncate">{repo.name}</span>
-                  <span
-                    className={`flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                      repo.status === "PASSED"
-                        ? "text-secondary bg-secondary/10"
-                        : "text-primary bg-primary/10"
-                    }`}
-                  >
-                    <Icon
-                      name={repo.status === "PASSED" ? "check_circle" : "refresh"}
-                      className={`text-[10px] ${repo.status === "RUNNING" ? "animate-spin" : ""}`}
-                    />
-                    {repo.status}
-                  </span>
-                </div>
-                <div className="text-[11px] text-on-surface-variant flex items-center gap-2">
-                  <span className="truncate">{repo.branch}</span>
-                  <span>•</span>
-                  <span className="shrink-0">{repo.age}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="glass-card rounded-xl overflow-hidden flex flex-col h-72">
-          <div className="px-4 py-3 bg-primary-container/10 border-b border-outline-variant flex items-center gap-2">
-            <Icon name="confirmation_number" className="text-primary text-[18px]" />
-            <span className="font-label-caps text-label-caps text-on-surface">Jira Tickets</span>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {jiraTickets.map((ticket) => (
-              <div
-                key={ticket.key}
-                className={`group flex flex-col gap-1 p-2 border-l-2 ${ticket.tone} bg-surface-container-high/40 cursor-pointer`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-mono-code text-on-surface-variant">
-                    {ticket.key}
-                  </span>
-                  <span className="text-body-sm font-bold flex-1 truncate">{ticket.summary}</span>
-                </div>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[9px] px-1.5 py-0.5 bg-surface-container-highest rounded text-on-surface-variant">
-                    {ticket.state}
-                  </span>
-                  <span className="text-[9px] text-primary font-bold">{ticket.priority}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="glass-card rounded-xl overflow-hidden flex flex-col h-72">
-          <div className="px-4 py-3 bg-[#F24E1E]/10 border-b border-outline-variant flex items-center gap-2">
-            <Icon name="pentagon" className="text-[#F24E1E] text-[18px]" />
-            <span className="font-label-caps text-label-caps text-on-surface">Figma Updates</span>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {figmaUpdates.map((update) => (
-              <div
-                key={update.name}
-                className="flex flex-col gap-2 p-1 rounded-lg bg-surface-container-low border border-outline-variant/30 overflow-hidden"
-              >
-                <div
-                  className={`h-20 w-full bg-gradient-to-br ${update.swatch} rounded`}
-                  aria-hidden
-                />
-                <div className="px-1 py-1">
-                  <span className="text-body-sm font-bold block truncate">{update.name}</span>
-                  <span className="text-[10px] text-on-surface-variant">{update.meta}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="glass-card rounded-xl overflow-hidden flex flex-col h-72">
-          <div className="px-4 py-3 bg-[#4A154B]/30 border-b border-outline-variant flex items-center gap-2">
-            <Icon name="forum" className="text-[#36C5F0] text-[18px]" />
-            <span className="font-label-caps text-label-caps text-on-surface">Slack Activity</span>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-4">
-            {slackMessages.map((message) => (
-              <div key={message.author} className="flex gap-3">
-                <span className="w-8 h-8 rounded shrink-0 bg-surface-container-high grid place-items-center text-[10px] font-bold text-on-surface-variant">
-                  {message.initials}
-                </span>
-                <div className="flex-1 overflow-hidden">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[11px] font-bold text-on-surface">{message.author}</span>
-                    <span className="text-[9px] text-on-surface-variant">{message.time}</span>
-                  </div>
-                  <div className="text-[12px] text-on-surface-variant leading-tight line-clamp-2">
-                    {message.body}
-                  </div>
-                </div>
-              </div>
-            ))}
-            <div className="pt-2 border-t border-outline-variant/50">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge tone="accent">Latest verdict</Badge>
-                <span className="text-[10px] text-on-surface-variant">verifier/local-qwen</span>
-              </div>
-              <div className="space-y-1.5">
-                {activity.slice(0, 2).map((event) => (
-                  <div key={event.id} className="flex items-start gap-2">
-                    <ToolPill tool={event.tool}>{event.tool}</ToolPill>
-                    <span className="text-[11px] text-on-surface-variant line-clamp-1 flex-1">
-                      {event.title}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <SyncToast />
     </AppShell>
   );
 }

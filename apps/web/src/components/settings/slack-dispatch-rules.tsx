@@ -51,7 +51,7 @@ const initialRules: Rule[] = [
     iconClass: "bg-primary/15 text-primary",
     title: "General Daily Standup Digest",
     badge: "SCHEDULED 09:00",
-    badgeClass: "bg-surface-container-highest text-outline font-semibold",
+    badgeClass: "bg-surface-container-highest text-muted font-semibold",
     desc: "Aggregated summary of resolution velocity and unassigned graph links",
     channels: ["#dev-core-updates", "#general", "#all-engineering"],
     channel: "#dev-core-updates",
@@ -97,7 +97,7 @@ function SelectRow({
       </select>
       <Icon
         name="expand_more"
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
       />
     </div>
   );
@@ -120,7 +120,7 @@ export function SlackDispatchRules() {
         iconClass: "bg-tertiary-container/30 text-tertiary",
         title: "New Policy Dispatch Rule",
         badge: "CUSTOM",
-        badgeClass: "bg-surface-container-highest text-outline font-bold",
+        badgeClass: "bg-surface-container-highest text-muted font-bold",
         desc: "User-defined policy trigger",
         channels: newRuleChannels,
         channel: newRuleChannels[0],
@@ -133,14 +133,14 @@ export function SlackDispatchRules() {
   }
 
   return (
-    <section className="rounded-xl bg-surface-container-low p-6 shadow-md flex flex-col gap-5">
+    <section className="rounded-xl bg-surface-container-low p-4 shadow-md flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex flex-col">
           <div className="flex items-center gap-2.5">
-            <span className="font-label-caps text-label-caps text-outline uppercase">
+            <span className="font-label-caps text-label-caps text-muted uppercase">
               Section 02
             </span>
-            <span className="text-outline-variant font-mono-code">•</span>
+            <span className="text-outline font-mono-code">•</span>
             <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">
               Channel Dispatch Mapping
             </h2>
@@ -186,7 +186,7 @@ export function SlackDispatchRules() {
                     </span>
                   )}
                   <span
-                    className={`px-1.5 py-0.5 rounded font-mono-code text-[10px] uppercase whitespace-nowrap ${rule.badgeClass}`}
+                    className={`px-1.5 py-0.5 rounded font-mono-code text-eyebrow uppercase whitespace-nowrap ${rule.badgeClass}`}
                   >
                     {rule.badge}
                   </span>
@@ -210,19 +210,19 @@ export function SlackDispatchRules() {
                 value={rule.mention}
                 onChange={(value) => update(rule.id, { mention: value })}
                 minWidth="120px"
-                valueClass={rule.mention === "No mention" ? "text-outline" : "text-tertiary"}
+                valueClass={rule.mention === "No mention" ? "text-muted" : "text-tertiary"}
               />
               <div className="flex items-center gap-1">
                 <button
                   title="Edit Rule Filter"
-                  className="p-1.5 rounded text-outline hover:text-on-surface hover:bg-surface-container-highest transition-colors"
+                  className="p-1.5 rounded text-muted hover:text-on-surface hover:bg-surface-container-highest transition-colors"
                 >
                   <Icon name="tune" className="text-[18px]" />
                 </button>
                 <button
                   title="Delete Rule"
                   onClick={() => setRules((prev) => prev.filter((item) => item.id !== rule.id))}
-                  className="p-1.5 rounded text-outline hover:text-error hover:bg-surface-container-highest transition-colors"
+                  className="p-1.5 rounded text-muted hover:text-error hover:bg-surface-container-highest transition-colors"
                 >
                   <Icon name="delete" className="text-[18px]" />
                 </button>

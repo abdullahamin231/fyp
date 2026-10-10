@@ -14,7 +14,7 @@ const presets: { id: PresetId; label: string; icon: string; iconClass: string }[
   { id: "dev", label: "Developer Focused", icon: "terminal", iconClass: "text-primary" },
   { id: "design", label: "Design Lead", icon: "palette", iconClass: "text-secondary" },
   { id: "pm", label: "Product Manager", icon: "analytics", iconClass: "text-tertiary" },
-  { id: "custom", label: "Custom Rules (Active)", icon: "tune", iconClass: "text-on-primary" },
+  { id: "custom", label: "Custom Rules (Active)", icon: "tune", iconClass: "text-on-surface-variant" },
 ];
 
 const slackModes = ["Immediate", "Hourly Digest", "Daily Standup", "Muted"];
@@ -147,16 +147,16 @@ export function NotificationPreferences() {
   return (
     <>
       {/* ---------------------------------------------------------- Hero */}
-      <section className="relative overflow-hidden rounded-xl bg-surface-container-low p-6 shadow-xl">
+      <section className="relative overflow-hidden rounded-xl bg-surface-container-low p-4 shadow-xl">
         <div className="absolute -right-20 -top-20 w-96 h-96 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
         <div className="absolute -left-12 bottom-0 w-64 h-64 rounded-full bg-secondary/5 blur-2xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-1.5">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded bg-primary-container/40 text-on-primary-container font-mono-code text-[11px] font-semibold uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded bg-primary-container/40 text-on-primary-container font-mono-code text-eyebrow font-semibold uppercase tracking-wider">
                 ENGINE // ROUTING-SYS
               </span>
-              <span className="text-outline text-[12px] font-mono-code">•</span>
+              <span className="text-muted text-[12px] font-mono-code">•</span>
               <span className="font-mono-code text-body-sm text-secondary flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-ping" />
                 Filter Daemon v4.19 Online
@@ -195,7 +195,7 @@ export function NotificationPreferences() {
           </div>
         </div>
         <div className="relative z-10 mt-6 pt-5 flex flex-wrap items-center gap-3">
-          <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider mr-1">
+          <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider mr-1">
             Preset Profiles:
           </span>
           {presets.map((item) => {
@@ -216,7 +216,7 @@ export function NotificationPreferences() {
               </button>
             );
           })}
-          <div className="ml-auto hidden xl:flex items-center gap-2 text-outline text-body-sm font-mono-code bg-surface-container-lowest/60 px-3 py-1 rounded">
+          <div className="ml-auto hidden xl:flex items-center gap-2 text-muted text-body-sm font-mono-code bg-surface-container-lowest/60 px-3 py-1 rounded">
             <Icon name="format_image_left" className="text-secondary text-[16px]" />
             SLA Override: Enforced for Team Core Checkout
           </div>
@@ -224,11 +224,11 @@ export function NotificationPreferences() {
       </section>
 
       {/* -------------------------------------------------- Main grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Left column */}
-        <div className="xl:col-span-2 space-y-8">
+        <div className="xl:col-span-2 space-y-4">
           {/* Channel matrix */}
-          <section className="rounded-xl bg-surface-container-low p-6 shadow-xl relative overflow-hidden">
+          <section className="rounded-xl bg-surface-container-low p-4 shadow-xl relative overflow-hidden">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded bg-primary-container/20 text-primary flex items-center justify-center">
@@ -251,11 +251,11 @@ export function NotificationPreferences() {
               <table className="w-full text-left font-body-sm">
                 <thead>
                   <tr className="bg-surface-container text-on-surface-variant font-label-caps text-label-caps uppercase tracking-wider">
-                    <th className="py-3 px-4">Event / Conflict Severity</th>
-                    <th className="py-3 px-3 text-center">In-App Inbox</th>
-                    <th className="py-3 px-3 text-center">Slack Outbound</th>
-                    <th className="py-3 px-3 text-center">Email Digest</th>
-                    <th className="py-3 px-4 text-center">Desktop Push</th>
+                    <th className="py-4 px-4">Event / Conflict Severity</th>
+                    <th className="py-4 px-4 text-center">In-App Inbox</th>
+                    <th className="py-4 px-4 text-center">Slack Outbound</th>
+                    <th className="py-4 px-4 text-center">Email Digest</th>
+                    <th className="py-4 px-4 text-center">Desktop Push</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-container-high/40 text-on-surface">
@@ -263,16 +263,16 @@ export function NotificationPreferences() {
                     const cell = matrix[row.id];
                     return (
                       <tr key={row.id} className="hover:bg-surface-container/60 transition-colors">
-                        <td className="py-3.5 px-4">
+                        <td className="py-4 px-4">
                           <div className="flex items-center gap-2.5">
                             <span className={`w-2.5 h-2.5 rounded-full ${row.dot}`} />
                             <div>
                               <span className="font-semibold text-on-surface block">{row.title}</span>
-                              <span className="font-mono-code text-[11px] text-outline">{row.sub}</span>
+                              <span className="font-mono-code text-micro-label text-muted">{row.sub}</span>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3.5 px-3 text-center">
+                        <td className="py-4 px-4 text-center">
                           <input
                             aria-label={`${row.title} in-app inbox`}
                             type="checkbox"
@@ -283,7 +283,7 @@ export function NotificationPreferences() {
                             className={checkboxClass}
                           />
                         </td>
-                        <td className="py-3.5 px-3 text-center">
+                        <td className="py-4 px-4 text-center">
                           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container text-[12px] font-mono-code">
                             <span
                               className={`w-1.5 h-1.5 rounded-full ${
@@ -310,7 +310,7 @@ export function NotificationPreferences() {
                             </select>
                           </div>
                         </td>
-                        <td className="py-3.5 px-3 text-center">
+                        <td className="py-4 px-4 text-center">
                           <input
                             aria-label={`${row.title} email digest`}
                             type="checkbox"
@@ -321,7 +321,7 @@ export function NotificationPreferences() {
                             className={checkboxClass}
                           />
                         </td>
-                        <td className="py-3.5 px-4 text-center">
+                        <td className="py-4 px-4 text-center">
                           <input
                             aria-label={`${row.title} desktop push`}
                             type="checkbox"
@@ -338,7 +338,7 @@ export function NotificationPreferences() {
                 </tbody>
               </table>
             </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-4 text-body-sm text-outline">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-4 text-body-sm text-muted">
               <div className="flex items-center gap-2 font-mono-code text-[12px]">
                 <Icon name="tune" className="text-[16px] text-secondary" />
                 Slack Webhook:{" "}
@@ -357,7 +357,7 @@ export function NotificationPreferences() {
           </section>
 
           {/* Frequency & quiet hours */}
-          <section className="rounded-xl bg-surface-container-low p-6 shadow-xl space-y-6">
+          <section className="rounded-xl bg-surface-container-low p-4 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded bg-secondary/15 text-secondary flex items-center justify-center">
@@ -396,9 +396,9 @@ export function NotificationPreferences() {
                       />
                     </div>
                     <span className="font-semibold text-on-surface text-body-md">{option.title}</span>
-                    <span className="text-on-surface-variant text-body-sm mt-1">{option.body}</span>
+                    <span className="text-on-surface-variant text-body-sm mt-1.5">{option.body}</span>
                     {option.badge ? (
-                      <span className="mt-2 font-mono-code text-[11px] text-secondary font-semibold uppercase">
+                      <span className="mt-3 font-mono-code text-eyebrow text-secondary font-semibold uppercase">
                         {option.badge}
                       </span>
                     ) : null}
@@ -406,7 +406,7 @@ export function NotificationPreferences() {
                 );
               })}
             </div>
-            <div className="p-5 rounded-lg bg-surface-container-lowest space-y-4">
+            <div className="p-4 rounded-lg bg-surface-container-lowest space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -428,7 +428,7 @@ export function NotificationPreferences() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded">
-                  <Icon name="bedtime" className="text-outline text-[18px]" />
+                  <Icon name="bedtime" className="text-muted text-[18px]" />
                   <span className="font-mono-code text-body-sm text-on-surface font-semibold">
                     19:00 — 08:00 (UTC-7)
                   </span>
@@ -450,13 +450,13 @@ export function NotificationPreferences() {
                     <strong className="text-error font-semibold">
                       Bypass for Critical SEV-1 Merge Blockers
                     </strong>
-                    <span className="text-outline block sm:inline">
+                    <span className="text-muted block sm:inline">
                       Always wake on active deploy stoppage
                     </span>
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-label-caps text-label-caps text-outline uppercase">
+                  <span className="font-label-caps text-label-caps text-muted uppercase">
                     Active Timezone:
                   </span>
                   <span className="font-mono-code text-[12px] bg-surface-container text-on-surface px-2 py-0.5 rounded">
@@ -468,7 +468,7 @@ export function NotificationPreferences() {
           </section>
 
           {/* Escalation engine */}
-          <section className="rounded-xl bg-surface-container-low p-6 shadow-xl space-y-4">
+          <section className="rounded-xl bg-surface-container-low p-4 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded bg-error/15 text-error flex items-center justify-center">
@@ -483,14 +483,14 @@ export function NotificationPreferences() {
                   </p>
                 </div>
               </div>
-              <span className="px-2.5 py-1 rounded bg-error-container/40 text-error font-mono-code text-[11px] font-bold tracking-wider uppercase">
+              <span className="px-2.5 py-1 rounded bg-error-container/40 text-error font-mono-code text-eyebrow font-bold tracking-wider uppercase">
                 Tier 1 Active
               </span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
-              <div className="md:col-span-8 p-4 rounded-lg bg-surface-container space-y-3">
+              <div className="md:col-span-8 p-4 rounded-lg bg-surface-container space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-label-caps text-label-caps uppercase text-outline">
+                  <span className="font-label-caps text-label-caps uppercase text-muted">
                     Rule SLA-904
                   </span>
                   <span className="font-mono-code text-[12px] text-tertiary">
@@ -502,17 +502,17 @@ export function NotificationPreferences() {
                   unacknowledged after <strong>{threshold} hours</strong>, automatically trigger
                   high-priority incident escalation.
                 </p>
-                <div className="flex flex-wrap items-center gap-2 pt-1 font-mono-code text-[12px]">
+                <div className="flex flex-wrap items-center gap-3 pt-1 font-mono-code text-[12px]">
                   <span className="px-2 py-1 rounded bg-surface-container-high text-on-surface flex items-center gap-1">
                     <Icon name="person" className="text-[14px] text-primary" />
                     @lead-architect
                   </span>
-                  <span className="text-outline">→</span>
+                  <span className="text-muted">→</span>
                   <span className="px-2 py-1 rounded bg-surface-container-high text-on-surface flex items-center gap-1">
                     <Icon name="notifications_active" className="text-[14px] text-secondary" />
                     PagerDuty P1
                   </span>
-                  <span className="text-outline">→</span>
+                  <span className="text-muted">→</span>
                   <span className="px-2 py-1 rounded bg-surface-container-high text-on-surface flex items-center gap-1">
                     <Icon name="campaign" className="text-[14px] text-error" />
                     #war-room-emergency
@@ -521,14 +521,14 @@ export function NotificationPreferences() {
               </div>
               <div className="md:col-span-4 p-4 rounded-lg bg-surface-container flex flex-col justify-between">
                 <div>
-                  <span className="font-label-caps text-label-caps uppercase text-outline block mb-1">
+                  <span className="font-label-caps text-label-caps uppercase text-muted block mb-1.5">
                     Escalation Threshold
                   </span>
                   <div className="flex items-baseline gap-2">
                     <span className="font-mono-code text-headline-md font-bold text-on-surface">
                       {threshold.toFixed(1)}
                     </span>
-                    <span className="font-mono-code text-body-sm text-outline">hours unacked</span>
+                    <span className="font-mono-code text-body-sm text-muted">hours unacked</span>
                   </div>
                 </div>
                 <input
@@ -540,7 +540,7 @@ export function NotificationPreferences() {
                   onChange={(e: ChangeEvent<HTMLInputElement>) => setThreshold(Number(e.target.value))}
                   className="w-full mt-3 accent-primary cursor-pointer"
                 />
-                <span className="text-[11px] text-outline mt-1 font-mono-code">
+                <span className="text-micro-label text-muted mt-1.5 font-mono-code">
                   Default: 4 hours (Core Repo Policy)
                 </span>
               </div>
@@ -549,9 +549,9 @@ export function NotificationPreferences() {
         </div>
 
         {/* Right column */}
-        <div className="space-y-8">
+        <div className="space-y-4">
           {/* Outbound verification */}
-          <section className="rounded-xl bg-surface-container-low p-6 shadow-xl space-y-6">
+          <section className="rounded-xl bg-surface-container-low p-4 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded bg-primary-container/20 text-primary flex items-center justify-center">
@@ -616,7 +616,7 @@ export function NotificationPreferences() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
                       <span className="font-bold text-[14px] text-[#f8f8f8]">Unify Bot</span>
-                      <span className="px-1 py-0.2 rounded bg-[#2c3136] text-[10px] uppercase font-mono text-[#a0a0a0]">
+                      <span className="px-1 py-0.2 rounded bg-[#2c3136] text-micro-label uppercase font-mono text-[#a0a0a0]">
                         APP
                       </span>
                       <span className="text-[12px] text-[#868686]">Just now</span>
@@ -625,7 +625,7 @@ export function NotificationPreferences() {
                       🚨 <strong className="text-white">[SEV-1 ALERT]</strong> Design drift
                       detected in PR #142 (`feature/nav-overhaul`).
                     </p>
-                    <div className="mt-2.5 p-2.5 rounded bg-[#222529] border-l-4 border-l-error space-y-1.5 text-[12px]">
+                    <div className="mt-2.5 p-3 rounded bg-[#222529] border-l-4 border-l-error space-y-2 text-[12px]">
                       <div className="flex justify-between gap-3">
                         <span className="text-[#a0a0a0]">Finding:</span>
                         <span className="font-mono text-white">CONF-1048</span>
@@ -663,7 +663,7 @@ export function NotificationPreferences() {
                       Unify Guardrail Warning
                     </span>
                   </div>
-                  <span className="font-mono-code text-[11px] text-outline">1m ago</span>
+                  <span className="font-mono-code text-micro-label text-muted">1m ago</span>
                 </div>
                 <h4 className="font-headline-sm text-body-md font-semibold text-on-surface">
                   Critical Contract Mismatch
@@ -683,23 +683,23 @@ export function NotificationPreferences() {
               </div>
             )}
 
-            <div className="p-3.5 rounded bg-surface-container-lowest/70 text-body-sm text-outline flex items-center gap-2.5 font-mono-code text-[12px]">
+            <div className="p-3.5 rounded bg-surface-container-lowest/70 text-body-sm text-muted flex items-center gap-2.5 font-mono-code text-[12px]">
               <Icon name="verified_user" className="text-secondary text-[18px]" />
               <span>Last verification test succeeded 12 mins ago</span>
             </div>
           </section>
 
           {/* Digest metric impact */}
-          <section className="rounded-xl bg-surface-container-low p-6 shadow-xl space-y-4">
+          <section className="rounded-xl bg-surface-container-low p-4 shadow-xl space-y-4">
             <div className="flex items-center justify-between">
-              <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+              <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                 Digest Metric Impact
               </span>
               <span className="font-mono-code text-[12px] text-secondary font-semibold">
                 -68% Noise
               </span>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex justify-between text-body-sm">
                 <span className="text-on-surface-variant">Incoming Raw Alerts (Weekly)</span>
                 <span className="font-mono-code font-semibold text-on-surface">1,480</span>
@@ -717,7 +717,7 @@ export function NotificationPreferences() {
                 <div className="bg-surface-container-highest h-full flex-1" />
               </div>
             </div>
-            <p className="text-[12px] text-outline pt-2 leading-relaxed">
+            <p className="text-[12px] text-muted pt-2 leading-relaxed">
               Smart aggregation algorithm prevented{" "}
               <strong>1,006 individual ping interrupts</strong> during your configured focus
               intervals this sprint.
@@ -725,8 +725,8 @@ export function NotificationPreferences() {
           </section>
 
           {/* Export */}
-          <div className="p-4 rounded-xl bg-surface-container-lowest text-center space-y-2">
-            <Icon name="terminal" className="text-outline text-[24px]" />
+          <div className="p-4 rounded-xl bg-surface-container-lowest text-center space-y-3">
+            <Icon name="terminal" className="text-muted text-[24px]" />
             <div className="text-body-sm font-semibold text-on-surface">
               Syncing Rules via CLI or Terraform?
             </div>

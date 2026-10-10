@@ -28,10 +28,10 @@ function Endpoint({
       </div>
       <div className="min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="font-mono-code text-[11px] uppercase text-outline">
+          <span className="font-mono-code text-eyebrow uppercase text-muted">
             {toolLabel[artifact.tool]}
           </span>
-          <span className="font-mono-code text-[11px] text-on-surface font-semibold truncate">
+          <span className="font-mono-code text-micro-label text-on-surface font-semibold truncate">
             {artifact.ref}
           </span>
         </div>
@@ -69,7 +69,7 @@ export function SuggestionStack({
                 Pending &amp; Suggested Links for Verification
               </span>
               <span
-                className={`px-2 py-0.5 rounded-full font-mono-code text-[11px] font-bold ${
+                className={`px-2 py-0.5 rounded-full font-mono-code text-micro-label font-bold ${
                   suggestions.length > 0
                     ? "bg-tertiary/20 text-tertiary"
                     : "bg-secondary/20 text-secondary"
@@ -107,12 +107,12 @@ export function SuggestionStack({
       </div>
 
       {suggestions.length === 0 ? (
-        <div className="p-8 rounded-xl bg-surface-container flex flex-col items-center text-center">
+        <div className="p-4 rounded-xl bg-surface-container flex flex-col items-center text-center">
           <Icon name="task_alt" className="text-[36px] text-secondary mb-2" />
           <p className="font-body-md text-body-md text-on-surface font-medium">
             Every suggestion has been verified
           </p>
-          <p className="font-body-sm text-body-sm text-outline mt-1">
+          <p className="font-body-sm text-body-sm text-muted mt-1">
             The link engine will keep surfacing new candidates as artifacts change.
           </p>
         </div>
@@ -132,7 +132,7 @@ export function SuggestionStack({
                   <Endpoint suggestion={suggestion} side="source" />
                   <div className="flex items-center justify-center px-2">
                     <span
-                      className={`px-2.5 py-1 rounded font-mono-code text-[11px] font-bold flex items-center gap-1 ${meta.chipClass}`}
+                      className={`px-2.5 py-1 rounded font-mono-code text-micro-label font-bold flex items-center gap-1 ${meta.chipClass}`}
                     >
                       {suggestion.relation}
                       <Icon name="arrow_forward" className="text-[14px]" />
@@ -144,7 +144,7 @@ export function SuggestionStack({
                 <div className="flex items-center justify-between lg:justify-end gap-4 border-t lg:border-t-0 pt-3 lg:pt-0">
                   <div className="flex flex-col items-end">
                     <div className="flex items-center gap-2">
-                      <span className="font-label-caps text-label-caps text-outline uppercase">
+                      <span className="font-label-caps text-label-caps text-muted uppercase">
                         Confidence
                       </span>
                       <span
@@ -155,7 +155,7 @@ export function SuggestionStack({
                         {confidenceLabel(suggestion.confidence)}
                       </span>
                     </div>
-                    <span className="font-mono-code text-[11px] text-on-surface-variant">
+                    <span className="font-mono-code text-micro-label text-on-surface-variant">
                       {suggestion.detector} · {suggestion.id}
                     </span>
                   </div>
@@ -188,7 +188,7 @@ export function SuggestionStack({
                 </div>
               </div>
 
-              <p className="mt-3 pt-3 border-t border-outline-variant/40 font-mono-code text-[11px] text-on-surface-variant flex items-start gap-1.5">
+              <p className="mt-3 pt-3 border-t border-outline-variant/40 font-mono-code text-micro-label text-on-surface-variant flex items-start gap-1.5">
                 <Icon name="auto_awesome" className="text-[13px] text-tertiary mt-0.5 shrink-0" />
                 <span className="uppercase tracking-wide">
                   {suggestion.eligibility} · provenance inferred · advisory only — no decisive

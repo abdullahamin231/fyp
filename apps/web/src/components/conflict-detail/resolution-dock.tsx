@@ -65,7 +65,7 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
           <span className={`w-3 h-3 rounded-full ${copy.dot}`} />
           <div className="flex flex-col">
             <span className="text-on-surface font-semibold text-body-sm">{copy.label}</span>
-            <span className="text-outline font-mono-code text-[11px]">
+            <span className="text-muted font-mono-code text-micro-label">
               Choose a resolution vector for conflict #{finding.id}
             </span>
           </div>
@@ -146,7 +146,7 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
               <button
                 type="button"
                 aria-label="Close dialog"
-                className="text-outline hover:text-on-surface"
+                className="text-muted hover:text-on-surface"
                 onClick={() => setDialog(null)}
               >
                 <Icon name="close" className="text-[20px]" />
@@ -159,7 +159,7 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
             </p>
             <div className="space-y-stack-comfortable mb-margin-page">
               <div>
-                <label className="block font-label-caps text-label-caps text-outline uppercase mb-1">
+                <label className="block font-label-caps text-label-caps text-muted uppercase mb-1">
                   Reason
                 </label>
                 <select
@@ -175,7 +175,7 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
                 </select>
               </div>
               <div>
-                <label className="block font-label-caps text-label-caps text-outline uppercase mb-1">
+                <label className="block font-label-caps text-label-caps text-muted uppercase mb-1">
                   Audit justification note
                 </label>
                 <textarea
@@ -183,7 +183,7 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
                   placeholder="Link the approved exemption doc or Slack thread…"
-                  className="w-full px-3 py-2 rounded bg-surface-container text-on-surface font-mono-code text-mono-code focus:outline-none focus:bg-surface-container-highest placeholder:text-outline"
+                  className="w-full px-3 py-2 rounded bg-surface-container text-on-surface font-mono-code text-mono-code focus:outline-none focus:bg-surface-container-highest placeholder:text-muted"
                 />
               </div>
             </div>
@@ -213,7 +213,7 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
           <Icon name="check_circle" className="text-secondary text-[22px]" />
           <div className="flex flex-col">
             <span className="text-on-surface font-semibold text-body-sm">{toast.title}</span>
-            <span className="text-on-surface-variant font-mono-code text-[11px]">
+            <span className="text-on-surface-variant font-mono-code text-micro-label">
               {toast.message}
             </span>
           </div>
