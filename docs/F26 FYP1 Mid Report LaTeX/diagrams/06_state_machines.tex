@@ -100,29 +100,51 @@
   {(c)\ \ Finding lifecycle --- deterministic rule or gated verdict (FR-18)};
 
 \node[st=verorange] (open)  at ( 2.6,-13.3) {\textbf{Open}\\\scriptsize raised with evidence};
-\node[st=relblue]   (ack)   at ( 7.4,-13.3) {\textbf{Acknowledged}\\\scriptsize seen, not yet acted on};
-\node[st=okgreen]   (res)   at (12.4,-13.3) {\textbf{Resolved}\\\scriptsize with reason + actor};
-\node[st=graphgreen](sup)   at ( 7.4,-15.6) {\textbf{Suppressed}\\\scriptsize with reason, time-boxed};
-\node[st=warnamber] (disp)  at (12.4,-15.6) {\textbf{Disputed}\\\scriptsize verdict contested};
-\node[st=extgrey]   (super) at (18.4,-13.3) {\textbf{Superseded}\\\scriptsize re-verified on a newer version};
+\node[st=relblue]   (ack)   at ( 7.6,-13.3) {\textbf{Acknowledged}\\\scriptsize seen, not yet acted on};
+\node[st=okgreen]   (res)   at (13.2,-13.3) {\textbf{Resolved}\\\scriptsize with reason + actor};
+\node[st=extgrey]   (super) at (18.6,-13.3) {\textbf{Superseded}\\\scriptsize replaced by a newer verdict};
+\node[st=graphgreen](sup)   at ( 3.6,-17.0) {\textbf{Suppressed}\\\scriptsize noise: with reason, time-boxed};
+\node[st=warnamber] (disp)  at ( 9.8,-17.0) {\textbf{Disputed}\\\scriptsize correctness: verdict contested};
 
 \draw[tr] (open) -- node[lbl,above=-1pt]{acknowledge} (ack);
 \draw[tr] (ack)  -- node[lbl,above=-1pt]{resolve} (res);
-\draw[tr] (open.south) |- node[lbl,above=-1pt,pos=.75]{suppress} (sup.west);
-\draw[tr] (sup.east)  -- node[lbl,above=-1pt]{dispute window} (disp.west);
-\draw[tr] (disp) -- node[lbl,right=1pt]{correction logged} (res);
-\draw[tr] (res.north) to[bend right=18] node[lbl,above=-1pt]{reopen, new evidence} (open.north);
-\draw[tr] (res) -- node[lbl,above=-1pt,pos=.55]{newer version verified} (super);
+\draw[tr] (res.north) to[bend right=16] node[lbl,above=-1pt]{reopen, new evidence} (open.north);
+\draw[tr] (res) -- node[lbl,above=-1pt]{re-verified} (super);
 
-\node[note=7.4cm,anchor=north west] at (21.0,-12.2)
-  {\textbf{Disputed is a data path, not just a status (FR-20).}
-   A contested verdict is logged with the human's correction and becomes a
+% Suppress and dispute are independent responses, each available from Open and
+% from Acknowledged. Shown as a shared bus so neither depends on the other.
+\draw[tr,-] (open.south) -- (2.6,-15.2);
+\draw[tr,-] (ack.south)  -- (7.6,-15.2);
+\draw[tr,-] (2.6,-15.2)  -- (9.8,-15.2);
+\draw[tr] (3.6,-15.2) -- node[lbl,left=1pt]{suppress} (sup.north);
+\draw[tr] (9.8,-15.2) -- node[lbl,right=1pt]{dispute} (disp.north);
+
+\draw[tr] (sup.west) -- ++(-1.3,0) |- node[lbl,left=1pt,pos=.25]{expires or reopened} (open.west);
+\draw[tr] (disp.east) -- ++(1.4,0) |- node[lbl,below=-1pt,pos=.35]{correction logged} (res.south);
+
+\node[note=7.2cm,anchor=north west] at (21.4,-12.2)
+  {\textbf{Why suppress and dispute do not connect.}
+   They answer different questions. \emph{Suppressed} means the finding is
+   correct but unwanted here --- a known parallel refactor, an accepted
+   deviation --- and it is a noise control, time-boxed, returning to
+   \textbf{Open} when it expires. \emph{Disputed} means the verdict itself is
+   wrong. A finding can be either, from \textbf{Open} or from
+   \textbf{Acknowledged}, and neither is a precondition for the other.
+   Suppressing a finding in order to dispute it would discard the correction
+   that dispute exists to capture.\\[3pt]
+   \textbf{Disputed is a data path, not just a status (FR-20).}
+   A contested verdict is logged with the reviewer's correction and becomes a
    labelled example for the next adaptation round, under the same
    repository-level split discipline (sec.~28.3). This is the only route by
-   which production use feeds the training set.\\[2pt]
+   which production use feeds the training set.\\[3pt]
+   \textbf{Superseding may occur from any non-terminal state} when
+   re-verification on a newer commit produces a replacement; the arrow is
+   drawn from \textbf{Resolved} as the common case, and the replacement is
+   recorded by \texttt{findings.superseded\_by\_id} rather than by
+   overwriting the original.\\[3pt]
    \textbf{Every transition appends to \texttt{audit\_log}} with actor,
-   reason and an evidence snapshot, so a resolved finding can always be
-   re-read against the artifact versions it cited.};
+   reason and an evidence snapshot, so a finding can always be re-read
+   against the artifact versions it cited.};
 
 \end{tikzpicture}
 \end{document}
