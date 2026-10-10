@@ -290,6 +290,18 @@ function TopBar({
             person
           </span>
         </Link>
+        <form action="/auth/signout" method="post">
+          <button
+            type="submit"
+            aria-label="Sign out"
+            title="Sign out"
+            className="p-1.5 rounded-md hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors"
+          >
+            <span className="material-symbols-outlined text-[19px] leading-none">
+              logout
+            </span>
+          </button>
+        </form>
       </div>
     </header>
   );
