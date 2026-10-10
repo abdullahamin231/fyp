@@ -19,7 +19,7 @@ const sources: {
     icon: "palette",
     footLeft: "Scopes: files:read, dev_mode:read",
     footRight: "Sync: 4m ago",
-    footRightTone: "text-outline",
+    footRightTone: "text-muted",
   },
   {
     key: "github",
@@ -90,10 +90,10 @@ export function SideRecap({
   const next = nextStepCopy[Math.min(step + 1, 6)];
 
   return (
-    <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
+    <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
       {/* Workspace profile recap */}
-      <div className="bg-surface-container-low rounded-xl p-5 shadow-sm">
-        <div className="flex items-center justify-between pb-3 mb-3 bg-surface-container-lowest/40 -m-5 mb-3 p-5 rounded-t-xl">
+      <div className="bg-surface-container-low rounded-xl p-4 shadow-sm">
+        <div className="flex items-center justify-between pb-3 mb-3 bg-surface-container-lowest/40 -m-5 mb-3 p-4 rounded-t-xl">
           <div className="flex items-center gap-2">
             <Icon name="verified" className="text-secondary text-[18px]" />
             <span className="font-headline-sm text-[16px] text-on-surface font-semibold">
@@ -103,7 +103,7 @@ export function SideRecap({
           <button
             type="button"
             onClick={onEdit}
-            className="font-mono-code text-[11px] text-primary hover:underline"
+            className="font-mono-code text-micro-label text-primary hover:underline"
           >
             Edit
           </button>
@@ -116,27 +116,27 @@ export function SideRecap({
             <div className="font-body-md font-semibold text-on-surface truncate">
               {workspace.name || "Untitled Workspace"}
             </div>
-            <div className="font-mono-code text-[12px] text-outline">
+            <div className="font-mono-code text-[12px] text-muted">
               unify.dev/org/{workspace.slug || "acme-eng"}
             </div>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2 mt-4 pt-4 bg-surface-container-lowest/30 rounded p-2.5">
           <div>
-            <span className="font-label-caps text-[10px] uppercase text-outline">Primary Region</span>
+            <span className="font-label-caps text-eyebrow uppercase text-muted">Primary Region</span>
             <div className="font-mono-code text-body-sm text-on-surface font-medium">
               US-East (N. Virginia)
             </div>
           </div>
           <div>
-            <span className="font-label-caps text-[10px] uppercase text-outline">Audit Logging</span>
+            <span className="font-label-caps text-eyebrow uppercase text-muted">Audit Logging</span>
             <div className="font-mono-code text-body-sm text-secondary font-medium">
               Enforced (Ret. 365d)
             </div>
           </div>
         </div>
         {workspace.imported ? (
-          <div className="mt-3 flex items-center gap-2 font-mono-code text-[11px] text-secondary">
+          <div className="mt-3 flex items-center gap-2 font-mono-code text-micro-label text-secondary">
             <Icon name="download_done" className="text-[14px]" />
             Import staged: 14 repos · 3 design spaces · 2 boards
           </div>
@@ -144,12 +144,12 @@ export function SideRecap({
       </div>
 
       {/* Connected upstream sources */}
-      <div className="bg-surface-container rounded-xl p-5 shadow-sm flex flex-col gap-4">
+      <div className="bg-surface-container rounded-xl p-4 shadow-sm flex flex-col gap-4">
         <div className="flex items-center justify-between pb-2">
-          <span className="font-label-caps text-label-caps uppercase text-outline">
+          <span className="font-label-caps text-label-caps uppercase text-muted">
             Connected Upstream Sources
           </span>
-          <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-[10px] text-on-surface">
+          <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-micro-label text-on-surface">
             {linked} of 3 linked
           </span>
         </div>
@@ -165,28 +165,28 @@ export function SideRecap({
                   <div className="w-8 h-8 rounded bg-surface-container-highest flex items-center justify-center">
                     <Icon
                       name={source.icon}
-                      className={`text-[20px] ${isConnected ? "text-secondary" : "text-outline"}`}
+                      className={`text-[20px] ${isConnected ? "text-secondary" : "text-muted"}`}
                     />
                   </div>
                   <div>
                     <div className="font-body-sm font-semibold text-on-surface">{source.name}</div>
-                    <div className="font-mono-code text-[11px] text-outline">
+                    <div className="font-mono-code text-micro-label text-muted">
                       {isConnected ? "Connected to " : "Not connected · "}
                       <span className="text-on-surface">{source.handle}</span>
                     </div>
                   </div>
                 </div>
                 {isConnected ? (
-                  <div className="flex items-center gap-1 text-secondary font-mono-code text-[11px]">
+                  <div className="flex items-center gap-1 text-secondary font-mono-code text-micro-label">
                     <Icon name="check_circle" className="text-[14px]" /> Active
                   </div>
                 ) : (
-                  <span className="font-mono-code text-[11px] text-outline">Pending</span>
+                  <span className="font-mono-code text-micro-label text-muted">Pending</span>
                 )}
               </div>
-              <div className="flex items-center justify-between pt-2 text-[11px] font-mono-code text-on-surface-variant bg-surface-container-lowest/40 px-2.5 py-1.5 rounded">
+              <div className="flex items-center justify-between pt-2 text-micro-label font-mono-code text-on-surface-variant bg-surface-container-lowest/40 px-2.5 py-1.5 rounded">
                 <span>{isConnected ? source.footLeft : "Awaiting OAuth consent"}</span>
-                <span className={isConnected ? source.footRightTone : "text-outline"}>
+                <span className={isConnected ? source.footRightTone : "text-muted"}>
                   {isConnected ? source.footRight : "—"}
                 </span>
               </div>
@@ -196,15 +196,15 @@ export function SideRecap({
       </div>
 
       {/* Preview of the next step */}
-      <div className="bg-surface-container-low rounded-xl p-5 shadow-sm opacity-70">
+      <div className="bg-surface-container-low rounded-xl p-4 shadow-sm opacity-70">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Icon name={step >= 5 ? "flag" : "group_add"} className="text-outline text-[18px]" />
-            <span className="font-label-caps text-label-caps uppercase text-outline">
+            <Icon name={step >= 5 ? "flag" : "group_add"} className="text-muted text-[18px]" />
+            <span className="font-label-caps text-label-caps uppercase text-muted">
               {next.label}
             </span>
           </div>
-          <span className="font-mono-code text-[10px] text-outline">
+          <span className="font-mono-code text-micro-label text-muted">
             {step >= 5 ? "Handoff" : "Team Permissions"}
           </span>
         </div>
@@ -213,10 +213,10 @@ export function SideRecap({
           <p className="font-body-sm text-on-surface-variant text-[12px]">{next.body}</p>
         </div>
         <div className="flex items-center gap-2 mt-3 flex-wrap">
-          <span className="px-2 py-1 rounded bg-surface-container font-mono-code text-[11px] text-outline">
+          <span className="px-2 py-1 rounded bg-surface-container font-mono-code text-micro-label text-muted">
             @acme-design (designer)
           </span>
-          <span className="px-2 py-1 rounded bg-surface-container font-mono-code text-[11px] text-outline">
+          <span className="px-2 py-1 rounded bg-surface-container font-mono-code text-micro-label text-muted">
             + invite by email...
           </span>
         </div>

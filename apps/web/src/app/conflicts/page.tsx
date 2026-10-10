@@ -48,7 +48,7 @@ const statCards = [
   {
     label: "Resolved",
     value: String(findingsByStatus.resolved),
-    meta: "96% automated",
+    meta: "Closed by rule",
     metaTone: "text-secondary",
     icon: "check_circle",
     iconClass: "bg-secondary/20 text-secondary",
@@ -68,7 +68,7 @@ function PersonCell({ name, role, initials }: { name: string; role: string; init
     <div className="flex items-center gap-2">
       <div className="flex -space-x-1.5 overflow-hidden">
         <div
-          className="w-6 h-6 rounded-full bg-primary-container text-on-primary-container font-bold text-[10px] flex items-center justify-center ring-2 ring-surface-container-low"
+          className="w-6 h-6 rounded-full bg-primary-container text-on-primary-container font-bold text-micro-label flex items-center justify-center ring-2 ring-surface-container-low"
           title={`${name} (${role})`}
         >
           {initials}
@@ -78,7 +78,7 @@ function PersonCell({ name, role, initials }: { name: string; role: string; init
         <span className="font-body-sm text-[12px] text-on-surface font-medium truncate">
           {name}
         </span>
-        <span className="font-mono-code text-[10px] text-outline">{role}</span>
+        <span className="font-mono-code text-micro-label text-muted truncate">{role}</span>
       </div>
     </div>
   );
@@ -100,19 +100,19 @@ function ConflictRow({ finding, index }: { finding: Finding; index: number }) {
         index % 2 === 1 ? "bg-surface-container-low/40" : ""
       }`}
     >
-      <td className="py-3 px-4">
+      <td className="py-3.5 px-4">
         <input
           aria-label={`Select ${finding.id}`}
           className="rounded bg-surface-container-highest cursor-pointer focus:ring-0"
           type="checkbox"
         />
       </td>
-      <td className="py-3 px-3 whitespace-nowrap">
+      <td className="py-3.5 px-3 whitespace-nowrap">
         <Badge tone={severityTone[finding.severity]} pulse={finding.severity === "critical"}>
           {severityLabel[finding.severity]}
         </Badge>
       </td>
-      <td className="py-3 px-4">
+      <td className="py-3.5 px-4">
         <div className="flex flex-col">
           <Link
             href={`/conflicts/${finding.id}`}
@@ -121,14 +121,14 @@ function ConflictRow({ finding, index }: { finding: Finding; index: number }) {
             {finding.title}
           </Link>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="font-mono-code text-[11px] text-primary">#{finding.id}</span>
-            <span className="font-mono-code text-[11px] text-on-surface-variant truncate">
+            <span className="font-mono-code text-micro-label text-primary">#{finding.id}</span>
+            <span className="font-mono-code text-micro-label text-on-surface-variant truncate">
               {finding.team}
             </span>
           </div>
         </div>
       </td>
-      <td className="py-3 px-4">
+      <td className="py-3.5 px-4">
         <div className="flex flex-wrap items-center gap-1.5">
           {finding.artifacts.map((artifact) => (
             <ToolPill key={`${artifact.tool}-${artifact.ref}`} tool={artifact.tool}>
@@ -137,19 +137,19 @@ function ConflictRow({ finding, index }: { finding: Finding; index: number }) {
           ))}
         </div>
       </td>
-      <td className="py-3 px-3 whitespace-nowrap">
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-[11px] font-semibold text-on-surface">
+      <td className="py-3.5 px-3 whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-micro-label font-semibold text-on-surface">
           <Icon name={status.icon} className="text-[12px]" />
           {status.label}
         </span>
       </td>
-      <td className="py-3 px-3 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
+      <td className="py-3.5 px-3 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
         {finding.ageLabel} ago
       </td>
-      <td className="py-3 px-4">
+      <td className="py-3.5 px-4">
         <PersonCell name={primary} role={finding.team} initials={initials} />
       </td>
-      <td className="py-3 px-4 text-right whitespace-nowrap">
+      <td className="py-3.5 px-4 text-right whitespace-nowrap">
         <div className="flex items-center justify-end gap-1">
           <Link
             href={`/conflicts/${finding.id}`}
@@ -160,7 +160,7 @@ function ConflictRow({ finding, index }: { finding: Finding; index: number }) {
           </Link>
           <button
             aria-label="Row actions"
-            className="p-1 rounded-md text-outline hover:text-on-surface hover:bg-surface-container-highest transition"
+            className="p-1 rounded-md text-muted hover:text-on-surface hover:bg-surface-container-highest transition"
           >
             <Icon name="more_vert" className="text-[18px]" />
           </button>
@@ -187,14 +187,10 @@ export default function ConflictInboxPage() {
             cites its source.
           </p>
         </div>
-        <div className="flex items-center gap-2 font-mono-code text-[11px] text-on-surface-variant">
-          <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
-          reconciled 40s ago
-        </div>
       </div>
 
       {/* Stat cards */}
-      <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-gutter">
+      <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-gutter">
         {statCards.map((card) => (
           <div
             key={card.label}
@@ -214,61 +210,15 @@ export default function ConflictInboxPage() {
               <span className="font-headline-md text-headline-md text-on-surface font-bold">
                 {card.value}
               </span>
-              <span className={`font-mono-code text-[11px] font-medium ${card.metaTone}`}>
+              <span className={`font-mono-code text-micro-label font-medium ${card.metaTone}`}>
                 {card.meta}
               </span>
             </div>
-            <div className="mt-2 text-on-surface-variant font-mono-code text-[11px] truncate">
-              last 7 days
+            <div className="mt-2 text-on-surface-variant font-mono-code text-micro-label truncate">
+              <span className="sr-only">Counted over </span>7d
             </div>
           </div>
         ))}
-        <div className="col-span-2 md:col-span-1 p-4 rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between relative overflow-hidden">
-          <div className="flex items-center justify-between mb-1">
-            <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">
-              Team Health Score
-            </span>
-            <span className="px-1.5 py-0.5 rounded bg-secondary/15 text-secondary font-mono-code text-[10px] font-bold">
-              TOP 5%
-            </span>
-          </div>
-          <div className="flex items-center justify-between mt-1">
-            <div>
-              <div className="font-headline-md text-headline-md text-secondary font-bold tracking-tight">
-                91%
-              </div>
-              <div className="font-mono-code text-[11px] text-on-surface-variant">
-                Clean alignment
-              </div>
-            </div>
-            <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
-              <svg className="w-14 h-14 -rotate-90" viewBox="0 0 48 48">
-                <circle
-                  className="text-surface-container-highest"
-                  cx="24"
-                  cy="24"
-                  fill="transparent"
-                  r="19"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <circle
-                  className="text-secondary"
-                  cx="24"
-                  cy="24"
-                  fill="transparent"
-                  r="19"
-                  stroke="currentColor"
-                  strokeDasharray="119.4"
-                  strokeDashoffset="10.7"
-                  strokeLinecap="round"
-                  strokeWidth="4"
-                />
-              </svg>
-              <Icon name="verified" className="absolute text-[18px] text-secondary" />
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* Filter toolbar */}
@@ -288,9 +238,9 @@ export default function ConflictInboxPage() {
           />
           <div className="flex items-center gap-2">
             <button className="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-mono-code text-mono-code flex items-center gap-2 transition shadow-sm">
-              <Icon name="calendar_today" className="text-outline text-[16px]" />
+              <Icon name="calendar_today" className="text-muted text-[16px]" />
               <span>Last 7 Days</span>
-              <Icon name="expand_more" className="text-outline text-[16px]" />
+              <Icon name="expand_more" className="text-muted text-[16px]" />
             </button>
             <button
               className="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition"
@@ -305,10 +255,10 @@ export default function ConflictInboxPage() {
           <div className="md:col-span-4 relative">
             <Icon
               name="filter_alt"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[18px]"
             />
             <input
-              className="w-full pl-9 pr-8 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-mono-code text-mono-code focus:outline-none focus:bg-surface-container transition placeholder:text-outline"
+              className="w-full pl-9 pr-8 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-mono-code text-mono-code focus:outline-none focus:bg-surface-container transition placeholder:text-muted"
               placeholder="Filter by commit, PR, ticket, or artifact..."
               type="text"
             />
@@ -322,7 +272,7 @@ export default function ConflictInboxPage() {
             </select>
             <Icon
               name="expand_more"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[18px] pointer-events-none"
             />
           </div>
           <div className="md:col-span-3 relative">
@@ -335,7 +285,7 @@ export default function ConflictInboxPage() {
             </select>
             <Icon
               name="expand_more"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[18px] pointer-events-none"
             />
           </div>
           <div className="md:col-span-3 relative">
@@ -348,7 +298,7 @@ export default function ConflictInboxPage() {
             </select>
             <Icon
               name="expand_more"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[18px] pointer-events-none"
             />
           </div>
         </div>
@@ -370,33 +320,33 @@ export default function ConflictInboxPage() {
                     type="checkbox"
                   />
                 </th>
-                <th className="py-3 px-3 w-28 cursor-pointer hover:text-on-surface transition">
+                <th className="py-3.5 px-3 w-28 cursor-pointer hover:text-on-surface transition">
                   <div className="flex items-center gap-1">
                     <span>Severity</span>
                     <Icon name="arrow_downward" className="text-[14px]" />
                   </div>
                 </th>
-                <th className="py-3 px-4 min-w-[260px] cursor-pointer hover:text-on-surface transition">
+                <th className="py-3.5 px-4 min-w-[240px] cursor-pointer hover:text-on-surface transition">
                   <div className="flex items-center gap-1">
                     <span>Conflict / Policy</span>
                     <Icon name="unfold_more" className="text-[14px]" />
                   </div>
                 </th>
-                <th className="py-3 px-4 min-w-[340px]">Affected Artifacts (Cross-Tool)</th>
-                <th className="py-3 px-3 w-40 cursor-pointer hover:text-on-surface transition">
+                <th className="py-3.5 px-4 min-w-[260px]">Affected Artifacts (Cross-Tool)</th>
+                <th className="py-3.5 px-3 w-36 cursor-pointer hover:text-on-surface transition">
                   <div className="flex items-center gap-1">
                     <span>Status</span>
                     <Icon name="unfold_more" className="text-[14px]" />
                   </div>
                 </th>
-                <th className="py-3 px-3 w-24 cursor-pointer hover:text-on-surface transition">
+                <th className="py-3.5 px-3 w-24 cursor-pointer hover:text-on-surface transition">
                   <div className="flex items-center gap-1">
                     <span>Age</span>
                     <Icon name="unfold_more" className="text-[14px]" />
                   </div>
                 </th>
-                <th className="py-3 px-4 min-w-[210px]">Assigned Recipients</th>
-                <th className="py-3 px-4 text-right w-32">Actions</th>
+                <th className="py-3.5 px-4 min-w-[180px]">Assigned Recipients</th>
+                <th className="py-3.5 px-4 text-right w-36">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/40 text-on-surface font-body-md text-body-md">
@@ -406,7 +356,7 @@ export default function ConflictInboxPage() {
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/60 font-mono-code text-[11px] text-on-surface-variant">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/60 font-mono-code text-micro-label text-on-surface-variant">
           <span>
             showing {findings.length} of {findingsByStatus.all} findings · resolved against the
             immutable evidence packet

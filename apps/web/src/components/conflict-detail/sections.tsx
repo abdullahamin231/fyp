@@ -25,7 +25,7 @@ const toneText: Record<string, string> = {
   secondary: "text-secondary",
   tertiary: "text-tertiary",
   error: "text-error",
-  outline: "text-outline",
+  outline: "text-muted",
 };
 
 const toneDot: Record<string, string> = {
@@ -39,7 +39,7 @@ const toneDot: Record<string, string> = {
 const statusTone: Record<string, string> = {
   COMPLETED: "bg-secondary/15 text-secondary",
   RAN: "bg-tertiary-container/40 text-on-tertiary-container",
-  SKIPPED: "bg-surface-container-highest text-outline",
+  SKIPPED: "bg-surface-container-highest text-muted",
   STOPPED: "bg-error-container/40 text-error",
 };
 
@@ -58,7 +58,7 @@ export function EvidenceChainSection({ finding }: { finding: Finding }) {
             Visual Evidence Chain &amp; Temporal Sequence
           </h2>
         </div>
-        <div className="flex items-center gap-gutter font-mono-code text-[11px] text-outline">
+        <div className="flex items-center gap-gutter font-mono-code text-micro-label text-muted">
           <span className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-secondary" /> High confidence (&gt;90%)
           </span>
@@ -84,23 +84,23 @@ export function EvidenceChainSection({ finding }: { finding: Finding }) {
                   Event · {event.tool}
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded bg-secondary/15 text-secondary font-mono-code text-[10px] font-semibold">
+              <span className="px-2 py-0.5 rounded bg-secondary/15 text-secondary font-mono-code text-micro-label font-semibold">
                 {event.badge}
               </span>
             </div>
             <div className="mb-stack-comfortable">
-              <h3 className="text-body-md font-semibold text-on-surface mb-1">{event.heading}</h3>
+              <h3 className="text-body-md font-semibold text-on-surface mb-1.5">{event.heading}</h3>
               <p className="text-body-sm text-on-surface-variant">{event.body}</p>
             </div>
-            <div className="pt-stack-compact bg-surface-container-lowest/40 rounded p-2 text-mono-code font-mono-code text-[11px] flex flex-col gap-1 text-outline">
+            <div className="pt-stack-compact bg-surface-container-lowest/40 rounded p-3.5 text-mono-code font-mono-code text-micro-label flex flex-col gap-1.5 text-muted">
               <div className="flex items-center justify-between">
                 <span className="text-on-surface flex items-center gap-1">
-                  <Icon name="person" className="text-[13px] text-outline" />
+                  <Icon name="person" className="text-[13px] text-muted" />
                   {event.actor}
                 </span>
                 <span className={event.divergence ? "text-tertiary" : undefined}>{event.when}</span>
               </div>
-              <div className={`truncate ${event.divergence ? "text-tertiary" : "text-outline-variant"}`}>
+              <div className={`truncate ${event.divergence ? "text-tertiary" : "text-muted"}`}>
                 {event.ref}
               </div>
             </div>
@@ -118,17 +118,17 @@ export function EvidenceChainSection({ finding }: { finding: Finding }) {
                 Conflict trigger
               </span>
             </div>
-            <span className="px-2 py-0.5 rounded bg-error-container text-error font-mono-code text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded bg-error-container text-error font-mono-code text-micro-label font-bold">
               {chain.trigger.badge}
             </span>
           </div>
           <div className="mb-stack-comfortable">
-            <h3 className="text-body-md font-semibold text-on-surface mb-1">
+            <h3 className="text-body-md font-semibold text-on-surface mb-1.5">
               {chain.trigger.heading}
             </h3>
             <p className="text-body-sm text-on-surface-variant">{chain.trigger.body}</p>
           </div>
-          <div className="pt-stack-compact bg-surface-container-lowest/60 rounded p-2 text-mono-code font-mono-code text-[11px] flex flex-col gap-1 text-error">
+          <div className="pt-stack-compact bg-surface-container-lowest/60 rounded p-3.5 text-mono-code font-mono-code text-micro-label flex flex-col gap-1.5 text-error">
             <div className="flex items-center justify-between font-bold">
               <span>{chain.trigger.metricLabel}</span>
               <span>{chain.trigger.metricValue}</span>
@@ -139,8 +139,8 @@ export function EvidenceChainSection({ finding }: { finding: Finding }) {
       </div>
 
       {/* Temporal timeline bar */}
-      <div className="mt-gutter pt-gutter flex flex-col gap-2">
-        <div className="flex items-center justify-between text-outline font-mono-code text-[11px]">
+      <div className="mt-gutter pt-gutter flex flex-col gap-3">
+        <div className="flex items-center justify-between text-muted font-mono-code text-micro-label">
           {marks.map((mark) => (
             <span key={mark.label} className={toneText[mark.tone]}>
               {mark.label}
@@ -148,7 +148,7 @@ export function EvidenceChainSection({ finding }: { finding: Finding }) {
           ))}
         </div>
         <div className="w-full h-2 rounded-full bg-surface-container-highest relative">
-          <div className="h-full rounded-full bg-gradient-to-r from-secondary via-tertiary to-error w-full" />
+          
           {marks.map((mark) => (
             <span
               key={mark.label}
@@ -174,7 +174,7 @@ export function AffectedArtifactsSection({ finding }: { finding: Finding }) {
             Affected Artifacts Under Inspection
           </h2>
         </div>
-        <span className="font-mono-code text-body-sm text-outline">
+        <span className="font-mono-code text-body-sm text-muted">
           {finding.artifacts.length} Interdependent Object{finding.artifacts.length === 1 ? "" : "s"}
         </span>
       </div>
@@ -205,7 +205,7 @@ export function VerificationPassesSection({ finding }: { finding: Finding }) {
             Bounded Verification Passes
           </h2>
         </div>
-        <span className="font-mono-code text-[11px] text-outline">
+        <span className="font-mono-code text-micro-label text-muted">
           pass 1 scope/retrieval → pass 2 verify → pass 3 conditional critic
         </span>
       </div>
@@ -226,16 +226,16 @@ export function VerificationPassesSection({ finding }: { finding: Finding }) {
                 </span>
               </div>
               <span
-                className={`px-2 py-0.5 rounded font-mono-code text-[10px] font-bold ${statusTone[pass.status]}`}
+                className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-bold ${statusTone[pass.status]}`}
               >
                 {pass.status}
               </span>
             </div>
             <p className="text-body-sm text-on-surface-variant">{pass.purpose}</p>
-            <div className="mt-auto space-y-stack-compact pt-stack-compact border-t border-outline-variant/40 font-mono-code text-[11px]">
+            <div className="mt-auto space-y-stack-compact pt-stack-compact border-t border-outline-variant/40 font-mono-code text-micro-label">
               {pass.rows.map((row) => (
                 <div key={row.label} className="flex items-start justify-between gap-3">
-                  <span className="text-outline shrink-0">{row.label}:</span>
+                  <span className="text-muted shrink-0">{row.label}:</span>
                   <span
                     className={`text-right ${row.tone ? toneText[row.tone] : "text-on-surface"}`}
                   >
@@ -249,11 +249,11 @@ export function VerificationPassesSection({ finding }: { finding: Finding }) {
       </div>
 
       <div className="mt-gutter rounded-lg bg-surface-container-lowest/60 px-stack-comfortable py-3 flex flex-wrap items-center gap-stack-compact">
-        <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+        <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
           Stop reason
         </span>
         <span
-          className={`px-2 py-0.5 rounded font-mono-code text-[11px] font-bold ${
+          className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-bold ${
             run.stopTone === "error"
               ? "bg-error-container text-error"
               : run.stopTone === "tertiary"
@@ -283,7 +283,7 @@ export function EvidenceCaseSection({ finding }: { finding: Finding }) {
           <Icon name="gavel" className="text-secondary text-[22px]" />
           <h2 className="font-headline-sm text-headline-sm text-on-surface">The Evidence Case</h2>
         </div>
-        <span className="font-mono-code text-[11px] text-outline">
+        <span className="font-mono-code text-micro-label text-muted">
           {evidenceCase.resolvedCount}/{evidenceCase.citationCount} citations resolved ·{" "}
           {evidenceCase.gapCount} open gap{evidenceCase.gapCount === 1 ? "" : "s"}
         </span>
@@ -299,7 +299,7 @@ export function EvidenceCaseSection({ finding }: { finding: Finding }) {
             <span className="font-label-caps text-label-caps text-secondary uppercase tracking-wider">
               Carries the verdict
             </span>
-            <span className="font-mono-code text-[11px] text-outline">
+            <span className="font-mono-code text-micro-label text-muted">
               {evidenceCase.supports.length} citation{evidenceCase.supports.length === 1 ? "" : "s"}
             </span>
           </div>
@@ -312,15 +312,15 @@ export function EvidenceCaseSection({ finding }: { finding: Finding }) {
               evidenceCase.supports.map((support, index) => (
                 <div
                   key={`${support.locator}-${index}`}
-                  className="rounded bg-surface-container-lowest/70 p-3"
+                  className="rounded bg-surface-container-lowest/70 p-3.5"
                 >
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <ToolPill tool={support.tool}>{support.criterionId} · {support.locator}</ToolPill>
-                    <span className="font-mono-code text-[10px] text-secondary shrink-0">
+                    <span className="font-mono-code text-micro-label text-secondary shrink-0">
                       VERBATIM
                     </span>
                   </div>
-                  <p className="font-mono-code text-[11px] text-on-surface-variant leading-relaxed">
+                  <p className="font-mono-code text-micro-label text-on-surface-variant leading-relaxed">
                     “{support.excerpt}”
                   </p>
                 </div>
@@ -334,7 +334,7 @@ export function EvidenceCaseSection({ finding }: { finding: Finding }) {
             <span className="font-label-caps text-label-caps text-tertiary uppercase tracking-wider">
               Open gaps
             </span>
-            <span className="font-mono-code text-[11px] text-outline">
+            <span className="font-mono-code text-micro-label text-muted">
               {evidenceCase.gaps.length} item{evidenceCase.gaps.length === 1 ? "" : "s"}
             </span>
           </div>
@@ -347,11 +347,11 @@ export function EvidenceCaseSection({ finding }: { finding: Finding }) {
               evidenceCase.gaps.map((gap, index) => (
                 <div
                   key={`${gap.criterionId}-${index}`}
-                  className="rounded bg-surface-container-lowest/70 p-3 flex items-start gap-2"
+                  className="rounded bg-surface-container-lowest/70 p-3.5 flex items-start gap-2.5"
                 >
                   <Icon name="hourglass_disabled" className="text-tertiary text-[16px] mt-0.5" />
                   <div className="min-w-0">
-                    <span className="font-mono-code text-[10px] text-outline block">
+                    <span className="font-mono-code text-micro-label text-muted block">
                       {gap.criterionId}
                     </span>
                     <span className="font-body-sm text-body-sm text-on-surface-variant">{gap.text}</span>
@@ -380,14 +380,14 @@ export function StakeholdersSection({ finding }: { finding: Finding }) {
             Targeted Stakeholders &amp; Selection Rationale
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-surface-container-high text-outline font-mono-code text-[11px]">
+        <span className="px-2 py-0.5 rounded bg-surface-container-high text-muted font-mono-code text-micro-label">
           Dynamic routing engine
         </span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left font-body-md text-body-md">
           <thead>
-            <tr className="text-outline font-label-caps text-label-caps uppercase border-b border-surface-container-highest">
+            <tr className="text-muted font-label-caps text-label-caps uppercase border-b border-surface-container-highest">
               <th className="pb-stack-compact font-semibold">Recipient</th>
               <th className="pb-stack-compact font-semibold">Functional role</th>
               <th className="pb-stack-compact font-semibold">Calculated rationale</th>
@@ -404,7 +404,7 @@ export function StakeholdersSection({ finding }: { finding: Finding }) {
                     </div>
                     <div>
                       <div className="text-on-surface font-semibold">{person.name}</div>
-                      <div className="text-outline font-mono-code text-[11px]">{person.handle}</div>
+                      <div className="text-muted font-mono-code text-micro-label">{person.handle}</div>
                     </div>
                   </div>
                 </td>
@@ -414,7 +414,7 @@ export function StakeholdersSection({ finding }: { finding: Finding }) {
                 <td className="py-stack-comfortable text-on-surface-variant">{person.rationale}</td>
                 <td className="py-stack-comfortable text-right">
                   <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono-code text-[11px] ${
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono-code text-micro-label ${
                       person.statusTone === "secondary"
                         ? "bg-secondary/15 text-secondary"
                         : person.statusTone === "tertiary"
@@ -446,7 +446,7 @@ export function AuditTrailSection({ finding }: { finding: Finding }) {
             <Icon name="history" className="text-primary text-[22px]" />
             <h2 className="font-headline-sm text-headline-sm text-on-surface">Audit Trail</h2>
           </div>
-          <span className="font-mono-code text-outline text-[11px]">Immutable ledger</span>
+          <span className="font-mono-code text-muted text-micro-label">Immutable ledger</span>
         </div>
         <div className="space-y-stack-comfortable relative pl-4 border-l-2 border-surface-container-highest">
           {entries.map((entry) => (
@@ -454,17 +454,17 @@ export function AuditTrailSection({ finding }: { finding: Finding }) {
               <span
                 className={`absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full ${toneDot[entry.tone]}`}
               />
-              <div className="flex items-center justify-between text-outline font-mono-code text-[11px]">
+              <div className="flex items-center justify-between text-muted font-mono-code text-micro-label">
                 <span>{entry.time}</span>
                 <span className={toneText[entry.tone]}>{entry.tag}</span>
               </div>
               <p className="text-body-sm font-semibold text-on-surface mt-0.5">{entry.title}</p>
-              <p className="text-body-sm text-outline font-mono-code text-[11px]">{entry.detail}</p>
+              <p className="text-body-sm text-muted font-mono-code text-micro-label">{entry.detail}</p>
             </div>
           ))}
         </div>
       </div>
-      <div className="mt-gutter pt-stack-comfortable border-t border-surface-container-highest/60 flex items-center justify-between font-mono-code text-[11px] text-outline">
+      <div className="mt-gutter pt-stack-comfortable border-t border-surface-container-highest/60 flex items-center justify-between font-mono-code text-micro-label text-muted">
         <span>Packet SHA: {finding.id.toLowerCase()}</span>
         <span className="text-primary flex items-center gap-1">
           <span>Full ledger</span>

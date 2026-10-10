@@ -184,7 +184,7 @@ function PolicyCard({
       onClick={onSelect}
       className={`group cursor-pointer p-3.5 rounded-lg text-left transition-all relative overflow-hidden ${
         selected
-          ? "bg-gradient-to-r from-surface-container to-surface-container-high shadow-md"
+          ? "bg-surface-container-high shadow-md"
           : "bg-surface-container-low hover:bg-surface-container shadow-sm"
       } ${enabled ? "" : "opacity-70 hover:opacity-100"}`}
     >
@@ -196,21 +196,21 @@ function PolicyCard({
       <span className="flex items-start justify-between gap-2 mb-1.5 pl-1.5">
         <span className="flex items-center gap-2">
           <span
-            className={`font-mono-code text-[11px] font-bold px-1.5 py-0.5 rounded ${
+            className={`font-mono-code text-micro-label font-bold px-1.5 py-0.5 rounded ${
               enabled ? severityIdChip[policy.severity] : "text-on-surface-variant bg-surface-container-highest"
             }`}
           >
             {policy.id}
           </span>
-          <span className="font-mono-code text-[11px] text-outline">{extra.code}</span>
+          <span className="font-mono-code text-micro-label text-muted">{extra.code}</span>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="font-label-caps text-[10px] text-on-surface-variant bg-surface-container-highest px-1.5 py-0.2 rounded">
+          <span className="font-label-caps text-eyebrow text-on-surface-variant bg-surface-container-highest px-1.5 py-0.2 rounded">
             {extra.version}
           </span>
           <span
-            className={`font-label-caps text-[10px] px-1.5 py-0.2 rounded font-bold ${
-              enabled ? "text-secondary bg-secondary/10" : "text-outline bg-surface-container"
+            className={`font-label-caps text-eyebrow px-1.5 py-0.2 rounded font-bold ${
+              enabled ? "text-secondary bg-secondary/10" : "text-muted bg-surface-container"
             }`}
           >
             {enabled ? "ACTIVE" : "PAUSED"}
@@ -223,7 +223,7 @@ function PolicyCard({
       <span className="block font-body-sm text-body-sm text-on-surface-variant line-clamp-1 pl-1.5 mt-0.5">
         {policy.description}
       </span>
-      <span className="flex items-center gap-3 pl-1.5 mt-3 pt-2 text-[12px] text-outline font-mono-code">
+      <span className="flex items-center gap-3 pl-1.5 mt-3 pt-2 text-[12px] text-muted font-mono-code">
         <span className="flex items-center gap-1">
           <span className={`w-1.5 h-1.5 rounded-full ${severityDot[policy.severity]}`} />
           {severityLabel[policy.severity]}
@@ -257,7 +257,7 @@ function Toggle({
       <span className="inline-block w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-primary-container after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary-container" />
       <span
         className={`ml-2 font-mono-code text-body-sm font-semibold ${
-          checked ? "text-secondary" : "text-outline"
+          checked ? "text-secondary" : "text-muted"
         }`}
       >
         {checked ? "Active" : "Paused"}
@@ -318,7 +318,7 @@ function PolicyEditor({
   };
 
   return (
-    <div className="bg-surface-container rounded-xl shadow-lg p-6 flex flex-col gap-6 relative">
+    <div className="bg-surface-container rounded-xl shadow-lg p-4 flex flex-col gap-4 relative">
       {/* SECTION 1 — metadata */}
       <div className="flex flex-col gap-4 pb-6 bg-surface-container-high/40 p-4 rounded-lg">
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -334,11 +334,11 @@ function PolicyEditor({
             >
               {severityLabel[severity]} Rule
             </span>
-            <span className="font-mono-code text-mono-code text-outline">{extra.code}</span>
-            <span className="px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-mono-code text-[11px] font-bold">
+            <span className="font-mono-code text-mono-code text-muted">{extra.code}</span>
+            <span className="px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-mono-code text-micro-label font-bold">
               {extra.version} ({enabled ? "Active" : "Paused"})
             </span>
-            <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-[11px]">
+            <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-micro-label">
               fired {policy.firedLast7d}× / 7d
             </span>
           </div>
@@ -350,7 +350,7 @@ function PolicyEditor({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-1">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-1.5">
           <div className="md:col-span-2 flex flex-col gap-1.5">
             <FieldLabel>Policy Canonical Name</FieldLabel>
             <input
@@ -366,14 +366,14 @@ function PolicyEditor({
               type="text"
               readOnly
               value={extra.namespace}
-              className="px-3.5 py-2 rounded bg-surface-container-lowest/60 text-outline font-mono-code text-mono-code cursor-not-allowed"
+              className="px-3.5 py-2 rounded bg-surface-container-lowest/60 text-muted font-mono-code text-mono-code cursor-not-allowed"
             />
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 pt-1">
+        <div className="flex flex-wrap items-center gap-3 pt-1">
           <Badge tone="accent">L0 deterministic gate</Badge>
-          <span className="font-mono-code text-[11px] text-on-surface-variant">
+          <span className="font-mono-code text-micro-label text-on-surface-variant">
             guards evaluate before any model call · verdicts explained at L3 with citations · L4
             autonomous write is prohibited
           </span>
@@ -381,10 +381,10 @@ function PolicyEditor({
       </div>
 
       {/* SECTION 2 — knowledge-graph relations */}
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <FieldLabel icon="hub">Applicable Knowledge Graph Relations</FieldLabel>
-          <span className="font-mono-code text-[11px] text-outline">
+          <span className="font-mono-code text-micro-label text-muted">
             Target Link Traversal: Depth 1
           </span>
         </div>
@@ -417,7 +417,7 @@ function PolicyEditor({
           })}
           <button
             type="button"
-            className="px-2.5 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-outline hover:text-on-surface flex items-center gap-1 font-mono-code text-[12px] transition-colors"
+            className="px-2.5 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-muted hover:text-on-surface flex items-center gap-1 font-mono-code text-[12px] transition-colors"
           >
             <Icon name="add" className="text-[14px]" />
             Custom Edge
@@ -426,16 +426,16 @@ function PolicyEditor({
       </div>
 
       {/* SECTION 3 — trigger events */}
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <FieldLabel icon="bolt" iconClass="text-secondary">
             Webhook Trigger Conditions &amp; Event Payloads
           </FieldLabel>
-          <span className="font-mono-code text-[11px] text-outline">
+          <span className="font-mono-code text-micro-label text-muted">
             Multi-Event Subscriptions ({events.length} active)
           </span>
         </div>
-        <div className="p-3 rounded-lg bg-surface-container-low flex flex-wrap items-center gap-2">
+        <div className="p-3.5 rounded-lg bg-surface-container-low flex flex-wrap items-center gap-3">
           {events.map((event) => (
             <span
               key={event.name}
@@ -456,7 +456,7 @@ function PolicyEditor({
           <button
             type="button"
             onClick={attachPayload}
-            className="flex items-center gap-1 px-3 py-1 rounded bg-surface-container hover:bg-surface-container-high text-outline hover:text-on-surface font-body-sm text-body-sm transition-colors"
+            className="flex items-center gap-1 px-3 py-1 rounded bg-surface-container hover:bg-surface-container-high text-muted hover:text-on-surface font-body-sm text-body-sm transition-colors"
           >
             <Icon name="add_circle" className="text-[16px]" />
             <span>Attach Event Payload...</span>
@@ -492,7 +492,7 @@ function PolicyEditor({
               ))}
             </select>
           </div>
-          <span className="font-body-sm text-[12px] text-outline">
+          <span className="font-body-sm text-[12px] text-muted">
             Silent period evaluated before an inbox finding is emitted.
           </span>
         </div>
@@ -512,7 +512,7 @@ function PolicyEditor({
               </option>
             ))}
           </select>
-          <span className="font-body-sm text-[12px] text-outline">
+          <span className="font-body-sm text-[12px] text-muted">
             Condition must evaluate to true at the end of the grace window.
           </span>
         </div>
@@ -533,14 +533,14 @@ function PolicyEditor({
             Add Guard Clause
           </button>
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {clauses.map((clause, index) => (
             <div
               key={`${index}-${clause}`}
-              className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors"
+              className="flex items-center justify-between gap-3 p-3.5 rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors"
             >
               <div className="flex items-center gap-3 overflow-hidden">
-                <span className="font-mono-code text-[11px] text-outline uppercase px-2 py-0.5 rounded bg-surface-container shrink-0">
+                <span className="font-mono-code text-eyebrow text-muted uppercase px-2 py-0.5 rounded bg-surface-container shrink-0">
                   {index === 0 ? "IF" : "AND"}
                 </span>
                 <span className="font-mono-code text-body-sm text-on-surface truncate">
@@ -548,13 +548,13 @@ function PolicyEditor({
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="font-label-caps text-[10px] text-secondary uppercase bg-secondary/10 px-2 py-0.5 rounded">
+                <span className="font-label-caps text-eyebrow text-secondary uppercase bg-secondary/10 px-2 py-0.5 rounded">
                   Bypass
                 </span>
                 <button
                   type="button"
                   aria-label={`Delete guard ${index + 1}`}
-                  className="text-outline hover:text-error p-1 transition-colors"
+                  className="text-muted hover:text-error p-1 transition-colors"
                   onClick={() => setClauses(clauses.filter((_, i) => i !== index))}
                 >
                   <Icon name="delete" className="text-[16px]" />
@@ -566,10 +566,10 @@ function PolicyEditor({
       </div>
 
       {/* SECTION 6 — severity & routing */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 p-4 rounded-lg bg-surface-container-low">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 rounded-lg bg-surface-container-low">
         <div className="md:col-span-5 flex flex-col gap-2.5">
           <FieldLabel>Severity Classification</FieldLabel>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-3">
             {(["critical", "warning", "info"] as Severity[]).map((option) => {
               const active = severity === option;
               const tone =
@@ -582,7 +582,7 @@ function PolicyEditor({
               return (
                 <label
                   key={option}
-                  className={`flex flex-col items-center justify-center p-2.5 rounded cursor-pointer shadow-sm transition-colors ${
+                  className={`flex flex-col items-center justify-center p-3.5 rounded cursor-pointer shadow-sm transition-colors ${
                     active ? tone : "bg-surface-container hover:bg-surface-container-high text-on-surface-variant"
                   }`}
                 >
@@ -593,7 +593,7 @@ function PolicyEditor({
                     checked={active}
                     onChange={() => setSeverity(option)}
                   />
-                  <Icon name={icon} className="text-[20px] mb-1" />
+                  <Icon name={icon} className="text-[20px] mb-1.5" />
                   <span className="font-mono-code text-label-caps font-bold">
                     {severityLabel[option]}
                   </span>
@@ -604,11 +604,11 @@ function PolicyEditor({
         </div>
         <div className="md:col-span-7 flex flex-col gap-2.5">
           <FieldLabel>Escalation &amp; Recipient Roles</FieldLabel>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {recipientOptions.map((role) => (
               <label
                 key={role}
-                className="flex items-center gap-2 p-2 rounded bg-surface-container text-on-surface font-body-sm text-body-sm cursor-pointer hover:bg-surface-container-high"
+                className="flex items-center gap-2.5 p-3 rounded bg-surface-container text-on-surface font-body-sm text-body-sm cursor-pointer hover:bg-surface-container-high"
               >
                 <input
                   type="checkbox"
@@ -624,7 +624,7 @@ function PolicyEditor({
           </div>
           <div className="flex items-start gap-2 pt-1">
             <Icon name="chat" className="text-secondary text-[16px] mt-0.5 shrink-0" />
-            <span className="font-mono-code text-[11px] text-on-surface-variant">
+            <span className="font-mono-code text-micro-label text-on-surface-variant">
               Slack delivery is delivery-only: the notification channel is never an input to
               reasoning or verdicts.
             </span>
@@ -633,10 +633,10 @@ function PolicyEditor({
       </div>
 
       {/* SECTION 7 — explanation template */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <FieldLabel icon="chat">Automated Incident Explanation Template</FieldLabel>
-          <span className="font-mono-code text-[11px] text-outline">
+          <span className="font-mono-code text-micro-label text-muted">
             {policy.notifyTemplate} · supports interpolation tokens
           </span>
         </div>
@@ -647,14 +647,14 @@ function PolicyEditor({
           onChange={(event) => setTemplate(event.target.value)}
           className="w-full p-3.5 rounded bg-surface-container-low text-on-surface font-mono-code text-mono-code focus:outline-none leading-relaxed resize-none"
         />
-        <div className="flex items-center gap-2 flex-wrap pt-1">
-          <span className="font-label-caps text-[10px] text-outline uppercase">Insert Token:</span>
+        <div className="flex items-center gap-3 flex-wrap pt-1">
+          <span className="font-label-caps text-eyebrow text-muted uppercase">Insert Token:</span>
           {tokenList.map((token) => (
             <button
               key={token}
               type="button"
               onClick={() => setTemplate(`${template} ${token}`.trim())}
-              className="px-2 py-0.5 rounded bg-surface-container-high hover:bg-primary/20 text-primary font-mono-code text-[11px] transition-colors"
+              className="px-2 py-0.5 rounded bg-surface-container-high hover:bg-primary/20 text-primary font-mono-code text-micro-label transition-colors"
             >
               {token}
             </button>
@@ -663,12 +663,12 @@ function PolicyEditor({
       </div>
 
       {/* SECTION 8 — suppression */}
-      <div className="flex flex-col gap-2 p-3.5 rounded-lg bg-surface-container-low">
-        <FieldLabel icon="do_not_disturb_on" iconClass="text-outline">
+      <div className="flex flex-col gap-3 p-4 rounded-lg bg-surface-container-low">
+        <FieldLabel icon="do_not_disturb_on" iconClass="text-muted">
           Automated Suppression &amp; Noise Squelch
         </FieldLabel>
         <div className="flex items-center gap-3">
-          <Icon name="rule_settings" className="text-outline text-[18px] shrink-0" />
+          <Icon name="rule_settings" className="text-muted text-[18px] shrink-0" />
           {editingSuppression ? (
             <textarea
               rows={2}
@@ -751,18 +751,18 @@ export function PolicyWorkbench() {
     <div className="grid grid-cols-12 gap-gutter items-start">
       {/* LEFT — policy list master pane */}
       <div className="col-span-12 lg:col-span-4 flex flex-col gap-3">
-        <div className="bg-surface-container-low p-3 rounded-lg shadow-sm flex flex-col gap-2">
+        <div className="bg-surface-container-low p-4 rounded-lg shadow-sm flex flex-col gap-3">
           <div className="relative w-full">
             <Icon
               name="filter_list"
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px]"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted text-[16px]"
             />
             <input
               type="text"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Filter policies (by ID, scope, state)..."
-              className="w-full pl-8 pr-3 py-1.5 rounded bg-surface-container text-on-surface placeholder:text-outline font-mono-code text-body-sm focus:outline-none"
+              className="w-full pl-8 pr-3 py-1.5 rounded bg-surface-container text-on-surface placeholder:text-muted font-mono-code text-body-sm focus:outline-none"
             />
           </div>
           <div className="flex items-center justify-between text-on-surface-variant px-1 pt-1 font-label-caps text-label-caps uppercase tracking-wider">
@@ -771,7 +771,7 @@ export function PolicyWorkbench() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {visible.map((policy) => (
             <PolicyCard
               key={policy.id}
@@ -785,19 +785,19 @@ export function PolicyWorkbench() {
             />
           ))}
           {visible.length === 0 ? (
-            <div className="p-4 rounded-lg bg-surface-container-low border border-outline-variant/40 font-mono-code text-[12px] text-outline text-center">
+            <div className="p-4 rounded-lg bg-surface-container-low border border-outline-variant/40 font-mono-code text-[12px] text-muted text-center">
               No policy matches “{query}”
             </div>
           ) : null}
         </div>
 
         {/* Consistency engine health */}
-        <div className="bg-surface-container-low p-4 rounded-lg shadow-sm mt-2 flex flex-col gap-3">
+        <div className="bg-surface-container-low p-4 rounded-lg shadow-sm mt-2 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <span className="font-label-caps text-label-caps uppercase text-outline">
+            <span className="font-label-caps text-label-caps uppercase text-muted">
               Consistency Engine Health
             </span>
-            <span className="font-mono-code text-[11px] text-secondary">REALTIME</span>
+            <span className="font-mono-code text-micro-label text-secondary">REALTIME</span>
           </div>
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col">
@@ -830,7 +830,7 @@ export function PolicyWorkbench() {
             <div className="bg-tertiary h-full" style={{ width: "20%" }} />
             <div className="bg-error h-full" style={{ width: "8%" }} />
           </div>
-          <div className="flex items-center justify-between text-[11px] font-mono-code text-on-surface-variant">
+          <div className="flex items-center justify-between text-micro-label font-mono-code text-on-surface-variant">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-secondary" />
               Auto-resolved: 72%
@@ -844,7 +844,7 @@ export function PolicyWorkbench() {
       </div>
 
       {/* RIGHT — rule builder detail pane */}
-      <div className="col-span-12 lg:col-span-8 flex flex-col gap-5">
+      <div className="col-span-12 lg:col-span-8 flex flex-col gap-4">
         <PolicyEditor
           key={`${selected.id}-${resetKey}`}
           policy={selected}
@@ -855,7 +855,7 @@ export function PolicyWorkbench() {
         />
 
         {/* Simulation insight ribbon */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-surface-container-low via-surface-container to-surface-container-low flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+        <div className="p-4 rounded-xl bg-surface-container flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
               <Icon name="verified" className="text-[18px]" />

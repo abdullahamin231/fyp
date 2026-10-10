@@ -253,9 +253,9 @@ export function StudyRunner() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Study runner header & control bar */}
-      <section className="relative bg-surface-container-high rounded-xl p-5 shadow-xl overflow-hidden">
+      <section className="relative bg-surface-container-high rounded-xl p-4 shadow-xl overflow-hidden">
         <div className="absolute -right-16 -top-16 w-56 h-56 bg-primary-container/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute left-1/3 -bottom-10 w-48 h-48 bg-secondary/5 rounded-full blur-2xl pointer-events-none" />
         <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -270,7 +270,7 @@ export function StudyRunner() {
                     Evaluation Session
                   </span>
                   <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
-                  <span className="font-mono-code text-[11px] text-on-surface-variant bg-surface-container-lowest px-2 py-0.5 rounded">
+                  <span className="font-mono-code text-micro-label text-on-surface-variant bg-surface-container-lowest px-2 py-0.5 rounded">
                     PID: P-14
                   </span>
                 </div>
@@ -284,14 +284,14 @@ export function StudyRunner() {
               <span className="px-2.5 py-1 rounded bg-surface-container-lowest text-primary-fixed font-mono-code text-[12px] font-medium">
                 Condition: <strong className="text-primary font-bold">UNIFY-FIRST</strong>
               </span>
-              <span className="px-2 py-1 rounded bg-surface-container text-tertiary font-mono-code text-[11px]">
+              <span className="px-2 py-1 rounded bg-surface-container text-tertiary font-mono-code text-micro-label">
                 {finished
                   ? "All 4 tasks recorded"
                   : `Task ${activeTask} of 4 (Scenario ${task?.scenario})`}
               </span>
               {task ? (
                 <span
-                  className={`px-2 py-1 rounded font-mono-code text-[11px] ${
+                  className={`px-2 py-1 rounded font-mono-code text-micro-label ${
                     task.condition === "UNIFY"
                       ? "bg-secondary/15 text-secondary"
                       : "bg-surface-container-highest text-on-surface-variant"
@@ -307,7 +307,7 @@ export function StudyRunner() {
             <div className="flex items-center gap-3 bg-surface-container-lowest px-3.5 py-1.5 rounded-lg shadow-inner">
               <div className="flex items-center gap-1.5 text-on-surface-variant">
                 <Icon name="timer" className="text-[18px] text-secondary" />
-                <span className="font-label-caps text-label-caps uppercase text-outline">
+                <span className="font-label-caps text-label-caps uppercase text-muted">
                   Elapsed
                 </span>
               </div>
@@ -354,11 +354,11 @@ export function StudyRunner() {
       </section>
 
       {/* 2-pane main grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
         {/* Left panel: task list, scenario, telemetry, timing, notes */}
-        <aside className="xl:col-span-4 space-y-5">
+        <aside className="xl:col-span-4 space-y-4">
           {/* Participant task list */}
-          <div className="bg-surface-container rounded-xl p-5 shadow-lg space-y-3">
+          <div className="bg-surface-container rounded-xl p-4 shadow-lg space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Icon name="checklist" className="text-primary text-[18px]" />
@@ -366,9 +366,9 @@ export function StudyRunner() {
                   Participant Task List
                 </span>
               </div>
-              <span className="font-mono-code text-[11px] text-outline">Group G-A · 4 tasks</span>
+              <span className="font-mono-code text-micro-label text-muted">Group G-A · 4 tasks</span>
             </div>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2.5">
               {studyTasks.map((item) => {
                 const record = records[item.id];
                 const isActive = item.id === activeTask;
@@ -376,7 +376,7 @@ export function StudyRunner() {
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg border transition-colors ${
+                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg border transition-colors ${
                       isActive
                         ? "bg-primary/10 border-primary/40"
                         : record
@@ -384,12 +384,12 @@ export function StudyRunner() {
                           : "bg-surface-container-low/40 border-transparent opacity-60"
                     }`}
                   >
-                    <span className="font-mono-code text-[11px] text-outline w-4">T{item.id}</span>
+                    <span className="font-mono-code text-micro-label text-muted w-4">T{item.id}</span>
                     <div className="flex-1 min-w-0">
                       <div className="font-body-sm text-body-sm font-semibold text-on-surface truncate">
                         Scenario {item.scenario} · {item.label}
                       </div>
-                      <div className="font-mono-code text-[10px] text-on-surface-variant">
+                      <div className="font-mono-code text-micro-label text-on-surface-variant">
                         {record
                           ? `recorded ${clock(record.timeMs)} · ${record.verdict}`
                           : isActive
@@ -398,7 +398,7 @@ export function StudyRunner() {
                       </div>
                     </div>
                     <span
-                      className={`px-1.5 py-0.5 rounded font-mono-code text-[10px] font-bold ${
+                      className={`px-1.5 py-0.5 rounded font-mono-code text-micro-label font-bold ${
                         item.condition === "UNIFY"
                           ? "bg-secondary/15 text-secondary"
                           : "bg-surface-container-highest text-on-surface-variant"
@@ -411,7 +411,7 @@ export function StudyRunner() {
                     ) : isActive ? (
                       <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
                     ) : isUpcoming ? (
-                      <Icon name="lock" className="text-outline text-[14px]" />
+                      <Icon name="lock" className="text-muted text-[14px]" />
                     ) : null}
                   </div>
                 );
@@ -421,13 +421,13 @@ export function StudyRunner() {
 
           {/* Scenario brief */}
           {evidence ? (
-            <div className="bg-surface-container rounded-xl p-5 shadow-lg space-y-4">
+            <div className="bg-surface-container rounded-xl p-4 shadow-lg space-y-4">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <span className="font-label-caps text-label-caps text-tertiary uppercase tracking-wider">
                     Test Scenario Objective
                   </span>
-                  <h2 className="font-headline-sm text-headline-sm text-on-surface mt-0.5">
+                  <h2 className="font-headline-sm text-headline-sm text-on-surface mt-1.5">
                     {evidence.title}
                   </h2>
                 </div>
@@ -441,7 +441,7 @@ export function StudyRunner() {
                     key={`${token.text}-${index}`}
                     className={
                       token.code
-                        ? `font-mono-code text-[11px] bg-surface-container-lowest px-1 rounded ${
+                        ? `font-mono-code text-micro-label bg-surface-container-lowest px-1 rounded ${
                             token.tone ?? "text-primary"
                           }`
                         : (token.tone ?? "")
@@ -451,23 +451,23 @@ export function StudyRunner() {
                   </span>
                 ))}
               </p>
-              <div className="p-3 rounded-lg bg-surface-container-low space-y-2">
-                <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+              <div className="p-4 rounded-lg bg-surface-container-low space-y-4">
+                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                   Participant Prompt
                 </span>
                 <p className="font-body-sm text-body-sm text-on-surface">{evidence.prompt}</p>
               </div>
-              <div className="space-y-2.5 pt-2">
+              <div className="space-y-4 pt-3">
                 <span className="font-label-caps text-label-caps text-on-surface uppercase tracking-wider">
                   Required Output Metrics
                 </span>
-                <ul className="space-y-2 text-body-sm font-body-sm">
+                <ul className="space-y-4 text-body-sm font-body-sm">
                   {evidence.requirements.map((requirement, index) => (
                     <li key={requirement} className="flex items-start gap-2 text-on-surface-variant">
                       <Icon
                         name={requirementsDone[index] ? "check_box" : "check_box_outline_blank"}
                         className={`text-[16px] mt-0.5 ${
-                          requirementsDone[index] ? "text-secondary" : "text-outline"
+                          requirementsDone[index] ? "text-secondary" : "text-muted"
                         }`}
                       />
                       <span>
@@ -481,7 +481,7 @@ export function StudyRunner() {
           ) : null}
 
           {/* Live telemetry recorder */}
-          <div className="bg-surface-container rounded-xl p-5 shadow-lg space-y-4">
+          <div className="bg-surface-container rounded-xl p-4 shadow-lg space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-secondary animate-ping" />
@@ -489,7 +489,7 @@ export function StudyRunner() {
                   Live Telemetry Recorder
                 </span>
               </div>
-              <span className="font-mono-code text-[11px] text-outline">AUTO-STREAMING</span>
+              <span className="font-mono-code text-micro-label text-muted">AUTO-STREAMING</span>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {[
@@ -500,9 +500,9 @@ export function StudyRunner() {
               ].map((metric) => (
                 <div
                   key={metric.label}
-                  className="bg-surface-container-low p-3 rounded-lg flex flex-col justify-between"
+                  className="bg-surface-container-low p-4 rounded-lg flex flex-col justify-between"
                 >
-                  <div className="flex items-center justify-between text-outline">
+                  <div className="flex items-center justify-between text-muted">
                     <span className="font-label-caps text-label-caps uppercase">
                       {metric.label}
                     </span>
@@ -512,7 +512,7 @@ export function StudyRunner() {
                     <span className={`font-mono-code text-[22px] font-bold ${metric.tone}`}>
                       {metric.value}
                     </span>
-                    <span className="font-mono-code text-[11px] text-on-surface-variant">
+                    <span className="font-mono-code text-micro-label text-on-surface-variant">
                       {metric.suffix}
                     </span>
                   </div>
@@ -520,7 +520,7 @@ export function StudyRunner() {
               ))}
             </div>
 
-            <div className="bg-surface-container-low p-3.5 rounded-lg space-y-2">
+            <div className="bg-surface-container-low p-3.5 rounded-lg space-y-4">
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="confidence"
@@ -541,25 +541,25 @@ export function StudyRunner() {
                 onChange={(event) => setConfidence(Number(event.target.value))}
                 className="w-full h-1.5 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-secondary"
               />
-              <div className="flex justify-between font-mono-code text-[10px] text-outline px-0.5">
+              <div className="flex justify-between font-mono-code text-micro-label text-muted px-0.5">
                 <span>1: Blind Guess</span>
                 <span>3: Moderate</span>
                 <span>5: Certain</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-3 py-2 rounded bg-surface-container-lowest text-on-surface-variant">
-              <div className="flex items-center gap-2 font-mono-code text-[11px]">
+            <div className="flex items-center justify-between px-4 py-2.5 rounded bg-surface-container-lowest text-on-surface-variant">
+              <div className="flex items-center gap-2 font-mono-code text-micro-label">
                 <Icon name="visibility" className="text-secondary text-[14px]" />
                 <span>Viewport Focus:</span>
                 <span className="text-on-surface font-semibold">Diff Inspector</span>
               </div>
-              <span className="font-label-caps text-[10px] text-primary">SYNC OK</span>
+              <span className="font-label-caps text-eyebrow text-primary">SYNC OK</span>
             </div>
           </div>
 
           {/* Timing capture */}
-          <div className="bg-surface-container rounded-xl p-5 shadow-lg space-y-3">
+          <div className="bg-surface-container rounded-xl p-4 shadow-lg space-y-4">
             <div className="flex items-center justify-between">
               <span className="font-headline-sm text-[16px] text-on-surface font-semibold">
                 Timing Capture
@@ -567,40 +567,40 @@ export function StudyRunner() {
               <button
                 type="button"
                 onClick={() => captureSplit(`Split ${splits.length - 1}`)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-mono-code text-[11px] transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-mono-code text-micro-label transition-colors"
               >
                 <Icon name="add_alarm" className="text-[14px]" />
                 Capture split
               </button>
             </div>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2.5">
               {splits.map((split, index) => (
                 <div
                   key={`${split.label}-${index}`}
-                  className="flex items-center justify-between px-2.5 py-1.5 rounded bg-surface-container-low font-mono-code text-[11px]"
+                  className="flex items-center justify-between px-3 py-2 rounded bg-surface-container-low font-mono-code text-micro-label"
                 >
                   <span className="text-on-surface-variant">{split.label}</span>
                   <span className="text-secondary font-semibold">{clock(split.ms)}</span>
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between border-t border-surface-container-highest pt-2 font-mono-code text-[11px]">
-              <span className="text-outline">Cumulative on task</span>
+            <div className="flex items-center justify-between border-t border-surface-container-highest pt-2 font-mono-code text-micro-label">
+              <span className="text-muted">Cumulative on task</span>
               <span className="text-on-surface font-semibold">{clock(elapsed)}</span>
             </div>
           </div>
 
           {/* Per-task notes */}
-          <div className="bg-surface-container rounded-xl p-5 shadow-lg space-y-2">
+          <div className="bg-surface-container rounded-xl p-4 shadow-lg space-y-4">
             <div className="flex items-center justify-between">
               <span className="font-headline-sm text-[16px] text-on-surface font-semibold">
                 Per-Task Notes
               </span>
-              <span className="font-mono-code text-[10px] text-secondary">
+              <span className="font-mono-code text-micro-label text-secondary">
                 saved {noteSavedAt}
               </span>
             </div>
-            <p className="font-body-sm text-[11px] text-on-surface-variant">
+            <p className="font-body-sm text-micro-label text-on-surface-variant">
               Free-text observations for Task {activeTask}. Stored with the timing record and
               excluded from the participant prompt.
             </p>
@@ -617,17 +617,17 @@ export function StudyRunner() {
                 );
               }}
               placeholder="What did you check first? Where did you get stuck? Which tool was slowest?"
-              className="w-full p-3 rounded-lg bg-surface-container-lowest text-on-surface font-body-sm text-body-sm placeholder:text-outline focus:outline-none focus:bg-surface-container-high transition-colors disabled:opacity-50"
+              className="w-full p-3 rounded-lg bg-surface-container-lowest text-on-surface font-body-sm text-body-sm placeholder:text-muted focus:outline-none focus:bg-surface-container-high transition-colors disabled:opacity-50"
             />
           </div>
 
           {/* Investigation protocol reference */}
-          <div className="bg-surface-container-low p-4 rounded-xl space-y-2">
+          <div className="bg-surface-container-low p-4 rounded-xl space-y-4">
             <div className="flex items-center justify-between text-on-surface">
               <span className="font-body-sm text-body-sm font-semibold">
                 Investigator Protocol Notes
               </span>
-              <Icon name="info" className="text-[16px] text-outline" />
+              <Icon name="info" className="text-[16px] text-muted" />
             </div>
             <p className="font-body-sm text-body-sm text-on-surface-variant text-[12px] leading-relaxed">
               Participant has received 5-minute training on UNIFY graph exploration.
@@ -639,7 +639,7 @@ export function StudyRunner() {
         </aside>
 
         {/* Right panel: split investigation workspace */}
-        <main className="xl:col-span-8 space-y-6 min-w-0">
+        <main className="xl:col-span-8 space-y-4 min-w-0">
           {evidence && task ? (
             <>
               <StudyEvidence
@@ -661,7 +661,7 @@ export function StudyRunner() {
               />
             </>
           ) : (
-            <section className="bg-surface-container rounded-xl p-8 shadow-xl text-center space-y-3">
+            <section className="bg-surface-container rounded-xl p-4 shadow-xl text-center space-y-4">
               <Icon name="celebration" className="text-secondary text-[32px]" />
               <h3 className="font-headline-md text-headline-md text-on-surface">
                 Session complete — all 4 tasks recorded
@@ -676,7 +676,7 @@ export function StudyRunner() {
       </div>
 
       {/* Manual vs UNIFY-assisted comparison */}
-      <section className="rounded-xl bg-surface-container-low p-5 shadow-sm">
+      <section className="rounded-xl bg-surface-container-low p-4 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
           <div>
             <span className="font-label-caps text-label-caps text-secondary uppercase tracking-wider">
@@ -686,7 +686,7 @@ export function StudyRunner() {
               Manual Workflow vs UNIFY-Assisted (recorded so far)
             </h3>
           </div>
-          <span className="font-mono-code text-[11px] text-on-surface-variant">
+          <span className="font-mono-code text-micro-label text-on-surface-variant">
             updates on every task submission · ground truth withheld
           </span>
         </div>
@@ -694,19 +694,19 @@ export function StudyRunner() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="text-on-surface-variant font-label-caps text-label-caps uppercase tracking-wider">
-                <th className="py-2 px-3 w-56">Metric</th>
-                <th className="py-2 px-3">Manual workflow (Tasks 1, 3)</th>
-                <th className="py-2 px-3">UNIFY-assisted (Tasks 2, 4)</th>
+                <th className="py-3 px-4 w-56">Metric</th>
+                <th className="py-3 px-4">Manual workflow (Tasks 1, 3)</th>
+                <th className="py-3 px-4">UNIFY-assisted (Tasks 2, 4)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/40 text-on-surface font-body-md text-body-md">
               {comparison.map((row, index) => (
                 <tr key={row.label} className={index % 2 === 1 ? "bg-surface-container-low/40" : ""}>
-                  <td className="py-2.5 px-3 font-body-sm text-body-sm text-on-surface-variant">
+                  <td className="py-3.5 px-4 font-body-sm text-body-sm text-on-surface-variant">
                     {row.label}
                   </td>
-                  <td className="py-2.5 px-3 font-mono-code text-[12px]">{row.manual}</td>
-                  <td className="py-2.5 px-3 font-mono-code text-[12px] text-secondary">
+                  <td className="py-3.5 px-4 font-mono-code text-[12px]">{row.manual}</td>
+                  <td className="py-3.5 px-4 font-mono-code text-[12px] text-secondary">
                     {row.unify}
                   </td>
                 </tr>

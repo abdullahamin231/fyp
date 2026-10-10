@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function ConflictAlertsPage() {
   return (
-    <AppShell action={<span className="font-mono-code text-[11px] text-secondary">alerts live</span>}>
+    <AppShell>
       <div className="flex flex-col xl:flex-row gap-gutter items-start">
         <AlertsFeed />
         <AlertsSidePanel />

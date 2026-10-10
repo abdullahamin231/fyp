@@ -23,7 +23,7 @@ const stateByTool: Record<ToolKind, string> = {
 const integrityByFreshness: Record<Finding["freshness"], { label: string; className: string }> = {
   CURRENT: { label: "Signature valid", className: "text-secondary" },
   STALE: { label: "Stale snapshot", className: "text-tertiary" },
-  UNKNOWN: { label: "Unverified", className: "text-outline" },
+  UNKNOWN: { label: "Unverified", className: "text-muted" },
 };
 
 function firstCitation(criteria: CriterionResult[], tool: ToolKind) {
@@ -48,8 +48,8 @@ function Specimen({
 
   if (artifact.tool === "figma") {
     return (
-      <div className="w-full h-28 rounded bg-surface-container-lowest p-stack-comfortable mb-stack-comfortable flex flex-col justify-between relative overflow-hidden">
-        <div className="flex items-center justify-between text-[10px] font-mono-code text-outline">
+      <div className="w-full min-h-28 rounded bg-surface-container-lowest p-stack-comfortable mb-stack-comfortable flex flex-col justify-between relative overflow-hidden">
+        <div className="flex items-center justify-between text-micro-label font-mono-code text-muted">
           <span>Frame: {artifact.ref}</span>
           <span className="text-secondary font-semibold">
             {citation ? "Citation resolved" : "No diff captured"}
@@ -57,14 +57,14 @@ function Specimen({
         </div>
         <div className="flex items-center justify-center gap-3">
           <div className="w-20 h-12 rounded bg-surface-container-high border-2 border-dashed border-secondary/40 flex items-center justify-center">
-            <span className="font-mono-code text-[10px] text-secondary">Design</span>
+            <span className="font-mono-code text-micro-label text-secondary">Design</span>
           </div>
-          <Icon name="arrow_forward" className="text-outline text-[16px]" />
+          <Icon name="arrow_forward" className="text-muted text-[16px]" />
           <div className="w-20 h-12 rounded bg-surface-container-highest flex items-center justify-center">
-            <span className="font-mono-code text-[10px] text-outline">Code</span>
+            <span className="font-mono-code text-micro-label text-muted">Code</span>
           </div>
         </div>
-        <span className="text-[10px] font-mono-code text-outline-variant truncate">
+        <span className="text-micro-label font-mono-code text-muted truncate">
           {citation ? citation.locator : artifact.label}
         </span>
       </div>
@@ -73,18 +73,18 @@ function Specimen({
 
   if (artifact.tool === "github" || artifact.tool === "git") {
     return (
-      <div className="w-full h-28 rounded bg-surface-container-lowest p-stack-comfortable mb-stack-comfortable font-mono-code text-[11px] overflow-hidden flex flex-col justify-between">
-        <div className="flex items-center justify-between text-outline text-[10px]">
+      <div className="w-full min-h-28 rounded bg-surface-container-lowest p-stack-comfortable mb-stack-comfortable font-mono-code text-micro-label overflow-hidden flex flex-col justify-between">
+        <div className="flex items-center justify-between text-muted text-micro-label">
           <span>Ref: {artifact.ref}</span>
           <span>Base: main</span>
         </div>
         <div className="text-secondary truncate">
           {citation ? citation.excerpt : "— no excerpt captured in packet —"}
         </div>
-        <div className="text-outline text-[10px] truncate">
+        <div className="text-muted text-micro-label truncate">
           {citation ? citation.locator : "Anchored via deterministic linker"}
         </div>
-        <div className="text-[10px] text-outline-variant truncate">
+        <div className="text-micro-label text-muted truncate">
           {finding.criteria.reduce((n, c) => n + c.evidence.length, 0)} citations in packet
         </div>
       </div>
@@ -94,8 +94,8 @@ function Specimen({
   if (artifact.tool === "jira") {
     const pct = finding.status === "resolved" ? 100 : finding.status === "acknowledged" ? 75 : 60;
     return (
-      <div className="w-full h-28 rounded bg-surface-container-lowest p-stack-comfortable mb-stack-comfortable flex flex-col justify-between">
-        <div className="flex items-center justify-between text-[10px] font-mono-code text-outline">
+      <div className="w-full min-h-28 rounded bg-surface-container-lowest p-stack-comfortable mb-stack-comfortable flex flex-col justify-between">
+        <div className="flex items-center justify-between text-micro-label font-mono-code text-muted">
           <span>{finding.team}</span>
           <span className="text-tertiary font-semibold">Age {finding.ageLabel}</span>
         </div>
@@ -103,9 +103,9 @@ function Specimen({
           <div className="w-full bg-surface-container-highest rounded-full h-2">
             <div className="bg-tertiary h-2 rounded-full" style={{ width: `${pct}%` }} />
           </div>
-          <span className="text-tertiary font-mono-code text-[11px]">{pct}%</span>
+          <span className="text-tertiary font-mono-code text-micro-label">{pct}%</span>
         </div>
-        <div className="text-[11px] text-on-surface-variant truncate font-body-sm">
+        <div className="text-micro-label text-on-surface-variant truncate font-body-sm">
           {gap ?? "Acceptance criteria anchored to this ticket."}
         </div>
       </div>
@@ -113,13 +113,13 @@ function Specimen({
   }
 
   return (
-    <div className="w-full h-28 rounded bg-surface-container-lowest p-stack-comfortable mb-stack-comfortable font-mono-code text-[11px] overflow-hidden flex flex-col justify-between">
-      <div className="flex items-center justify-between text-outline text-[10px]">
+    <div className="w-full min-h-28 rounded bg-surface-container-lowest p-stack-comfortable mb-stack-comfortable font-mono-code text-micro-label overflow-hidden flex flex-col justify-between">
+      <div className="flex items-center justify-between text-muted text-micro-label">
         <span>{artifact.label}</span>
         <span className="text-secondary">Recorded</span>
       </div>
       <div className="text-on-surface-variant truncate">{artifact.ref}</div>
-      <div className="text-outline-variant truncate">
+      <div className="text-muted truncate">
         {citation ? citation.excerpt : finding.summary}
       </div>
     </div>
@@ -151,7 +151,7 @@ export function AffectedArtifactCard({
             <h3 className="text-body-lg font-semibold text-on-surface truncate">{artifact.ref}</h3>
           </div>
         </div>
-        <span className="px-2 py-0.5 rounded bg-secondary/15 text-secondary font-mono-code text-[11px] font-semibold shrink-0">
+        <span className="px-2 py-0.5 rounded bg-secondary/15 text-secondary font-mono-code text-micro-label font-semibold shrink-0">
           {stateByTool[artifact.tool]}
         </span>
       </div>
@@ -160,17 +160,17 @@ export function AffectedArtifactCard({
 
       <div className="space-y-stack-compact font-mono-code text-[12px]">
         <div className="flex justify-between text-on-surface-variant">
-          <span className="text-outline">Owner:</span>
+          <span className="text-muted">Owner:</span>
           <span className="text-on-surface font-semibold">
             {artifact.title ?? finding.assignedTo[0] ?? "unify-rules"}
           </span>
         </div>
         <div className="flex justify-between text-on-surface-variant">
-          <span className="text-outline">Last mod:</span>
+          <span className="text-muted">Last mod:</span>
           <span>{finding.ageLabel} ago</span>
         </div>
         <div className="flex justify-between text-on-surface-variant">
-          <span className="text-outline">Integrity check:</span>
+          <span className="text-muted">Integrity check:</span>
           <span className={integrity.className}>{integrity.label}</span>
         </div>
       </div>
@@ -178,7 +178,7 @@ export function AffectedArtifactCard({
       <div className="mt-stack-comfortable pt-stack-compact flex items-center justify-end gap-2">
         <button
           type="button"
-          className="text-primary hover:text-on-primary-container font-mono-code text-body-sm flex items-center gap-1"
+          className="text-primary hover:text-muted font-mono-code text-body-sm flex items-center gap-1"
         >
           <span>Open in {visual.label}</span>
           <Icon name="open_in_new" className="text-[14px]" />

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/layout/app-shell";
-import { Icon } from "@/components/ui/icon";
 import { RelationshipExplorer } from "@/components/graph/relationship-explorer";
 import { graphStats, relationshipGraph } from "@/lib/mock/graph";
 
@@ -33,15 +32,11 @@ export default function GraphExplorerPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="px-2 py-1 rounded bg-surface-container-high border border-outline-variant text-[10px] font-mono-code">
+          <span className="px-2 py-1 rounded bg-surface-container-high border border-outline-variant text-micro-label font-mono-code">
             {stats.nodes} Nodes
           </span>
-          <span className="px-2 py-1 rounded bg-surface-container-high border border-outline-variant text-[10px] font-mono-code">
+          <span className="px-2 py-1 rounded bg-surface-container-high border border-outline-variant text-micro-label font-mono-code">
             {stats.edges} Edges
-          </span>
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded bg-secondary/10 border border-secondary/20 text-secondary text-[12px] font-bold">
-            <Icon name="sync" className="text-[14px] animate-spin" />
-            Reconciled 40s ago
           </span>
         </div>
       </div>
