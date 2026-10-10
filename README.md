@@ -47,6 +47,7 @@ Technical ownership (proposal §16):
 ```
 apps/web           Reviewer web app — Next.js 16 + TypeScript + Tailwind (see its README)
 packages/contracts Shared Zod contracts — event envelope, graph, rules, packets, verdicts (see its README)
+supabase/          PostgreSQL schema, RLS, auth — migrations + setup guide (see its README)
 docs/              Project documents (see below)
 opencode.json      OpenCode config — official Stitch MCP server
 .env               Local secrets (gitignored) — STITCH_API_KEY
@@ -77,12 +78,27 @@ Tailwind theme is a 1:1 port of the token block inside those exports, so the
 screens stay checkable against their source. Screens currently render typed mock
 data (`apps/web/src/lib/mock/`); the contracts/API layer lands next.
 
+Email+password authentication is wired against Supabase: browser/server
+clients, a `src/proxy.ts` session guard, `/login`, `/signup`, `/auth/callback`
+and `/auth/signout`. See `apps/web/README.md` and `supabase/README.md`.
+
 ```sh
 cd apps/web
 npm install        # deps live in the app, not the repo root
 npm run dev        # → http://localhost:3000
 npm run build
 ```
+
+### Database
+
+`supabase/` holds the PostgreSQL schema as migrations (source of truth) and a
+setup guide. The `unify` Supabase project carries 16 tables modelled as a
+versioned property graph from the ERD, with row-level security enabled on every
+table and workspace-scoped policies. Enum vocabulary mirrors
+`packages/contracts/src/enums.ts`. Append-only tables (`events`,
+`artifact_snapshots`, `context_packets`, `audit_log`) are trigger-locked.
+See `supabase/README.md` for the migration order, the auth flow and the
+`create_workspace` RPC.
 
 ### Documents
 
