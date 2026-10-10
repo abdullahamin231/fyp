@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { guardSchema, ruleSchema } from "../src/index.js";
+import {
+  COMMITTED_RULES,
+  guardSchema,
+  ruleSchema,
+  committedRules,
+} from "../src/index.js";
 import { baseRule } from "./fixtures.js";
 
 describe("rule guards", () => {
@@ -20,6 +25,22 @@ describe("rule guards", () => {
 });
 
 describe("versioned rule records", () => {
+  it("ships the three committed rules at explicit versions", () => {
+    expect(COMMITTED_RULES.map((rule) => `${rule.id}@${rule.version}`)).toEqual([
+      "RULE_1@1",
+      "RULE_2@1",
+      "RULE_3@1",
+    ]);
+    expect(committedRules).toHaveLength(3);
+    expect(new Set(committedRules.map((rule) => rule.produces)).size).toBe(3);
+  });
+
+  it("keeps every committed record valid against the shared rule schema", () => {
+    for (const rule of COMMITTED_RULES) {
+      expect(ruleSchema.safeParse(rule).success).toBe(true);
+    }
+  });
+
   it("parses Rule 1 with its notification routing", () => {
     const rule = ruleSchema.parse(baseRule());
     expect(rule.produces).toBe("design_version_drift");

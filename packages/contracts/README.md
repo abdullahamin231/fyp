@@ -22,9 +22,11 @@ npm run build     # emits dist/ (ESM + .d.ts)
 | `event` | normalised event envelope + `eventDedupeKey` | ERD `events`, §8.3, FR-01/FR-02 |
 | `graph` | `Node`, `Edge`, `isDecisiveEligibleEdge`, `CodeAnchor`, `ArtifactSnapshot` | ERD `nodes`/`edges`/`code_anchors`/`artifact_snapshots`, §9.1, §22, FR-03/FR-05/FR-23 |
 | `rule` | declarative versioned rule records, guards, notification routing | ERD `rules`, §9.3, FR-12/FR-14/FR-19/FR-24 |
+| `rules` | committed version 1 records for design drift, workflow inconsistency and overlapping scope | FR-12, TODO §3.4 |
 | `packet` | `ContextPacket` + slot budgets and manifest (incl. omissions) | ERD `context_packets`, FR-08, §1.7, §27.1 |
 | `verdict` | `verifierOutputSchema`, abstention rule, citation resolution, `gatedVerdictSchema` | ERD `verdicts`, §11.4–§11.8, FR-09/FR-10/FR-11 |
 | `finding` | `Finding` (exactly-one-origin), FR-18 lifecycle transitions | ERD `findings`, FR-12/FR-15/FR-18 |
+| `ingestion` | vendor delivery boundary, mock vendor, dedupe, ordering guards, checkpoints and reconciliation | ERD `events`/`checkpoints`, FR-01/FR-02/FR-16, proposal §8.4 |
 
 ## Design stance
 
@@ -49,6 +51,11 @@ npm run build     # emits dist/ (ESM + .d.ts)
   `PACKET_SLOTS` — the schema enforces it, so a new slot cannot be half-added.
 - `packetManifestSchema.truncated` must be `true` exactly when some slot
   omitted an item. Truncation is recorded, never silent (§1.7).
+- `IngestionEngine` persists an event before applying its resource state,
+  suppresses duplicate `(sourceTool, vendorDeliveryId)` deliveries, ignores
+  older versions, and emits `system` reconciliation events when polling finds
+  a missed state. A failed poll marks existing source checkpoints stale after
+  `staleAfterMs`; a successful poll clears that flag.
 
 ## Values still to be signed off
 
