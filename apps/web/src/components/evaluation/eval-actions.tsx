@@ -21,7 +21,7 @@ export function EvalActions() {
       <div className="flex items-center gap-2.5 flex-wrap">
         <button
           type="button"
-          onClick={() => trigger("Baseline loaded: comparing v3.2 with the v2.8 golden set…")}
+          onClick={() => trigger("Comparing against the baseline golden set…")}
           className="px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-sm"
         >
           <Icon name="compare_arrows" className="text-[18px] text-muted" />
@@ -29,7 +29,7 @@ export function EvalActions() {
         </button>
         <button
           type="button"
-          onClick={() => trigger("Generating LaTeX & CSV benchmark packet (v3.2)…")}
+          onClick={() => trigger("Generating LaTeX & CSV benchmark packet…")}
           className="px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-sm"
         >
           <Icon name="terminal" className="text-[18px] text-secondary" />
@@ -38,7 +38,7 @@ export function EvalActions() {
         <button
           type="button"
           onClick={() =>
-            trigger("Evaluation suite triggered: running 1,482 test pairs across the 30d replay…")
+            trigger("Evaluation suite triggered — running against the replay set…")
           }
           className="px-3.5 py-2 rounded bg-primary-container hover:bg-inverse-primary text-on-primary font-body-sm font-bold transition-all flex items-center gap-2 shadow-sm active:scale-95"
         >

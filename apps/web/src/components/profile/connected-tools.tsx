@@ -14,52 +14,12 @@ type ToolCard = {
   rows: { label: string; value: string; tone?: string }[];
 };
 
-const tools: ToolCard[] = [
-  {
-    id: "github",
-    name: "GitHub",
-    handle: "@alex-rivera",
-    icon: "terminal",
-    rows: [
-      { label: "Commit author:", value: "Verified GPG", tone: "text-secondary" },
-      { label: "Mapped repos:", value: "14 repositories", tone: "text-on-surface font-bold" },
-      { label: "Scopes:", value: "repo, read:org, wf", tone: "text-muted truncate max-w-[140px]" },
-    ],
-  },
-  {
-    id: "figma",
-    name: "Figma",
-    handle: "alex@acme.io",
-    icon: "draw",
-    rows: [
-      { label: "Permissions:", value: "Viewer & commenter", tone: "text-on-surface font-medium" },
-      { label: "Mapped teams:", value: "3 design spaces", tone: "text-on-surface font-bold" },
-      { label: "Token TTL:", value: "Expires in 42d", tone: "text-muted" },
-    ],
-  },
-  {
-    id: "jira",
-    name: "Jira Software",
-    handle: "alex.rivera",
-    icon: "view_kanban",
-    rows: [
-      { label: "Role profile:", value: "Assignee & reviewer", tone: "text-on-surface font-medium" },
-      { label: "JQL filter:", value: "PROJ, ARCH Core", tone: "text-primary truncate max-w-[130px]" },
-      { label: "Webhook:", value: "Active (200 OK)", tone: "text-secondary" },
-    ],
-  },
-  {
-    id: "slack",
-    name: "Slack",
-    handle: "@alex.rivera",
-    icon: "chat",
-    rows: [
-      { label: "Channel binding:", value: "#core-drift-feed", tone: "text-on-surface" },
-      { label: "Direct alerts:", value: "Outbound DMs enabled", tone: "text-secondary font-medium" },
-      { label: "Quiet hours:", value: "22:00 – 07:00 PST", tone: "text-muted" },
-    ],
-  },
-];
+/**
+ * DATA HOLE — replace with the connected-tools API (per-tool handle, scopes,
+ * mapped repos/teams, token TTL, webhook state, quiet hours). Empty until the
+ * endpoint exists, so the grid renders its empty state.
+ */
+const tools: ToolCard[] = [];
 
 type Status = "idle" | "pinging" | "ok";
 
@@ -101,6 +61,17 @@ export function ConnectedTools() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      {tools.length === 0 ? (
+        <div className="col-span-full rounded-xl bg-surface-container p-8 text-center shadow-md">
+          <Icon name="link_off" className="text-[28px] text-muted mb-2" />
+          <p className="font-body-md text-body-md font-semibold text-on-surface">
+            No tools connected yet
+          </p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+            Connect GitHub, Figma, Jira, or Slack to start syncing ownership context.
+          </p>
+        </div>
+      ) : null}
       {tools.map((tool) => {
         const state = status[tool.id];
         return (
@@ -148,7 +119,7 @@ export function ConnectedTools() {
                 {state === "pinging"
                   ? "Pinging..."
                   : state === "ok"
-                    ? "Latency 18ms"
+                    ? "Sync verified"
                     : "Test Sync"}
               </button>
               <button

@@ -18,49 +18,17 @@ type Rule = {
   editable?: boolean;
 };
 
-const initialRules: Rule[] = [
-  {
-    id: 1,
-    icon: "crisis_alert",
-    iconClass: "bg-error-container text-error",
-    title: "Critical & SEV-1 Conflicts",
-    badge: "P1",
-    badgeClass: "bg-error-container text-error",
-    desc: "Triggers instant push on schema breakages and dependency circularities",
-    channels: ["#eng-alerts-critical", "#infra-oncall", "#security-ops"],
-    channel: "#eng-alerts-critical",
-    mentions: ["@here", "@channel", "@oncall-lead", "No mention"],
-    mention: "@here",
-  },
-  {
-    id: 2,
-    icon: "palette",
-    iconClass: "bg-secondary/15 text-secondary",
-    title: "Design System & Token Drift",
-    badge: "FIGMA SYNC",
-    badgeClass: "bg-surface-container-highest text-secondary",
-    desc: "Figma-to-Code token mismatch, color deprecation & component deviations",
-    channels: ["#design-system-sync", "#core-ui-guild", "#tokens-beta"],
-    channel: "#design-system-sync",
-    mentions: ["No mention", "@here", "@design-leads"],
-    mention: "No mention",
-  },
-  {
-    id: 3,
-    icon: "today",
-    iconClass: "bg-primary/15 text-primary",
-    title: "General Daily Standup Digest",
-    badge: "SCHEDULED 09:00",
-    badgeClass: "bg-surface-container-highest text-muted font-semibold",
-    desc: "Aggregated summary of resolution velocity and unassigned graph links",
-    channels: ["#dev-core-updates", "#general", "#all-engineering"],
-    channel: "#dev-core-updates",
-    mentions: ["No mention", "@here", "@team-leads"],
-    mention: "No mention",
-  },
-];
+/**
+ * DATA HOLE — replace with the dispatch rules API.
+ * Empty until the endpoint exists; the rule list renders its empty state.
+ */
+const initialRules: Rule[] = [];
 
-const newRuleChannels = ["#alerts-general", "#eng-alerts-critical", "#feed-noisy"];
+/**
+ * DATA HOLE — replace with the Slack channel directory API.
+ * Empty until the endpoint exists; the channel selects render their empty state.
+ */
+const newRuleChannels: string[] = [];
 const newRuleMentions = ["No mention", "@here", "@channel"];
 
 const selectClass =
@@ -89,11 +57,15 @@ function SelectRow({
         value={value}
         onChange={(e: ChangeEvent<HTMLSelectElement>) => onChange(e.target.value)}
       >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
+        {options.length === 0 ? (
+          <option value="">No options available yet</option>
+        ) : (
+          options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))
+        )}
       </select>
       <Icon
         name="expand_more"
@@ -105,7 +77,7 @@ function SelectRow({
 
 export function SlackDispatchRules() {
   const [rules, setRules] = useState<Rule[]>(initialRules);
-  const [nextId, setNextId] = useState(4);
+  const [nextId, setNextId] = useState(1);
 
   function update(id: number, patch: Partial<Rule>) {
     setRules((prev) => prev.map((rule) => (rule.id === id ? { ...rule, ...patch } : rule)));
@@ -123,7 +95,7 @@ export function SlackDispatchRules() {
         badgeClass: "bg-surface-container-highest text-muted font-bold",
         desc: "User-defined policy trigger",
         channels: newRuleChannels,
-        channel: newRuleChannels[0],
+        channel: newRuleChannels[0] ?? "",
         mentions: newRuleMentions,
         mention: newRuleMentions[0],
         editable: true,
@@ -160,6 +132,17 @@ export function SlackDispatchRules() {
       </div>
 
       <div className="flex flex-col gap-3">
+        {rules.length === 0 ? (
+          <div className="p-6 rounded-xl bg-surface-container text-center flex flex-col items-center gap-1.5">
+            <Icon name="notifications_off" className="text-[24px] text-muted" />
+            <p className="font-body-md text-body-md font-semibold text-on-surface">
+              No dispatch rules configured yet
+            </p>
+            <p className="font-body-sm text-body-sm text-on-surface-variant">
+              Add a channel dispatch rule, or connect the dispatch rules API to load saved routing.
+            </p>
+          </div>
+        ) : null}
         {rules.map((rule) => (
           <div
             key={rule.id}

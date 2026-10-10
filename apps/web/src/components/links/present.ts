@@ -1,6 +1,6 @@
 import type { LinkEligibility, RelationLink, ToolKind } from "@/lib/types";
 import type { Tone } from "@/components/ui/badge";
-import type { LinkSuggestion } from "@/lib/mock/link-suggestions";
+import type { LinkSuggestion } from "@/lib/domain/link-suggestions";
 
 export type Relation = RelationLink["relation"];
 export type Provenance = RelationLink["provenance"];

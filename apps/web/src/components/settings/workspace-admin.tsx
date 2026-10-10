@@ -16,8 +16,8 @@ const tabs: {
   dot?: boolean;
   danger?: boolean;
 }[] = [
-  { id: "sources", label: "Connected Sources", icon: "hub", count: "4 Active" },
-  { id: "members", label: "Members & RBAC", icon: "badge", count: "48" },
+  { id: "sources", label: "Connected Sources", icon: "hub" },
+  { id: "members", label: "Members & RBAC", icon: "badge" },
   { id: "workflow", label: "Workflow State Map", icon: "account_tree" },
   { id: "retention", label: "Data Retention & Audit", icon: "policy", dot: true },
   { id: "danger", label: "Danger Zone", icon: "warning", danger: true },
@@ -34,10 +34,13 @@ const retentionRows = [
   },
 ];
 
-const auditExports = [
+type AuditExport = { icon: string; label: string; meta?: string };
+
+/** DATA HOLE — last-export timestamps come from the audit API. */
+const auditExports: AuditExport[] = [
   { icon: "fact_check", label: "Immutable audit trail", meta: "append-only · SHA-256 chained" },
   { icon: "download", label: "Conflict evidence packet (CSV)", meta: "per-finding citations" },
-  { icon: "verified", label: "Compliance Audit (SOC2/ISO)", meta: "last export 2026-09-30" },
+  { icon: "verified", label: "Compliance Audit (SOC2/ISO)" },
 ];
 
 function RetentionAudit() {
@@ -138,9 +141,9 @@ const dangerActions = [
   {
     id: "delete",
     icon: "domain_disabled",
-    title: "Delete workspace `unify-eng`",
+    title: "Delete this workspace",
     body: "Removes the workspace, its members, policy configuration (P1–P4) and the full graph history. This cannot be undone.",
-    confirm: "unify-eng",
+    confirm: "delete",
     button: "Delete Workspace",
   },
 ];

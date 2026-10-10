@@ -6,15 +6,36 @@ import { Icon } from "@/components/ui/icon";
 import {
   alertTabs,
   alertsForTab,
-  alertTitles,
   countForTab,
-  healthSummary,
   policyCategory,
   sortAlerts,
   type AlertTabId,
+  type HealthSummary,
   type SortMode,
-} from "@/lib/mock/alerts";
+} from "@/lib/domain/alerts";
 import type { Finding, ToolKind } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the alerts API.
+ * Empty until the endpoint exists: every tab reads 0, the AI health banner
+ * reports no blocking conflicts and the feed renders its empty state.
+ */
+const findings: Finding[] = [];
+
+/** Dismissible AI-health banner, derived from the findings list. */
+function deriveHealthSummary(list: Finding[]): HealthSummary {
+  const blocking = list.filter(
+    (f) => f.status === "open" && (f.severity === "critical" || f.severity === "warning"),
+  ).length;
+  return {
+    headline: "AI Health Summary",
+    lead: "You have",
+    highlight: `${blocking} critical conflict${blocking === 1 ? "" : "s"}`,
+    tail: "blocking the release.",
+  };
+}
+
+const healthSummary = deriveHealthSummary(findings);
 
 const toolIcon: Record<ToolKind, string> = {
   figma: "draw",
@@ -34,7 +55,7 @@ const verdictChip: Record<string, string> = {
 
 function AlertCard({ finding }: { finding: Finding }) {
   const [queued, setQueued] = useState(false);
-  const title = alertTitles[finding.id] ?? finding.title;
+  const title = finding.title;
   const isCritical = finding.severity === "critical";
   const category = policyCategory[finding.policy];
 
@@ -153,7 +174,7 @@ export function AlertsFeed() {
   const [activeTab, setActiveTab] = useState<AlertTabId>("all");
   const [sort, setSort] = useState<SortMode>("recency");
 
-  const visible = sortAlerts(alertsForTab(activeTab), sort);
+  const visible = sortAlerts(alertsForTab(findings, activeTab), sort);
 
   return (
     <div className="flex-1 flex flex-col min-w-0 gap-stack-comfortable">
@@ -197,7 +218,7 @@ export function AlertsFeed() {
                     : "border-transparent text-on-surface-variant hover:text-on-surface font-medium text-body-sm"
                 }`}
               >
-                {tab.label} ({countForTab(tab.id)})
+                {tab.label} ({countForTab(findings, tab.id)})
               </button>
             );
           })}

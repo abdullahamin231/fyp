@@ -14,16 +14,25 @@ import {
 } from "@/components/search/results-column";
 import { PreviewPane } from "@/components/search/preview-pane";
 import {
-  defaultTokens,
   kindLabels,
-  searchMatches,
-  searchMeta,
-  tokenSuggestions,
   type QueryToken,
   type SearchKind,
   type SearchMatch,
-} from "@/lib/mock/search";
+  type SearchMeta,
+} from "@/lib/domain/search";
 import type { Severity } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the search API.
+ *
+ * The result index, initial query tokens, token suggestions and index
+ * metadata are all empty until their endpoints exist: the result list renders
+ * its empty state and the meta strip shows placeholders.
+ */
+const searchMatches: SearchMatch[] = [];
+const defaultTokens: QueryToken[] = [];
+const tokenSuggestions: QueryToken[] = [];
+const searchMeta: SearchMeta = { engine: "—", indexSha: "—", latencyMs: 0 };
 
 const kinds: SearchKind[] = ["conflict", "artifact", "link", "policy"];
 const severities: Severity[] = ["critical", "warning", "info"];

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/ui/icon";
-import type { AuditEvent } from "@/lib/mock/audit";
+import type { AuditEvent } from "@/lib/domain/audit";
 
 function useEscape(open: boolean, onClose: () => void) {
   useEffect(() => {

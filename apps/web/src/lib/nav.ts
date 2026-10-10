@@ -19,8 +19,7 @@ export type NavItem = {
  * route reachable using the reference's item styling.
  */
 export const intelligenceNav: NavItem[] = [
-  { label: "Conflict Inbox", href: "/conflicts", icon: "inbox", path: "conflict-inbox", badge: { text: "14", tone: "error" } },
-  { label: "Conflict Detail", href: "/conflicts/CONF-1048", icon: "troubleshoot", path: "conflict-detail" },
+  { label: "Conflict Inbox", href: "/conflicts", icon: "inbox", path: "conflict-inbox" },
   { label: "Policy Configuration", href: "/policies", icon: "rule", path: "policy-configuration" },
   { label: "Policy Simulation", href: "/policies/simulation", icon: "labs", path: "policy-simulation", badge: { text: "TEST", tone: "tertiary" } },
   { label: "Graph Explorer", href: "/graph", icon: "account_tree", path: "graph-explorer" },
@@ -31,10 +30,9 @@ export const intelligenceNav: NavItem[] = [
 export const operationsNav: NavItem[] = [
   { label: "Dashboard", href: "/", icon: "dashboard", path: "dashboard" },
   { label: "Activity Feed", href: "/activity", icon: "rss_feed", path: "activity-feed" },
-  { label: "Conflict Alerts", href: "/alerts", icon: "warning", path: "conflict-alerts", badge: { text: "3", tone: "error" } },
+  { label: "Conflict Alerts", href: "/alerts", icon: "warning", path: "conflict-alerts" },
   { label: "Search & Filters", href: "/search", icon: "search", path: "search" },
   { label: "Evaluation", href: "/evaluation", icon: "monitoring", path: "evaluation" },
-  { label: "Study Runner", href: "/study", icon: "experiment", path: "study" },
   { label: "Onboarding", href: "/onboarding", icon: "rocket_launch", path: "onboarding" },
 ];
 
@@ -51,8 +49,8 @@ export const navGroups: Array<{ label?: string; items: NavItem[] }> = [
 
 /**
  * Longest-prefix match so `/policies/simulation` activates Policy Simulation
- * rather than Policy Configuration, and `/conflicts/CONF-1048` activates
- * Conflict Detail rather than the inbox.
+ * rather than Policy Configuration, and `/conflicts/<id>` activates the
+ * Conflict Inbox rather than nothing.
  */
 export function activeHref(pathname: string, items: NavItem[]): string | null {
   let best: { href: string; len: number } | null = null;

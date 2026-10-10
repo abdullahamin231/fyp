@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/ui/icon";
-import { disputeReasons, suppressionReasons } from "@/lib/mock/conflict-detail";
+import { disputeReasons, suppressionReasons } from "@/lib/domain/conflict-detail";
 import type { Finding } from "@/lib/types";
 
 type Dialog = "suppress" | "dispute" | null;
@@ -85,7 +85,7 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
             className={actionButton}
             disabled={finding.status !== "open"}
             onClick={() =>
-              fire("Conflict acknowledged", `Logged as non-impact for ${finding.id} by @current_user`)
+              fire("Conflict acknowledged", `Logged as non-impact for ${finding.id}`)
             }
           >
             Acknowledge

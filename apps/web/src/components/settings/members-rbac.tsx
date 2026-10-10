@@ -10,7 +10,8 @@ type Role = {
   name: RoleName;
   icon: string;
   iconClass: string;
-  count: number;
+  /** Populated by the roles API — omitted until the endpoint exists. */
+  count?: number;
   summary: string;
   grants: string[];
 };
@@ -20,7 +21,6 @@ const roles: Role[] = [
     name: "Product Manager",
     icon: "analytics",
     iconClass: "bg-tertiary-container/30 text-tertiary",
-    count: 6,
     summary:
       "Owns policy (P1–P4) configuration, approves escalation overrides, and signs off findings that require human review.",
     grants: ["policy:approve", "escalation:override", "verdict:sign-off", "member:invite"],
@@ -29,7 +29,6 @@ const roles: Role[] = [
     name: "Code Owner",
     icon: "terminal",
     iconClass: "bg-primary-container/25 text-primary",
-    count: 14,
     summary:
       "Anchors repository eligibility at connection time (CODEOWNERS), gates merges, and reviews code-side citations.",
     grants: ["merge:gate", "evidence:review", "link:confirm", "scope:read"],
@@ -38,7 +37,6 @@ const roles: Role[] = [
     name: "Designer",
     icon: "palette",
     iconClass: "bg-secondary/15 text-secondary",
-    count: 9,
     summary:
       "Confirms Figma anchors, triages token drift findings, and maintains the design acceptance criteria.",
     grants: ["figma:anchor", "drift:triage", "criteria:edit", "scope:read"],
@@ -47,7 +45,6 @@ const roles: Role[] = [
     name: "Reviewer",
     icon: "fact_check",
     iconClass: "bg-primary/15 text-primary",
-    count: 19,
     summary:
       "Reviews open findings, confirms or disputes cross-tool links, and resolves PARTIAL verdicts.",
     grants: ["finding:review", "link:confirm", "verdict:review", "scope:read"],
@@ -69,14 +66,11 @@ const statusTone: Record<Member["status"], Tone> = {
   Suspended: "warning",
 };
 
-const initialMembers: Member[] = [
-  { id: 1, name: "Alex Rivera", email: "alex.rivera@unify.dev", role: "Product Manager", team: "Core Checkout", status: "Active" },
-  { id: 2, name: "Sam Okafor", email: "sam.okafor@unify.dev", role: "Code Owner", team: "Core Checkout", status: "Active" },
-  { id: 3, name: "Mishal Fatima", email: "mishal.fatima@unify.dev", role: "Designer", team: "Design Systems Core", status: "Active" },
-  { id: 4, name: "Haaniah Ismail", email: "haaniah.ismail@unify.dev", role: "Reviewer", team: "Frontend Infrastructure", status: "Active" },
-  { id: 5, name: "Jordan Tanaka", email: "jordan.tanaka@unify.dev", role: "Code Owner", team: "Frontend Infrastructure", status: "Active" },
-  { id: 6, name: "Maria Gomez", email: "maria.gomez@unify.dev", role: "Reviewer", team: "Growth & Experiments", status: "Invited" },
-];
+/**
+ * DATA HOLE — replace with the workspace members API.
+ * Empty until the endpoint exists; the table renders its empty state.
+ */
+const initialMembers: Member[] = [];
 
 const roleOptions: RoleName[] = ["Product Manager", "Code Owner", "Designer", "Reviewer"];
 
@@ -89,7 +83,7 @@ export function MembersRbac() {
   const [roleFilter, setRoleFilter] = useState("All roles");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<RoleName>("Reviewer");
-  const [nextId, setNextId] = useState(7);
+  const [nextId, setNextId] = useState(1);
 
   const visible = members.filter((member) => {
     const matchesQuery =
@@ -143,7 +137,7 @@ export function MembersRbac() {
               Roles &amp; Responsibilities
             </span>
             <span className="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-mono-code text-body-sm">
-              4 roles
+              {roles.length} roles
             </span>
           </div>
           <span className="font-mono-code text-micro-label text-on-surface-variant">
@@ -161,7 +155,7 @@ export function MembersRbac() {
                   <Icon name={role.icon} className="text-[20px]" />
                 </div>
                 <span className="font-mono-code text-micro-label text-on-surface-variant">
-                  {role.count} members
+                  {role.count != null ? `${role.count} members` : null}
                 </span>
               </div>
               <div className="flex flex-col gap-1">
@@ -195,7 +189,7 @@ export function MembersRbac() {
               Member Management
             </span>
             <span className="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-mono-code text-body-sm">
-              {members.length} shown · 48 seats
+              {members.length} shown
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -343,7 +337,9 @@ export function MembersRbac() {
               {visible.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-6 text-center text-body-sm text-on-surface-variant">
-                    No members match this filter.
+                    {members.length === 0
+                      ? "No members yet — invite someone, or connect the members API to populate this table."
+                      : "No members match this filter."}
                   </td>
                 </tr>
               ) : null}
@@ -352,7 +348,6 @@ export function MembersRbac() {
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/60 font-mono-code text-micro-label text-on-surface-variant">
           <span>role changes are recorded in the audit trail with actor and timestamp</span>
-          <span>RBAC cache refreshed 40s ago</span>
         </div>
       </section>
     </>

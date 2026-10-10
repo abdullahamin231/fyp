@@ -1,8 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { links as initialLinks } from "@/lib/mock/links";
-import { linkSuggestions, type LinkSuggestion } from "@/lib/mock/link-suggestions";
+import { type LinkSuggestion } from "@/lib/domain/link-suggestions";
 import type { RelationLink } from "@/lib/types";
 import { LinkWizard, type LinkDraft } from "./link-wizard";
 import { SuggestionStack } from "./suggestion-stack";
@@ -10,12 +9,27 @@ import { LinkDirectory } from "./link-directory";
 import { ProvenanceModal } from "./provenance-modal";
 import { guessArtifact, linkToRecord, type ProvenanceRecord } from "./present";
 
-const CURRENT_USER = "Alex Rivera";
+/**
+ * DATA HOLE — replace with the signed-in user's display name from the session
+ * API. Empty until then, so `confirmedBy` reads as unattributed and the
+ * provenance guards in `present.ts` treat it as absent.
+ */
+const CURRENT_USER = "";
+
+/**
+ * DATA HOLE — replace with the links API.
+ *
+ * Both stores start empty until their endpoints exist: the directory and the
+ * suggestion queue render their empty states, and the wizard's created links
+ * accumulate in local state as before.
+ */
+const initialLinks: RelationLink[] = [];
+const linkSuggestions: LinkSuggestion[] = [];
 
 /**
  * Client-side graph state for the Link Management screen: the relationship
  * directory, the heuristic suggestion queue and the provenance inspector.
- * All mutations are local (mock layer) and reversible.
+ * All mutations are local and reversible.
  */
 export function LinkManager() {
   const [links, setLinks] = useState<RelationLink[]>(initialLinks);

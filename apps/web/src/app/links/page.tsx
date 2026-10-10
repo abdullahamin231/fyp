@@ -3,8 +3,16 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { LinkManager } from "@/components/links/link-manager";
 import { isDecisive } from "@/components/links/present";
-import { links } from "@/lib/mock/links";
-import { linkSuggestions } from "@/lib/mock/link-suggestions";
+import type { LinkSuggestion } from "@/lib/domain/link-suggestions";
+import type { RelationLink } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the links API.
+ * Both stores are empty until their endpoints exist, so the telemetry cards
+ * read zero and the manager renders its empty state.
+ */
+const links: RelationLink[] = [];
+const linkSuggestions: LinkSuggestion[] = [];
 
 export const metadata: Metadata = {
   title: "Link Management",
