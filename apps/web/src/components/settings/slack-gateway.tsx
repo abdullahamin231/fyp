@@ -60,26 +60,26 @@ export function SlackGateway() {
       {/* Left column: connection & channel routing */}
       <div className="xl:col-span-7 flex flex-col gap-gutter">
         {/* Section 01 — connected workspace */}
-        <section className="rounded-xl bg-surface-container-low p-6 shadow-md flex flex-col gap-5">
+        <section className="rounded-xl bg-surface-container-low p-4 shadow-md flex flex-col gap-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
-              <span className="font-label-caps text-label-caps text-outline uppercase">
+              <span className="font-label-caps text-label-caps text-muted uppercase">
                 Section 01
               </span>
-              <span className="text-outline-variant font-mono-code">•</span>
+              <span className="text-outline font-mono-code">•</span>
               <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">
                 Connected Workspace
               </h2>
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-secondary/10 text-secondary font-mono-code text-[11px] font-semibold flex items-center gap-1.5">
+            <span className="px-2.5 py-1 rounded-full bg-secondary/10 text-secondary font-mono-code text-micro-label font-semibold flex items-center gap-1.5">
               <Icon name="verified" className="text-[14px]" />
               Authenticated (Bot User OAuth v2)
             </span>
           </div>
           <div className="rounded-xl bg-surface-container p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              {/* Workspace identity tile (CSS gradient, no external asset) */}
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-secondary/70 via-primary-container/60 to-tertiary/50 flex items-center justify-center p-2.5 shadow-inner">
+              {/* Workspace identity tile (inline icon, no external asset) */}
+              <div className="w-14 h-14 rounded-xl bg-surface-container-highest flex items-center justify-center p-2.5 shadow-inner">
                 <Icon name="forum" className="w-full h-full text-on-surface text-[28px]" />
               </div>
               <div className="flex flex-col">
@@ -87,17 +87,17 @@ export function SlackGateway() {
                   <span className="font-headline-sm text-headline-sm text-on-surface font-bold">
                     Unify Engineering HQ
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-[11px] text-outline font-medium">
+                  <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-micro-label text-muted font-medium">
                     Primary Org
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-on-surface-variant font-body-sm text-body-sm">
-                  <span className="font-mono-code text-[12px] text-outline">
+                  <span className="font-mono-code text-[12px] text-muted">
                     Workspace ID: <span className="text-primary font-bold">T0394821</span>
                   </span>
-                  <span className="text-outline-variant">•</span>
+                  <span className="text-outline">•</span>
                   <span className="flex items-center gap-1">
-                    <Icon name="person" className="text-[14px] text-outline" />
+                    <Icon name="person" className="text-[14px] text-muted" />
                     Connected by <span className="text-on-surface font-medium">Alex R.</span>{" "}
                     (Workspace Admin)
                   </span>
@@ -122,7 +122,7 @@ export function SlackGateway() {
                 key={detail.label}
                 className="p-3 rounded-lg bg-surface-container-lowest/60 flex flex-col"
               >
-                <span className="font-label-caps text-label-caps text-outline uppercase">
+                <span className="font-label-caps text-label-caps text-muted uppercase">
                   {detail.label}
                 </span>
                 <span
@@ -133,7 +133,7 @@ export function SlackGateway() {
               </div>
             ))}
             <div className="p-3 rounded-lg bg-surface-container-lowest/60 flex flex-col">
-              <span className="font-label-caps text-label-caps text-outline uppercase">
+              <span className="font-label-caps text-label-caps text-muted uppercase">
                 SSL Handshake
               </span>
               <span className="font-mono-code text-[12px] text-on-surface-variant mt-0.5 flex items-center gap-1">
@@ -148,18 +148,18 @@ export function SlackGateway() {
         <SlackDispatchRules />
 
         {/* Section 03 — severity overrides & noise filters */}
-        <section className="rounded-xl bg-surface-container-low p-6 shadow-md flex flex-col gap-5">
+        <section className="rounded-xl bg-surface-container-low p-4 shadow-md flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <span className="font-label-caps text-label-caps text-outline uppercase">
+              <span className="font-label-caps text-label-caps text-muted uppercase">
                 Section 03
               </span>
-              <span className="text-outline-variant font-mono-code">•</span>
+              <span className="text-outline font-mono-code">•</span>
               <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">
                 Severity Overrides &amp; Noise Filters
               </h2>
             </div>
-            <span className="font-mono-code text-[11px] text-outline font-medium">
+            <span className="font-mono-code text-micro-label text-muted font-medium">
               3 active protections
             </span>
           </div>

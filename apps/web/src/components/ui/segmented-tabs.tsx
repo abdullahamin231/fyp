@@ -53,7 +53,7 @@ export function SegmentedTabs({
               <span>{tab.label}</span>
               {typeof tab.count === "number" ? (
                 <span
-                  className={`px-1.5 py-0.2 rounded-full font-mono-code text-[10px] font-bold ${
+                  className={`px-1.5 py-0.2 rounded-full font-mono-code text-micro-label font-bold ${
                     isActive ? "bg-primary-fixed text-on-primary-fixed" : "bg-surface-container-highest text-on-surface"
                   }`}
                 >

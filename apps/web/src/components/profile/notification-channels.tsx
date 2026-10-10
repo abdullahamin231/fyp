@@ -86,7 +86,7 @@ export function NotificationChannels() {
         </p>
       </div>
 
-      <div className="rounded-xl bg-surface-container p-5 flex flex-col space-y-5 shadow-md">
+      <div className="rounded-xl bg-surface-container p-4 flex flex-col space-y-4 shadow-md">
         {toggles.map((toggle, index) => (
           <div key={toggle.id}>
             {index > 0 ? <div className="h-px bg-surface-container-highest mb-5" /> : null}
@@ -97,7 +97,7 @@ export function NotificationChannels() {
                     {toggle.label}
                   </span>
                   {toggle.badge ? (
-                    <span className="px-1 py-0.2 rounded bg-error-container text-error font-label-caps text-[9px] font-bold">
+                    <span className="px-1 py-0.2 rounded bg-error-container text-error font-label-caps text-eyebrow font-bold">
                       {toggle.badge}
                     </span>
                   ) : null}
@@ -164,7 +164,7 @@ export function NotificationChannels() {
             <span className="font-label-caps text-label-caps text-on-surface uppercase tracking-wider">
               Deliver Notifications As
             </span>
-            <span className="font-mono-code text-[11px] text-secondary">delivery only</span>
+            <span className="font-mono-code text-micro-label text-secondary">delivery only</span>
           </div>
           <div className="relative">
             <select
@@ -184,10 +184,10 @@ export function NotificationChannels() {
             </select>
             <Icon
               name="expand_more"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[18px] pointer-events-none"
             />
           </div>
-          <p className="font-body-sm text-[11px] text-on-surface-variant">
+          <p className="font-body-sm text-micro-label text-on-surface-variant">
             Watchers receive delivery only — this role selects which notification template your
             inbox, Slack DMs and digests use.
           </p>
@@ -196,10 +196,10 @@ export function NotificationChannels() {
         {/* Notification density sparkline */}
         <div className="p-3.5 rounded-lg bg-surface-container-high flex flex-col space-y-2">
           <div className="flex items-center justify-between">
-            <span className="font-label-caps text-label-caps uppercase text-outline">
+            <span className="font-label-caps text-label-caps uppercase text-muted">
               Notification Density (7 Days)
             </span>
-            <span className="font-mono-code text-[11px] text-secondary">38 events</span>
+            <span className="font-mono-code text-micro-label text-secondary">38 events</span>
           </div>
           <div className="w-full h-12 flex items-end gap-1.5 pt-2">
             {density.map((bar) => (
@@ -215,7 +215,7 @@ export function NotificationChannels() {
               />
             ))}
           </div>
-          <div className="flex justify-between text-outline font-mono-code text-[10px]">
+          <div className="flex justify-between text-muted font-mono-code text-micro-label">
             <span>Mon</span>
             <span>Thu (Release)</span>
             <span>Sun</span>

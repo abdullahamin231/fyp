@@ -59,7 +59,7 @@ function SourceCard({
 
   return (
     <div className="rounded-lg bg-surface-container p-stack-comfortable shadow-md hover:bg-surface-bright/20 transition-all flex flex-col gap-stack-comfortable group">
-      <div className="flex items-start justify-between flex-wrap gap-2">
+      <div className="flex items-start justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-surface-container-lowest flex items-center justify-center shadow-inner">
             <Icon name={icon} className={`text-[24px] ${iconClass}`} />
@@ -72,11 +72,11 @@ function SourceCard({
               <span className="px-2 py-0.5 rounded bg-secondary/10 text-secondary font-label-caps text-label-caps tracking-wider uppercase">
                 Active Syncing
               </span>
-              <span className="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-mono-code text-[11px]">
+              <span className="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-mono-code text-micro-label">
                 {meta}
               </span>
             </div>
-            <p className="font-body-sm text-body-sm text-outline mt-0.5">{desc}</p>
+            <p className="font-body-sm text-body-sm text-muted mt-1.5">{desc}</p>
           </div>
         </div>
         <div className="text-right flex flex-col items-end">
@@ -86,7 +86,7 @@ function SourceCard({
             />
             <span>{lastActivity}</span>
           </div>
-          <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider mt-0.5">
+          <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider mt-1.5">
             {uptime}
           </span>
         </div>
@@ -94,9 +94,9 @@ function SourceCard({
 
       {gate}
 
-      <div className="p-stack-compact rounded bg-surface-container-lowest flex flex-col gap-2">
+      <div className="p-stack-compact rounded bg-surface-container-lowest flex flex-col gap-3">
         <div className="flex items-center justify-between text-body-sm gap-3 flex-wrap">
-          <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+          <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
             {scopeHeader}
           </span>
           <span className="font-mono-code text-body-sm text-secondary">{scopeMeta}</span>
@@ -116,7 +116,7 @@ function SourceCard({
 
       <div className="flex items-center justify-between pt-1 flex-wrap gap-3">
         <div className="flex items-center gap-2 text-on-surface-variant font-mono-code text-body-sm">
-          <Icon name="key" className="text-[16px] text-outline" />
+          <Icon name="key" className="text-[16px] text-muted" />
           {footer}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -149,9 +149,9 @@ function SourceCard({
 }
 
 const eligibilityGate = (
-  <div className="p-stack-compact rounded bg-surface-container-lowest border border-secondary/25 flex flex-col gap-2">
+  <div className="p-stack-compact rounded bg-surface-container-lowest border border-secondary/25 flex flex-col gap-3">
     <div className="flex items-center justify-between text-body-sm gap-3 flex-wrap">
-      <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider flex items-center gap-1.5">
+      <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider flex items-center gap-1.5">
         <Icon name="policy" className="text-[14px] text-secondary" />
         Repository Eligibility Gate · scored at connection
       </span>
@@ -271,7 +271,7 @@ export function IntegrationConnections() {
           desc={
             <>
               Webhook stream ingress endpoint:{" "}
-              <code className="font-mono-code text-on-surface-variant bg-surface-container-lowest px-1.5 py-0.5 rounded text-[11px]">
+              <code className="font-mono-code text-on-surface-variant bg-surface-container-lowest px-1.5 py-0.5 rounded text-micro-label">
                 https://in.unify.internal/hook/gh_84f9
               </code>
             </>
@@ -394,14 +394,14 @@ export function IntegrationConnections() {
                 Live Quota Metering
               </span>
             </div>
-            <span className="px-2 py-0.5 rounded bg-surface-container-high text-outline text-[11px] font-mono-code">
+            <span className="px-2 py-0.5 rounded bg-surface-container-high text-muted text-micro-label font-mono-code">
               Auto-reset: 24m
             </span>
           </div>
           {quotaMetrics.map((metric, index) => (
             <div
               key={metric.label}
-              className={`flex flex-col gap-1.5 ${index > 0 ? "pt-1" : ""}`}
+              className={`flex flex-col gap-2 ${index > 0 ? "pt-1.5" : ""}`}
             >
               <div className="flex justify-between text-body-sm">
                 <span className="text-on-surface font-medium">{metric.label}</span>
@@ -413,19 +413,19 @@ export function IntegrationConnections() {
                   style={{ width: `${metric.width}%` }}
                 />
               </div>
-              <div className="flex justify-between text-[11px] font-mono-code text-outline">
+              <div className="flex justify-between text-micro-label font-mono-code text-muted">
                 <span>{metric.left}</span>
                 <span className={metric.rightClass}>{metric.right}</span>
               </div>
             </div>
           ))}
           {/* Aggregate load sparkline */}
-          <div className="mt-2 pt-2 bg-surface-container-lowest p-3 rounded">
+          <div className="mt-3 pt-3 bg-surface-container-lowest p-3.5 rounded">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+              <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                 Sync Traffic (Last 6 Hours)
               </span>
-              <span className="font-mono-code text-[11px] text-secondary">avg 240 req/m</span>
+              <span className="font-mono-code text-micro-label text-secondary">avg 240 req/m</span>
             </div>
             <svg
               className="w-full h-12 text-primary"
@@ -464,16 +464,16 @@ export function IntegrationConnections() {
             {securityItems.map((item) => (
               <div
                 key={item.title}
-                className="flex items-start gap-3 p-2.5 rounded bg-surface-container-lowest"
+                className="flex items-start gap-3 p-3.5 rounded bg-surface-container-lowest"
               >
                 <Icon name={item.icon} className={`text-[20px] mt-0.5 ${item.iconClass}`} />
                 <div className="flex flex-col min-w-0">
                   <span className="font-medium text-on-surface">{item.title}</span>
-                  <span className="text-outline font-mono-code text-[12px] break-words">
+                  <span className="text-muted font-mono-code text-[12px] break-words">
                     {item.meta}
                   </span>
                   {item.note ? (
-                    <span className="text-secondary text-[11px] mt-1">{item.note}</span>
+                    <span className="text-secondary text-micro-label mt-1.5">{item.note}</span>
                   ) : null}
                 </div>
               </div>
@@ -494,26 +494,26 @@ export function IntegrationConnections() {
               Edit
             </button>
           </div>
-          <div className="flex flex-col gap-2 font-mono-code text-body-sm">
-            <div className="flex items-center justify-between p-2 rounded bg-surface-container-lowest">
+          <div className="flex flex-col gap-3 font-mono-code text-body-sm">
+            <div className="flex items-center justify-between p-3 rounded bg-surface-container-lowest">
               <div className="flex items-center gap-2 text-on-surface-variant">
-                <Icon name="storage" className="text-[16px] text-outline" />
+                <Icon name="storage" className="text-[16px] text-muted" />
                 <span>Raw Payload Retention</span>
               </div>
               <span className="text-on-surface font-semibold bg-surface-container px-2 py-0.5 rounded">
                 30 Days (Purge)
               </span>
             </div>
-            <div className="flex items-center justify-between p-2 rounded bg-surface-container-lowest">
+            <div className="flex items-center justify-between p-3 rounded bg-surface-container-lowest">
               <div className="flex items-center gap-2 text-on-surface-variant">
-                <Icon name="cloud_upload" className="text-[16px] text-outline" />
+                <Icon name="cloud_upload" className="text-[16px] text-muted" />
                 <span>Graph Conflict History</span>
               </div>
               <span className="text-on-surface font-semibold bg-surface-container px-2 py-0.5 rounded">
                 365 Days
               </span>
             </div>
-            <div className="flex items-center justify-between p-2 rounded bg-surface-container-lowest">
+            <div className="flex items-center justify-between p-3 rounded bg-surface-container-lowest">
               <div className="flex items-center gap-2 text-on-surface-variant">
                 <Icon name="visibility_off" className="text-[16px] text-secondary" />
                 <span>PII Masking Engine</span>
@@ -523,7 +523,7 @@ export function IntegrationConnections() {
               </span>
             </div>
           </div>
-          <p className="text-outline font-body-sm text-[12px] leading-relaxed">
+          <p className="text-muted font-body-sm text-[12px] leading-relaxed">
             Sanitization automatically masks credentials, private keys, emails, and SSNs from Git
             commits, Figma comments, and Jira transition logs before storing them in the internal
             graph cluster.

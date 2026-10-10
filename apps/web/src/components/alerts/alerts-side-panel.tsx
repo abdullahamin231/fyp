@@ -37,7 +37,7 @@ export function AlertsSidePanel() {
             <div className="border-t border-outline-variant w-full" />
           </div>
         </div>
-        <div className="flex justify-between mt-2 text-[10px] text-on-surface-variant font-mono-code uppercase">
+        <div className="flex justify-between mt-2 text-eyebrow text-on-surface-variant font-mono-code uppercase">
           {frequencyAxis.map((label) => (
             <span key={label}>{label}</span>
           ))}
@@ -56,7 +56,7 @@ export function AlertsSidePanel() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-body-sm font-bold truncate">{leader.name}</p>
-                  <p className="text-[10px] text-on-surface-variant">
+                  <p className="text-micro-label text-on-surface-variant">
                     {leader.resolved} resolved · {leader.open} open
                   </p>
                 </div>
@@ -70,7 +70,7 @@ export function AlertsSidePanel() {
         </div>
         <Link
           href="/activity"
-          className="block w-full mt-6 py-2 border border-outline-variant text-[11px] font-bold uppercase tracking-widest rounded-lg hover:bg-surface-container-high transition-colors text-center"
+          className="block w-full mt-6 py-2 border border-outline-variant text-micro-label font-bold uppercase tracking-widest rounded-lg hover:bg-surface-container-high transition-colors text-center"
         >
           View All Activity
         </Link>
@@ -80,7 +80,7 @@ export function AlertsSidePanel() {
       <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4">
         <div className="flex items-center gap-2 mb-2 text-on-surface-variant">
           <Icon name="sync" className="text-xs" />
-          <span className="text-[10px] font-bold uppercase">Integrations</span>
+          <span className="text-micro-label font-bold uppercase">Integrations</span>
         </div>
         <div className="space-y-2">
           {integrations.map((integration) => (

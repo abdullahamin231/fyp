@@ -98,13 +98,7 @@ export default async function ConflictDetailPage({
     (c) => c.verdict === "CONTRADICTED" || c.verdict === "SUPPORTED",
   ).length;
   const scorePct =
-    finding.criteria.length === 0
-      ? finding.severity === "critical"
-        ? 94
-        : finding.severity === "warning"
-          ? 61
-          : 24
-      : Math.round((decisive / finding.criteria.length) * 100);
+    finding.criteria.length === 0 ? 0 : Math.round((decisive / finding.criteria.length) * 100);
 
   return (
     <AppShell action={<CopyLinkButton path={`/conflicts/${finding.id}`} />}>
@@ -115,12 +109,12 @@ export default async function ConflictDetailPage({
             <Icon name="inbox" className="text-[16px]" />
             <span>Conflict Inbox</span>
           </Link>
-          <span className="text-outline-variant">/</span>
+          <span className="text-outline">/</span>
           <span className="text-primary font-semibold px-2 py-0.5 rounded bg-surface-container-high">
             #{finding.id}
           </span>
-          <span className="text-outline-variant">/</span>
-          <span className="text-outline text-body-sm font-body-sm">{finding.policyTitle}</span>
+          <span className="text-outline">/</span>
+          <span className="text-muted text-body-sm font-body-sm">{finding.policyTitle}</span>
         </div>
         <div className="flex items-center gap-stack-compact">
           <Link
@@ -143,30 +137,30 @@ export default async function ConflictDetailPage({
               <Badge tone={severity.tone} pulse={finding.severity === "critical"}>
                 {severity.chip}
               </Badge>
-              <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-[11px] flex items-center gap-1">
+              <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-micro-label flex items-center gap-1">
                 <Icon name="policy" className="text-[14px]" />
                 {finding.policyTitle}
               </span>
-              <span className="px-2 py-0.5 rounded bg-primary/15 text-primary font-mono-code text-[11px] font-bold">
+              <span className="px-2 py-0.5 rounded bg-primary/15 text-primary font-mono-code text-micro-label font-bold">
                 VERDICT: {verdict}
               </span>
               <span
-                className={`px-2 py-0.5 rounded font-mono-code text-[11px] ${
+                className={`px-2 py-0.5 rounded font-mono-code text-micro-label ${
                   finding.freshness === "CURRENT"
                     ? "bg-secondary/15 text-secondary"
                     : finding.freshness === "STALE"
                       ? "bg-tertiary-container/40 text-on-tertiary-container"
-                      : "bg-surface-container-high text-outline"
+                      : "bg-surface-container-high text-muted"
                 }`}
               >
                 FRESHNESS: {finding.freshness}
               </span>
               {finding.reasonCode ? (
-                <span className="px-2 py-0.5 rounded bg-error-container/30 text-on-error-container font-mono-code text-[11px]">
+                <span className="px-2 py-0.5 rounded bg-error-container/30 text-on-error-container font-mono-code text-micro-label">
                   reason: {finding.reasonCode}
                 </span>
               ) : null}
-              <span className="px-2 py-0.5 rounded bg-surface-container-high text-outline font-label-caps text-label-caps uppercase">
+              <span className="px-2 py-0.5 rounded bg-surface-container-high text-muted font-label-caps text-label-caps uppercase">
                 {statusLabel[finding.status]}
               </span>
             </div>
@@ -177,31 +171,25 @@ export default async function ConflictDetailPage({
 
             <div className="flex flex-wrap items-center gap-gutter text-on-surface-variant font-mono-code text-mono-code">
               <div className="flex items-center gap-1.5">
-                <Icon name="schedule" className="text-[16px] text-outline" />
+                <Icon name="schedule" className="text-[16px] text-muted" />
                 <span>
                   Detected: <strong className="text-on-surface">{formatUtcFull(finding.createdAt)}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Icon name="hub" className="text-[16px] text-outline" />
+                <Icon name="verified_user" className="text-[16px] text-muted" />
                 <span>
-                  Engine: <span className="text-secondary font-semibold">unify-rules → verifier/local-qwen</span>
+                  Packet hash: <span className="text-muted">{packetHash(finding.id)}</span>
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Icon name="verified_user" className="text-[16px] text-outline" />
-                <span>
-                  Packet hash: <span className="text-outline">{packetHash(finding.id)}</span>
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Icon name="group" className="text-[16px] text-outline" />
+                <Icon name="group" className="text-[16px] text-muted" />
                 <span>
                   Team: <span className="text-on-surface">{finding.team}</span>
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Icon name="timer" className="text-[16px] text-outline" />
+                <Icon name="timer" className="text-[16px] text-muted" />
                 <span>
                   Grace window: <strong className="text-on-surface">{policy.graceMinutes}m</strong>
                 </span>
@@ -211,7 +199,7 @@ export default async function ConflictDetailPage({
 
           {/* Scorecard mini-metric */}
           <div className="rounded-lg bg-surface-container p-stack-comfortable flex flex-col items-end gap-1 shadow-sm min-w-[220px]">
-            <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+            <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
               {finding.criteria.length > 0 ? "Criterion Scorecard" : "Composite Verdict"}
             </span>
             <div className="flex items-baseline gap-2">
@@ -226,22 +214,25 @@ export default async function ConflictDetailPage({
                 <span className="text-error font-mono-code text-body-sm">contradicted</span>
               ) : null}
             </div>
-            <div className="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden mt-1">
-              <div
-                className={`h-full rounded-full ${
-                  finding.severity === "critical"
-                    ? "bg-error"
-                    : finding.severity === "warning"
-                      ? "bg-tertiary"
-                      : "bg-secondary"
-                }`}
-                style={{ width: `${scorePct}%` }}
-              />
-            </div>
-            <span className="text-outline text-body-sm font-mono-code text-[11px] mt-1">
-              {scorePct}% decisive · {finding.freshness}
-              {finding.reviewRequired ? " · review required" : ""}
-            </span>
+            {finding.criteria.length > 0 ? (
+              <div className="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden mt-2">
+                <div
+                  className={`h-full rounded-full ${
+                    finding.severity === "critical"
+                      ? "bg-error"
+                      : finding.severity === "warning"
+                        ? "bg-tertiary"
+                        : "bg-secondary"
+                  }`}
+                  style={{ width: `${scorePct}%` }}
+                />
+              </div>
+            ) : null}
+            {finding.criteria.length > 0 ? (
+              <span className="text-muted font-mono-code text-micro-label mt-1">
+                {scorePct}% decisive
+              </span>
+            ) : null}
           </div>
         </div>
       </section>

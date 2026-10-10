@@ -2,137 +2,347 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { Icon } from "@/components/ui/icon";
-import { isActive, primaryNav, workspaceNav, type NavItem } from "@/lib/nav";
+import {
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import {
+  activeHref,
+  navGroups,
+  settingsNav,
+  type NavItem,
+  type NavBadge,
+} from "@/lib/nav";
 
-function NavEntry({ item, active }: { item: NavItem; active: boolean }) {
+const STORAGE_KEY = "unify:sidebar";
+/** Fired when this tab changes the rail so `useSyncExternalStore` re-reads it. */
+const CHANGE_EVENT = "unify:sidebar:change";
+
+const readCollapsed = () => {
+  if (typeof window === "undefined") return true;
+  return window.localStorage.getItem(STORAGE_KEY) !== "open";
+};
+
+const subscribe = (onChange: () => void) => {
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY) onChange();
+  };
+  window.addEventListener("storage", onStorage);
+  window.addEventListener(CHANGE_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener(CHANGE_EVENT, onChange);
+  };
+};
+
+const writeCollapsed = (collapsed: boolean) => {
+  window.localStorage.setItem(STORAGE_KEY, collapsed ? "rail" : "open");
+  window.dispatchEvent(new Event(CHANGE_EVENT));
+};
+
+const badgeTone: Record<NavBadge["tone"], string> = {
+  error: "bg-error-container text-error font-semibold text-[11px]",
+  tertiary:
+    "bg-tertiary-container text-on-tertiary-container font-semibold text-[11px]",
+  primary:
+    "bg-primary-container text-on-primary-container font-semibold text-[11px]",
+};
+
+function NavEntry({
+  item,
+  active,
+  open,
+}: {
+  item: NavItem;
+  active: boolean;
+  open: boolean;
+}) {
+  const base = active
+    ? "bg-surface-container-highest text-on-surface font-medium"
+    : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors";
+
   return (
     <Link
       href={item.href}
-      className={[
-        "flex items-center gap-3 px-3 py-2.5 transition-colors cursor-pointer active:scale-95 group",
-        "border-r-2",
-        active
-          ? "text-primary font-bold border-primary bg-surface-container-high"
-          : "text-on-surface-variant border-transparent hover:bg-surface-container-high hover:text-on-surface",
-      ].join(" ")}
+      data-path={item.path}
+      aria-current={active ? "page" : undefined}
+      aria-label={open ? undefined : item.label}
+      className={`group relative flex items-center h-9 rounded-md ${base} ${
+        open ? "justify-between px-2.5 mx-1.5" : "justify-center mx-2.5"
+      }`}
     >
-      <Icon name={item.icon} className="text-[20px]" />
-      <span className="font-body-sm whitespace-nowrap">{item.label}</span>
-      {item.badge ? (
-        <span className="ml-auto bg-error-container text-on-error-container text-[10px] font-bold px-1.5 rounded-full">
-          {item.badge}
+      {active ? (
+        <span
+          aria-hidden
+          className="absolute -left-1.5 top-1 bottom-1 w-[2px] rounded-full bg-primary"
+        />
+      ) : null}
+
+      <span className={`flex items-center min-w-0 ${open ? "gap-3" : ""}`}>
+        {/* Icon box is a fixed 18×18 so the count dot can sit outside the
+            glyph instead of on top of it. */}
+        <span className="relative flex items-center justify-center shrink-0 w-[18px] h-[18px]">
+          <span className="material-symbols-outlined text-[18px] leading-none">
+            {item.icon}
+          </span>
+          {item.badge && item.badge.tone === "error" && !open ? (
+            <span
+              aria-hidden
+              className="absolute -top-1.5 -right-1.5 w-1.5 h-1.5 rounded-full bg-error ring-2 ring-surface-container-low"
+            />
+          ) : null}
+        </span>
+        {open ? (
+          <span className="rail-label font-body-sm text-body-sm whitespace-nowrap">
+            {item.label}
+          </span>
+        ) : null}
+      </span>
+
+      {item.badge && open ? (
+        <span
+          className={`rail-label px-1.5 py-0.5 rounded font-mono-code ${badgeTone[item.badge.tone]}`}
+        >
+          {item.badge.text}
         </span>
       ) : null}
     </Link>
   );
 }
 
-function SideNav() {
-  const pathname = usePathname();
+function GroupLabel({ children }: { children: ReactNode }) {
   return (
-    <aside className="flex flex-col h-screen w-[240px] shrink-0 py-margin-page bg-surface-container border-r border-outline-variant sticky left-0 top-0 z-50">
-      <div className="px-6 mb-8 flex flex-col gap-1">
-        <Link href="/" className="font-headline-sm text-headline-sm text-primary font-bold">
-          Unify Dev
-        </Link>
-        <span className="font-body-sm text-on-surface-variant">Engineering Hub</span>
+    <div className="rail-label px-3 pt-4 pb-1.5">
+      <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
+        {children}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Side rail. In rail mode (64px) it shows icons only; hovering it opens a
+ * 256px panel in place — labels fade in after the panel has finished growing,
+ * so nothing is ever half-drawn over the icons. Clicking the header button (or
+ * the top-bar toggle) pins it open; that choice is persisted, because a nav
+ * that eats a sixth of the viewport should be the user's call, not ours.
+ */
+function SideNav({
+  active,
+  collapsed,
+  hovering,
+  onHoverChange,
+  onToggle,
+}: {
+  active: string | null;
+  collapsed: boolean;
+  hovering: boolean;
+  onHoverChange: (value: boolean) => void;
+  onToggle: () => void;
+}) {
+  const open = !collapsed || hovering;
+
+  return (
+    <aside
+      onMouseEnter={() => onHoverChange(true)}
+      onMouseLeave={() => onHoverChange(false)}
+      className={`fixed left-0 top-0 h-full z-50 flex flex-col bg-surface-container-low border-r border-outline-variant transition-[width] duration-200 ease-out ${
+        open ? "w-64" : "w-16"
+      } ${collapsed && hovering ? "shadow-2xl shadow-black/50" : ""}`}
+    >
+      <div className="flex flex-col min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+        <div
+          className={`h-12 flex items-center border-b border-outline-variant shrink-0 ${
+            open ? "justify-between px-3" : "justify-center px-0"
+          }`}
+        >
+          <Link
+            href="/"
+            aria-label="UNIFY home"
+            className="flex items-center gap-2.5 min-w-0"
+          >
+            <span className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-on-primary text-[16px] leading-none">
+                token
+              </span>
+            </span>
+            {open ? (
+              <span className="rail-label font-headline-sm text-headline-sm font-bold tracking-tight text-on-surface">
+                UNIFY
+              </span>
+            ) : null}
+          </Link>
+          {open ? (
+            <button
+              type="button"
+              onClick={onToggle}
+              aria-label={collapsed ? "Pin navigation open" : "Collapse navigation"}
+              className="rail-label p-1.5 rounded-md text-muted hover:text-on-surface hover:bg-surface-container-high transition-colors shrink-0"
+            >
+              <span className="material-symbols-outlined text-[18px] leading-none">
+                {collapsed ? "push_pin" : "left_panel_close"}
+              </span>
+            </button>
+          ) : null}
+        </div>
+
+        {navGroups.map((group, index) => (
+          <div key={group.label ?? index}>
+            {open && group.label ? <GroupLabel>{group.label}</GroupLabel> : null}
+            {!open && index > 0 ? (
+              <div className="mx-3 my-1.5 border-t border-outline-variant" />
+            ) : null}
+            <nav className="flex flex-col gap-1 pt-2 pb-1">
+              {group.items.map((item) => (
+                <NavEntry
+                  key={item.href}
+                  item={item}
+                  active={active === item.href}
+                  open={open}
+                />
+              ))}
+            </nav>
+          </div>
+        ))}
       </div>
 
-      <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
-        <p className="px-4 pb-2 font-label-caps text-label-caps uppercase text-on-surface-variant/70">
-          Review
-        </p>
-        {primaryNav.map((item) => (
-          <NavEntry key={item.href} item={item} active={isActive(pathname, item.href)} />
-        ))}
-
-        <p className="px-4 pt-5 pb-2 font-label-caps text-label-caps uppercase text-on-surface-variant/70">
-          Workspace
-        </p>
-        {workspaceNav.map((item) => (
-          <NavEntry key={item.href} item={item} active={isActive(pathname, item.href)} />
-        ))}
-      </nav>
-
-      <div className="mt-auto px-3">
-        <Link
-          href="/profile"
-          className="flex items-center gap-3 px-4 py-4 rounded-lg bg-surface-container-low border border-outline-variant/30 cursor-pointer hover:bg-surface-container-high transition-all"
-        >
-          <span className="w-8 h-8 rounded-full border border-primary/20 bg-primary-container grid place-items-center text-on-primary-container font-bold text-body-sm">
-            AR
-          </span>
-          <span className="flex flex-col">
-            <span className="text-on-surface font-bold text-body-sm">Alex Rivera</span>
-            <span className="text-on-surface-variant text-[10px] uppercase tracking-wider">
-              Staff Eng
-            </span>
-          </span>
-        </Link>
+      <div className="border-t border-outline-variant py-2 shrink-0 bg-surface-container-low">
+        <nav className="flex flex-col gap-1">
+          {settingsNav.map((item) => (
+            <NavEntry
+              key={item.href}
+              item={item}
+              active={active === item.href}
+              open={open}
+            />
+          ))}
+        </nav>
       </div>
     </aside>
   );
 }
 
-function TopBar({ action }: { action?: ReactNode }) {
+/**
+ * Fixed top bar: sidebar toggle, ⌘K omnibar, per-page action slot, and the
+ * notification/profile affordances. Its `left` tracks the *pinned* rail width,
+ * not the hover preview, so the page never reflows under the pointer.
+ */
+function TopBar({
+  action,
+  collapsed,
+  onToggle,
+}: {
+  action?: ReactNode;
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
   return (
-    <header className="sticky top-0 w-full z-40 bg-surface border-b border-outline-variant flex items-center justify-between px-margin-page py-stack-compact">
-      <div className="flex items-center gap-margin-page flex-1 min-w-0">
-        <div className="font-headline-md text-headline-md font-black text-on-surface">Unify</div>
-        <div className="relative w-full max-w-xl group">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Icon name="search" className="text-on-surface-variant text-[18px]" />
-          </div>
-          <input
-            type="text"
-            placeholder="Jump to PR, Figma frame, or Slack thread..."
-            className="block w-full bg-surface-container-lowest border border-outline-variant focus:border-primary focus:ring-1 focus:ring-primary rounded-lg pl-10 pr-12 py-2 font-mono-code text-body-sm transition-all text-on-surface placeholder:text-on-surface-variant/70"
-          />
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-            <kbd className="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant text-[10px] font-bold border border-outline-variant">
-              ⌘K
-            </kbd>
-          </div>
-        </div>
+    <header
+      className={`fixed top-0 right-0 h-12 z-40 bg-background/90 backdrop-blur-md border-b border-outline-variant flex items-center gap-3 px-6 transition-[left] duration-200 ease-out ${
+        collapsed ? "left-16" : "left-64"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
+        aria-expanded={!collapsed}
+        className="p-1.5 -ml-1.5 rounded-md text-muted hover:text-on-surface hover:bg-surface-container-high transition-colors shrink-0"
+      >
+        <span className="material-symbols-outlined text-[19px] leading-none">
+          {collapsed ? "left_panel_open" : "left_panel_close"}
+        </span>
+      </button>
+
+      <div className="relative w-full max-w-md">
+        <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-muted text-[17px] leading-none">
+          search
+        </span>
+        <input
+          type="text"
+          aria-label="Search"
+          placeholder="Search artifacts, conflicts, policies"
+          className="w-full pl-8 pr-14 py-1.5 rounded-md bg-surface-container border border-outline-variant text-on-surface placeholder-muted font-mono-code text-mono-code focus:outline-none focus:border-outline focus:ring-1 focus:ring-primary/40 transition"
+        />
+        <kbd className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant font-mono-code text-[11px] text-muted">
+          ⌘K
+        </kbd>
       </div>
-      <div className="flex items-center gap-4 shrink-0">
-        <button className="p-2 rounded-full hover:bg-surface-container-lowest transition-colors relative">
-          <Icon name="notifications" className="text-on-surface-variant" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full" />
+
+      <div className="flex items-center gap-2 ml-auto">
+        {action}
+        <button
+          aria-label="Notifications"
+          className="relative p-1.5 rounded-md hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors"
+        >
+          <span className="material-symbols-outlined text-[19px] leading-none">
+            notifications
+          </span>
+          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-error rounded-full ring-2 ring-background" />
         </button>
-        <div className="h-8 w-[1px] bg-outline-variant" />
-        {action ?? (
-          <button className="bg-primary text-on-primary px-4 py-1.5 rounded-lg font-bold text-body-sm hover:opacity-90 active:scale-95 transition-all">
-            Link Item
-          </button>
-        )}
+        <Link
+          href="/profile"
+          aria-label="Profile"
+          className="w-7 h-7 rounded-md bg-surface-container-highest hover:bg-surface-container flex items-center justify-center border border-outline-variant transition-colors"
+        >
+          <span className="material-symbols-outlined text-on-surface-variant text-[16px] leading-none">
+            person
+          </span>
+        </Link>
       </div>
     </header>
   );
 }
 
 /**
- * Standard application chrome: 240px side rail + sticky top bar with the
- * omnibar, matching every Stitch screen.
+ * Standard application chrome: a collapsible left rail, a fixed 48px top bar
+ * and a `py-16 px-margin-page` main column that tracks the pinned rail width.
  */
 export function AppShell({
   children,
   action,
-  contentClassName = "p-margin-page max-w-[1600px] mx-auto w-full space-y-6",
+  contentClassName = "w-full space-y-gutter",
 }: {
   children: ReactNode;
   action?: ReactNode;
   contentClassName?: string;
 }) {
+  const pathname = usePathname();
+  // localStorage-backed, not effect-backed: `useSyncExternalStore` renders the
+  // server value first and swaps in the stored one after hydration, so there is
+  // no mismatch and no cascading render. Default is the 64px rail.
+  const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => true);
+  const [hovering, setHovering] = useState(false);
+  const toggleCollapsed = () => writeCollapsed(!collapsed);
+
+  const active =
+    activeHref(
+      pathname,
+      navGroups.flatMap((g) => g.items),
+    ) ?? activeHref(pathname, settingsNav);
+
   return (
-    <div className="flex h-screen overflow-hidden">
-      <SideNav />
-      <main className="flex-1 flex flex-col overflow-y-auto min-w-0">
-        <TopBar action={action} />
-        <div className={contentClassName}>{children}</div>
-      </main>
+    <div className="min-h-screen bg-background text-on-surface font-body-md text-body-md">
+      <SideNav
+        active={active}
+        collapsed={collapsed}
+        hovering={hovering}
+        onHoverChange={setHovering}
+        onToggle={toggleCollapsed}
+      />
+      <div
+        className={`transition-[padding] duration-200 ease-out ${collapsed ? "pl-16" : "pl-64"}`}
+      >
+        <TopBar
+          action={action}
+          collapsed={collapsed}
+          onToggle={toggleCollapsed}
+        />
+        <main className="w-full py-16 px-margin-page bg-background min-h-screen">
+          <div className={contentClassName}>{children}</div>
+        </main>
+      </div>
     </div>
   );
 }

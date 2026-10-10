@@ -34,7 +34,7 @@ export function useToast(): ShowToast {
 const toneClass: Record<ToastTone, string> = {
   success: "text-secondary",
   error: "text-error",
-  neutral: "text-outline",
+  neutral: "text-muted",
 };
 
 /**

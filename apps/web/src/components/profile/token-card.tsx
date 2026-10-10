@@ -38,14 +38,14 @@ export function TokenCard() {
   }
 
   return (
-    <section className="rounded-xl bg-surface-container p-6 lg:p-8 flex flex-col space-y-6 shadow-xl">
+    <section className="rounded-xl bg-surface-container p-4 lg:p-4 flex flex-col space-y-4 shadow-xl">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="font-label-caps text-label-caps text-primary uppercase font-bold tracking-wider">
               Developer Tooling Credentials
             </span>
-            <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-[11px]">
+            <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-micro-label">
               unify-cli v2.4
             </span>
           </div>
@@ -71,7 +71,7 @@ export function TokenCard() {
       </div>
 
       <div
-        className={`rounded-lg bg-surface-container-high p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm transition-opacity ${
+        className={`rounded-lg bg-surface-container-high p-4 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm transition-opacity ${
           revoked ? "opacity-40 pointer-events-none" : ""
         }`}
       >
@@ -84,7 +84,7 @@ export function TokenCard() {
               <span className="font-body-md text-body-md font-semibold text-on-surface">
                 Alex CLI Workstation (MacBook M3 Max)
               </span>
-              <span className="px-2 py-0.5 rounded-full bg-secondary/15 text-secondary font-label-caps text-[10px] font-bold uppercase">
+              <span className="px-2 py-0.5 rounded-full bg-secondary/15 text-secondary font-label-caps text-eyebrow font-bold uppercase">
                 {revoked ? "Revoked" : "Active"}
               </span>
             </div>
@@ -102,20 +102,20 @@ export function TokenCard() {
                 <span>{copied ? "Copied" : "Copy"}</span>
               </button>
             </div>
-            <div className="flex flex-wrap items-center gap-3 mt-2 text-outline font-body-sm text-body-sm">
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-muted font-body-sm text-body-sm">
               <span>Created 14d ago</span>
               <span>•</span>
               <span className="text-secondary font-medium">Expires in 76 days</span>
               <span>•</span>
               <div className="flex items-center gap-1">
                 <span>Scopes:</span>
-                <span className="px-1.5 py-0.2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+                <span className="px-1.5 py-0.2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-micro-label">
                   read:graph
                 </span>
-                <span className="px-1.5 py-0.2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+                <span className="px-1.5 py-0.2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-micro-label">
                   write:link
                 </span>
-                <span className="px-1.5 py-0.2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+                <span className="px-1.5 py-0.2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-micro-label">
                   audit:view
                 </span>
               </div>

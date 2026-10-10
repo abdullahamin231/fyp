@@ -7,6 +7,7 @@
 node_modules/
 *.log
 docs/F26 FYP1 Mid Report LaTeX/diagrams/.build/
+packages/contracts/dist
 
 # LaTeX build artifacts (docs/F26 FYP1 Mid Report LaTeX)
 *.aux

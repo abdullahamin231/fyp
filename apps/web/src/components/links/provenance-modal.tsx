@@ -39,7 +39,7 @@ export function ProvenanceModal({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-2xl rounded-2xl bg-surface-container-low p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-2xl bg-surface-container-low p-4 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-start justify-between border-b border-surface-container-highest pb-4 gap-4">
           <div className="flex items-center gap-3">
@@ -52,7 +52,7 @@ export function ProvenanceModal({
                   Provenance Record &amp; Evidence Chain
                 </h3>
                 <span
-                  className={`px-2 py-0.5 rounded font-mono-code text-[11px] font-semibold ${
+                  className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-semibold ${
                     meta.decisive ? "bg-secondary/15 text-secondary" : "bg-tertiary/20 text-tertiary"
                   }`}
                 >
@@ -76,7 +76,7 @@ export function ProvenanceModal({
 
         {/* Binding vector */}
         <div className="p-4 rounded-xl bg-surface-container-lowest space-y-3">
-          <div className="font-label-caps text-label-caps uppercase text-outline">
+          <div className="font-label-caps text-label-caps uppercase text-muted">
             Target Binding Vector
           </div>
           <div className="flex items-center justify-between gap-2">
@@ -85,13 +85,13 @@ export function ProvenanceModal({
               <div className="font-mono-code text-[13px] font-bold text-on-surface truncate">
                 {record.source}
               </div>
-              <div className="font-mono-code text-[11px] text-outline truncate">
+              <div className="font-mono-code text-micro-label text-muted truncate">
                 {record.sourceMeta}
               </div>
             </div>
             <div className="flex flex-col items-center shrink-0">
               <Icon name="arrow_right_alt" className="text-primary text-[20px]" />
-              <span className="font-mono-code text-[10px] text-on-surface-variant">
+              <span className="font-mono-code text-micro-label text-on-surface-variant">
                 {record.relation}
               </span>
             </div>
@@ -100,7 +100,7 @@ export function ProvenanceModal({
               <div className="font-mono-code text-[13px] font-bold text-on-surface truncate">
                 {record.target}
               </div>
-              <div className="font-mono-code text-[11px] text-outline truncate">
+              <div className="font-mono-code text-micro-label text-muted truncate">
                 {record.targetMeta}
               </div>
             </div>
@@ -109,7 +109,7 @@ export function ProvenanceModal({
 
         {/* Evidence */}
         <div className="space-y-3">
-          <div className="font-label-caps text-label-caps uppercase text-outline">
+          <div className="font-label-caps text-label-caps uppercase text-muted">
             Inference &amp; Verification Evidence
           </div>
           <div className="p-3.5 rounded-lg bg-surface-container space-y-2">
@@ -129,7 +129,7 @@ export function ProvenanceModal({
               <span className="font-body-sm text-body-sm text-on-surface-variant">
                 Evidence Digest:
               </span>
-              <span className="font-mono-code text-[11px] text-outline">{record.digest}</span>
+              <span className="font-mono-code text-micro-label text-muted">{record.digest}</span>
             </div>
             <p className="font-mono-code text-body-sm text-on-surface bg-surface-container-lowest p-2 rounded">
               {record.evidence}
@@ -152,7 +152,7 @@ export function ProvenanceModal({
         {/* Metadata grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="p-3 rounded-lg bg-surface-container">
-            <span className="font-label-caps text-label-caps text-outline uppercase">
+            <span className="font-label-caps text-label-caps text-muted uppercase">
               Health Status
             </span>
             <div
@@ -169,7 +169,7 @@ export function ProvenanceModal({
             </div>
           </div>
           <div className="p-3 rounded-lg bg-surface-container">
-            <span className="font-label-caps text-label-caps text-outline uppercase">
+            <span className="font-label-caps text-label-caps text-muted uppercase">
               Policy Classification
             </span>
             <div className="mt-1 font-mono-code text-body-sm text-on-surface font-semibold">
@@ -180,7 +180,7 @@ export function ProvenanceModal({
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-2 border-t border-surface-container-highest gap-3 flex-wrap">
-          <span className="font-mono-code text-[11px] text-outline">{record.digest}</span>
+          <span className="font-mono-code text-micro-label text-muted">{record.digest}</span>
           <button
             type="button"
             onClick={onClose}

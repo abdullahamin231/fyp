@@ -44,7 +44,7 @@ function ArtifactCell({
       </div>
       <div className="min-w-0">
         <div className="font-mono-code font-bold text-on-surface truncate">{artifact.ref}</div>
-        <div className="font-mono-code text-[11px] text-outline truncate">
+        <div className="font-mono-code text-micro-label text-muted truncate">
           {toolLabel[artifact.tool].toUpperCase()} · {artifact.label}
         </div>
       </div>
@@ -166,7 +166,7 @@ export function LinkDirectory({
             </select>
             <Icon
               name="expand_more"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
             />
           </div>
 
@@ -186,7 +186,7 @@ export function LinkDirectory({
             </select>
             <Icon
               name="expand_more"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
             />
           </div>
 
@@ -206,7 +206,7 @@ export function LinkDirectory({
             </select>
             <Icon
               name="expand_more"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
             />
           </div>
         </div>
@@ -214,24 +214,24 @@ export function LinkDirectory({
         <div className="relative min-w-[280px]">
           <Icon
             name="search"
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[18px]"
           />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter by artifact key, title, author..."
-            className="w-full pl-9 pr-4 py-1.5 rounded bg-surface-container-lowest text-on-surface placeholder:text-outline font-mono-code text-body-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full pl-9 pr-4 py-1.5 rounded bg-surface-container-lowest text-on-surface placeholder:text-muted font-mono-code text-body-sm focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
       </div>
 
       {/* Bulk action bar */}
       {selectedLinks.length > 0 ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-primary-container/15 border border-primary/30">
+        <div className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-xl bg-primary-container/15 border border-primary/30">
           <div className="flex items-center gap-2 font-mono-code text-[12px] text-on-surface">
             <Icon name="checklist" className="text-[16px] text-primary" />
             <span className="font-semibold">{selectedLinks.length}</span> selected
-            <span className="text-outline">·</span>
+            <span className="text-muted">·</span>
             <span className="text-on-surface-variant">
               {pendingSelected.length} advisory · {decisiveSelected.length} eligible
             </span>
@@ -294,7 +294,7 @@ export function LinkDirectory({
       <div className="overflow-x-auto rounded-xl bg-surface-container shadow-md">
         <table className="w-full text-left text-body-sm border-collapse min-w-[1100px]">
           <thead>
-            <tr className="border-b border-surface-container-highest/60 bg-surface-container-low font-label-caps text-label-caps uppercase text-outline">
+            <tr className="border-b border-surface-container-highest/60 bg-surface-container-low font-label-caps text-label-caps uppercase text-muted">
               <th className="py-3 px-4 w-10">
                 <input
                   type="checkbox"
@@ -317,11 +317,11 @@ export function LinkDirectory({
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={8} className="py-10 text-center">
-                  <Icon name="find_in_page" className="text-[32px] text-outline mb-2 block mx-auto" />
+                  <Icon name="find_in_page" className="text-[32px] text-muted mb-2 block mx-auto" />
                   <p className="font-body-md text-body-md text-on-surface font-medium">
                     No relationships match the current filters
                   </p>
-                  <p className="font-body-sm text-body-sm text-outline mt-1">
+                  <p className="font-body-sm text-body-sm text-muted mt-1.5">
                     Try relaxing the tool, relationship or eligibility constraints.
                   </p>
                 </td>
@@ -355,7 +355,7 @@ export function LinkDirectory({
                   <td className="py-3 px-4 text-center">
                     <span
                       title={relationMeta[link.relation].description}
-                      className={`px-2 py-0.5 rounded font-mono-code text-[11px] font-bold whitespace-nowrap ${relationMeta[link.relation].chipClass}`}
+                      className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-bold whitespace-nowrap ${relationMeta[link.relation].chipClass}`}
                     >
                       {link.relation}
                     </span>
@@ -381,7 +381,7 @@ export function LinkDirectory({
                       <Icon name={meta.icon} className="text-[13px]" />
                       {meta.label}
                     </span>
-                    <div className="font-mono-code text-[10px] text-outline mt-1">
+                    <div className="font-mono-code text-micro-label text-muted mt-1.5">
                       {decisive ? "eligible for decisive findings" : "advisory — gated"}
                     </div>
                   </td>
@@ -392,7 +392,7 @@ export function LinkDirectory({
                         {prov.label} · {confidenceLabel(link.confidence)}
                       </span>
                     </div>
-                    <div className="font-mono-code text-[10px] text-outline truncate">
+                    <div className="font-mono-code text-micro-label text-muted truncate">
                       {link.confirmedBy ? `confirmed by ${link.confirmedBy}` : prov.note}
                     </div>
                   </td>
@@ -400,7 +400,7 @@ export function LinkDirectory({
                     <div className="font-mono-code text-[12px] text-on-surface">
                       {relativeTime(link.changedAt)}
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-secondary font-mono-code">
+                    <div className="flex items-center gap-1 text-micro-label text-secondary font-mono-code">
                       <span className="w-1.5 h-1.5 rounded-full bg-secondary" /> Active sync
                     </div>
                   </td>
@@ -471,7 +471,7 @@ export function LinkDirectory({
             Showing <span className="text-on-surface font-semibold">{filtered.length}</span> of{" "}
             <span className="text-on-surface font-semibold">{links.length}</span> relationships
           </span>
-          <span className="text-outline">·</span>
+          <span className="text-muted">·</span>
           <span className="text-secondary flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-secondary" /> Live Graph Synchronizer
             Connected
@@ -481,7 +481,7 @@ export function LinkDirectory({
           <button
             type="button"
             disabled
-            className="px-2.5 py-1 rounded bg-surface-container text-outline disabled:opacity-50"
+            className="px-2.5 py-1 rounded bg-surface-container text-muted disabled:opacity-50"
           >
             Prev
           </button>
@@ -494,10 +494,10 @@ export function LinkDirectory({
           >
             2
           </button>
-          <span className="px-1 text-outline">…</span>
+          <span className="px-1 text-muted">…</span>
           <button
             type="button"
-            className="px-2.5 py-1 rounded bg-surface-container text-outline hover:text-on-surface"
+            className="px-2.5 py-1 rounded bg-surface-container text-muted hover:text-on-surface"
           >
             Next
           </button>

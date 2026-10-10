@@ -111,18 +111,18 @@ function ArtifactNodeCard({
     return (
       <button
         onClick={() => onSelect(node.id)}
-        className="absolute w-40 p-2.5 rounded-lg bg-surface-container-high border-2 border-error shadow-2xl text-left cursor-pointer hover:scale-105 transition-transform duration-150"
+        className="absolute w-40 p-3 rounded-lg bg-surface-container-high border-2 border-error shadow-2xl text-left cursor-pointer hover:scale-105 transition-transform duration-150"
         style={{ left: node.x, top: node.y, transform: "translate(-50%, -50%)" }}
       >
         <div className="flex items-center justify-between mb-1.5">
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-mono-code text-[10px] font-bold">
-            <Icon name="crisis_alert" className="text-[11px]" />
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-mono-code text-micro-label font-bold">
+            <Icon name="crisis_alert" className="text-micro-label" />
             Finding
           </span>
           <span className="w-2 h-2 rounded-full bg-error animate-pulse" />
         </div>
         <div className="font-body-sm font-semibold text-on-surface truncate">{node.label}</div>
-        <div className="mt-1 text-[10px] font-mono-code text-error">P1 · review required</div>
+        <div className="mt-1 text-micro-label font-mono-code text-error">P1 · review required</div>
       </button>
     );
   }
@@ -131,7 +131,7 @@ function ArtifactNodeCard({
     return (
       <button
         onClick={() => onSelect(node.id)}
-        className={`absolute w-44 p-2.5 rounded-lg bg-surface-container border-2 text-left cursor-pointer transition-all duration-150 hover:scale-105 ${
+        className={`absolute w-44 p-3 rounded-lg bg-surface-container border-2 text-left cursor-pointer transition-all duration-150 hover:scale-105 ${
           node.conflict
             ? "border-error ring-4 ring-error/30 shadow-2xl animate-pulse"
             : `${tone.border} shadow-xl`
@@ -147,11 +147,11 @@ function ArtifactNodeCard({
           />
         </div>
         <div className="font-body-sm font-semibold text-on-surface truncate">{node.label}</div>
-        <div className="flex items-center justify-between mt-1 text-[11px] font-mono-code text-outline gap-2">
+        <div className="flex items-center justify-between mt-1 text-micro-label font-mono-code text-muted gap-2">
           <span className="truncate">{node.subtitle.split(" · ")[1] ?? node.subtitle}</span>
           <span
             className={`shrink-0 font-medium ${
-              node.metaTone ? toneClasses[node.metaTone].text : "text-outline"
+              node.metaTone ? toneClasses[node.metaTone].text : "text-muted"
             }`}
           >
             {node.meta}
@@ -164,24 +164,24 @@ function ArtifactNodeCard({
   return (
     <button
       onClick={() => onSelect(node.id)}
-      className={`absolute w-40 p-2 rounded-lg bg-surface-container border shadow-md text-left cursor-pointer transition-all hover:border-primary/60 ${
+      className={`absolute w-40 p-3 rounded-lg bg-surface-container border shadow-md text-left cursor-pointer transition-all hover:border-primary/60 ${
         selected ? "ring-4 ring-primary/30 border-primary" : "border-outline-variant/40"
       }`}
       style={{ left: node.x, top: node.y, transform: "translate(-50%, -50%)" }}
     >
-      <div className="flex items-center gap-1 font-mono-code text-[10px] text-on-surface-variant">
+      <div className="flex items-center gap-1 font-mono-code text-micro-label text-on-surface-variant">
         <Icon name={kindIcon[node.kind]} className={`${tone.text} text-[12px]`} />
         <span className="truncate">{node.label}</span>
       </div>
-      <div className="flex items-center justify-between text-[11px] mt-0.5 gap-2">
+      <div className="flex items-center justify-between text-micro-label mt-0.5 gap-2">
         <span
-          className={`truncate font-mono-code text-[10px] ${
-            node.metaTone ? toneClasses[node.metaTone].text : "text-outline"
+          className={`truncate font-mono-code text-micro-label ${
+            node.metaTone ? toneClasses[node.metaTone].text : "text-muted"
           }`}
         >
           {node.meta}
         </span>
-        <span className="shrink-0 text-outline text-[10px]">{toolName(node.tool)}</span>
+        <span className="shrink-0 text-muted text-micro-label">{toolName(node.tool)}</span>
       </div>
     </button>
   );
@@ -312,7 +312,7 @@ export function ArtifactGraphExplorer({
       {/* Top context & utility action bar */}
       <div className="flex flex-wrap items-center justify-between gap-gutter py-stack-comfortable border-b border-outline-variant/30">
         <div className="flex items-center gap-stack-comfortable flex-wrap">
-          <div className="flex items-center gap-stack-compact text-outline font-mono-code text-body-sm">
+          <div className="flex items-center gap-stack-compact text-muted font-mono-code text-body-sm">
             <span>Workspace</span>
             <Icon name="chevron_right" className="text-[14px]" />
             <span className="text-on-surface-variant font-medium">Core Checkout</span>
@@ -363,28 +363,28 @@ export function ArtifactGraphExplorer({
         {/* LEFT: filter & provenance drawer */}
         {showFilters ? (
           <aside className="col-span-12 lg:col-span-3 flex flex-col bg-surface-container-low/95 rounded-xl border border-outline-variant/30 overflow-hidden shadow-lg backdrop-blur-md h-[720px] lg:h-[calc(100vh-248px)] lg:min-h-[640px]">
-            <div className="p-3 border-b border-outline-variant/25 bg-surface-container-lowest/60">
+            <div className="p-4 border-b border-outline-variant/25 bg-surface-container-lowest/60">
               <div className="relative w-full">
                 <Icon
                   name="filter_center_focus"
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px]"
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted text-[16px]"
                 />
                 <input
-                  className="w-full pl-8 pr-12 py-1.5 bg-surface-container rounded border border-outline-variant/30 text-on-surface placeholder:text-outline font-mono-code text-[12px] focus:outline-none focus:border-primary transition-colors"
+                  className="w-full pl-8 pr-12 py-1.5 bg-surface-container rounded border border-outline-variant/30 text-on-surface placeholder:text-muted font-mono-code text-[12px] focus:outline-none focus:border-primary transition-colors"
                   placeholder="Focus on node / artifact ID..."
                   type="text"
                 />
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 font-mono-code text-[10px] text-outline px-1.5 py-0.5 rounded bg-surface-container-highest">
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 font-mono-code text-micro-label text-muted px-1.5 py-0.5 rounded bg-surface-container-highest">
                   ↵
                 </span>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-4 text-body-sm">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 text-body-sm">
               {/* Live graph telemetry */}
-              <div className="grid grid-cols-2 gap-2 bg-surface-container-lowest/70 p-2.5 rounded-lg border border-outline-variant/20">
+              <div className="grid grid-cols-2 gap-3 bg-surface-container-lowest/70 p-3.5 rounded-lg border border-outline-variant/20">
                 <div className="flex flex-col">
-                  <span className="font-mono-code text-[10px] text-outline uppercase tracking-wider">
+                  <span className="font-mono-code text-eyebrow text-muted uppercase tracking-wider">
                     Nodes
                   </span>
                   <span className="font-headline-sm text-headline-sm text-primary font-bold">
@@ -392,7 +392,7 @@ export function ArtifactGraphExplorer({
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-mono-code text-[10px] text-outline uppercase tracking-wider">
+                  <span className="font-mono-code text-eyebrow text-muted uppercase tracking-wider">
                     Edges
                   </span>
                   <span className="font-headline-sm text-headline-sm text-secondary font-bold">
@@ -400,7 +400,7 @@ export function ArtifactGraphExplorer({
                   </span>
                 </div>
                 <div className="flex flex-col pt-1 border-t border-outline-variant/20">
-                  <span className="font-mono-code text-[10px] text-tertiary uppercase tracking-wider">
+                  <span className="font-mono-code text-eyebrow text-tertiary uppercase tracking-wider">
                     Orphans
                   </span>
                   <span className="font-mono-code text-body-sm text-tertiary font-bold">
@@ -408,7 +408,7 @@ export function ArtifactGraphExplorer({
                   </span>
                 </div>
                 <div className="flex flex-col pt-1 border-t border-outline-variant/20">
-                  <span className="font-mono-code text-[10px] text-error uppercase tracking-wider">
+                  <span className="font-mono-code text-eyebrow text-error uppercase tracking-wider">
                     Divergence
                   </span>
                   <span className="font-mono-code text-body-sm text-error font-bold animate-pulse">
@@ -418,13 +418,13 @@ export function ArtifactGraphExplorer({
               </div>
 
               {/* Entity type filters */}
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+                  <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                     Entity Types
                   </span>
                   <button
-                    className="font-mono-code text-[10px] text-primary hover:underline"
+                    className="font-mono-code text-micro-label text-primary hover:underline"
                     onClick={() =>
                       setEnabledKinds(new Set(["design", "pr", "code", "requirement", "finding", "test"]))
                     }
@@ -432,14 +432,14 @@ export function ArtifactGraphExplorer({
                     Select All
                   </button>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {ENTITY_FILTERS.map((filter) => {
                     const active = filter.kinds.every((kind) => enabledKinds.has(kind));
                     const count = graph.nodes.filter((node) => filter.kinds.includes(node.kind)).length;
                     return (
                       <label
                         key={filter.id}
-                        className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-surface-container transition-colors cursor-pointer group"
+                        className="flex items-center justify-between px-3 py-2 rounded hover:bg-surface-container transition-colors cursor-pointer group"
                       >
                         <span className="flex items-center gap-2">
                           <input
@@ -472,7 +472,7 @@ export function ArtifactGraphExplorer({
                             {filter.label}
                           </span>
                         </span>
-                        <span className="font-mono-code text-[11px] px-1.5 py-0.2 rounded bg-surface-container-highest text-on-surface-variant">
+                        <span className="font-mono-code text-micro-label px-1.5 py-0.2 rounded bg-surface-container-highest text-on-surface-variant">
                           {count}
                         </span>
                       </label>
@@ -482,32 +482,32 @@ export function ArtifactGraphExplorer({
               </div>
 
               {/* Edge semantics */}
-              <div className="space-y-2 pt-2 border-t border-outline-variant/20">
-                <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+              <div className="space-y-4 pt-3 border-t border-outline-variant/20">
+                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                   Edge Semantics
                 </span>
-                <div className="space-y-1.5 font-mono-code text-[11px]">
+                <div className="space-y-3 font-mono-code text-micro-label">
                   {relationCounts.map(({ relation, count }) => (
                     <div
                       key={relation}
-                      className="flex items-center justify-between px-2 py-1 bg-surface-container-lowest/50 rounded"
+                      className="flex items-center justify-between px-3 py-1.5 bg-surface-container-lowest/50 rounded"
                     >
                       <span className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-primary" />
                         <span className="text-on-surface">{relation}</span>
                       </span>
-                      <span className="text-outline">{count}</span>
+                      <span className="text-muted">{count}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Link eligibility + confidence cutoff */}
-              <div className="space-y-2 pt-2 border-t border-outline-variant/20">
-                <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+              <div className="space-y-4 pt-3 border-t border-outline-variant/20">
+                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                   Link Eligibility
                 </span>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   {ELIGIBILITIES.map((eligibility) => {
                     const style = eligibilityStyle[eligibility];
                     const count = allEdges.filter((edge) => edge.eligibility === eligibility).length;
@@ -549,15 +549,15 @@ export function ArtifactGraphExplorer({
                     );
                   })}
                 </div>
-                <p className="text-[10px] leading-relaxed text-on-surface-variant">
+                <p className="text-micro-label leading-relaxed text-on-surface-variant">
                   Inferred and unconfirmed links may be displayed and confirmed — they never produce
                   a decisive finding.
                 </p>
 
-                <div className="pt-2 bg-surface-container-lowest/50 p-2.5 rounded-lg">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-mono-code text-[11px] text-outline">Confidence Cutoff</span>
-                    <span className="font-mono-code text-[11px] text-tertiary font-bold">
+                <div className="pt-2 bg-surface-container-lowest/50 p-3.5 rounded-lg">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="font-mono-code text-micro-label text-muted">Confidence Cutoff</span>
+                    <span className="font-mono-code text-micro-label text-tertiary font-bold">
                       {cutoff}%
                     </span>
                   </div>
@@ -570,7 +570,7 @@ export function ArtifactGraphExplorer({
                     onChange={(event) => setCutoff(Number(event.target.value))}
                     type="range"
                   />
-                  <div className="flex justify-between font-mono-code text-[9px] text-outline mt-1">
+                  <div className="flex justify-between font-mono-code text-micro-label text-muted mt-1.5">
                     <span>Loose (50%)</span>
                     <span>Strict (95%)</span>
                   </div>
@@ -579,12 +579,12 @@ export function ArtifactGraphExplorer({
             </div>
 
             {/* Quick presets */}
-            <div className="p-2.5 border-t border-outline-variant/25 bg-surface-container-lowest/80 flex items-center justify-between">
-              <span className="font-mono-code text-[10px] text-outline">Quick Focus:</span>
+            <div className="p-3.5 border-t border-outline-variant/25 bg-surface-container-lowest/80 flex items-center justify-between">
+              <span className="font-mono-code text-micro-label text-muted">Quick Focus:</span>
               <div className="flex gap-1">
                 <button
                   onClick={() => setPreset((value) => (value === "drift" ? null : "drift"))}
-                  className={`px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high font-mono-code text-[10px] border ${
+                  className={`px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high font-mono-code text-micro-label border ${
                     preset === "drift"
                       ? "text-error border-error"
                       : "text-error border-error/30"
@@ -594,7 +594,7 @@ export function ArtifactGraphExplorer({
                 </button>
                 <button
                   onClick={() => setPreset((value) => (value === "checkout" ? null : "checkout"))}
-                  className={`px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high font-mono-code text-[10px] border ${
+                  className={`px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high font-mono-code text-micro-label border ${
                     preset === "checkout"
                       ? "text-secondary border-secondary"
                       : "text-secondary border-secondary/30"
@@ -615,14 +615,14 @@ export function ArtifactGraphExplorer({
         >
           {/* Status pill */}
           <div className="absolute top-3 left-3 z-20 flex items-center gap-2 pointer-events-none flex-wrap">
-            <div className="px-2 py-1 rounded bg-surface-container/85 border border-outline-variant/30 backdrop-blur font-mono-code text-[10px] text-outline">
+            <div className="px-2 py-1 rounded bg-surface-container/85 border border-outline-variant/30 backdrop-blur font-mono-code text-micro-label text-muted">
               Nodes: <span className="text-on-surface">{visibleNodes.length}</span> · Edges:{" "}
               <span className="text-on-surface">{visibleEdges.length}</span> | Zoom:{" "}
               <span className="text-secondary">{zoom}%</span>
             </div>
             <button
               onClick={() => setSelectedId("CONF-1048")}
-              className="px-2 py-1 rounded bg-error/10 border border-error/30 font-mono-code text-[10px] text-error flex items-center gap-1 pointer-events-auto"
+              className="px-2 py-1 rounded bg-error/10 border border-error/30 font-mono-code text-micro-label text-error flex items-center gap-1 pointer-events-auto"
             >
               <Icon name="warning" className="text-[12px] animate-pulse" />
               CONF-1048 Divergence Alert
@@ -630,7 +630,7 @@ export function ArtifactGraphExplorer({
           </div>
 
           {/* Canvas grid */}
-          <div className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[radial-gradient(var(--color-outline-variant)_1px,transparent_1px)] [background-size:24px_24px]" />
+          <div className="absolute inset-0 z-0 opacity-100 pointer-events-none bg-surface-container-lowest" />
 
           {/* Topology viewport */}
           <div className="relative z-10 w-full h-full overflow-hidden">
@@ -669,7 +669,7 @@ export function ArtifactGraphExplorer({
                           x={anchor.x}
                           y={anchor.y}
                           textAnchor="middle"
-                          className="font-mono-code text-[9px] font-bold fill-on-surface-variant"
+                          className="font-mono-code text-micro-label font-bold fill-on-surface-variant"
                         >
                           {edge.label}
                         </text>
@@ -690,7 +690,7 @@ export function ArtifactGraphExplorer({
                 {/* Inferred Slack link proposal */}
                 {proposalState !== "dismissed" && visibleNodeIds.has(proposal.from) ? (
                   <div
-                    className="absolute w-56 p-2.5 rounded-lg border shadow-xl backdrop-blur-md"
+                    className="absolute w-56 p-3 rounded-lg border shadow-xl backdrop-blur-md"
                     style={{
                       left: proposalPoint.x,
                       top: proposalPoint.y,
@@ -699,28 +699,28 @@ export function ArtifactGraphExplorer({
                   >
                     {proposalState === "confirmed" ? (
                       <div className="bg-surface-container-highest/90 border border-secondary">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="flex items-center gap-1 text-secondary font-mono-code text-[10px] font-bold">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="flex items-center gap-1 text-secondary font-mono-code text-micro-label font-bold">
                             <Icon name="check_circle" className="text-[13px]" />
                             Confirmed Link
                           </span>
-                          <span className="text-outline font-mono-code text-[9px]">Alex R.</span>
+                          <span className="text-muted font-mono-code text-micro-label">Alex R.</span>
                         </div>
                         <div className="font-body-sm text-[12px] text-on-surface truncate">
                           {proposal.channel}: {proposal.quote}
                         </div>
-                        <div className="mt-1.5 font-mono-code text-[9px] text-on-surface-variant">
+                        <div className="mt-1.5 font-mono-code text-micro-label text-on-surface-variant">
                           manual · reversible · provenance recorded
                         </div>
                       </div>
                     ) : (
                       <div className="bg-surface-container-highest/90 border border-tertiary">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="flex items-center gap-1 text-tertiary font-mono-code text-[10px] font-bold">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="flex items-center gap-1 text-tertiary font-mono-code text-micro-label font-bold">
                             <Icon name="cyclone" className="text-[13px] animate-spin" />
                             Inferred Link: {Math.round(proposal.confidence * 100)}%
                           </span>
-                          <span className="text-outline font-mono-code text-[9px]">NLP Heuristic</span>
+                          <span className="text-muted font-mono-code text-micro-label">NLP Heuristic</span>
                         </div>
                         <div className="font-body-sm text-[12px] text-on-surface truncate">
                           {proposal.channel}: {proposal.quote}
@@ -728,13 +728,13 @@ export function ArtifactGraphExplorer({
                         <div className="mt-2 flex items-center gap-1.5">
                           <button
                             onClick={() => setProposalState("confirmed")}
-                            className="flex-1 py-1 rounded bg-secondary-container text-on-secondary font-mono-code text-[10px] font-bold hover:brightness-110 transition-all flex items-center justify-center gap-0.5"
+                            className="flex-1 py-1 rounded bg-secondary-container text-on-secondary font-mono-code text-micro-label font-bold hover:brightness-110 transition-all flex items-center justify-center gap-0.5"
                           >
                             <Icon name="check" className="text-[12px]" /> Confirm
                           </button>
                           <button
                             onClick={() => setProposalState("dismissed")}
-                            className="flex-1 py-1 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 text-outline hover:text-on-surface font-mono-code text-[10px] flex items-center justify-center gap-0.5 transition-all"
+                            className="flex-1 py-1 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 text-muted hover:text-on-surface font-mono-code text-micro-label flex items-center justify-center gap-0.5 transition-all"
                           >
                             <Icon name="close" className="text-[12px]" /> Dismiss
                           </button>
@@ -774,7 +774,7 @@ export function ArtifactGraphExplorer({
             </div>
             <div className="flex items-center bg-surface-container/90 border border-outline-variant/40 rounded-lg p-0.5 backdrop-blur shadow-lg">
               <button
-                className="p-1.5 rounded hover:bg-surface-container-high text-outline hover:text-on-surface transition-colors"
+                className="p-1.5 rounded hover:bg-surface-container-high text-muted hover:text-on-surface transition-colors"
                 title="Zoom In"
                 onClick={() => setZoom((value) => Math.min(200, value + 25))}
               >
@@ -782,7 +782,7 @@ export function ArtifactGraphExplorer({
               </button>
               <div className="h-3 w-px bg-outline-variant/40" />
               <button
-                className="p-1.5 rounded hover:bg-surface-container-high text-outline hover:text-on-surface transition-colors"
+                className="p-1.5 rounded hover:bg-surface-container-high text-muted hover:text-on-surface transition-colors"
                 title="Zoom Out"
                 onClick={() => setZoom((value) => Math.max(50, value - 25))}
               >
@@ -790,7 +790,7 @@ export function ArtifactGraphExplorer({
               </button>
               <div className="h-3 w-px bg-outline-variant/40" />
               <button
-                className="px-2 py-1 rounded hover:bg-surface-container-high font-mono-code text-[11px] text-on-surface transition-colors"
+                className="px-2 py-1 rounded hover:bg-surface-container-high font-mono-code text-micro-label text-on-surface transition-colors"
                 title="Reset View"
                 onClick={() => setZoom(100)}
               >
@@ -798,7 +798,7 @@ export function ArtifactGraphExplorer({
               </button>
               <div className="h-3 w-px bg-outline-variant/40" />
               <button
-                className="p-1.5 rounded hover:bg-surface-container-high text-outline hover:text-on-surface transition-colors"
+                className="p-1.5 rounded hover:bg-surface-container-high text-muted hover:text-on-surface transition-colors"
                 title="Fit to Screen"
                 onClick={() => setZoom(100)}
               >
@@ -810,8 +810,8 @@ export function ArtifactGraphExplorer({
 
         {/* RIGHT: node inspector */}
         <aside className="col-span-12 lg:col-span-3 flex flex-col bg-surface-container-low/95 rounded-xl border border-outline-variant/30 overflow-hidden shadow-lg backdrop-blur-md h-[720px] lg:h-[calc(100vh-248px)] lg:min-h-[640px]">
-          <div className="p-3 border-b border-outline-variant/25 bg-surface-container-lowest/60">
-            <div className="flex items-center justify-between mb-1">
+          <div className="p-4 border-b border-outline-variant/25 bg-surface-container-lowest/60">
+            <div className="flex items-center justify-between mb-1.5">
               <span className="font-label-caps text-label-caps text-primary uppercase tracking-wider">
                 Node Inspector
               </span>
@@ -826,17 +826,17 @@ export function ArtifactGraphExplorer({
                 {selected.label}
               </h2>
             </div>
-            <div className="font-mono-code text-[11px] text-outline mt-0.5 truncate">
+            <div className="font-mono-code text-micro-label text-muted mt-0.5 truncate">
               {selected.locator}
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-4 text-body-sm">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 text-body-sm">
             {/* Provenance metadata */}
-            <div className="bg-surface-container-lowest/70 rounded-lg p-2.5 border border-outline-variant/20 space-y-1.5 text-[12px]">
+            <div className="bg-surface-container-lowest/70 rounded-lg p-3.5 border border-outline-variant/20 space-y-3 text-[12px]">
               {selected.fields.map((field) => (
                 <div key={field.label} className="flex justify-between gap-3">
-                  <span className="text-outline">{field.label}</span>
+                  <span className="text-muted">{field.label}</span>
                   <span
                     className={`font-mono-code truncate ${
                       field.tone ? toneClasses[field.tone].text : "text-on-surface"
@@ -850,17 +850,17 @@ export function ArtifactGraphExplorer({
 
             {/* Blast radius / eligibility summary */}
             {inDrift ? (
-              <div className="space-y-1.5">
-                <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider flex items-center justify-between">
+              <div className="space-y-3">
+                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider flex items-center justify-between">
                   Blast Radius Impact
-                  <span className="text-error font-mono-code text-[10px]">DRIFT ACTIVE</span>
+                  <span className="text-error font-mono-code text-micro-label">DRIFT ACTIVE</span>
                 </span>
-                <div className="bg-error-container/20 border border-error/30 rounded-lg p-2.5">
+                <div className="bg-error-container/20 border border-error/30 rounded-lg p-3.5">
                   <div className="flex items-center gap-2 text-error font-semibold text-[12px]">
                     <Icon name="crisis_alert" className="text-[16px]" />
                     1 PR &amp; 2 Tickets Affected by Drift
                   </div>
-                  <p className="font-body-sm text-[11px] text-on-surface-variant mt-1">
+                  <p className="font-body-sm text-micro-label text-on-surface-variant mt-1.5">
                     Field{" "}
                     <code className="font-mono-code bg-surface-container-lowest px-1 py-0.5 rounded text-error">
                       securityBadges
@@ -868,26 +868,26 @@ export function ArtifactGraphExplorer({
                     removed in Figma v3.2 but actively rendered in PR #142 commit{" "}
                     <code className="font-mono-code text-primary">8ef2a1</code>.
                   </p>
-                  <div className="mt-2 pt-2 border-t border-error/20 flex items-center justify-between">
-                    <span className="font-mono-code text-[10px] text-outline">
+                  <div className="mt-3 pt-3 border-t border-error/20 flex items-center justify-between">
+                    <span className="font-mono-code text-micro-label text-muted">
                       Conflict Reference:
                     </span>
                     <button
                       onClick={() => setSelectedId("CONF-1048")}
-                      className="font-mono-code text-[10px] text-error hover:underline font-bold flex items-center gap-0.5"
+                      className="font-mono-code text-micro-label text-error hover:underline font-bold flex items-center gap-0.5"
                     >
-                      #CONF-1048 <Icon name="north_east" className="text-[11px]" />
+                      #CONF-1048 <Icon name="north_east" className="text-micro-label" />
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="space-y-1.5">
-                <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+              <div className="space-y-3">
+                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                   Link Eligibility
                 </span>
-                <div className="bg-surface-container-lowest/70 border border-outline-variant/20 rounded-lg p-2.5">
-                  <p className="font-body-sm text-[11px] text-on-surface-variant">
+                <div className="bg-surface-container-lowest/70 border border-outline-variant/20 rounded-lg p-3.5">
+                  <p className="font-body-sm text-micro-label text-on-surface-variant">
                     <span className="text-secondary font-bold">
                       {selectedEdges.filter((entry) => isDecisive(entry.edge.eligibility)).length}
                     </span>{" "}
@@ -901,30 +901,30 @@ export function ArtifactGraphExplorer({
             )}
 
             {/* Connected edges */}
-            <div className="space-y-2">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                   Connected Edges ({selectedEdges.length})
                 </span>
-                <span className="font-mono-code text-[10px] text-outline">
+                <span className="font-mono-code text-micro-label text-muted">
                   {selectedEdges.filter((entry) => entry.edge.from === selected.id).length} Out /{" "}
                   {selectedEdges.filter((entry) => entry.edge.to === selected.id).length} In
                 </span>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-3">
                 {selectedEdges.length === 0 ? (
-                  <p className="font-mono-code text-[11px] text-tertiary p-2 rounded bg-surface-container rounded-lg border border-outline-variant/20">
+                  <p className="font-mono-code text-micro-label text-tertiary p-3 rounded bg-surface-container rounded-lg border border-outline-variant/20">
                     Orphan node — no eligible anchor yet (policy P2 watches this state).
                   </p>
                 ) : (
                   selectedEdges.map(({ edge, other }) => (
                     <div
                       key={`${edge.from}-${edge.to}-${edge.label}`}
-                      className="p-2 rounded bg-surface-container hover:bg-surface-container-high transition-colors border border-outline-variant/20 flex flex-col gap-1"
+                      className="p-3 rounded bg-surface-container hover:bg-surface-container-high transition-colors border border-outline-variant/20 flex flex-col gap-1.5"
                     >
                       <div className="flex items-center justify-between">
                         <span
-                          className={`font-mono-code text-[10px] px-1 py-0.2 rounded font-bold ${
+                          className={`font-mono-code text-micro-label px-1 py-0.2 rounded font-bold ${
                             edge.eligibility === "inferred" || edge.eligibility === "unconfirmed"
                               ? "bg-tertiary/20 text-tertiary"
                               : "bg-primary/15 text-primary"
@@ -933,14 +933,14 @@ export function ArtifactGraphExplorer({
                           {edge.label}
                         </span>
                         <span
-                          className={`font-mono-code text-[10px] ${
+                          className={`font-mono-code text-micro-label ${
                             isDecisive(edge.eligibility) ? "text-secondary" : "text-tertiary"
                           }`}
                         >
                           {eligibilityCaption(edge)}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-[11px] gap-2">
+                      <div className="flex items-center justify-between text-micro-label gap-2">
                         <button
                           onClick={() => other && setSelectedId(other.id)}
                           className="text-on-surface truncate font-medium hover:text-primary transition-colors text-left"
@@ -956,7 +956,7 @@ export function ArtifactGraphExplorer({
                           className={`text-[14px] shrink-0 ${
                             edge.eligibility === "inferred" || edge.eligibility === "unconfirmed"
                               ? "text-tertiary"
-                              : "text-outline"
+                              : "text-muted"
                           }`}
                         />
                       </div>
@@ -968,17 +968,17 @@ export function ArtifactGraphExplorer({
           </div>
 
           {/* Inspector actions */}
-          <div className="p-3 border-t border-outline-variant/25 bg-surface-container-lowest/80 space-y-2">
+          <div className="p-4 border-t border-outline-variant/25 bg-surface-container-lowest/80 space-y-3">
             <button className="w-full py-2 px-3 rounded bg-primary-container text-on-primary-container font-body-sm text-[12px] font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-sm">
               <span>{selected.action}</span>
               <Icon name="open_in_new" className="text-[14px]" />
             </button>
             <div className="grid grid-cols-2 gap-1.5">
-              <button className="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface font-body-sm text-[11px] font-medium flex items-center justify-center gap-1 transition-colors">
+              <button className="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface font-body-sm text-micro-label font-medium flex items-center justify-center gap-1 transition-colors">
                 <Icon name="add_link" className="text-[13px] text-secondary" />
                 Link Edge +
               </button>
-              <button className="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-error font-body-sm text-[11px] font-medium flex items-center justify-center gap-1 transition-colors">
+              <button className="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-error font-body-sm text-micro-label font-medium flex items-center justify-center gap-1 transition-colors">
                 <Icon name="published_with_changes" className="text-[13px]" />
                 Re-verify
               </button>

@@ -26,7 +26,7 @@ type WatchTarget = {
 const severityTagTone: Record<Severity, string> = {
   critical: "bg-error-container/60 text-error font-bold",
   warning: "bg-tertiary-container/60 text-on-tertiary-container font-bold",
-  info: "bg-surface-container-highest text-outline font-bold",
+  info: "bg-surface-container-highest text-muted font-bold",
 };
 
 /** Policy-driven watch rows are derived from the shared policy definitions. */
@@ -39,7 +39,7 @@ const policyRows: WatchTarget[] = policies.map((policy) => ({
       ? "text-error"
       : policy.severity === "warning"
         ? "text-tertiary"
-        : "text-outline",
+        : "text-muted",
   name: `${policy.id}: ${policy.name}`,
   tag: policy.severity.toUpperCase(),
   tagTone: severityTagTone[policy.severity],
@@ -98,11 +98,11 @@ const initialTargets: WatchTarget[] = [
     iconTone: "text-tertiary",
     name: "PROJ (Core Infrastructure)",
     tag: "Jira",
-    tagTone: "bg-surface-container-highest text-outline font-bold",
+    tagTone: "bg-surface-container-highest text-muted font-bold",
     ref: "Epics & unassigned blockers",
     triggers: [
       { label: "State divergence", tone: "bg-surface-container-highest text-on-surface font-mono-code" },
-      { label: "Orphaned tickets > 5d", tone: "bg-surface-container-highest text-outline font-mono-code" },
+      { label: "Orphaned tickets > 5d", tone: "bg-surface-container-highest text-muted font-mono-code" },
     ],
     note: "Direct DM alerts via Slack bot",
   },
@@ -220,7 +220,7 @@ export function WatcherTable() {
       </div>
 
       <div className="rounded-xl bg-surface-container overflow-hidden shadow-md">
-        <div className="px-5 py-3 bg-surface-container-high grid grid-cols-12 gap-2 items-center text-on-surface-variant font-label-caps text-label-caps tracking-wider uppercase">
+        <div className="px-4 py-3 bg-surface-container-high grid grid-cols-12 gap-2 items-center text-on-surface-variant font-label-caps text-label-caps tracking-wider uppercase">
           <div className="col-span-5">Artifact / Target Entity</div>
           <div className="col-span-4">Watch Triggers &amp; Scope</div>
           <div className="col-span-3 text-right">Subscription Status</div>
@@ -230,9 +230,9 @@ export function WatcherTable() {
           {visible.map((target, index) => {
             const state = rowState[target.id] ?? { delivery: "immediate", muted: false };
             const chip = target.policyOff
-              ? { label: "Policy off", className: "bg-surface-container-highest text-outline" }
+              ? { label: "Policy off", className: "bg-surface-container-highest text-muted" }
               : state.muted
-                ? { label: "Muted 24h", className: "bg-surface-container-highest text-outline" }
+                ? { label: "Muted 24h", className: "bg-surface-container-highest text-muted" }
                 : {
                     label: target.kind === "policy" ? "Lead Sub" : "Active Watch",
                     className: "bg-secondary/10 text-secondary",
@@ -240,7 +240,7 @@ export function WatcherTable() {
             return (
               <div
                 key={target.id}
-                className={`px-5 py-3.5 hover:bg-surface-bright/50 transition-colors flex items-start justify-between gap-2 group ${
+                className={`px-4 py-3 hover:bg-surface-bright/50 transition-colors flex items-start justify-between gap-2 group ${
                   index % 2 === 1 ? "bg-surface-container-low/30" : ""
                 }`}
               >
@@ -256,12 +256,12 @@ export function WatcherTable() {
                         {target.name}
                       </span>
                       <span
-                        className={`px-1.5 py-0.2 rounded font-mono-code text-[10px] ${target.tagTone}`}
+                        className={`px-1.5 py-0.2 rounded font-mono-code text-micro-label ${target.tagTone}`}
                       >
                         {target.tag}
                       </span>
                     </div>
-                    <span className="font-mono-code text-[12px] text-outline block truncate">
+                    <span className="font-mono-code text-[12px] text-muted block truncate">
                       {target.ref}
                     </span>
                   </div>
@@ -272,13 +272,13 @@ export function WatcherTable() {
                     {target.triggers.map((trigger) => (
                       <span
                         key={trigger.label}
-                        className={`px-2 py-0.5 rounded text-[11px] ${trigger.tone}`}
+                        className={`px-2 py-0.5 rounded text-micro-label ${trigger.tone}`}
                       >
                         {trigger.label}
                       </span>
                     ))}
                   </div>
-                  <span className="font-body-sm text-[11px] text-on-surface-variant mt-1 block">
+                  <span className="font-body-sm text-micro-label text-on-surface-variant mt-1 block">
                     {target.note}
                   </span>
                 </div>
@@ -286,7 +286,7 @@ export function WatcherTable() {
                 <div className="w-3/12 flex flex-col items-end gap-2">
                   <div className="flex items-center justify-end gap-2">
                     <span
-                      className={`px-2 py-0.5 rounded font-label-caps text-[10px] font-bold uppercase ${chip.className}`}
+                      className={`px-2 py-0.5 rounded font-label-caps text-eyebrow font-bold uppercase ${chip.className}`}
                     >
                       {chip.label}
                     </span>
@@ -298,7 +298,7 @@ export function WatcherTable() {
                       onClick={() => toggleMute(target)}
                       className={`p-1 rounded transition-colors disabled:opacity-40 ${
                         state.muted
-                          ? "text-outline hover:text-on-surface hover:bg-surface-container-highest"
+                          ? "text-muted hover:text-on-surface hover:bg-surface-container-highest"
                           : "text-secondary hover:text-on-surface hover:bg-surface-container-highest"
                       }`}
                     >
@@ -316,7 +316,7 @@ export function WatcherTable() {
                       onChange={(event) =>
                         setDelivery(target, event.target.value as Delivery)
                       }
-                      className="bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] px-2 py-0.5 pr-6 rounded focus:outline-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-micro-label px-2 py-0.5 pr-6 rounded focus:outline-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <option value="immediate">Immediate</option>
                       <option value="digest">Daily digest</option>

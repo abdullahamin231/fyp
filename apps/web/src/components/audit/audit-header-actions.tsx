@@ -100,10 +100,10 @@ export function AuditHeaderActions() {
               className="absolute right-0 mt-2 w-72 rounded bg-surface-container-high shadow-xl p-3 z-30"
             >
               <div className="px-2 py-1 mb-2">
-                <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider block">
+                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider block">
                   Cryptographic Export
                 </span>
-                <p className="font-body-sm text-body-sm text-on-surface-variant text-[11px] leading-tight mt-1">
+                <p className="font-body-sm text-body-sm text-on-surface-variant text-micro-label leading-tight mt-1">
                   Tokens &amp; raw vendor payloads automatically redacted via policy #901.
                 </p>
               </div>
@@ -120,7 +120,7 @@ export function AuditHeaderActions() {
                       <Icon name={option.icon} className={`text-[18px] ${option.iconClass}`} />
                       <span className="font-body-sm text-body-sm font-medium">{option.label}</span>
                     </span>
-                    <span className="font-mono-code text-[11px] text-on-surface-variant">
+                    <span className="font-mono-code text-micro-label text-on-surface-variant">
                       {option.tag}
                     </span>
                   </button>
@@ -134,7 +134,7 @@ export function AuditHeaderActions() {
       {notice ? (
         <p
           aria-live="polite"
-          className="max-w-md text-right font-mono-code text-[11px] text-secondary flex items-start gap-1.5 justify-end"
+          className="max-w-md text-right font-mono-code text-micro-label text-secondary flex items-start gap-1.5 justify-end"
         >
           <Icon name="encrypted" className="text-[13px] mt-0.5" />
           <span>{notice}</span>

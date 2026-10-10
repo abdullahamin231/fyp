@@ -23,21 +23,15 @@ export default function PoliciesPage() {
       }
     >
       {/* Top ambient glow & title section */}
-      <div className="relative overflow-hidden pt-4">
+      <div className="relative overflow-hidden pt-2">
         <div className="absolute -top-12 -left-12 w-96 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -top-10 right-20 w-80 h-36 bg-secondary/5 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
-          <div className="flex flex-col gap-1 max-w-3xl">
-            <div className="flex items-center gap-2">
-              <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest px-2 py-0.5 rounded bg-secondary/10">
-                Rule Engine v3.8
-              </span>
-              <span className="font-mono-code text-[11px] text-outline">POL-REGISTRY // PROD</span>
-            </div>
+          <div className="flex flex-col gap-2 max-w-3xl">
             <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">
               Policy Management &amp; Governance
             </h1>
-            <p className="font-body-md text-body-md text-on-surface-variant">
+            <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
               Define cross-tool consistency rules, trigger conditions, temporal thresholds, and
               recipient escalation policies.
             </p>

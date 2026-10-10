@@ -52,16 +52,16 @@ export function SlackTestSandbox() {
   }
 
   return (
-    <section className="rounded-xl bg-surface-container-low p-6 shadow-md flex flex-col gap-5 sticky top-20">
+    <section className="rounded-xl bg-surface-container-low p-4 shadow-md flex flex-col gap-4 sticky top-20">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="font-label-caps text-label-caps text-outline uppercase">Section 04</span>
-          <span className="text-outline-variant font-mono-code">•</span>
+          <span className="font-label-caps text-label-caps text-muted uppercase">Section 04</span>
+          <span className="text-outline font-mono-code">•</span>
           <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">
             Dispatch Test Sandbox
           </h2>
         </div>
-        <span className="px-2 py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-mono-code text-[10px] font-bold uppercase tracking-wide">
+        <span className="px-2 py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-mono-code text-eyebrow font-bold uppercase tracking-wide">
           Live Webhook
         </span>
       </div>
@@ -74,7 +74,7 @@ export function SlackTestSandbox() {
       <div className="p-4 rounded-xl bg-surface-container flex flex-col gap-3.5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
-            <label className="font-label-caps text-label-caps text-outline uppercase">
+            <label className="font-label-caps text-label-caps text-muted uppercase">
               Target Channel
             </label>
             <div className="relative">
@@ -92,12 +92,12 @@ export function SlackTestSandbox() {
               </select>
               <Icon
                 name="expand_more"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
               />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="font-label-caps text-label-caps text-outline uppercase">
+            <label className="font-label-caps text-label-caps text-muted uppercase">
               Severity Level
             </label>
             <div className="relative">
@@ -115,7 +115,7 @@ export function SlackTestSandbox() {
               </select>
               <Icon
                 name="expand_more"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
               />
             </div>
           </div>
@@ -145,12 +145,12 @@ export function SlackTestSandbox() {
       {/* Rendered mock Slack message preview */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <span className="font-label-caps text-label-caps text-outline uppercase">
+          <span className="font-label-caps text-label-caps text-muted uppercase">
             Channel Appearance Preview
           </span>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-secondary" />
-            <span className="font-mono-code text-[11px] text-on-surface-variant">
+            <span className="font-mono-code text-micro-label text-on-surface-variant">
               Slack BlockKit v1.2
             </span>
           </div>
@@ -161,11 +161,11 @@ export function SlackTestSandbox() {
               <span className="font-mono-code text-[13px] text-on-surface font-bold">
                 {channel}
               </span>
-              <span className="font-mono-code text-[11px] text-outline">
+              <span className="font-mono-code text-micro-label text-muted">
                 | Topic: Production Graph Breakers
               </span>
             </div>
-            <span className="font-mono-code text-[11px] text-outline">Today at 14:32</span>
+            <span className="font-mono-code text-micro-label text-muted">Today at 14:32</span>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded bg-primary flex items-center justify-center shrink-0 shadow-sm mt-0.5">
@@ -176,10 +176,10 @@ export function SlackTestSandbox() {
                 <span className="font-body-sm text-body-sm font-bold text-on-surface">
                   Unify Sentinel
                 </span>
-                <span className="px-1 py-0.2 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-[9px] uppercase font-bold">
+                <span className="px-1 py-0.2 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-eyebrow uppercase font-bold">
                   APP
                 </span>
-                <span className="font-mono-code text-[11px] text-outline">14:32:08</span>
+                <span className="font-mono-code text-micro-label text-muted">14:32:08</span>
               </div>
               <div className="rounded-lg bg-surface-container p-3.5 flex flex-col gap-2.5 relative overflow-hidden">
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-error" />
@@ -188,13 +188,13 @@ export function SlackTestSandbox() {
                     <Icon name="dangerous" className="text-[16px]" />
                     {severity}: Design Drift after PR Merge
                   </span>
-                  <span className="font-mono-code text-[10px] text-outline bg-surface-container-highest px-1.5 py-0.5 rounded">
+                  <span className="font-mono-code text-micro-label text-muted bg-surface-container-highest px-1.5 py-0.5 rounded">
                     CONF-1048
                   </span>
                 </div>
                 <p className="font-body-sm text-body-sm text-on-surface-variant">
                   <span className="text-tertiary font-semibold">@here</span> New commit pushed to{" "}
-                  <code className="font-mono-code text-[11px] text-primary px-1 rounded bg-surface-container-lowest">
+                  <code className="font-mono-code text-micro-label text-primary px-1 rounded bg-surface-container-lowest">
                     main
                   </code>{" "}
                   introduced conflicting state between{" "}
@@ -204,18 +204,18 @@ export function SlackTestSandbox() {
                   </span>
                   .
                 </p>
-                <div className="grid grid-cols-2 gap-2 p-2 rounded bg-surface-container-lowest/80 text-on-surface font-mono-code text-[11px]">
+                <div className="grid grid-cols-2 gap-2 p-2 rounded bg-surface-container-lowest/80 text-on-surface font-mono-code text-micro-label">
                   <div>
-                    <span className="text-outline">Policy:</span> P1 · Design Drift after PR Merge
+                    <span className="text-muted">Policy:</span> P1 · Design Drift after PR Merge
                   </div>
                   <div>
-                    <span className="text-outline">Verdict:</span> CONTRADICTED
+                    <span className="text-muted">Verdict:</span> CONTRADICTED
                   </div>
                   <div>
-                    <span className="text-outline">Freshness:</span> CURRENT
+                    <span className="text-muted">Freshness:</span> CURRENT
                   </div>
                   <div>
-                    <span className="text-outline">Root Author:</span> d.vasquez@unify.dev
+                    <span className="text-muted">Root Author:</span> d.vasquez@unify.dev
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -229,12 +229,12 @@ export function SlackTestSandbox() {
                   </button>
                 </div>
               </div>
-              <div className="flex items-center gap-3 text-outline text-[12px] pl-1">
-                <span className="flex items-center gap-1 text-on-surface-variant font-mono-code text-[11px]">
+              <div className="flex items-center gap-3 text-muted text-[12px] pl-1">
+                <span className="flex items-center gap-1 text-on-surface-variant font-mono-code text-micro-label">
                   <Icon name="reply" className="text-[14px]" /> 0 replies
                 </span>
-                <span className="text-outline-variant">•</span>
-                <span className="font-mono-code text-[11px]">via chat.postMessage</span>
+                <span className="text-outline">•</span>
+                <span className="font-mono-code text-micro-label">via chat.postMessage</span>
               </div>
             </div>
           </div>
@@ -244,18 +244,18 @@ export function SlackTestSandbox() {
       {/* Generated BlockKit schema */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <span className="font-label-caps text-label-caps text-outline uppercase">
+          <span className="font-label-caps text-label-caps text-muted uppercase">
             Generated BlockKit Schema
           </span>
           <button
             onClick={copyJson}
-            className="font-mono-code text-[11px] text-primary hover:underline flex items-center gap-1"
+            className="font-mono-code text-micro-label text-primary hover:underline flex items-center gap-1"
           >
             <Icon name={copied ? "check" : "content_copy"} className="text-[13px]" />
             {copied ? "Copied!" : "Copy JSON"}
           </button>
         </div>
-        <pre className="rounded-xl bg-surface-container-lowest p-3.5 font-mono-code text-[11px] text-on-surface-variant overflow-x-auto max-h-48 leading-relaxed select-all m-0 whitespace-pre">
+        <pre className="rounded-xl bg-surface-container-lowest p-3.5 font-mono-code text-micro-label text-on-surface-variant overflow-x-auto max-h-48 leading-relaxed select-all m-0 whitespace-pre">
           {blockKitJson}
         </pre>
       </div>
