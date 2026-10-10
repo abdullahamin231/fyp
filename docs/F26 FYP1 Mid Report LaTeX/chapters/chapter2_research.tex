@@ -1,17 +1,531 @@
 \chapter{Research and Existing Solutions}
+
 \section{Research Method / Approach}
-Describe how relevant technical and domain knowledge was investigated.
+
+Three bodies of knowledge were investigated: published research on recovering
+and maintaining relationships between software artifacts, commercial products
+that connect development tools or review code against linked requirements, and
+the platform documentation of the services the system consumes.
+
+Commercial products were examined through their official documentation rather
+than through marketing material. For each product the specific capability and
+the specific documented limitation were recorded together with the date of
+access, because products in this category change quickly and an undated claim
+about a competitor cannot be defended. Where a capability could not be confirmed
+from documentation it is recorded as unconfirmed rather than assumed absent.
+
+Platform documentation was treated as a design input rather than as background.
+Event coverage, delivery timing and field availability differ between the three
+bound source products, and several architectural decisions depend on what each
+platform actually emits. These findings are reported in
+Section~\ref{sec:ch2-findings} alongside the design decisions they produced.
+
+The review was conducted to answer three questions. Which parts of the proposed
+system already exist in a mature form, and should be adopted rather than
+reinvented? Which exist but under constraints that make them unsuitable for the
+stated deployment? And which are genuinely unaddressed? The third answer is the
+narrowest of the three, and is stated narrowly.
+
 \section{Existing Solutions / Products}
-Review relevant existing solutions.
+
+\subsection{Research on traceability link recovery}
+
+Recovering links between requirements and the code implementing them is an
+established research area. Early work applied information-retrieval methods,
+treating requirement text and source code as documents and ranking candidate
+pairs by lexical similarity \cite{delucia2007}. The limitation of that approach
+is well understood: lexical overlap between a requirement and its implementation
+is frequently weak, while unrelated code can share vocabulary.
+
+Recent work applies large language models in a retrieval-augmented
+configuration. LiSSA, presented at ICSE 2025, is representative. Rather than
+targeting one artifact pair, it uses retrieval-augmented generation to supply
+the model with the information needed to judge a candidate link, and is
+evaluated across requirements-to-code, documentation-to-code and architecture
+documentation tasks \cite{lissa2025}. The authors report that the approach
+substantially outperforms prior methods on the code-related tasks, while stating
+that further research is required before such approaches are practically
+applicable.
+
+This project adopts the retrieval-augmented configuration and does not claim it
+as a contribution. The relevant observation is the authors' own: the method
+works better than its predecessors and is not yet dependable enough to be
+trusted without supervision.
+
+\subsection{Code review against linked requirements}
+
+Two commercial products perform a function that overlaps directly with part of
+this project's scope. The overlap is stated plainly rather than minimised.
+
+\textbf{CodeRabbit} validates a pull request against the issues linked to it.
+Documentation accessed on 11 October 2026 describes the mechanism in detail
+\cite{coderabbitdocs}. The product detects linked issues from references in the
+pull request description for GitHub, GitLab, Jira and Linear, and from natively
+attached work items for Azure DevOps. It reads the issue title and description,
+and for Jira also reads named custom fields. Each objective derived from the
+issue is reported in one of three states, addressed, not addressed or unclear,
+with an explanation given for the latter two, and unaddressed requirements are
+surfaced as review comments.
+
+The documented limitations are specific. Comments and discussion threads are
+explicitly not analysed. Assessment quality is stated to depend on issue
+quality, with the documentation recommending measurable acceptance criteria.
+The integrations required for Jira and Linear are enabled by default for private
+repositories and disabled for public ones.
+
+\textbf{Atlassian Rovo} offers a comparable capability within its own ecosystem.
+Documentation accessed on 11 October 2026 describes a code review check that
+compares a pull request against the acceptance criteria in the linked Jira work
+item, reporting each criterion as met, missing from the code, or requiring
+manual checking \cite{rovodocs}. The work item is located from the branch name,
+falling back to commit messages, with commit messages ignored if they contain
+more than one work-item key.
+
+Its documented limitations are equally specific. The check does not search a
+work item for criteria if its description is empty, even where criteria exist in
+custom fields or the summary. Best results are stated to require one linked work
+item per pull request. The capability requires a particular subscription tier,
+and the Jira site must be connected to the workspace or organisation hosting the
+pull request.
+
+\subsection{Field synchronisation across tools}
+
+Unito and Exalate synchronise records between issue trackers and other business
+systems, mapping fields between them and propagating updates bidirectionally.
+Both are mature and both are configured per field pair.
+
+Their relationship to this project is orthogonal rather than competing.
+Synchronisation copies a value from one system to another; it does not evaluate
+whether the values in two systems remain consistent in meaning. A synchronised
+ticket whose linked design has since changed is correctly synchronised and still
+misleading.
+
+\subsection{Pairwise design-to-tracker integration}
+
+Marketplace integrations connect a design file to an issue tracker and notify on
+change. The capability is genuine and the scope is pairwise: the integration
+sees two artifacts and has no visibility of the code or the tests. It can report
+that a design changed; it cannot report whether the implementation of that
+design is affected.
+
+\subsection{Workflow orchestration}
+
+Orchestration platforms such as Kestra trigger actions across connected systems
+and route notifications by rule. They demonstrate that connecting tools,
+detecting state changes and routing results can be assembled from existing
+components. What they require is that every rule be authored by the team, and
+what they do not provide is any model of the relationships between artifacts
+against which consistency could be evaluated. They are infrastructure for
+executing decisions, not for reaching them.
+
+\subsection{Prior final year projects}
+
+The project was checked against the School's project repository to confirm that
+it does not repeat earlier work.
+
+\begin{longtable}{p{0.22\textwidth}p{0.33\textwidth}p{0.39\textwidth}}
+\toprule
+Prior project & Closest overlap & Structural difference \\
+\midrule
+\endhead
+F25-291-D-GHOST
+  & Multi-tool orchestration across a vendor's services using a master-agent
+    and sub-agent architecture.
+  & Executes workflows from an instruction; maintains no versioned model of
+    artifact relationships and no temporal consistency state. \\
+F25-062-D-Allure-AI
+  & Traceability, versioning and model quality assurance with tracker and
+    messaging integrations.
+  & Operates on modelling artifacts in a workshop context; this project targets
+    live code and test evidence and the reliability of the event stream that
+    produces it. \\
+F25-099-D-MARS
+  & Requirements traceability and conflict detection.
+  & A requirements-engineering platform; no code or test evidence, no
+    cross-vendor event handling, and no verification of an implementation
+    against a criterion. \\
+S25-016-D-TaskWise
+  & Project-management automation with tool integrations.
+  & Task allocation and productivity; no cross-artifact consistency evidence. \\
+F23-088-D-FigForge
+  & Design-to-code workflow.
+  & Generates code from a design; this project verifies evidence for a change
+    that already exists. \\
+\bottomrule
+\end{longtable}
+
+No project in the repository targets cross-tool evidence reconciliation or
+criterion-level change assurance across development tools, and this project does
+not fall into the repository's saturated categories.
+
 \section{Comparison of Existing Solutions}
-Compare solutions using project-relevant criteria.
+
+The comparison uses six capabilities: four drawn from this project's own
+requirements and two from the capabilities of the products being compared. The
+limitation of such a table is acknowledged. Where the columns are selected by
+the project doing the comparing, the table demonstrates distinctness rather than
+superiority, and the two additional columns are included so that the table is
+not constructed to produce a winning row.
+
+\begin{longtable}{p{0.19\textwidth}p{0.10\textwidth}p{0.11\textwidth}p{0.12\textwidth}p{0.10\textwidth}p{0.10\textwidth}p{0.11\textwidth}}
+\toprule
+Approach & Links data & Detects drift & Versioned provenance & Routes by role & Local only & Generates code \\
+\midrule
+\endhead
+Field synchronisation & Full & Absent & Absent & Absent & Absent & Absent \\
+Pairwise design integration & Partial & Pairwise & Absent & Absent & Absent & Absent \\
+Orchestration platform & Full & Authored & Absent & Full & Partial & Absent \\
+Review assistant with linked issues & Full & Partial & Absent & Absent & Absent & Absent \\
+Design-to-code generation & Partial & Absent & Absent & Absent & Absent & Full \\
+\textbf{This project} & Full & Full & Full & Full & Full & \textbf{Absent} \\
+\bottomrule
+\end{longtable}
+
+The final column is the honest one. Generating an implementation from a design
+is a capability this project explicitly excludes, and a product offering it is
+better than this project at that task.
+
 \section{Limitations and Gaps}
-Identify limitations and the gap motivating the proposed solution.
+
+Four capabilities are required together by the problem stated in Chapter~1, and
+no reviewed system provides them together. Each is stated as a specific claim
+rather than as a general assertion of novelty.
+
+\textbf{Versioned evidence that remains readable after the source changes.}
+Reviewed products evaluate a pull request against a requirement as both stand at
+the moment of evaluation. None was found to record which version of each
+artifact a conclusion was derived from, nor to preserve that version once the
+source record changes. A conclusion that cannot be re-read against the evidence
+it used is not an audit record.
+
+\textbf{Reconciliation of unreliable notification streams.} Reviewed products
+evaluate on request, when a pull request is opened or updated. None was found to
+maintain a per-resource checkpoint, detect that a source notification was never
+delivered, or reconcile the resulting gap. This matters because a design
+approved between two evaluations, with no code change to trigger
+re-evaluation, produces no signal at all in a request-triggered system.
+
+\textbf{Design intent as a first-class evidence source.} Neither review product
+documents any connection to a design tool. Verification in those products is
+between a textual requirement and code. A structured design constraint,
+approved by a designer and versioned independently of both the ticket and the
+code, is not part of their evidence model.
+
+\textbf{Deterministic validation of every citation, with abstention as a
+measured outcome.} This is the narrowest claim and requires the most care. Both
+review products expose a third state for cases they cannot decide, so
+representing uncertainty is not by itself a gap. What was not found documented
+is a deterministic gate that resolves each cited file, line range and artifact
+version against an immutable evidence packet and downgrades any decisive output
+whose citations do not resolve, nor a reported measurement of how often
+abstention is the correct behaviour. Given the phantom-link failure mode
+documented in the literature \cite{alor2025}, the distinction between an
+uncertainty state a model elects to emit and a decisive state the system is
+structurally prevented from emitting without valid evidence is substantive.
+
 \section{Proposed Solution}
-Explain how the proposed system addresses the identified gap.
+
+Unify addresses the gap by treating verification as a pipeline in which the
+probabilistic component is bounded on both sides by deterministic ones, and in
+which every conclusion is tied to the artifact versions it was computed from.
+
+Against the first gap, the system stores immutable artifact snapshots rather
+than current state. A new version of a source record creates a new snapshot, so
+a finding that cited an earlier version remains readable against that version
+after the source has moved on. Every relationship in the evidence graph carries
+its own provenance: how it was established, by which resolver, with what
+confidence, and over what interval it is valid.
+
+Against the second, ingestion is built on three separate mechanisms rather than
+one. Idempotency by stable event identifier makes duplicate delivery a no-op.
+Per-resource checkpointing records what was last processed. Reconciliation polls
+the source, compares against the checkpoint and synthesises the event the vendor
+never delivered, injecting it into the same pipeline as an ordinary event. A
+queue with retry addresses only the first of these, which is why all three
+exist.
+
+Against the third, a design source is bound as a first-class role in the adapter
+layer, contributing versioned artifacts and approved structured constraints. The
+boundary is drawn deliberately: unstructured visual similarity never produces a
+decisive verdict, and only a structured constraint confirmed by a designer or
+product owner is treated as evidence.
+
+Against the fourth, a deterministic gate sits between the verifier and the
+reviewer. It validates output against a schema, resolves every citation against
+the immutable evidence packet, and downgrades any decisive status whose
+citations do not resolve, recording the reason. Abstention is a first-class
+correct answer rather than a failure mode, and the rate of correct abstention on
+cases labelled ambiguous is a reported metric.
+
+The contribution claimed is therefore not cross-tool integration, not
+language-model review of a change against a ticket, and not traceability link
+recovery. All three exist, two of them commercially. What is claimed is the
+combination: a locally executed, reproducible process that reconciles versioned
+artifacts across sources whose events are unreliable, assembles evidence
+deterministically for one atomic criterion, verifies it under a bounded pass
+limit, refuses to present any decisive conclusion whose citations cannot be
+resolved, and records what remains unresolved.
+
+This positioning is deliberately falsifiable. If a controlled comparison shows
+that a general model supplied with the same context performs equivalently
+without the surrounding machinery, the claim is weakened and the result will be
+reported. That comparison is specified as a committed baseline rather than left
+rhetorical.
+
 \section{Complex Computing Problem}
-Clearly identify and explain the complex computing problem addressed by the project.
+
+\subsection{Problem statement}
+
+The complex computing problem this project addresses is as follows: how can a
+system incrementally maintain provenance-preserving relationships among design,
+requirement, code and test artifacts across asynchronous development tools, and
+determine whether a proposed change remains consistent with its linked intent
+using a locally executed, iteratively grounded verifier, while minimising false
+links and unsupported conflict alerts when evidence is incomplete, delayed,
+duplicated, out of order or contradictory?
+
+The problem is not reducible to applying a known technique to a known input.
+Each of its three clauses introduces a distinct difficulty, and the difficulties
+interact: better evidence coverage produces more unsupported alerts, deeper
+analysis costs latency on fixed hardware, and the information the system reasons
+over is never complete at the moment a decision must be made.
+
+\subsection{Characteristics of the problem}
+
+\begin{longtable}{p{0.27\textwidth}p{0.67\textwidth}}
+\toprule
+Characteristic & Evidence in this project \\
+\midrule
+\endhead
+Conflicting requirements
+  & Evidence coverage conflicts with false-alert control; analysis depth
+    conflicts with review latency and available hardware; automation conflicts
+    with reviewer accountability. Each pair must be resolved by a defended
+    position rather than optimised jointly. \\
+No obvious solution
+  & Design nodes, work items, commits, symbols and tests share no standard
+    identity, and there is no universal definition of what makes them
+    consistent. Both the identity resolution and the consistency definition must
+    be constructed and then evaluated. \\
+Depth of knowledge required
+  & Event-driven systems, entity resolution, repository mining, static analysis,
+    graph modelling, information retrieval, local model adaptation, calibration
+    and provenance. No single one of these is sufficient. \\
+Infrequent or unfamiliar issues
+  & Cross-version identity, renamed artifacts, missing links, undelivered
+    notifications, contradictory source states, insufficient code context and
+    ungrounded model output are all normal operating conditions here rather
+    than exceptional ones. \\
+Beyond standard practice
+  & Event-relay and synchronisation tooling cannot answer whether a change
+    remains supported by its linked criterion and design version; doing so
+    requires versioned stateful reasoning combined with grounded verification. \\
+Diverse stakeholders
+  & Reviewer, developer, designer and product owner differ in risk tolerance,
+    in the evidence they need, and in their authority to resolve a finding. \\
+Interdependence of components
+  & Incorrect links corrupt retrieval; an incomplete code graph distorts
+    verification; stale events change rule eligibility; model errors change what
+    is routed to whom. No component can be evaluated in isolation from the
+    others. \\
+Ill-defined requirements
+  & Implements, matches the design, affected code, sufficient evidence and
+    acceptable uncertainty must each be given an operational definition before
+    they can be measured, and those definitions are themselves a project
+    output. \\
+Significant consequences
+  & A false confident alert wastes review effort and causes the tool to be
+    disabled; a missed contradiction allows a requirement or design deviation to
+    reach the product. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Trade-offs to be defended}
+
+\begin{longtable}{p{0.26\textwidth}p{0.36\textwidth}p{0.32\textwidth}}
+\toprule
+Trade-off & Design response & Evidence that settles it \\
+\midrule
+\endhead
+Recall against alert noise
+  & Confidence gate on inferred links, grace periods, severity levels,
+    suppression, and mandatory abstention states.
+  & Verdict precision and recall per class; unsupported-assertion rate; alerts
+    per user. \\
+Freshness against platform limits
+  & Notification where available, with bounded reconciliation polling per
+    adapter.
+  & Vendor delay against internal latency; call volume; missed-event recovery. \\
+Automation against accountability
+  & Deterministic verdict gate; model output cannot become a decisive finding
+    without valid citations.
+  & Invalid-citation rate; provenance completeness; correct abstention rate. \\
+Depth against latency
+  & Fixed two-pass verification with a conditional third pass; bounded context
+    packets; asynchronous queueing.
+  & Analysis latency at median and ninety-fifth percentile; memory; pass-count
+    distribution. \\
+Generic rules against team fit
+  & Configurable state maps and rule parameters, versioned over time.
+  & Correctness re-checked across more than one workflow configuration. \\
+\bottomrule
+\end{longtable}
+
 \section{Technical Challenges}
-Document major technical challenges anticipated or encountered.
+
+\textbf{Code analysis is language-specific and cannot be generalised cheaply.}
+Determining which function a changed line belongs to, what calls it and which
+test exercises it requires a parser for that language, together with resolution
+of that language's import conventions and test-framework conventions. Textual
+matching is not an adequate substitute, because the citation gate requires that
+a cited symbol genuinely exist at a cited location. The response is to declare a
+limited set of language families rather than to claim general support.
+
+\textbf{Retrieval recall bounds everything downstream.} If deterministic
+retrieval fails to place the relevant code in the evidence packet, the verifier
+cannot reach a correct conclusion regardless of its quality, and the resulting
+error would be misattributed to the model. Retrieval is therefore measured
+separately, and recall within the top candidates is a reported metric in its own
+right.
+
+\textbf{Model output cannot be trusted and cannot be improved into
+trustworthiness.} The documented failure modes, discussed in
+Section~\ref{sec:ch2-findings}, are not eliminated by better prompting. The
+response is structural: the model's conclusions are validated against the
+evidence it was given, and an unvalidated conclusion cannot become a finding.
+
+\textbf{Notification streams are unreliable in two distinct ways.} Duplicate
+delivery and missing delivery require different mechanisms, and conflating them
+produces a system that appears robust in testing and loses events in operation.
+
+\textbf{Local inference is constrained by available hardware.} Model size,
+quantisation, context length and latency are bounded by the hardware the team
+can access, and that constraint is fixed rather than negotiable. Measurement
+precedes selection rather than following it.
+
+\textbf{Anchors degrade silently if unmanaged.} A requirement anchored to a line
+range becomes wrong on the next commit. Re-anchoring must be attempted by
+successively weaker methods, and the failure of all of them must be surfaced
+rather than hidden, because an anchoring mechanism that degrades without saying
+so is worse than none.
+
+\textbf{No public dataset links all three artifact types.} Datasets exist for
+code changes with their issues and tests, for issue histories, and for design
+files with structured metadata, but they originate in different projects and no
+single unit of work appears in all three. The evaluation set must therefore be
+constructed and labelled by the team, which bounds its size and requires that
+its construction be independently validated.
+
 \section{Research Findings and Design Decisions}
-Explain how research findings influenced requirements, architecture, algorithms, tools, or other decisions.
+\label{sec:ch2-findings}
+
+This section records the findings that changed the design, rather than those
+that merely informed it.
+
+\subsection{Documented failure modes determined the gating strategy}
+
+The decision to validate model output deterministically, rather than to improve
+it by prompting, rests on measured failure modes.
+
+A 2025 evaluation of language models for documentation-to-code traceability
+measured three models against lexical and neural baselines on two purpose-built
+datasets \cite{alor2025}. The models outperformed the baselines substantially on
+link identification. More useful for this project is the authors'
+categorisation of the false positives produced.
+
+The largest category, which the authors term implicit assumption errors,
+consists of relationships inferred from naming alone; in one reported case a
+model inferred an inheritance relationship between two classes purely from their
+names, and this category accounted for the majority of that model's false
+positives on one dataset. A second category, phantom links, consists of links to
+artifacts the documentation mentions but which are absent from the code actually
+supplied. The authors further report that supplying a whole documentation file
+rather than a targeted segment increased false positives, by allowing links to
+be drawn across segment boundaries.
+
+Three design decisions follow directly.
+
+\begin{longtable}{p{0.30\textwidth}p{0.64\textwidth}}
+\toprule
+Finding & Resulting decision \\
+\midrule
+\endhead
+Relationships inferred from naming alone are the largest false-positive category
+  & Hard negatives in the evaluation set are drawn from the same module as the
+    positive case, with similar naming and no real relationship. Drawing
+    negatives at random would produce an evaluation that this failure mode
+    passes. \\
+Phantom links point at artifacts absent from the supplied code
+  & Every citation in a verdict is resolved against the immutable evidence
+    packet before the verdict may be decisive. A citation that does not resolve
+    downgrades the result. \\
+Whole-file context increased false positives relative to targeted segments
+  & Context is assembled deterministically under a fixed token budget with
+    per-slot allocation, rather than by supplying whole files, and what was
+    omitted under truncation is recorded. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Platform event coverage determined the policy triggers}
+
+Figma documentation accessed on 11 October 2026 lists seven webhook event types
+\cite{figmawebhooks}. Two matter for this project and both are available: a file
+version event, emitted when a user creates a named version in a file's version
+history, and a development-status event, emitted when the development status of
+a layer changes, carrying one of three status values. The general file update
+event is documented as firing only after a period of editing inactivity rather
+than immediately.
+
+Two decisions follow. The design-drift policy is triggered by the named version
+and development status events rather than by the general file update event,
+which would be both delayed and noisy as a change signal. And because a design
+source provides versioned intent at the granularity of a named version, that is
+the granularity at which the evidence model records design artifacts.
+
+\subsection{Requirement quality bounds achievable performance}
+
+Both review products examined state that assessment quality depends on the
+quality of the linked issue, and both recommend measurable acceptance criteria
+\cite{coderabbitdocs, rovodocs}. This is consistent with feedback received at
+the proposal defence.
+
+The resulting decision is a repository eligibility gate with a published
+threshold, measuring documentation coverage, identifier informativeness,
+directory conventionality and test presence, with the score shown at connection
+time. A deliberately low-quality cohort is retained and evaluated separately, so
+that behaviour outside the stated scope is measured as a degradation curve
+rather than asserted as an assumption.
+
+\subsection{Established techniques adopted rather than devised}
+
+Two components are adopted from established practice and are recorded here so
+that they are not mistaken for contributions.
+
+Incremental rule evaluation follows the principle established by the RETE
+algorithm, which avoids re-testing rules whose preconditions cannot have changed
+\cite{forgy1982}. This project adopts the principle without the full
+construction: the committed rule set is small and its trigger patterns are known
+in advance, so indexed dispatch by edge type achieves the same objective without
+building and maintaining a discrimination network. The obligation this creates
+is explicit, namely that incremental evaluation must produce the same findings
+as a full rescan, and that equivalence is measured.
+
+Reliable event processing follows established distributed-systems practice in
+idempotency, checkpointing and reconciliation \cite{desai2026}. The finding that
+shaped the architecture is the distinction between duplicate delivery and
+missing delivery: a queue with retry handles the first and cannot address the
+second, because a notification a vendor never sent will never be retried.
+Recovering it requires a stored checkpoint per resource and periodic comparison
+against the source's current state. The two therefore appear in the architecture
+as separate mechanisms rather than as one.
+
+\subsection{Retrieval-augmented configuration adopted, dependability engineered}
+
+The literature establishes that retrieval-augmented generation substantially
+improves traceability link recovery over prior methods, and that it is not yet
+dependable enough for unsupervised use \cite{lissa2025}. Both halves of that
+finding were taken seriously. The configuration is adopted directly. The
+dependability gap is addressed by the surrounding architecture rather than by
+attempting to close it within the model: bounded passes with logged stop
+reasons, deterministic retrieval, immutable evidence packets, citation
+validation and explicit abstention.

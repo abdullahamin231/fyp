@@ -21,6 +21,7 @@ the remote project (applied via the Supabase MCP `apply_migration`). Order:
 | `00006_security_hardening.sql` | Locked-down `search_path`s, revoked RPC access to trigger functions, `created_by` trigger |
 | `00007_workspace_created_by.sql` | `set_created_by()` BEFORE INSERT trigger (defaults `created_by`) |
 | `00008_create_workspace_rpc.sql` | `create_workspace(name, slug)` SECURITY DEFINER RPC |
+| `00009_seed_rules.sql` | Seeds version 1 of deterministic Rules 1–3 |
 
 Schema highlights:
 
