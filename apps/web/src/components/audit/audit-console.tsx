@@ -4,15 +4,27 @@ import { useMemo, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import {
   auditActions,
-  auditActors,
   auditDateRanges,
-  auditEvents,
-  auditPresets,
-  auditTotals,
+  emptyAuditTotals,
   type AuditActionType,
+  type AuditActor,
   type AuditEvent,
-} from "@/lib/mock/audit";
+  type AuditPreset,
+  type AuditTotals,
+} from "@/lib/domain/audit";
 import { DiffModal, InspectModal } from "./audit-modals";
+
+/**
+ * DATA HOLE — replace with the audit API.
+ *
+ * Events, actors and saved filter presets are empty until their endpoints
+ * exist: the table renders its empty state and the actor dropdown lists only
+ * the built-in system identity.
+ */
+const auditEvents: AuditEvent[] = [];
+const auditActors: AuditActor[] = [];
+const auditPresets: AuditPreset[] = [];
+const auditTotals: AuditTotals = emptyAuditTotals;
 
 const actionTone: Record<AuditActionType, string> = {
   CONFLICT_RESOLVED: "bg-secondary/15 text-secondary",
@@ -32,11 +44,11 @@ const actionIcon: Record<AuditActionType, string> = {
   TOKEN_SCOPE_AUDIT: "vpn_key",
 };
 
-const avatarTone: Record<string, string> = {
-  "@alex_mgr": "bg-tertiary-container text-on-tertiary",
-  "@sarah_ux": "bg-primary-container text-on-primary",
-  "@marcus_dev": "bg-surface-bright text-secondary",
-};
+/**
+ * DATA HOLE — replace with the actor API's avatar tone/class per actor id.
+ * Empty until the endpoint exists; every actor falls back to the default tone.
+ */
+const avatarTone: Record<string, string> = {};
 
 const artifactIconTone: Record<string, string> = {
   github: "text-primary",
@@ -159,7 +171,7 @@ export function AuditConsole() {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Filter by Actor (@alex), Artifact (PR #142, Figma), or TxHash..."
+              placeholder="Filter by Actor, Artifact (GitHub, Figma), or TxHash..."
               className="w-full pl-9 pr-4 py-2 rounded bg-surface-container-lowest text-on-surface placeholder:text-muted font-mono-code text-body-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all"
             />
           </div>
@@ -373,8 +385,11 @@ export function AuditConsole() {
 
         <div className="px-4 py-3 bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-stack-comfortable select-none">
           <span className="font-mono-code text-[12px] text-on-surface-variant">
-            Showing <span className="font-semibold text-on-surface">1-{filtered.length}</span> of{" "}
+            Showing{" "}
             <span className="font-semibold text-on-surface">
+              {filtered.length === 0 ? 0 : 1}-{filtered.length}
+            </span>{" "}
+            of <span className="font-semibold text-on-surface">
               {auditTotals.events.toLocaleString("en-US")}
             </span>{" "}
             events
@@ -389,26 +404,8 @@ export function AuditConsole() {
             </button>
             <button
               type="button"
-              className="w-7 h-7 rounded bg-primary-container text-on-primary-container font-semibold flex items-center justify-center"
-            >
-              1
-            </button>
-            <button
-              type="button"
-              className="w-7 h-7 rounded hover:bg-surface-container text-on-surface-variant transition-colors flex items-center justify-center"
-            >
-              2
-            </button>
-            <button
-              type="button"
-              className="w-7 h-7 rounded hover:bg-surface-container text-on-surface-variant transition-colors flex items-center justify-center"
-            >
-              3
-            </button>
-            <span className="px-1 text-muted">…</span>
-            <button
-              type="button"
-              className="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors"
+              disabled
+              className="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors disabled:opacity-40"
             >
               Next
             </button>

@@ -1,67 +1,44 @@
+import type { ActivityEvent, Finding, Policy, ToolKind } from "@/lib/types";
+
 /**
- * Conflict-detail specific mock data.
+ * Conflict-detail derivation layer.
  *
- * Everything here is derived from the immutable finding / policy / activity
- * mocks plus explicitly authored content for the flagship finding CONF-1048.
- * Nothing in this file edits the shared mocks — it only reads them.
+ * Pure functions that turn a `Finding` (+ the `Policy` it fired under, and the
+ * activity events it produced) into the view models the detail screen renders.
+ * No data lives here — callers pass the records their API returns.
  */
-import { activity } from "@/lib/mock/activity";
-import { findings } from "@/lib/mock/findings";
-import { policies } from "@/lib/mock/policies";
-import type { Finding, Policy, ToolKind } from "@/lib/types";
 
-/* ------------------------------------------------------------------ helpers */
-
-export function getPolicy(finding: Finding): Policy {
-  return policies.find((p) => p.id === finding.policy) ?? policies[0];
-}
-
-export function getFindingById(id: string): Finding | undefined {
-  return findings.find((f) => f.id === id);
-}
-
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-function pad(n: number): string {
-  return String(n).padStart(2, "0");
-}
-
-/** `Oct 08, 14:20:00 UTC` — always UTC so SSR and client agree. */
 export function formatUtc(iso: string): string {
   const d = new Date(iso);
-  return `${MONTHS[d.getUTCMonth()]} ${pad(d.getUTCDate())}, ${pad(d.getUTCHours())}:${pad(
-    d.getUTCMinutes(),
-  )}:${pad(d.getUTCSeconds())} UTC`;
-}
-
-/** `Oct 08, 2026 - 14:20:00 UTC` — full header form. */
-export function formatUtcFull(iso: string): string {
-  const d = new Date(iso);
-  return `${MONTHS[d.getUTCMonth()]} ${pad(d.getUTCDate())}, ${d.getUTCFullYear()} - ${pad(
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${p(
     d.getUTCHours(),
-  )}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} UTC`;
+  )}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} UTC`;
 }
 
-/** Deterministic-looking evidence-packet hash for a finding id. */
+export function formatUtcFull(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  });
+}
+
+/** Deterministic pseudo SHA-256 digest for a finding's packet, by id. */
 export function packetHash(id: string): string {
-  let h = 0;
-  for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  const a = h.toString(16).padStart(8, "0");
-  const b = ((h ^ 0x4a11c0de) >>> 0).toString(16).padStart(8, "0");
-  return `0x${a.slice(0, 4)}...${b.slice(4, 8)}`;
+  let h1 = 0x811c9dc5;
+  let h2 = 0x01000193;
+  for (let i = 0; i < id.length; i += 1) {
+    h1 ^= id.charCodeAt(i);
+    h1 = Math.imul(h1, 0x01000193) >>> 0;
+    h2 = (Math.imul(h2 ^ id.charCodeAt(i), 0x85ebca6b) >>> 0) ^ (h1 >>> 16);
+  }
+  const hex = (n: number) => (n >>> 0).toString(16).padStart(8, "0");
+  return `${hex(h1)}${hex(h2)}${hex(h1 ^ h2)}${hex(Math.imul(h1, 31) ^ h2)}`;
 }
 
 export function initialsOf(name: string): string {
@@ -74,12 +51,12 @@ export function initialsOf(name: string): string {
 }
 
 export function handleOf(name: string): string {
-  const parts = name.toLowerCase().split(/\s+/);
-  if (parts.length < 2) return `@${parts[0]}`;
-  return `@${parts[0][0]}${parts[parts.length - 1]}`;
+  const parts = name.toLowerCase().split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return parts[0] ?? "";
+  return `${parts[0][0]}${parts[parts.length - 1]}`;
 }
 
-/* ------------------------------------------------- semantic explanation box */
+/* ------------------------------------------------------- semantic explanation */
 
 export interface ExplanationPart {
   text: string;
@@ -97,26 +74,7 @@ const toolTone: Record<ToolKind, ExplanationPart["tone"]> = {
   test: "secondary",
 };
 
-const explicitExplanations: Record<string, ExplanationPart[]> = {
-  "CONF-1048": [
-    { text: "Design frame " },
-    { text: "CheckoutModal_v3", mono: true, tone: "tertiary" },
-    {
-      text: " was re-published with the three-step indicator intact after ",
-    },
-    { text: "PR #142", mono: true, tone: "primary" },
-    { text: " collapsed the progress state in code, while " },
-    { text: "PROJ-88", mono: true, tone: "secondary" },
-    {
-      text: " stayed In Progress — the anchored criterion set now contradicts the approved design intent.",
-    },
-  ],
-};
-
 export function explanationFor(finding: Finding): ExplanationPart[] {
-  const explicit = explicitExplanations[finding.id];
-  if (explicit) return explicit;
-
   const parts: ExplanationPart[] = [
     { text: `${finding.policyTitle} evaluated ` },
   ];
@@ -134,8 +92,7 @@ export function explanationFor(finding: Finding): ExplanationPart[] {
   return parts;
 }
 
-export function ruleAstFor(finding: Finding): string {
-  const policy = getPolicy(finding);
+export function ruleAstFor(finding: Finding, policy: Policy): string {
   const rule = `${policy.id}_${policy.name.toUpperCase().replace(/[^A-Z0-9]+/g, "_")}`;
   return JSON.stringify(
     {
@@ -150,7 +107,8 @@ export function ruleAstFor(finding: Finding): string {
         link_eligibility_min: "confirmed",
       },
       verdict: finding.verdict ?? "INSUFFICIENT_EVIDENCE",
-      violation_score: finding.severity === "critical" ? 0.948 : finding.severity === "warning" ? 0.61 : 0.24,
+      violation_score:
+        finding.severity === "critical" ? 0.948 : finding.severity === "warning" ? 0.61 : 0.24,
       finding_id: finding.id,
     },
     null,
@@ -186,56 +144,7 @@ export interface EvidenceChain {
   trigger: ChainTrigger;
 }
 
-const explicitChains: Record<string, EvidenceChain> = {
-  "CONF-1048": {
-    events: [
-      {
-        key: "e1",
-        tool: "figma",
-        badge: "98% CONF (DET)",
-        heading: "Figma frame CheckoutModal_v3 re-published",
-        body: "Approved frame keeps the three-step indicator visible in both collapsed and expanded variants.",
-        actor: "Mishal Fatima",
-        when: "Oct 08, 09:40 UTC",
-        ref: "Ref: fig://CheckoutModal_v3#849",
-      },
-      {
-        key: "e2",
-        tool: "github",
-        badge: "95% CONF",
-        heading: "PR #142 merged into main",
-        body: "Collapsed-state refactor hides the progress steps while the payment form is collapsed.",
-        actor: "Alex Rivera",
-        when: "Oct 08, 12:05 UTC",
-        ref: "Commit: sha-39a0c1e",
-      },
-      {
-        key: "e3",
-        tool: "jira",
-        badge: "100% CONF",
-        heading: "PROJ-88 state stagnation",
-        body: "Ticket kept the In Progress state post-merge without capturing the collapsed-state delta.",
-        actor: "Sam Okafor",
-        when: "Oct 08 → Oct 08 (2h)",
-        ref: "Assignee: @sokafor",
-        divergence: true,
-      },
-    ],
-    trigger: {
-      heading: "Grace period boundary violated",
-      body: "Anchored acceptance criteria now disagree with the approved design frame after the sync grace window closed.",
-      badge: "P1 FIRED",
-      metricLabel: "Threshold breached",
-      metricValue: "+90m overflow",
-      trigger: "Trigger: policy P1 · github.pull_request.merged",
-    },
-  },
-};
-
-export function evidenceChainFor(finding: Finding): EvidenceChain {
-  const explicit = explicitChains[finding.id];
-  if (explicit) return explicit;
-
+export function evidenceChainFor(finding: Finding, policy: Policy): EvidenceChain {
   const events: ChainEvent[] = finding.artifacts.map((artifact, index) => ({
     key: `${finding.id}-a${index}`,
     tool: artifact.tool,
@@ -256,10 +165,12 @@ export function evidenceChainFor(finding: Finding): EvidenceChain {
       badge: `${finding.policy} EVALUATED`,
       metricLabel: "Verdict",
       metricValue: finding.verdict ?? "INSUFFICIENT_EVIDENCE",
-      trigger: `Trigger: policy ${finding.policy} · ${getPolicy(finding).trigger}`,
+      trigger: `Trigger: policy ${finding.policy} · ${policy.trigger}`,
     },
   };
 }
+
+/* --------------------------------------------------------------------- timeline */
 
 export interface TimelineMark {
   label: string;
@@ -267,8 +178,7 @@ export interface TimelineMark {
   left: string;
 }
 
-export function timelineFor(finding: Finding): TimelineMark[] {
-  const policy = getPolicy(finding);
+export function timelineFor(finding: Finding, policy: Policy): TimelineMark[] {
   const grace =
     policy.graceMinutes >= 1440
       ? `${Math.round(policy.graceMinutes / 1440)}d`
@@ -279,7 +189,11 @@ export function timelineFor(finding: Finding): TimelineMark[] {
     { label: "T0: anchor captured", tone: "secondary", left: "15%" },
     { label: `T+${grace}: grace window`, tone: "primary", left: "30%" },
     { label: `T+${finding.ageLabel}: policy check`, tone: "tertiary", left: "55%" },
-    { label: `Raised: ${formatUtc(finding.createdAt).replace(/ \d\d:\d\d:\d\d UTC$/, "")}`, tone: "error", left: "97%" },
+    {
+      label: `Raised: ${formatUtc(finding.createdAt).replace(/ \d\d:\d\d:\d\d UTC$/, "")}`,
+      tone: "error",
+      left: "97%",
+    },
   ];
 }
 
@@ -338,12 +252,20 @@ export function verificationRunFor(finding: Finding): VerificationRun {
     {
       n: 1,
       name: "Scope & retrieval",
-      purpose: "Locks the artifact set and retrieves anchored citations from the evidence packet.",
+      purpose:
+        "Locks the artifact set and retrieves anchored citations from the evidence packet.",
       status: "COMPLETED",
       rows: [
-        { label: "Scope", value: `${finding.artifacts.length} artifacts · ${finding.criteria.length} criteria` },
+        {
+          label: "Scope",
+          value: `${finding.artifacts.length} artifacts · ${finding.criteria.length} criteria`,
+        },
         { label: "Retrieved", value: `${citations.length} citations`, tone: "primary" },
-        { label: "Freshness", value: finding.freshness, tone: finding.freshness === "CURRENT" ? "secondary" : "tertiary" },
+        {
+          label: "Freshness",
+          value: finding.freshness,
+          tone: finding.freshness === "CURRENT" ? "secondary" : "tertiary",
+        },
       ],
     },
     {
@@ -355,9 +277,14 @@ export function verificationRunFor(finding: Finding): VerificationRun {
         {
           label: "Criterion verdicts",
           value: verdictTally || "none anchored",
-          tone: (finding.verdict ?? "INSUFFICIENT_EVIDENCE") === "CONTRADICTED" ? "error" : "secondary",
+          tone:
+            (finding.verdict ?? "INSUFFICIENT_EVIDENCE") === "CONTRADICTED" ? "error" : "secondary",
         },
-        { label: "Citations resolved", value: `${resolved}/${citations.length}`, tone: resolved === citations.length ? "secondary" : "tertiary" },
+        {
+          label: "Citations resolved",
+          value: `${resolved}/${citations.length}`,
+          tone: resolved === citations.length ? "secondary" : "tertiary",
+        },
         { label: "Excerpts", value: "verbatim from packet" },
       ],
     },
@@ -504,7 +431,10 @@ export function stakeholdersFor(finding: Finding): Stakeholder[] {
       name,
       initials: initialsOf(name),
       handle: handleOf(name),
-      role: index === 0 ? `Primary owner • ${finding.team}` : `Secondary reviewer • ${finding.team}`,
+      role:
+        index === 0
+          ? `Primary owner • ${finding.team}`
+          : `Secondary reviewer • ${finding.team}`,
       rationale:
         index === 0
           ? `Anchors the artifacts cited by ${finding.policy} and owns the ${finding.team} delta.`
@@ -538,7 +468,8 @@ const kindTone: Record<string, AuditTone> = {
   delivery: "outline",
 };
 
-export function auditTrailFor(finding: Finding): AuditEntry[] {
+export function auditTrailFor(finding: Finding, activity: ActivityEvent[]): AuditEntry[] {
+  const forFinding = activity.filter((event) => event.findingId === finding.id);
   const entries: AuditEntry[] = [];
 
   entries.push({
@@ -550,30 +481,28 @@ export function auditTrailFor(finding: Finding): AuditEntry[] {
     detail: `Rule evaluated against ${finding.artifacts.map((a) => a.ref).join(" · ")}`,
   });
 
-  activity
-    .filter((event) => event.findingId === finding.id)
-    .forEach((event) => {
-      entries.push({
-        key: event.id,
-        time: formatUtc(event.timestamp),
-        tag: event.kind.toUpperCase(),
-        tone: kindTone[event.kind] ?? "outline",
-        title: event.title,
-        detail: `${event.detail} — ${event.actor}`,
-      });
+  forFinding.forEach((event) => {
+    entries.push({
+      key: event.id,
+      time: formatUtc(event.timestamp),
+      tag: event.kind.toUpperCase(),
+      tone: kindTone[event.kind] ?? "outline",
+      title: event.title,
+      detail: `${event.detail} — ${event.actor}`,
     });
+  });
 
   if (finding.status !== "open") {
-    const last = activity
-      .filter((event) => event.findingId === finding.id && event.kind === "human")
-      .at(-1);
+    const last = forFinding.filter((event) => event.kind === "human").at(-1);
     entries.push({
       key: `${finding.id}-status`,
       time: last ? formatUtc(last.timestamp) : formatUtc(finding.createdAt),
       tag: finding.status.toUpperCase(),
       tone: finding.status === "resolved" ? "secondary" : "outline",
       title: `Finding marked ${finding.status}`,
-      detail: last ? last.detail : `Recorded by ${finding.assignedTo[0] ?? "unify-rules"} in the immutable ledger.`,
+      detail: last
+        ? last.detail
+        : `Recorded by ${finding.assignedTo[0] ?? "unify-rules"} in the immutable ledger.`,
     });
   }
 

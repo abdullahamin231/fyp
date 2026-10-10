@@ -2,8 +2,13 @@
 
 import { useState, type ChangeEvent } from "react";
 import { Icon } from "@/components/ui/icon";
-import { policies } from "@/lib/mock/policies";
-import type { PolicyId, Severity, ToolKind } from "@/lib/types";
+import type { Policy, PolicyId, Severity, ToolKind } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the policies API.
+ * Empty until the endpoint exists; the state map renders its empty state.
+ */
+const policies: Policy[] = [];
 
 type StateMapping = {
   tool: ToolKind;
@@ -165,6 +170,11 @@ export function WorkflowStateMap() {
             applied after the reconciliation pass
           </span>
         </div>
+        {policies.length === 0 ? (
+          <p className="text-body-sm text-muted py-2">
+            No policies yet — grace-period defaults appear once the policies API reports them.
+          </p>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           {policies.map((policy) => (
             <div
@@ -206,6 +216,7 @@ export function WorkflowStateMap() {
             </div>
           ))}
         </div>
+        )}
       </section>
     </>
   );

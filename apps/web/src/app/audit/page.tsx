@@ -3,7 +3,13 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { AuditHeaderActions } from "@/components/audit/audit-header-actions";
 import { AuditConsole } from "@/components/audit/audit-console";
-import { auditTotals } from "@/lib/mock/audit";
+import { emptyAuditTotals } from "@/lib/domain/audit";
+
+/**
+ * DATA HOLE — replace with the audit API's ledger header.
+ * Zeroed until the endpoint exists; the status bar renders zeros meanwhile.
+ */
+const auditTotals = emptyAuditTotals;
 
 export const metadata: Metadata = {
   title: "Audit Trail",
@@ -27,7 +33,7 @@ export default function AuditPage() {
             </span>
           </div>
         </div>
-        <AuditHeaderActions />
+        <AuditHeaderActions totalEvents={auditTotals.events} />
       </div>
 
       <AuditConsole />

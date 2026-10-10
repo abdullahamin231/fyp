@@ -1,4 +1,4 @@
-import type { NodeTone } from "@/lib/mock/graph";
+import type { NodeTone } from "@/lib/domain/graph";
 import type { GraphNodeKind, LinkEligibility, ToolKind } from "@/lib/types";
 
 /**

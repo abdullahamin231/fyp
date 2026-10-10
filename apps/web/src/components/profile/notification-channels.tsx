@@ -19,15 +19,17 @@ const roles = [
   { id: "reviewer", label: "Reviewer" },
 ];
 
-const density = [
-  { day: "Mon", height: "40%", alerts: 4 },
-  { day: "Tue", height: "75%", alerts: 9 },
-  { day: "Wed", height: "30%", alerts: 3 },
-  { day: "Thu", height: "100%", alerts: 14, peak: true },
-  { day: "Fri", height: "50%", alerts: 6 },
-  { day: "Sat", height: "10%", alerts: 1 },
-  { day: "Sun", height: "15%", alerts: 1 },
-];
+/**
+ * DATA HOLE — replace with the notification-density API.
+ * Empty until the endpoint exists; the histogram renders its empty state.
+ */
+interface DensityBar {
+  day: string;
+  height: string;
+  alerts: number;
+  peak?: boolean;
+}
+const density: DensityBar[] = [];
 
 const toggles = [
   {
@@ -199,27 +201,39 @@ export function NotificationChannels() {
             <span className="font-label-caps text-label-caps uppercase text-muted">
               Notification Density (7 Days)
             </span>
-            <span className="font-mono-code text-micro-label text-secondary">38 events</span>
+            <span className="font-mono-code text-micro-label text-secondary">
+              {density.length === 0
+                ? "no data"
+                : `${density.reduce((sum, bar) => sum + bar.alerts, 0)} events`}
+            </span>
           </div>
-          <div className="w-full h-12 flex items-end gap-1.5 pt-2">
-            {density.map((bar) => (
-              <div
-                key={bar.day}
-                title={`${bar.day}: ${bar.alerts} alerts`}
-                className={`flex-1 rounded-t transition-colors ${
-                  bar.peak
-                    ? "bg-secondary hover:bg-secondary-fixed"
-                    : "bg-surface-container-highest hover:bg-primary"
-                }`}
-                style={{ height: bar.height }}
-              />
-            ))}
-          </div>
-          <div className="flex justify-between text-muted font-mono-code text-micro-label">
-            <span>Mon</span>
-            <span>Thu (Release)</span>
-            <span>Sun</span>
-          </div>
+          {density.length === 0 ? (
+            <p className="w-full h-12 flex items-center justify-center text-micro-label text-muted font-mono-code">
+              No notifications delivered in the last 7 days.
+            </p>
+          ) : (
+            <>
+              <div className="w-full h-12 flex items-end gap-1.5 pt-2">
+                {density.map((bar) => (
+                  <div
+                    key={bar.day}
+                    title={`${bar.day}: ${bar.alerts} alerts`}
+                    className={`flex-1 rounded-t transition-colors ${
+                      bar.peak
+                        ? "bg-secondary hover:bg-secondary-fixed"
+                        : "bg-surface-container-highest hover:bg-primary"
+                    }`}
+                    style={{ height: bar.height }}
+                  />
+                ))}
+              </div>
+              <div className="flex justify-between text-muted font-mono-code text-micro-label">
+                <span>{density[0]?.day}</span>
+                <span>{density[Math.floor(density.length / 2)]?.day}</span>
+                <span>{density[density.length - 1]?.day}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

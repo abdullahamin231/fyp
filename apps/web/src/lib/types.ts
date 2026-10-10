@@ -3,7 +3,7 @@
  *
  * These mirror the frozen contract vocabulary from the proposal / dataset
  * protocol (four verdicts only, separate freshness + review fields) so that
- * swapping the mock layer for the real API is a drop-in change.
+ * wiring the real API to these shapes is a drop-in change.
  */
 
 /* ------------------------------------------------------------------ verdicts */
@@ -123,6 +123,8 @@ export interface ActivityEvent {
   detail: string;
   actor: string;
   timestamp: string;
+  /** Artifact the sentence ends on, e.g. a PR, ticket or channel key. */
+  target?: string;
   findingId?: string;
 }
 

@@ -4,8 +4,38 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import { Badge } from "@/components/ui/badge";
-import { policies } from "@/lib/mock/policies";
 import type { Policy, PolicyId, Severity } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the policies API.
+ * Empty until the endpoint exists; the workbench renders its empty state.
+ */
+const policies: Policy[] = [];
+
+/**
+ * DATA HOLE — replace with the consistency-engine health API.
+ * Null until the endpoint exists; the health card renders its empty copy.
+ */
+interface EngineHealth {
+  evaluations24h: string;
+  sparkline: number[];
+  autoResolvedPct: number;
+  escalatedPct: number;
+  errorPct: number;
+}
+const health: EngineHealth | null = null;
+
+/** Maps normalised 0–1 samples onto the 120×40 sparkline viewBox. */
+function sparklinePoints(samples: number[]): string {
+  const max = Math.max(...samples, 1);
+  return samples
+    .map((value, index) => {
+      const x = (index / (samples.length - 1)) * 120;
+      const y = 40 - (value / max) * 32;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
 
 /* ------------------------------------------------------------------ static */
 
@@ -799,52 +829,63 @@ export function PolicyWorkbench() {
             </span>
             <span className="font-mono-code text-micro-label text-secondary">REALTIME</span>
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex flex-col">
-              <span className="font-headline-md text-headline-md text-on-surface font-bold">
-                14.2k
-              </span>
-              <span className="font-body-sm text-body-sm text-on-surface-variant">
-                Evaluations / 24h
-              </span>
-            </div>
-            <div className="w-32 h-10 flex items-end">
-              <svg className="w-full h-full text-secondary" fill="none" viewBox="0 0 120 40">
-                <path
-                  d="M0 32 L20 28 L40 35 L60 14 L80 20 L100 8 L120 18"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
+          {health ? (
+            <>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col">
+                  <span className="font-headline-md text-headline-md text-on-surface font-bold">
+                    {health.evaluations24h}
+                  </span>
+                  <span className="font-body-sm text-body-sm text-on-surface-variant">
+                    Evaluations / 24h
+                  </span>
+                </div>
+                {health.sparkline.length > 1 ? (
+                  <div className="w-32 h-10 flex items-end">
+                    <svg className="w-full h-full text-secondary" fill="none" viewBox="0 0 120 40">
+                      <polyline
+                        points={sparklinePoints(health.sparkline)}
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.5"
+                      />
+                    </svg>
+                  </div>
+                ) : null}
+              </div>
+              <div className="w-full bg-surface-container h-1.5 rounded-full overflow-hidden flex">
+                <div
+                  className="bg-secondary h-full"
+                  style={{ width: `${health.autoResolvedPct}%` }}
                 />
-                <path
-                  d="M0 32 L20 28 L40 35 L60 14 L80 20 L100 8 L120 18 V40 H0 Z"
-                  fill="currentColor"
-                  fillOpacity="0.1"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="w-full bg-surface-container h-1.5 rounded-full overflow-hidden flex">
-            <div className="bg-secondary h-full" style={{ width: "72%" }} />
-            <div className="bg-tertiary h-full" style={{ width: "20%" }} />
-            <div className="bg-error h-full" style={{ width: "8%" }} />
-          </div>
-          <div className="flex items-center justify-between text-micro-label font-mono-code text-on-surface-variant">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-secondary" />
-              Auto-resolved: 72%
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-tertiary" />
-              Escalated: 20%
-            </span>
-          </div>
+                <div className="bg-tertiary h-full" style={{ width: `${health.escalatedPct}%` }} />
+                <div className="bg-error h-full" style={{ width: `${health.errorPct}%` }} />
+              </div>
+              <div className="flex items-center justify-between text-micro-label font-mono-code text-on-surface-variant">
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-secondary" />
+                  Auto-resolved: {health.autoResolvedPct}%
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-tertiary" />
+                  Escalated: {health.escalatedPct}%
+                </span>
+              </div>
+            </>
+          ) : (
+            <p className="font-body-sm text-body-sm text-muted">
+              No evaluation telemetry yet — this fills in once the consistency engine API reports
+              health metrics.
+            </p>
+          )}
         </div>
       </div>
 
       {/* RIGHT — rule builder detail pane */}
       <div className="col-span-12 lg:col-span-8 flex flex-col gap-4">
+        {selected ? (
+        <>
         <PolicyEditor
           key={`${selected.id}-${resetKey}`}
           policy={selected}
@@ -862,11 +903,11 @@ export function PolicyWorkbench() {
             </div>
             <div>
               <span className="font-headline-sm text-body-sm font-semibold text-on-surface">
-                Offline Replay Test Passed
+                Offline Replay Test
               </span>
               <p className="font-body-sm text-[12px] text-on-surface-variant">
-                Validated against 1,482 confirmed Git/Figma pairs over the past 30 days. True
-                positive rate 98.4% — replay is read-only, no alerts fired.
+                Replay is read-only and fires no alerts. Results appear here once the replay API
+                has evaluated this policy against confirmed Git/Figma pairs.
               </p>
             </div>
           </div>
@@ -877,6 +918,18 @@ export function PolicyWorkbench() {
             Inspect Replay Log
           </Link>
         </div>
+        </>
+        ) : (
+          <div className="rounded-xl border border-dashed border-outline-variant p-10 text-center">
+            <Icon name="gavel" className="text-muted text-[36px]" />
+            <h3 className="font-headline-sm text-headline-sm text-on-surface mt-3">
+              No policies configured
+            </h3>
+            <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5 max-w-md mx-auto">
+              The rule builder opens here once the policies API returns your P1–P4 definitions.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

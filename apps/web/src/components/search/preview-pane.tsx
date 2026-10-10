@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
-import { badgeToneClass, type SearchMatch } from "@/lib/mock/search";
+import { badgeToneClass, type SearchMatch } from "@/lib/domain/search";
 import type { ToolKind } from "@/lib/types";
 
 const toolIcon: Record<ToolKind, string> = {

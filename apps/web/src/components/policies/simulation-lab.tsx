@@ -3,18 +3,28 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
-import { policies } from "@/lib/mock/policies";
 import {
   defaultStep,
   graceSteps,
-  notifyMeta,
-  simEvents,
-  simHorizons,
-  simScenarios,
+  type NotifyMeta,
   type SimEventClass,
   type SimHorizon,
-} from "@/lib/mock/policy-simulation";
+  type SimScenario,
+} from "@/lib/domain/policy-simulation";
 import type { Policy, PolicyId, Severity, ToolKind } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the policy-simulation API.
+ *
+ * Policies, replay horizons, scenarios and the historical event classes are
+ * all empty until their endpoints exist. The lab bails to its empty state
+ * below rather than simulating against nothing.
+ */
+const policies: Policy[] = [];
+const simHorizons: SimHorizon[] = [];
+const simScenarios: SimScenario[] = [];
+const simEvents: Partial<Record<PolicyId, SimEventClass[]>> = {};
+const notifyMeta: Partial<Record<PolicyId, NotifyMeta>> = {};
 
 /* ------------------------------------------------------------------ helpers */
 
@@ -134,33 +144,40 @@ function signatureOf(params: SimParams): string {
   return `${params.policyId}|${params.stepIndex}|${params.guards ? 1 : 0}|${params.horizonId}`;
 }
 
-function findPolicy(policyId: PolicyId): Policy {
+function findPolicy(policyId: PolicyId): Policy | undefined {
   return policies.find((policy) => policy.id === policyId) ?? policies[0];
+}
+
+function eventsFor(policyId: PolicyId): SimEventClass[] {
+  return simEvents[policyId] ?? [];
 }
 
 function triggersAt(params: SimParams): number {
   const steps = graceSteps[params.policyId];
   const grace = steps[params.stepIndex] ?? steps[0];
-  return simEvents[params.policyId].reduce((total, cls) => {
+  const horizon = horizonOf(params.horizonId);
+  if (!horizon) return 0;
+  return eventsFor(params.policyId).reduce((total, cls) => {
     const blocked = Boolean(cls.guard) && params.guards;
     if (blocked) return total;
     return cls.elapsedMinutes > grace
-      ? total + scaleOccurrences(cls.occurrences30d, horizonOf(params.horizonId).days)
+      ? total + scaleOccurrences(cls.occurrences30d, horizon.days)
       : total;
   }, 0);
 }
 
-function horizonOf(horizonId: string): SimHorizon {
+function horizonOf(horizonId: string): SimHorizon | undefined {
   return simHorizons.find((horizon) => horizon.id === horizonId) ?? simHorizons[0];
 }
 
-function simulate(params: SimParams): SimResult {
+function simulate(params: SimParams): SimResult | null {
   const policy = findPolicy(params.policyId);
   const steps = graceSteps[params.policyId];
   const grace = steps[params.stepIndex] ?? steps[0];
   const horizon = horizonOf(params.horizonId);
+  if (!policy || !horizon) return null;
 
-  const rows: ResultRow[] = simEvents[params.policyId].map((cls) => {
+  const rows: ResultRow[] = eventsFor(params.policyId).map((cls) => {
     const blocked = Boolean(cls.guard) && params.guards;
     const outcome: Outcome = blocked
       ? "suppressed"
@@ -264,8 +281,8 @@ function EventRow({
 }) {
   const { cls, outcome, occurrences } = row;
   const overBy = cls.elapsedMinutes - grace;
-  const meta =
-    notifyMeta[policy.id];
+  const meta: NotifyMeta =
+    notifyMeta[policy.id] ?? { channel: "—", recipients: [], escalation: "—" };
 
   const presentation =
     outcome === "triggered"
@@ -420,7 +437,7 @@ export function SimulationLab() {
     guards: true,
     horizonId: "30d",
   });
-  const [result, setResult] = useState<SimResult>(() =>
+  const [result, setResult] = useState<SimResult | null>(() =>
     simulate({ policyId: "P1", stepIndex: defaultStep.P1, guards: true, horizonId: "30d" }),
   );
   const [runNumber, setRunNumber] = useState(1);
@@ -436,6 +453,27 @@ export function SimulationLab() {
   const grace = steps[params.stepIndex];
   const curve = curveFor(params);
   const curveMax = Math.max(...curve, 1);
+
+  /**
+   * No policy or replay horizon yet — the endpoints behind the data holes
+   * above have not been wired. Render the empty state instead of simulating
+   * against nothing.
+   */
+  if (!policy || !horizon || !result) {
+    return (
+      <div className="rounded-xl border border-dashed border-outline-variant p-10 text-center">
+        <Icon name="experiment" className="text-muted text-[36px]" />
+        <h2 className="font-headline-sm text-headline-sm text-on-surface mt-3">
+          No replay data yet
+        </h2>
+        <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5 max-w-md mx-auto">
+          The Policy Test Lab replays historical events against a candidate grace window. It
+          appears once the policy and simulation APIs return data.
+        </p>
+      </div>
+    );
+  }
+
   const stale = signatureOf(params) !== result.signature;
 
   const scenarioId =
@@ -454,7 +492,11 @@ export function SimulationLab() {
     );
 
   const severity = severityTone[policy.severity];
-  const meta = notifyMeta[result.policy.id];
+  const meta: NotifyMeta = notifyMeta[result.policy.id] ?? {
+    channel: "—",
+    recipients: [],
+    escalation: "—",
+  };
   const wouldDeliver = result.counts.triggered;
   const baselineDelta = result.counts.triggered - result.baselineTriggers;
   const configuredGrace = graceSteps[params.policyId][defaultStep[params.policyId]];
@@ -723,17 +765,19 @@ export function SimulationLab() {
                 Target Scope Bounds
               </span>
               <div className="flex flex-col gap-1.5 font-mono-code text-micro-label">
+                {/* DATA HOLE — repo and Figma scope come from the policy's target
+                    bindings, which the API does not serve yet. */}
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-muted flex items-center gap-1">
                     <Icon name="source" className="text-[14px]" /> Git Repos:
                   </span>
-                  <span className="text-secondary font-medium">unify-core, unify-web</span>
+                  <span className="text-muted font-medium">Not yet scoped</span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-muted flex items-center gap-1">
                     <Icon name="draw" className="text-[14px]" /> Figma Project:
                   </span>
-                  <span className="text-secondary font-medium">Design System 2024</span>
+                  <span className="text-muted font-medium">Not yet scoped</span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-muted flex items-center gap-1">
@@ -826,7 +870,10 @@ export function SimulationLab() {
               unit="events"
               footnote={
                 <span className="flex items-center gap-1 text-secondary">
-                  <Icon name="check_circle" className="text-[12px]" /> 100% coverage
+                  <Icon name="check_circle" className="text-[12px]" />{" "}
+                  {result.horizon.events > 0
+                    ? `${Math.round((result.counts.evaluated / result.horizon.events) * 100)}% coverage`
+                    : "coverage pending"}
                 </span>
               }
               footnoteTone="text-secondary"
@@ -986,7 +1033,7 @@ export function SimulationLab() {
             <p className="font-body-sm text-[12px] text-on-surface-variant border-t border-outline-variant/40 pt-2">
               Nothing above is sent: this environment replays{" "}
               {result.horizon.events.toLocaleString("en-US")} historical events from{" "}
-              historical events from {result.horizon.range} against draft parameters and only
+              {result.horizon.range} against draft parameters and only
               reports what would have happened.
             </p>
           </div>
@@ -1018,7 +1065,7 @@ export function SimulationLab() {
           >
             <Icon name={flash === "export" ? "check_circle" : "file_download"} className="text-[16px]" />
             <span>
-              {flash === "export" ? "Report queued (mock)" : "Export Simulation Report (JSON/CSV)"}
+              {flash === "export" ? "Report queued" : "Export Simulation Report (JSON/CSV)"}
             </span>
           </button>
           <Link

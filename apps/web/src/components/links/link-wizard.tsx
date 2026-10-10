@@ -19,8 +19,13 @@ function PreviewCard({
 }: {
   value: string;
   placeholder: string;
-  meta: string;
-  footer: string;
+  /**
+   * DATA HOLE — workspace/branch context and last-modified attribution come
+   * from the artifact API once a node resolves; both render as an em dash
+   * until then.
+   */
+  meta?: string;
+  footer?: string;
 }) {
   const artifact = guessArtifact(value);
   return (
@@ -37,18 +42,23 @@ function PreviewCard({
       <div className="font-body-md text-body-md font-semibold text-on-surface truncate">
         {value.trim() || placeholder}
       </div>
-      <div className="text-body-sm text-on-surface-variant truncate">{meta}</div>
+      <div className="text-body-sm text-on-surface-variant truncate">{meta ?? "—"}</div>
       <div className="flex items-center gap-2 pt-1 font-mono-code text-micro-label text-muted">
         <Icon name="history" className="text-[14px]" />
-        <span className="truncate">{footer}</span>
+        <span className="truncate">{footer ?? "—"}</span>
       </div>
     </div>
   );
 }
 
 export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) => void }) {
-  const [source, setSource] = useState("FIGMA: Checkout / CheckoutModal_v3");
-  const [target, setTarget] = useState("GH: #142 feat(chk): refactor collapsed state");
+  /**
+   * DATA HOLE — the wizard starts empty.
+   * Source/target are supplied by the user (or, later, preselected from the
+   * graph API); nothing is prefilled until then.
+   */
+  const [source, setSource] = useState("");
+  const [target, setTarget] = useState("");
   const [relation, setRelation] = useState<Relation>("IMPLEMENTS");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<{ tone: "ok" | "warn"; text: string } | null>(null);
@@ -124,12 +134,7 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
               className="w-full pl-9 pr-8 py-2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-mono-code focus:outline-none focus:ring-1 focus:ring-primary shadow-inner placeholder:text-muted"
             />
           </div>
-          <PreviewCard
-            value={source}
-            placeholder="No source selected"
-            meta="Workspace: Core Design System / Payments UI"
-            footer="Modified 38 mins ago by @elena.ux"
-          />
+          <PreviewCard value={source} placeholder="No source selected" />
         </div>
 
         {/* 2. Relationship */}
@@ -192,12 +197,7 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
               className="w-full pl-9 pr-8 py-2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-mono-code focus:outline-none focus:ring-1 focus:ring-primary shadow-inner placeholder:text-muted"
             />
           </div>
-          <PreviewCard
-            value={target}
-            placeholder="No target selected"
-            meta="Repo: unify/web-client (main)"
-            footer="Authored by @marcus.dev · 4 commits"
-          />
+          <PreviewCard value={target} placeholder="No target selected" />
         </div>
       </div>
 
@@ -218,7 +218,7 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
               id="link-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g., Implementing Sprint 44 spec from Figma design review"
+              placeholder="e.g., Implementing spec from Figma design review"
               className="w-full mt-1 px-3 py-1.5 rounded bg-surface-container text-body-sm text-on-surface placeholder-muted focus:outline-none focus:ring-1 focus:ring-secondary"
             />
             {status ? (
