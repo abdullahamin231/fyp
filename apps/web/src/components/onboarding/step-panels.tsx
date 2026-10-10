@@ -3,8 +3,14 @@
 import type { ReactNode } from "react";
 import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
-import { policies } from "@/lib/mock/policies";
-import type { PolicyId } from "@/lib/types";
+import type { Policy, PolicyId } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the policies API.
+ * Empty until the endpoint exists; the policy checklist renders nothing and
+ * the staged counter reads zero.
+ */
+const policies: Policy[] = [];
 
 export type ConnectKey = "workspace" | "figma" | "github" | "jira";
 export type AuthState = "idle" | "authorizing" | "connected";
@@ -317,7 +323,7 @@ function WorkspacePanel({
               id="workspace-name"
               value={name}
               onChange={(event) => onName(event.target.value)}
-              placeholder="Acme Engineering Core"
+              placeholder="Workspace display name"
               className="bg-transparent text-on-surface font-mono-code text-mono-code focus:outline-none flex-1 font-semibold"
             />
           </div>
@@ -338,7 +344,7 @@ function WorkspacePanel({
               id="workspace-slug"
               value={slug}
               onChange={(event) => onSlug(event.target.value)}
-              placeholder="acme-eng"
+              placeholder="workspace-slug"
               className="bg-transparent text-on-surface font-mono-code text-mono-code focus:outline-none flex-1 font-semibold"
             />
           </div>
@@ -357,7 +363,8 @@ function WorkspacePanel({
             </span>
             {imported ? (
               <span className="font-mono-code text-micro-label text-secondary mt-1.5">
-                Source: unify-export-2025-11.json · 14 repos · 3 design spaces · 2 boards
+                {/* DATA HOLE — replace with the import API's staged export filename and counts. */}
+                Source: — · staged for import
               </span>
             ) : null}
           </div>
@@ -381,9 +388,9 @@ function WorkspacePanel({
 
         <AuthBox
           state={auth}
-          callback={`https://api.unify.dev/v1/workspaces/${slug || "acme-eng"}`}
+          callback={`https://api.unify.dev/v1/workspaces/${slug || "new"}`}
           buttonLabel="Validate & Create"
-          connectedLabel={`Workspace ${slug || "acme-eng"} ready (200 OK)`}
+          connectedLabel={`Workspace ${slug || "created"} ready (200 OK)`}
           onAuthorize={onValidate}
         />
       </div>
@@ -403,10 +410,10 @@ function ConnectPanel({
   const meta = panelMeta[tool];
   const input =
     tool === "figma"
-      ? { label: "Figma Team Handle", prefix: "@", placeholder: "acme-design" }
+      ? { label: "Figma Team Handle", prefix: "@", placeholder: "your-team" }
       : tool === "github"
-        ? { label: "GitHub Organization", prefix: "github.com/", placeholder: "acme-corp" }
-        : { label: "Atlassian Cloud Site / Domain", prefix: "", placeholder: "acme" };
+        ? { label: "GitHub Organization", prefix: "github.com/", placeholder: "your-org" }
+        : { label: "Atlassian Cloud Site / Domain", prefix: "", placeholder: "your-site" };
 
   return (
     <PanelFrame footer={null}>
@@ -432,7 +439,7 @@ function ConnectPanel({
             </span>
             <input
               id={`${tool}-target`}
-              defaultValue={input.placeholder}
+              placeholder={input.placeholder}
               className="bg-transparent text-on-surface font-mono-code text-mono-code focus:outline-none flex-1 font-semibold"
             />
             {tool === "jira" ? (
@@ -465,13 +472,11 @@ function ConnectPanel({
 }
 
 function PolicyRunPanel({
-  slug,
   selected,
   onToggle,
   run,
   onRun,
 }: {
-  slug: string;
   selected: Record<PolicyId, boolean>;
   onToggle: (id: PolicyId) => void;
   run: "idle" | "running" | "done";
@@ -568,10 +573,12 @@ function PolicyRunPanel({
                   ? `${staged} policies staged for the first run`
                   : run === "running"
                     ? "Reconciling links and evaluating evidence…"
-                    : "Run complete — 2 candidate findings staged for triage"}
+                    : // DATA HOLE — the staged-finding count comes from the policy-run API.
+                      "Run complete — no candidate findings staged for triage"}
               </div>
               <div className="font-mono-code text-micro-label text-muted truncate">
-                packet: unify://run/first-{slug || "acme-eng"} · citations resolved 5/5
+                {/* DATA HOLE — replace with the policy-run API's packet URI and resolved citation count. */}
+                packet: —
               </div>
             </div>
           </div>
@@ -669,7 +676,6 @@ export function ActiveStepPanel({
   if (step === 5) {
     return (
       <PolicyRunPanel
-        slug={workspace.slug}
         selected={policyRun.selected}
         onToggle={policyRun.onToggle}
         run={policyRun.run}

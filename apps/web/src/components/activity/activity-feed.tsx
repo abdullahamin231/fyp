@@ -8,12 +8,10 @@ import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import type { ActivityEvent, ActivityKind, ToolKind } from "@/lib/types";
 
 /**
- * `/activity` — the timeline feed from the Stitch screen. Events come from the
- * typed mock (`src/lib/mock/activity.ts`); everything interactive lives here.
+ * `/activity` — the timeline feed from the Stitch screen. Events are passed in
+ * as `ActivityEvent[]` (empty until the activity API is wired); everything
+ * interactive lives here.
  */
-
-/** Fixed clock so relative times render identically on server and client. */
-const NOW = new Date("2026-10-08T15:30:00Z");
 
 const kindMeta: Record<
   ActivityKind,
@@ -45,26 +43,30 @@ const toolLabel: Record<ToolKind, string> = {
   test: "Tests",
 };
 
-/** Presentation-only detail per event: the chip the sentence ends on. */
-const eventPresentation: Record<string, { target: string; verb?: string }> = {
-  "EVT-9021": { target: "unify-core" },
-  "EVT-9020": { target: "unify-core" },
-  "EVT-9019": { target: "PROJ-88" },
-  "EVT-9018": { target: "Unify-DS" },
-  "EVT-9017": { target: "PROJ-91" },
-  "EVT-9016": { target: "PROJ-91" },
-  "EVT-9015": { target: "CONF-1045", verb: "acknowledged a finding in" },
-  "EVT-9014": { target: "#core-checkout" },
-  "EVT-9013": { target: "Unify-DS" },
-  "EVT-9012": { target: "LNK-305", verb: "confirmed a link in" },
-};
+/**
+ * Clock for relative times — anchored to the newest event so server and client
+ * render identical strings (no hydration mismatch). Falls back to the current
+ * time while the feed is empty.
+ */
+function clockFrom(events: ActivityEvent[]): Date {
+  let newest: Date | null = null;
+  for (const event of events) {
+    const at = new Date(event.timestamp);
+    if (!newest || at > newest) newest = at;
+  }
+  return newest ?? new Date();
+}
 
-const TEAM = [
-  { name: "Alex Rivera", role: "Staff Eng", online: true },
-  { name: "Mishal Fatima", role: "Rules & anchors", online: true },
-  { name: "Haaniah Ismail", role: "Ingestion", online: false },
-  { name: "Sam Okafor", role: "Core Checkout", online: true },
-];
+/**
+ * DATA HOLE — replace with the workspace roster API.
+ * Empty until the endpoint exists; the roster renders its empty state.
+ */
+interface TeamMember {
+  name: string;
+  role: string;
+  online: boolean;
+}
+const TEAM: TeamMember[] = [];
 
 function initialsOf(name: string): string {
   return name
@@ -76,8 +78,8 @@ function initialsOf(name: string): string {
     .toUpperCase();
 }
 
-function relativeTime(iso: string): string {
-  const minutes = Math.round((NOW.getTime() - new Date(iso).getTime()) / 60000);
+function relativeTime(now: Date, iso: string): string {
+  const minutes = Math.round((now.getTime() - new Date(iso).getTime()) / 60000);
   if (minutes < 1) return "just now";
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
@@ -85,10 +87,10 @@ function relativeTime(iso: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-function dayHeading(iso: string): string {
+function dayHeading(now: Date, iso: string): string {
   const key = iso.slice(0, 10);
-  const today = NOW.toISOString().slice(0, 10);
-  const yesterday = new Date(NOW.getTime() - 86_400_000).toISOString().slice(0, 10);
+  const today = now.toISOString().slice(0, 10);
+  const yesterday = new Date(now.getTime() - 86_400_000).toISOString().slice(0, 10);
   const label = new Date(iso).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -101,17 +103,18 @@ function dayHeading(iso: string): string {
 
 function FeedItem({
   event,
+  now,
   isLast,
   onFinding,
 }: {
   event: ActivityEvent;
+  now: Date;
   isLast: boolean;
   onFinding: (id: string) => void;
 }) {
   const meta = kindMeta[event.kind];
-  const presentation = eventPresentation[event.id];
-  const target = presentation?.target ?? toolLabel[event.tool];
-  const verb = presentation?.verb ?? meta.verb;
+  const target = event.target ?? toolLabel[event.tool];
+  const verb = meta.verb;
   const findingId = event.findingId;
 
   return (
@@ -141,7 +144,7 @@ function FeedItem({
             </span>
           </div>
           <span className="font-body-sm text-body-sm text-muted shrink-0">
-            {relativeTime(event.timestamp)}
+            {relativeTime(now, event.timestamp)}
           </span>
         </div>
 
@@ -184,6 +187,7 @@ function FeedItem({
 
 export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
   const router = useRouter();
+  const now = useMemo(() => clockFrom(events), [events]);
   const [kind, setKind] = useState<ActivityKind | "all">("all");
   const [tools, setTools] = useState<Set<ToolKind>>(
     () => new Set(events.map((event) => event.tool)),
@@ -254,18 +258,10 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
                 <h3 className="font-headline-sm text-headline-sm text-on-surface">Daily Pulse</h3>
-                <span className="font-label-caps text-label-caps text-muted uppercase">
-                  AI Generated • 10:00 AM
-                </span>
               </div>
-              <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
-                Yesterday the team merged <span className="text-primary font-bold">12 PRs</span> and
-                re-published the <span className="text-secondary font-bold">Unify Design System</span>{" "}
-                library. The verifier produced 9 verdicts across{" "}
-                <span className="text-secondary font-bold">Core Checkout</span> — one CONTRADICTED
-                finding (<span className="text-error font-bold">CONF-1048</span>) still needs a
-                human decision, and no inferred or unconfirmed link contributed to a decisive
-                verdict.
+              <p className="font-body-md text-body-md text-muted leading-relaxed">
+                No pulse yet — the daily summary is generated once the activity API has events to
+                summarise.
               </p>
             </div>
           </div>
@@ -310,13 +306,14 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
             {groups.map(([key, items]) => (
               <div key={key}>
                 <h2 className="font-label-caps text-label-caps text-muted uppercase mt-gutter mb-stack-comfortable tracking-widest border-b border-outline-variant pb-2">
-                  {dayHeading(items[0].timestamp)}
+                  {dayHeading(now, items[0].timestamp)}
                 </h2>
                 <div className="space-y-0">
                   {items.map((event, index) => (
                     <FeedItem
                       key={event.id}
                       event={event}
+                      now={now}
                       isLast={index === items.length - 1}
                       onFinding={(id) => router.push(`/conflicts/${id}`)}
                     />
@@ -414,26 +411,34 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
               Team Members
             </h4>
             <div className="space-y-stack-comfortable">
-              {TEAM.map((member) => (
-                <div key={member.name} className="flex items-center justify-between group">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full border border-outline-variant bg-surface-container-highest grid place-items-center text-micro-label font-bold text-on-surface">
-                      {initialsOf(member.name)}
-                    </div>
-                    <span className="flex flex-col">
-                      <span className="font-body-sm text-body-sm text-on-surface-variant group-hover:text-on-surface">
-                        {member.name}
+              {TEAM.length === 0 ? (
+                <p className="font-body-sm text-body-sm text-muted">
+                  No teammates yet — the roster appears once the workspace API returns members.
+                </p>
+              ) : (
+                TEAM.map((member) => (
+                  <div key={member.name} className="flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full border border-outline-variant bg-surface-container-highest grid place-items-center text-micro-label font-bold text-on-surface">
+                        {initialsOf(member.name)}
+                      </div>
+                      <span className="flex flex-col">
+                        <span className="font-body-sm text-body-sm text-on-surface-variant group-hover:text-on-surface">
+                          {member.name}
+                        </span>
+                        <span className="font-mono-code text-micro-label text-muted">
+                          {member.role}
+                        </span>
                       </span>
-                      <span className="font-mono-code text-micro-label text-muted">{member.role}</span>
-                    </span>
+                    </div>
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        member.online ? "bg-secondary" : "bg-outline-variant"
+                      }`}
+                    />
                   </div>
-                  <span
-                    className={`w-2 h-2 rounded-full ${
-                      member.online ? "bg-secondary" : "bg-outline-variant"
-                    }`}
-                  />
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>

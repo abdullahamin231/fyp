@@ -8,8 +8,8 @@ import {
   stakeholdersFor,
   timelineFor,
   verificationRunFor,
-} from "@/lib/mock/conflict-detail";
-import type { Finding, ToolKind } from "@/lib/types";
+} from "@/lib/domain/conflict-detail";
+import type { ActivityEvent, Finding, Policy, ToolKind } from "@/lib/types";
 
 const toolMark: Record<ToolKind, string> = {
   figma: "F",
@@ -45,9 +45,15 @@ const statusTone: Record<string, string> = {
 
 /* ------------------------------------------------------------- evidence chain */
 
-export function EvidenceChainSection({ finding }: { finding: Finding }) {
-  const chain = evidenceChainFor(finding);
-  const marks = timelineFor(finding);
+export function EvidenceChainSection({
+  finding,
+  policy,
+}: {
+  finding: Finding;
+  policy: Policy;
+}) {
+  const chain = evidenceChainFor(finding, policy);
+  const marks = timelineFor(finding, policy);
 
   return (
     <section className="rounded-xl bg-surface-container-low p-margin-page shadow-md">
@@ -435,8 +441,14 @@ export function StakeholdersSection({ finding }: { finding: Finding }) {
   );
 }
 
-export function AuditTrailSection({ finding }: { finding: Finding }) {
-  const entries = auditTrailFor(finding);
+export function AuditTrailSection({
+  finding,
+  activity,
+}: {
+  finding: Finding;
+  activity: ActivityEvent[];
+}) {
+  const entries = auditTrailFor(finding, activity);
 
   return (
     <div className="xl:col-span-4 rounded-xl bg-surface-container-low p-margin-page shadow-md flex flex-col justify-between">

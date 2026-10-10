@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
-import { explanationFor, ruleAstFor } from "@/lib/mock/conflict-detail";
-import type { Finding } from "@/lib/types";
+import { explanationFor, ruleAstFor } from "@/lib/domain/conflict-detail";
+import type { Finding, Policy } from "@/lib/types";
 
 const toneClass: Record<string, string> = {
   primary: "text-primary",
@@ -16,10 +16,10 @@ const toneClass: Record<string, string> = {
  * "Semantic Explanation" box from the reference — plain-language summary of the
  * finding plus a collapsible deterministic rule AST drawer.
  */
-export function ExplanationBox({ finding }: { finding: Finding }) {
+export function ExplanationBox({ finding, policy }: { finding: Finding; policy: Policy }) {
   const [showAst, setShowAst] = useState(false);
   const parts = explanationFor(finding);
-  const ast = ruleAstFor(finding);
+  const ast = ruleAstFor(finding, policy);
 
   return (
     <section className="rounded-xl bg-surface-container p-margin-page shadow-md relative overflow-hidden">

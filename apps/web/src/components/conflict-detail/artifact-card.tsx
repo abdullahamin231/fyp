@@ -92,7 +92,8 @@ function Specimen({
   }
 
   if (artifact.tool === "jira") {
-    const pct = finding.status === "resolved" ? 100 : finding.status === "acknowledged" ? 75 : 60;
+    // DATA HOLE — replace with the ticket API's real completion percentage.
+    const pct = 0;
     return (
       <div className="w-full min-h-28 rounded bg-surface-container-lowest p-stack-comfortable mb-stack-comfortable flex flex-col justify-between">
         <div className="flex items-center justify-between text-micro-label font-mono-code text-muted">
@@ -162,7 +163,7 @@ export function AffectedArtifactCard({
         <div className="flex justify-between text-on-surface-variant">
           <span className="text-muted">Owner:</span>
           <span className="text-on-surface font-semibold">
-            {artifact.title ?? finding.assignedTo[0] ?? "unify-rules"}
+            {artifact.title ?? finding.assignedTo[0] ?? "—"}
           </span>
         </div>
         <div className="flex justify-between text-on-surface-variant">

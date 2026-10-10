@@ -3,6 +3,12 @@
 import { Icon } from "@/components/ui/icon";
 import type { AuthState, ConnectKey } from "@/components/onboarding/step-panels";
 
+/**
+ * DATA HOLE — replace with the connector API's per-source details (connected
+ * handle, granted scopes, selected repo/board counts, last sync + webhook
+ * state). The names/icons are static product copy; every account-specific
+ * string is an em dash until the endpoint supplies the real one.
+ */
 const sources: {
   key: Exclude<ConnectKey, "workspace">;
   name: string;
@@ -15,28 +21,28 @@ const sources: {
   {
     key: "figma",
     name: "Figma Enterprise",
-    handle: "@acme-design",
+    handle: "—",
     icon: "palette",
-    footLeft: "Scopes: files:read, dev_mode:read",
-    footRight: "Sync: 4m ago",
+    footLeft: "Scopes: —",
+    footRight: "Sync: —",
     footRightTone: "text-muted",
   },
   {
     key: "github",
     name: "GitHub Organization",
-    handle: "acme-corp",
+    handle: "—",
     icon: "code",
-    footLeft: "Repos: 14 selected (all core)",
-    footRight: "Webhook 200 OK",
+    footLeft: "Repos: —",
+    footRight: "Webhook —",
     footRightTone: "text-secondary",
   },
   {
     key: "jira",
     name: "Atlassian Jira",
-    handle: "acme.atlassian.net",
+    handle: "—",
     icon: "view_kanban",
-    footLeft: "Boards: PROJ, ARCH",
-    footRight: "Webhook 200 OK",
+    footLeft: "Boards: —",
+    footRight: "Webhook —",
     footRightTone: "text-secondary",
   },
 ];
@@ -117,7 +123,7 @@ export function SideRecap({
               {workspace.name || "Untitled Workspace"}
             </div>
             <div className="font-mono-code text-[12px] text-muted">
-              unify.dev/org/{workspace.slug || "acme-eng"}
+              {workspace.slug ? `unify.dev/org/${workspace.slug}` : "unify.dev/org/—"}
             </div>
           </div>
         </div>
@@ -125,20 +131,23 @@ export function SideRecap({
           <div>
             <span className="font-label-caps text-eyebrow uppercase text-muted">Primary Region</span>
             <div className="font-mono-code text-body-sm text-on-surface font-medium">
-              US-East (N. Virginia)
+              {/* DATA HOLE — replace with the workspace API's chosen region. */}
+              —
             </div>
           </div>
           <div>
             <span className="font-label-caps text-eyebrow uppercase text-muted">Audit Logging</span>
             <div className="font-mono-code text-body-sm text-secondary font-medium">
-              Enforced (Ret. 365d)
+              {/* DATA HOLE — replace with the workspace API's audit-log retention setting. */}
+              —
             </div>
           </div>
         </div>
         {workspace.imported ? (
           <div className="mt-3 flex items-center gap-2 font-mono-code text-micro-label text-secondary">
             <Icon name="download_done" className="text-[14px]" />
-            Import staged: 14 repos · 3 design spaces · 2 boards
+            {/* DATA HOLE — replace with the import API's staged repo/design-space/board counts. */}
+            Import staged
           </div>
         ) : null}
       </div>
@@ -172,7 +181,9 @@ export function SideRecap({
                     <div className="font-body-sm font-semibold text-on-surface">{source.name}</div>
                     <div className="font-mono-code text-micro-label text-muted">
                       {isConnected ? "Connected to " : "Not connected · "}
-                      <span className="text-on-surface">{source.handle}</span>
+                      {source.handle === "—" ? null : (
+                        <span className="text-on-surface">{source.handle}</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -213,8 +224,9 @@ export function SideRecap({
           <p className="font-body-sm text-on-surface-variant text-[12px]">{next.body}</p>
         </div>
         <div className="flex items-center gap-2 mt-3 flex-wrap">
+          {/* DATA HOLE — replace with the workspace API's suggested reviewers. */}
           <span className="px-2 py-1 rounded bg-surface-container font-mono-code text-micro-label text-muted">
-            @acme-design (designer)
+            No reviewers suggested yet
           </span>
           <span className="px-2 py-1 rounded bg-surface-container font-mono-code text-micro-label text-muted">
             + invite by email...

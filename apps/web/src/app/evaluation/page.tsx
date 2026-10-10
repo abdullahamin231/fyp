@@ -3,8 +3,13 @@ import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { EvalActions } from "@/components/evaluation/eval-actions";
-import { evalMetrics } from "@/lib/mock/policies";
 import type { EvalMetric } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the evaluation API.
+ * Empty until the endpoint exists; the metric grid renders nothing meanwhile.
+ */
+const evalMetrics: EvalMetric[] = [];
 
 export const metadata: Metadata = {
   title: "Evaluation",
@@ -89,6 +94,17 @@ export default function EvaluationPage() {
           note="Criterion-level numbers for the four-way verdict task."
         />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-gutter">
+          {evalMetrics.length === 0 ? (
+            <div className="col-span-full p-8 rounded-xl bg-surface-container shadow-sm text-center">
+              <Icon name="analytics" className="text-[28px] text-muted mb-2" />
+              <p className="font-body-md text-body-md font-semibold text-on-surface">
+                No evaluation results yet
+              </p>
+              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                Run the suite to populate verdict-level metrics.
+              </p>
+            </div>
+          ) : null}
           {evalMetrics.map((metric) => {
             const meta = statusMeta[metric.status];
             return (

@@ -13,6 +13,20 @@ export const metadata: Metadata = {
     "UNIFY user profile: connected developer tool accounts, watcher subscriptions and personal notification delivery preferences.",
 };
 
+/**
+ * DATA HOLE — replace with the profile API.
+ * Null until the endpoint exists; the identity banner renders its empty state.
+ */
+interface ProfileIdentity {
+  initials: string;
+  name: string;
+  role: string;
+  title: string;
+  email: string;
+  timezone: string;
+}
+const identity: ProfileIdentity | null = null;
+
 export default function ProfilePage() {
   return (
     <AppShell>
@@ -25,34 +39,45 @@ export default function ProfilePage() {
               <div className="relative flex-shrink-0">
                 <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden shadow-md bg-primary-container ring-2 ring-outline-variant grid place-items-center">
                   <span className="font-headline-lg text-headline-lg text-on-primary-container font-bold tracking-tight">
-                    AR
+                    {identity?.initials ?? ""}
                   </span>
                 </div>
               </div>
-              <div className="flex flex-col min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-2">
+              {identity ? (
+                <div className="flex flex-col min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight font-bold">
+                      {identity.name}
+                    </h1>
+                    <span className="px-2.5 py-1 rounded bg-primary-container text-on-primary-container font-label-caps text-label-caps tracking-wide font-semibold">
+                      {identity.role}
+                    </span>
+                  </div>
+                  <p className="font-body-lg text-body-lg text-on-surface-variant font-medium leading-relaxed">
+                    {identity.title}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-4 mt-3 text-on-surface-variant">
+                    <div className="flex items-center gap-1.5 font-mono-code text-mono-code">
+                      <Icon name="mail" className="text-muted text-[16px]" />
+                      <span className="text-on-surface">{identity.email}</span>
+                    </div>
+                    <span className="text-muted">•</span>
+                    <div className="flex items-center gap-1.5 font-body-sm text-body-sm">
+                      <Icon name="schedule" className="text-tertiary text-[16px]" />
+                      <span>{identity.timezone}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col min-w-0">
                   <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight font-bold">
-                    Alex Rivera
+                    Your profile
                   </h1>
-                  <span className="px-2.5 py-1 rounded bg-primary-container text-on-primary-container font-label-caps text-label-caps tracking-wide font-semibold">
-                    CODE OWNER / ASSIGNEE
-                  </span>
+                  <p className="font-body-md text-body-md text-on-surface-variant font-medium leading-relaxed mt-1">
+                    Name, role and contact details appear here once the profile API is connected.
+                  </p>
                 </div>
-                <p className="font-body-lg text-body-lg text-on-surface-variant font-medium leading-relaxed">
-                  Staff Software Engineer · Architecture &amp; Core Platform
-                </p>
-                <div className="flex flex-wrap items-center gap-4 mt-3 text-on-surface-variant">
-                  <div className="flex items-center gap-1.5 font-mono-code text-mono-code">
-                    <Icon name="mail" className="text-muted text-[16px]" />
-                    <span className="text-on-surface">alex.rivera@acme.io</span>
-                  </div>
-                  <span className="text-muted">•</span>
-                  <div className="flex items-center gap-1.5 font-body-sm text-body-sm">
-                    <Icon name="schedule" className="text-tertiary text-[16px]" />
-                    <span>UTC-07 (San Francisco)</span>
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </section>

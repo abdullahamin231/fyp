@@ -3,8 +3,29 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { Badge, ToolPill, type Tone } from "@/components/ui/badge";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
-import { findings, findingsByStatus } from "@/lib/mock/findings";
 import type { Finding, FindingStatus, Severity } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the findings API.
+ * Empty until the endpoint exists: the table renders its empty state and the
+ * status counts below all read zero.
+ */
+const findings: Finding[] = [];
+
+/**
+ * DATA HOLE — replace with the teams API's active-squad list.
+ * Empty until the endpoint exists, so the team filter shows only its header.
+ */
+const teams: string[] = [];
+
+/** Per-status counts derived from the findings list. */
+const findingsByStatus = {
+  all: findings.length,
+  open: findings.filter((f) => f.status === "open").length,
+  acknowledged: findings.filter((f) => f.status === "acknowledged").length,
+  resolved: findings.filter((f) => f.status === "resolved").length,
+  suppressed: findings.filter((f) => f.status === "suppressed").length,
+};
 
 const severityTone: Record<Severity, Tone> = {
   critical: "critical",
@@ -278,10 +299,9 @@ export default function ConflictInboxPage() {
           <div className="md:col-span-3 relative">
             <select className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container cursor-pointer transition">
               <option>Team: All Active Squads</option>
-              <option>Frontend Infrastructure</option>
-              <option>Core Checkout</option>
-              <option>Design Systems Core</option>
-              <option>Growth &amp; Experiments</option>
+              {teams.map((team) => (
+                <option key={team}>{team}</option>
+              ))}
             </select>
             <Icon
               name="expand_more"
@@ -350,6 +370,19 @@ export default function ConflictInboxPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant/40 text-on-surface font-body-md text-body-md">
+              {findings.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 px-4 text-center">
+                    <Icon name="inbox" className="text-[28px] text-muted mb-2" />
+                    <p className="font-body-md text-body-md font-semibold text-on-surface">
+                      No findings yet
+                    </p>
+                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                      Conflicts appear here once the findings API returns the triaged queue.
+                    </p>
+                  </td>
+                </tr>
+              ) : null}
               {findings.map((finding, index) => (
                 <ConflictRow key={finding.id} finding={finding} index={index} />
               ))}

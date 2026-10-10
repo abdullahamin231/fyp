@@ -4,32 +4,39 @@ import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 
-function randomToken() {
-  const hex = (length: number) =>
-    Array.from(
-      { length },
-      () => "0123456789abcdef"[Math.floor(Math.random() * 16)],
-    ).join("");
-  return `unify_pat_${hex(8)}••••••••${hex(4)}`;
+/** Shape of a personal access token record as the tokens API returns it. */
+interface TokenRecord {
+  /** Masked secret — only ever returned masked by the API. */
+  secret: string;
+  label: string;
+  createdLabel: string;
+  expiresLabel: string;
+  scopes: string[];
 }
+
+/**
+ * DATA HOLE — replace with the tokens API.
+ * Null until the endpoint exists; the token row renders its empty state and no
+ * secret is ever held in the browser before then.
+ */
+const token: TokenRecord | null = null;
 
 /** Personal API / CLI access tokens with roll, revoke and copy actions. */
 export function TokenCard() {
   const toast = useToast();
-  const [secret, setSecret] = useState("unify_pat_99f4a9b2••••••••••••••••8a2");
   const [revoked, setRevoked] = useState(false);
   const [copied, setCopied] = useState(false);
 
   function copy() {
-    navigator.clipboard?.writeText(secret).catch(() => undefined);
+    if (!token) return;
+    navigator.clipboard?.writeText(token.secret).catch(() => undefined);
     setCopied(true);
     toast("Token copied to secure clipboard", { icon: "content_copy", tone: "neutral" });
     setTimeout(() => setCopied(false), 2000);
   }
 
   function roll() {
-    setSecret(randomToken());
-    toast("New key rolled — previous key invalidated", { icon: "key" });
+    toast("Rolling a new key — the previous key is invalidated", { icon: "key" });
   }
 
   function revoke() {
@@ -70,75 +77,87 @@ export function TokenCard() {
         </button>
       </div>
 
-      <div
-        className={`rounded-lg bg-surface-container-high p-4 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm transition-opacity ${
-          revoked ? "opacity-40 pointer-events-none" : ""
-        }`}
-      >
-        <div className="flex items-start gap-3.5 min-w-0">
-          <div className="w-10 h-10 rounded-lg bg-surface-container-highest text-primary flex items-center justify-center flex-shrink-0 mt-0.5">
-            <Icon name="vpn_key" className="text-[22px]" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-body-md text-body-md font-semibold text-on-surface">
-                Alex CLI Workstation (MacBook M3 Max)
-              </span>
-              <span className="px-2 py-0.5 rounded-full bg-secondary/15 text-secondary font-label-caps text-eyebrow font-bold uppercase">
-                {revoked ? "Revoked" : "Active"}
-              </span>
+      {token === null ? (
+        <div className="rounded-lg bg-surface-container-high p-6 flex flex-col items-center text-center shadow-sm">
+          <Icon name="key_off" className="text-[32px] text-muted mb-2" />
+          <p className="font-body-md text-body-md text-on-surface font-medium">
+            No personal access tokens yet
+          </p>
+          <p className="font-body-sm text-body-sm text-muted mt-1.5 max-w-md">
+            Generate a token to authenticate the CLI, CI pipelines and Git hooks. Tokens appear
+            here once the tokens API is connected.
+          </p>
+        </div>
+      ) : (
+        <div
+          className={`rounded-lg bg-surface-container-high p-4 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm transition-opacity ${
+            revoked ? "opacity-40 pointer-events-none" : ""
+          }`}
+        >
+          <div className="flex items-start gap-3.5 min-w-0">
+            <div className="w-10 h-10 rounded-lg bg-surface-container-highest text-primary flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Icon name="vpn_key" className="text-[22px]" />
             </div>
-            <div className="flex flex-wrap items-center gap-3 mt-1.5 font-mono-code text-mono-code">
-              <span className="px-2.5 py-1 rounded bg-surface-container-lowest text-primary tracking-wider font-bold select-all">
-                {secret}
-              </span>
-              <button
-                type="button"
-                onClick={copy}
-                className="flex items-center gap-1 text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors"
-                title="Copy masked key"
-              >
-                <Icon name={copied ? "check" : "content_copy"} className="text-[16px]" />
-                <span>{copied ? "Copied" : "Copy"}</span>
-              </button>
-            </div>
-            <div className="flex flex-wrap items-center gap-3 mt-2 text-muted font-body-sm text-body-sm">
-              <span>Created 14d ago</span>
-              <span>•</span>
-              <span className="text-secondary font-medium">Expires in 76 days</span>
-              <span>•</span>
-              <div className="flex items-center gap-1">
-                <span>Scopes:</span>
-                <span className="px-1.5 py-0.2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-micro-label">
-                  read:graph
+            <div className="flex flex-col min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-body-md text-body-md font-semibold text-on-surface">
+                  {token.label}
                 </span>
-                <span className="px-1.5 py-0.2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-micro-label">
-                  write:link
+                <span className="px-2 py-0.5 rounded-full bg-secondary/15 text-secondary font-label-caps text-eyebrow font-bold uppercase">
+                  {revoked ? "Revoked" : "Active"}
                 </span>
-                <span className="px-1.5 py-0.2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-micro-label">
-                  audit:view
+              </div>
+              <div className="flex flex-wrap items-center gap-3 mt-1.5 font-mono-code text-mono-code">
+                <span className="px-2.5 py-1 rounded bg-surface-container-lowest text-primary tracking-wider font-bold select-all">
+                  {token.secret}
                 </span>
+                <button
+                  type="button"
+                  onClick={copy}
+                  className="flex items-center gap-1 text-on-surface-variant hover:text-on-surface font-body-sm text-body-sm transition-colors"
+                  title="Copy masked key"
+                >
+                  <Icon name={copied ? "check" : "content_copy"} className="text-[16px]" />
+                  <span>{copied ? "Copied" : "Copy"}</span>
+                </button>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-muted font-body-sm text-body-sm">
+                <span>{token.createdLabel}</span>
+                <span>•</span>
+                <span className="text-secondary font-medium">{token.expiresLabel}</span>
+                <span>•</span>
+                <div className="flex items-center gap-1">
+                  <span>Scopes:</span>
+                  {token.scopes.map((scope) => (
+                    <span
+                      key={scope}
+                      className="px-1.5 py-0.2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-micro-label"
+                    >
+                      {scope}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
+          <div className="flex items-center gap-2 self-end md:self-center flex-shrink-0">
+            <button
+              type="button"
+              onClick={roll}
+              className="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-bright text-on-surface font-body-sm text-body-sm font-medium transition-colors"
+            >
+              Roll Key
+            </button>
+            <button
+              type="button"
+              onClick={revoke}
+              className="px-3 py-1.5 rounded bg-error-container/40 hover:bg-error-container text-error font-body-sm text-body-sm font-medium transition-colors"
+            >
+              Revoke
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2 self-end md:self-center flex-shrink-0">
-          <button
-            type="button"
-            onClick={roll}
-            className="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-bright text-on-surface font-body-sm text-body-sm font-medium transition-colors"
-          >
-            Roll Key
-          </button>
-          <button
-            type="button"
-            onClick={revoke}
-            className="px-3 py-1.5 rounded bg-error-container/40 hover:bg-error-container text-error font-body-sm text-body-sm font-medium transition-colors"
-          >
-            Revoke
-          </button>
-        </div>
-      </div>
+      )}
 
       <div className="p-4 rounded-lg bg-surface-container-lowest/60 flex items-start gap-3.5">
         <Icon name="security" className="text-tertiary text-[20px] flex-shrink-0 mt-0.5" />

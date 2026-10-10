@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import { ToolPill } from "@/components/ui/badge";
-import { badgeToneClass, kindLabels, type SearchKind, type SearchMatch } from "@/lib/mock/search";
+import { badgeToneClass, kindLabels, type SearchKind, type SearchMatch } from "@/lib/domain/search";
 import type { Severity, ToolKind } from "@/lib/types";
 
 const toolIcon: Record<ToolKind, string> = {
