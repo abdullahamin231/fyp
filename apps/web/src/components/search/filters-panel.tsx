@@ -24,8 +24,8 @@ export interface FacetCounts {
 
 const severityRows: { id: Severity; label: string; dot: string; countClass: string }[] = [
   { id: "critical", label: "Critical (SEV-1)", dot: "bg-error", countClass: "text-error font-bold" },
-  { id: "warning", label: "Warning (SEV-2)", dot: "bg-tertiary", countClass: "text-outline" },
-  { id: "info", label: "Info (SEV-3)", dot: "bg-secondary", countClass: "text-outline" },
+  { id: "warning", label: "Warning (SEV-2)", dot: "bg-tertiary", countClass: "text-muted" },
+  { id: "info", label: "Info (SEV-3)", dot: "bg-secondary", countClass: "text-muted" },
 ];
 
 const stateLabels: Record<FindingStatus, string> = {
@@ -54,7 +54,7 @@ function FacetHeader({
     <button
       type="button"
       onClick={onToggle}
-      className="w-full flex items-center justify-between text-outline font-label-caps text-label-caps uppercase tracking-wider hover:text-on-surface transition-colors"
+      className="w-full flex items-center justify-between text-muted font-label-caps text-label-caps uppercase tracking-wider hover:text-on-surface transition-colors"
     >
       <span>{label}</span>
       <Icon name={open ? "expand_less" : "expand_more"} className="text-[16px]" />
@@ -110,7 +110,7 @@ export function FiltersPanel({
         <button
           type="button"
           onClick={onReset}
-          className="font-mono-code text-[11px] text-primary hover:underline"
+          className="font-mono-code text-micro-label text-primary hover:underline"
         >
           Reset All ({activeCount})
         </button>
@@ -120,11 +120,11 @@ export function FiltersPanel({
       <div className="flex flex-col gap-stack-compact">
         <FacetHeader label="Entity type" open={!collapsed.kinds} onToggle={() => toggle("kinds")} />
         {!collapsed.kinds ? (
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {(Object.keys(kindLabels) as SearchKind[]).map((kind) => (
               <label
                 key={kind}
-                className="flex items-center justify-between px-2 py-1.5 rounded bg-surface-container hover:bg-surface-container-high cursor-pointer transition-colors"
+                className="flex items-center justify-between px-2.5 py-2 rounded bg-surface-container hover:bg-surface-container-high cursor-pointer transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <input
@@ -144,8 +144,8 @@ export function FiltersPanel({
                 <span
                   className={
                     kind === "conflict"
-                      ? "px-1.5 py-0.2 rounded bg-error-container text-error font-mono-code text-[11px] font-bold"
-                      : "font-mono-code text-body-sm text-outline"
+                      ? "px-1.5 py-0.2 rounded bg-error-container text-error font-mono-code text-micro-label font-bold"
+                      : "font-mono-code text-body-sm text-muted"
                   }
                 >
                   {counts.kinds[kind] ?? 0}
@@ -185,7 +185,7 @@ export function FiltersPanel({
                     </span>
                   </span>
                   <span
-                    className={`font-mono-code text-[11px] ${active ? "text-on-surface-variant" : "text-outline"}`}
+                    className={`font-mono-code text-micro-label ${active ? "text-on-surface-variant" : "text-muted"}`}
                   >
                     {counts.tools[entry.tool] ?? 0}
                   </span>
@@ -200,13 +200,13 @@ export function FiltersPanel({
       <div className="flex flex-col gap-stack-compact">
         <FacetHeader label="Severity level" open={!collapsed.severity} onToggle={() => toggle("severity")} />
         {!collapsed.severity ? (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             {severityRows.map((row) => {
               const active = Boolean(filters.severities[row.id]);
               return (
                 <label
                   key={row.id}
-                  className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors ${
+                  className={`flex items-center gap-2.5 px-2.5 py-2 rounded cursor-pointer transition-colors ${
                     row.id === "critical" && active
                       ? "bg-error-container/30 hover:bg-error-container/50"
                       : "bg-surface-container hover:bg-surface-container-high"
@@ -287,7 +287,7 @@ export function FiltersPanel({
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-mono-code text-outline mt-0.5">
+            <div className="flex items-center gap-1 text-micro-label font-mono-code text-muted mt-0.5">
               <Icon name="calendar_month" className="text-[13px]" />
               <span>2026-10-01 → Present</span>
             </div>
@@ -296,9 +296,9 @@ export function FiltersPanel({
       </div>
 
       {/* Confidence */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-outline font-label-caps text-label-caps uppercase tracking-wider">
+          <span className="text-muted font-label-caps text-label-caps uppercase tracking-wider">
             Link confidence
           </span>
           <span className="font-mono-code text-label-caps text-secondary font-bold">
@@ -313,18 +313,18 @@ export function FiltersPanel({
           onChange={(event) => onChange({ confidence: Number(event.target.value) })}
           className="w-full h-1.5 bg-surface-container-lowest rounded-lg appearance-none cursor-pointer accent-secondary"
         />
-        <div className="flex justify-between font-mono-code text-[10px] text-outline">
+        <div className="flex justify-between font-mono-code text-micro-label text-muted">
           <span>Fuzzy (0%)</span>
           <span>Deterministic (100%)</span>
         </div>
       </div>
 
       {/* Squad scope */}
-      <div className="flex flex-col gap-stack-comfortable pt-stack-comfortable bg-surface-container-lowest/30 p-2 rounded-lg">
-        <span className="text-outline font-label-caps text-label-caps uppercase tracking-wider">
+      <div className="flex flex-col gap-stack-comfortable pt-stack-comfortable bg-surface-container-lowest/30 p-3.5 rounded-lg">
+        <span className="text-muted font-label-caps text-label-caps uppercase tracking-wider">
           Squad scope
         </span>
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           {squads.map((squad) => (
             <label key={squad} className="flex items-center gap-2 cursor-pointer">
               <input

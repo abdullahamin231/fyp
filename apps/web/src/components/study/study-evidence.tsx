@@ -88,7 +88,7 @@ export function StudyEvidence({
   return (
     <>
       {/* Provenance dependency graph */}
-      <div className="bg-surface-container rounded-xl p-5 shadow-lg space-y-4">
+      <div className="bg-surface-container rounded-xl p-4 shadow-lg space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Icon name="account_tree" className="text-primary text-[20px]" />
@@ -97,7 +97,7 @@ export function StudyEvidence({
             </h3>
           </div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-surface-container-lowest font-mono-code text-[11px] text-outline">
+            <span className="px-2 py-0.5 rounded bg-surface-container-lowest font-mono-code text-micro-label text-muted">
               Filter: Direct Predecessors
             </span>
             <button
@@ -115,7 +115,6 @@ export function StudyEvidence({
         </div>
 
         <div className="relative bg-surface-container-lowest rounded-lg p-4 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
           <svg
             className="w-full h-44"
             fill="none"
@@ -242,7 +241,7 @@ export function StudyEvidence({
             ) : null}
           </svg>
 
-          <div className="flex items-center justify-between pt-2 border-t border-surface-container text-on-surface-variant font-mono-code text-[11px] gap-3 flex-wrap">
+          <div className="flex items-center justify-between pt-2 border-t border-surface-container text-on-surface-variant font-mono-code text-micro-label gap-3 flex-wrap">
             <span>
               Selected Node:{" "}
               <strong className="text-primary font-semibold">{selected}</strong>
@@ -256,23 +255,23 @@ export function StudyEvidence({
       </div>
 
       {/* Semantic comparison / anchor-gap inspector */}
-      <div className="bg-surface-container rounded-xl p-5 shadow-lg space-y-4">
+      <div className="bg-surface-container rounded-xl p-4 shadow-lg space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <span className="font-label-caps text-label-caps text-secondary uppercase tracking-wider">
               Automated Semantic Comparison
             </span>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface mt-0.5">
+            <h3 className="font-headline-sm text-headline-sm text-on-surface mt-1.5">
               {evidence.inspector.title}
             </h3>
           </div>
           <div className="flex items-center gap-2">
             <span
-              className={`px-2 py-0.5 rounded font-mono-code text-[11px] font-bold ${evidence.inspector.severityTone}`}
+              className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-bold ${evidence.inspector.severityTone}`}
             >
               {evidence.inspector.severity}
             </span>
-            <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-[11px]">
+            <span className="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-micro-label">
               {evidence.inspector.keyChip}
             </span>
           </div>
@@ -282,7 +281,7 @@ export function StudyEvidence({
           {[evidence.inspector.left, evidence.inspector.right].map((column, index) => (
             <div
               key={column.header}
-              className="bg-surface-container-lowest rounded-lg p-3.5 space-y-2.5"
+              className="bg-surface-container-lowest rounded-lg p-3.5 space-y-4"
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -291,16 +290,16 @@ export function StudyEvidence({
                     {column.header}
                   </span>
                 </div>
-                <span className={`font-mono-code text-[11px] ${column.metaTone}`}>
+                <span className={`font-mono-code text-micro-label ${column.metaTone}`}>
                   {column.meta}
                 </span>
               </div>
-              <div className="p-3 rounded bg-surface-container-low font-mono-code text-mono-code text-[12px] space-y-1">
+              <div className="p-3.5 rounded bg-surface-container-low font-mono-code text-mono-code text-[12px] space-y-1.5">
                 {column.lines.map((line) => (
                   <div key={line.text} className={line.tone ?? "text-on-surface"}>
                     {line.text}
                     {line.suffix ? (
-                      <span className="text-outline-variant font-normal text-[10px]">
+                      <span className="text-muted font-normal text-micro-label">
                         {" "}
                         {line.suffix}
                       </span>
@@ -308,7 +307,7 @@ export function StudyEvidence({
                   </div>
                 ))}
               </div>
-              <div className="p-3 bg-surface-container-high rounded flex items-center justify-between gap-2">
+              <div className="p-3.5 bg-surface-container-high rounded flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div
                     className={`w-10 h-10 rounded flex items-center justify-center shrink-0 ${
@@ -323,7 +322,7 @@ export function StudyEvidence({
                     <div className="font-body-sm text-body-sm font-medium text-on-surface truncate">
                       {column.footer.title}
                     </div>
-                    <div className="font-body-sm text-body-sm text-[11px] text-on-surface-variant truncate">
+                    <div className="font-body-sm text-body-sm text-micro-label text-on-surface-variant truncate">
                       {column.footer.subtitle}
                     </div>
                   </div>
@@ -337,7 +336,7 @@ export function StudyEvidence({
           ))}
         </div>
 
-        <div className="p-3 bg-surface-container-low rounded-lg flex items-center gap-3">
+        <div className="p-3.5 bg-surface-container-low rounded-lg flex items-center gap-3">
           <Icon name="troubleshoot" className="text-secondary text-[22px] shrink-0" />
           <div className="flex-1">
             <span className="font-label-caps text-label-caps text-secondary uppercase font-bold">
@@ -351,13 +350,13 @@ export function StudyEvidence({
       </div>
 
       {/* Tabbed multi-tool raw evidence inspector */}
-      <div className="bg-surface-container rounded-xl p-5 shadow-lg space-y-4">
+      <div className="bg-surface-container rounded-xl p-4 shadow-lg space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-surface-container-highest pb-3">
           <div>
-            <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+            <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
               Raw Artifact Simulation
             </span>
-            <h3 className="font-headline-sm text-headline-sm text-on-surface mt-0.5">
+            <h3 className="font-headline-sm text-headline-sm text-on-surface mt-1.5">
               Evidence Timeline &amp; Tool Inspection
             </h3>
           </div>
@@ -372,7 +371,7 @@ export function StudyEvidence({
                   role="tab"
                   aria-selected={active}
                   onClick={() => selectTab(definition.id)}
-                  className={`px-3 py-1 rounded font-mono-code text-[11px] transition-all flex items-center gap-1 ${
+                  className={`px-3 py-1 rounded font-mono-code text-micro-label transition-all flex items-center gap-1 ${
                     active
                       ? "text-primary-fixed bg-surface-container-high font-semibold"
                       : "text-on-surface-variant hover:text-on-surface"
@@ -392,31 +391,31 @@ export function StudyEvidence({
               {evidence.tabs.unify.timeline.map((entry) => (
                 <div
                   key={entry.time + entry.label}
-                  className={`p-3 rounded bg-surface-container-lowest flex flex-col justify-between ${
+                  className={`p-3.5 rounded bg-surface-container-lowest flex flex-col justify-between ${
                     entry.flag ? "border-l-2 border-tertiary" : ""
                   }`}
                 >
                   <span
                     className={`font-label-caps text-label-caps ${
-                      entry.flag ? "text-tertiary font-bold" : "text-outline"
+                      entry.flag ? "text-tertiary font-bold" : "text-muted"
                     }`}
                   >
                     {entry.time}
                   </span>
                   <span
-                    className={`font-body-sm text-body-sm font-medium mt-1 ${entry.tone ?? "text-on-surface"}`}
+                    className={`font-body-sm text-body-sm font-medium mt-1.5 ${entry.tone ?? "text-on-surface"}`}
                   >
                     {entry.label}
                   </span>
                   <span
-                    className={`font-mono-code text-[10px] ${entry.flag ? "text-tertiary" : "text-on-surface-variant"}`}
+                    className={`font-mono-code text-micro-label ${entry.flag ? "text-tertiary" : "text-on-surface-variant"}`}
                   >
                     {entry.detail}
                   </span>
                 </div>
               ))}
             </div>
-            <div className="bg-surface-container-lowest p-4 rounded-lg font-mono-code text-mono-code text-[12px] space-y-2">
+            <div className="bg-surface-container-lowest p-4 rounded-lg font-mono-code text-mono-code text-[12px] space-y-4">
               {evidence.tabs.unify.query.map((line) => (
                 <div key={line.text} className={line.tone ?? "text-on-surface-variant"}>
                   {line.text}
@@ -427,11 +426,11 @@ export function StudyEvidence({
         ) : null}
 
         {tab === "github" ? (
-          <div className="bg-surface-container-lowest p-4 rounded-lg space-y-3 font-mono-code text-[12px]">
+          <div className="bg-surface-container-lowest p-4 rounded-lg space-y-4 font-mono-code text-[12px]">
             <div className="flex items-center justify-between pb-2 border-b border-surface-container gap-2">
               <span className="text-secondary font-semibold">{evidence.tabs.github.heading}</span>
               <span
-                className={`px-2 py-0.5 rounded text-[11px] ${evidence.tabs.github.badgeTone}`}
+                className={`px-2 py-0.5 rounded text-micro-label ${evidence.tabs.github.badgeTone}`}
               >
                 {evidence.tabs.github.badge}
               </span>
@@ -439,14 +438,14 @@ export function StudyEvidence({
             <p className="text-on-surface font-body-sm text-body-sm">
               {evidence.tabs.github.body}
             </p>
-            <div className="bg-surface-container p-2.5 rounded text-on-surface-variant">
+            <div className="bg-surface-container p-3 rounded text-on-surface-variant">
               {evidence.tabs.github.stats}
             </div>
           </div>
         ) : null}
 
         {tab === "figma" ? (
-          <div className="bg-surface-container-lowest p-4 rounded-lg space-y-2 font-mono-code text-[12px]">
+          <div className="bg-surface-container-lowest p-4 rounded-lg space-y-4 font-mono-code text-[12px]">
             <div className="text-tertiary font-bold">{evidence.tabs.figma.heading}</div>
             {evidence.tabs.figma.lines.map((line) => (
               <div key={line} className="text-on-surface-variant">
@@ -457,7 +456,7 @@ export function StudyEvidence({
         ) : null}
 
         {tab === "jira" ? (
-          <div className="bg-surface-container-lowest p-4 rounded-lg space-y-2 font-mono-code text-[12px]">
+          <div className="bg-surface-container-lowest p-4 rounded-lg space-y-4 font-mono-code text-[12px]">
             <div className="text-secondary font-bold">{evidence.tabs.jira.heading}</div>
             {evidence.tabs.jira.lines.map((line) => (
               <div key={line} className="text-on-surface-variant">

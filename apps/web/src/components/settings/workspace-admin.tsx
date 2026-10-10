@@ -62,7 +62,7 @@ function RetentionAudit() {
               className="flex items-center justify-between p-2 rounded bg-surface-container-lowest"
             >
               <div className="flex items-center gap-2 text-on-surface-variant">
-                <Icon name={row.icon} className="text-[16px] text-outline" />
+                <Icon name={row.icon} className="text-[16px] text-muted" />
                 <span>{row.label}</span>
               </div>
               <span
@@ -73,7 +73,7 @@ function RetentionAudit() {
             </div>
           ))}
         </div>
-        <p className="text-outline font-body-sm text-[12px] leading-relaxed">
+        <p className="text-muted font-body-sm text-[12px] leading-relaxed">
           Sanitization automatically masks credentials, private keys, emails, and SSNs from Git
           commits, Figma comments, and Jira transition logs before storing them in the internal
           graph cluster.
@@ -88,7 +88,7 @@ function RetentionAudit() {
               Audit Exports
             </span>
           </div>
-          <span className="px-2 py-0.5 rounded bg-surface-container-high text-outline text-[11px] font-mono-code">
+          <span className="px-2 py-0.5 rounded bg-surface-container-high text-muted text-micro-label font-mono-code">
             Retention: 365d
           </span>
         </div>
@@ -102,14 +102,14 @@ function RetentionAudit() {
                 <Icon name={item.icon} className="text-[18px] text-primary" />
                 {item.label}
               </span>
-              <span className="font-mono-code text-[11px] text-outline flex items-center gap-1">
+              <span className="font-mono-code text-micro-label text-muted flex items-center gap-1">
                 {item.meta}
                 <Icon name="arrow_forward" className="text-[14px]" />
               </span>
             </button>
           ))}
         </div>
-        <p className="text-outline font-body-sm text-[12px] leading-relaxed">
+        <p className="text-muted font-body-sm text-[12px] leading-relaxed">
           Every export is signed with the workspace KMS key and records the requesting member,
           timestamp, and query scope in the append-only audit trail.
         </p>
@@ -149,7 +149,7 @@ function DangerZone() {
   const [typed, setTyped] = useState<Record<string, string>>({});
 
   return (
-    <section className="rounded-xl bg-error-container/10 border border-error/30 p-6 shadow-md flex flex-col gap-4">
+    <section className="rounded-xl bg-error-container/10 border border-error/30 p-4 shadow-md flex flex-col gap-4">
       <div className="flex items-center gap-2.5">
         <Icon name="warning" className="text-error text-[22px]" fill />
         <div>
@@ -191,7 +191,7 @@ function DangerZone() {
                   onChange={(e) =>
                     setTyped((prev) => ({ ...prev, [action.id]: e.target.value }))
                   }
-                  className="w-28 px-2.5 py-1.5 rounded-lg bg-surface-container-lowest border border-outline-variant text-on-surface font-mono-code text-[12px] focus:outline-none focus:border-error placeholder:text-outline"
+                  className="w-28 px-2.5 py-1.5 rounded-lg bg-surface-container-lowest border border-outline-variant text-on-surface font-mono-code text-[12px] focus:outline-none focus:border-error placeholder:text-muted"
                 />
                 <button
                   disabled={!enabled}
@@ -242,10 +242,10 @@ export function WorkspaceAdmin({ telemetry }: { telemetry: ReactNode }) {
               <span>{tab.label}</span>
               {tab.count ? (
                 <span
-                  className={`px-1.5 py-0.2 rounded text-[10px] font-mono-code ${
+                  className={`px-1.5 py-0.2 rounded text-micro-label font-mono-code ${
                     isActive
                       ? "bg-surface-container-lowest text-on-surface"
-                      : "bg-surface-container text-outline"
+                      : "bg-surface-container text-muted"
                   }`}
                 >
                   {tab.count}

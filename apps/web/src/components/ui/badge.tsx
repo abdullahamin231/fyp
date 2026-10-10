@@ -72,7 +72,7 @@ export function ToolPill({
   return (
     <span
       title={title ?? meta.label}
-      className={`inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright transition text-on-surface font-mono-code text-[11px] ${className}`}
+      className={`inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright transition text-on-surface font-mono-code text-micro-label ${className}`}
     >
       <span
         className="w-2 h-2 rounded-full shrink-0"

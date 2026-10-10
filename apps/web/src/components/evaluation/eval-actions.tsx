@@ -24,7 +24,7 @@ export function EvalActions() {
           onClick={() => trigger("Baseline loaded: comparing v3.2 with the v2.8 golden set…")}
           className="px-3 py-2 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-sm"
         >
-          <Icon name="compare_arrows" className="text-[18px] text-outline" />
+          <Icon name="compare_arrows" className="text-[18px] text-muted" />
           <span>Compare with Baseline</span>
         </button>
         <button

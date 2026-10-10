@@ -29,11 +29,11 @@ export function ExplanationBox({ finding }: { finding: Finding }) {
             <Icon name="auto_awesome" className="text-[24px]" />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-3 mb-1.5">
               <span className="font-label-caps text-label-caps text-primary uppercase tracking-wider">
                 Semantic explanation
               </span>
-              <span className="px-1.5 py-0.2 rounded bg-surface-container-highest text-outline font-mono-code text-[10px]">
+              <span className="px-1.5 py-0.2 rounded bg-surface-container-highest text-muted font-mono-code text-micro-label">
                 Deterministic rule graph
               </span>
             </div>

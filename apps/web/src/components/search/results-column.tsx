@@ -65,7 +65,7 @@ function ConflictCard({
         <div className="flex items-start justify-between gap-stack-comfortable">
           <div className="flex items-center gap-2 flex-wrap">
             <span
-              className={`px-2 py-0.5 rounded font-mono-code text-[11px] font-bold tracking-tight ${badgeToneClass[match.badgeTone]}`}
+              className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-bold tracking-tight ${badgeToneClass[match.badgeTone]}`}
             >
               {match.badge}
             </span>
@@ -79,13 +79,13 @@ function ConflictCard({
             ) : (
               <span className="font-mono-code text-body-sm font-semibold text-primary">{match.id}</span>
             )}
-            <span className="text-outline-variant font-mono-code text-[11px]">•</span>
-            <span className="font-mono-code text-body-sm text-outline">{match.meta}</span>
+            <span className="text-outline font-mono-code text-micro-label">•</span>
+            <span className="font-mono-code text-body-sm text-muted">{match.meta}</span>
           </div>
           {match.findingId ? (
             <Link
               href={`/conflicts/${match.findingId}`}
-              className="flex items-center gap-1 text-primary hover:text-on-primary-fixed-variant font-mono-code text-[12px] font-semibold shrink-0"
+              className="flex items-center gap-1 text-primary hover:text-muted font-mono-code text-[12px] font-semibold shrink-0"
             >
               Triage Conflict <Icon name="arrow_forward" className="text-[14px]" />
             </Link>
@@ -97,17 +97,17 @@ function ConflictCard({
         </h3>
 
         <div className="flex items-center gap-stack-compact flex-wrap text-body-sm text-on-surface-variant">
-          <span className="bg-surface-container-lowest px-2 py-0.5 rounded font-mono-code text-[11px] text-tertiary flex items-center gap-1">
+          <span className="bg-surface-container-lowest px-2 py-0.5 rounded font-mono-code text-micro-label text-tertiary flex items-center gap-1">
             <Icon name="token" className="text-[12px]" />
             matched ‘{match.matched[0]}’
           </span>
           {match.chain.length > 0 ? (
             <>
-              <span className="text-outline font-mono-code text-[11px]">Graph Chain:</span>
-              <div className="flex items-center gap-1 font-mono-code text-[11px] text-on-surface bg-surface-container-highest px-2 py-0.5 rounded flex-wrap">
+              <span className="text-muted font-mono-code text-micro-label">Graph Chain:</span>
+              <div className="flex items-center gap-1 font-mono-code text-micro-label text-on-surface bg-surface-container-highest px-2 py-0.5 rounded flex-wrap">
                 {match.chain.map((node, index) => (
                   <span key={`${node.tool}-${node.label}`} className="flex items-center gap-1">
-                    {index > 0 ? <span className="text-outline">↔</span> : null}
+                    {index > 0 ? <span className="text-muted">↔</span> : null}
                     <ToolPill tool={node.tool}>{node.label}</ToolPill>
                   </span>
                 ))}
@@ -148,11 +148,11 @@ function ArtifactCard({
             <span className="font-body-md text-body-md font-semibold text-on-surface truncate group-hover:text-primary">
               {match.title}
             </span>
-            <span className="px-1.5 py-0.2 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-[10px] shrink-0">
+            <span className="px-1.5 py-0.2 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-micro-label shrink-0">
               {tool}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-body-sm text-outline truncate font-mono-code text-[11px]">
+          <div className="flex items-center gap-2 text-body-sm text-muted truncate font-mono-code text-micro-label">
             <span>{match.meta}</span>
             {match.findingId ? (
               <>
@@ -165,7 +165,7 @@ function ArtifactCard({
       </div>
       <Icon
         name="chevron_right"
-        className="text-outline group-hover:text-on-surface transition-colors text-[20px]"
+        className="text-muted group-hover:text-on-surface transition-colors text-[20px]"
       />
     </div>
   );
@@ -190,7 +190,7 @@ function LinkCard({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 font-mono-code text-body-sm flex-wrap">
           <span className="text-tertiary font-semibold">{match.chain[0]?.label}</span>
-          <span className="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-bold text-[10px] tracking-wider uppercase">
+          <span className="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-bold text-eyebrow tracking-wider uppercase">
             [{match.relation ?? "RELATES"}]
           </span>
           <span className="text-primary font-semibold">{match.chain[1]?.label}</span>
@@ -199,7 +199,7 @@ function LinkCard({
           {Math.round((match.confidence ?? 0) * 100)}% Match
         </span>
       </div>
-      <div className="flex items-center gap-2 mt-1 text-[11px] font-mono-code text-outline">
+      <div className="flex items-center gap-2 mt-1.5 text-micro-label font-mono-code text-muted">
         <span>Provenance: {match.provenance}</span>
         <span>•</span>
         <span>{match.meta}</span>
@@ -229,26 +229,26 @@ function PolicyCard({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono-code text-body-sm font-bold text-tertiary">{match.title}</span>
             <span
-              className={`px-1.5 py-0.2 rounded font-mono-code text-[10px] ${
+              className={`px-1.5 py-0.2 rounded font-mono-code text-micro-label ${
                 match.badge === "POLICY ACTIVE"
                   ? "bg-surface-container-highest text-secondary"
-                  : "bg-surface-container-highest text-outline"
+                  : "bg-surface-container-highest text-muted"
               }`}
             >
               {match.badge}
             </span>
           </div>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">{match.meta}</p>
+          <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5">{match.meta}</p>
         </div>
         <span
-          className={`px-2 py-0.5 rounded font-mono-code text-[11px] font-bold shrink-0 ${
+          className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-bold shrink-0 ${
             match.severity === "critical" ? "bg-error-container text-error" : "bg-tertiary-container text-on-tertiary-container"
           }`}
         >
           {match.severity?.toUpperCase()}
         </span>
       </div>
-      <div className="flex items-center gap-3 mt-2 text-[11px] font-mono-code text-outline">
+      <div className="flex items-center gap-3 mt-2 text-micro-label font-mono-code text-muted">
         <span>Matched: {match.matched[0]}</span>
         <span>•</span>
         <span className="text-on-surface-variant">{match.id}</span>
@@ -326,11 +326,11 @@ export function ResultsColumn({
               >
                 <span className={tab.critical ? "text-error font-medium" : undefined}>{tab.label}</span>
                 <span
-                  className={`px-1.5 py-0.5 rounded font-mono-code text-[11px] ${
+                  className={`px-1.5 py-0.5 rounded font-mono-code text-micro-label ${
                     tab.critical
                       ? "bg-error-container text-error font-bold"
                       : isActive
-                        ? "bg-on-primary-container/20 text-on-primary-container"
+                        ? "bg-primary text-on-primary font-bold"
                         : "bg-surface-container-highest text-on-surface-variant"
                   }`}
                 >
@@ -341,7 +341,7 @@ export function ResultsColumn({
           })}
         </div>
         <div className="flex items-center gap-1 pr-2 shrink-0">
-          <span className="font-mono-code text-label-caps text-outline">SORT:</span>
+          <span className="font-mono-code text-label-caps text-muted">SORT:</span>
           <button
             type="button"
             onClick={onSortToggle}
@@ -355,8 +355,8 @@ export function ResultsColumn({
 
       {/* Grouped results */}
       {groups.length === 0 ? (
-        <div className="p-8 rounded-xl bg-surface-container-low border border-dashed border-outline-variant text-center shadow-sm">
-          <Icon name="search_off" className="text-outline text-[28px]" />
+        <div className="p-4 rounded-xl bg-surface-container-low border border-dashed border-outline-variant text-center shadow-sm">
+          <Icon name="search_off" className="text-muted text-[28px]" />
           <p className="text-body-md text-on-surface-variant mt-2">
             No matches — loosen a facet or drop a query token.
           </p>
@@ -388,7 +388,7 @@ export function ResultsColumn({
                 {meta.href ? (
                   <Link
                     href={meta.href}
-                    className="font-mono-code text-[11px] text-primary hover:underline flex items-center gap-1"
+                    className="font-mono-code text-micro-label text-primary hover:underline flex items-center gap-1"
                   >
                     {meta.linkLabel} <Icon name="open_in_new" className="text-[12px]" />
                   </Link>
@@ -412,7 +412,7 @@ export function ResultsColumn({
 
       {/* Pagination */}
       <div className="flex flex-wrap items-center justify-between p-stack-comfortable bg-surface-container-low rounded-xl shadow-sm gap-2">
-        <div className="flex items-center gap-stack-compact text-body-sm text-outline">
+        <div className="flex items-center gap-stack-compact text-body-sm text-muted">
           <span>
             Showing <strong className="text-on-surface font-semibold">{rangeStart}-{rangeEnd}</strong>{" "}
             of <strong className="text-on-surface font-semibold">{total}</strong> results
@@ -423,7 +423,7 @@ export function ResultsColumn({
             type="button"
             disabled={page === 0}
             onClick={() => onPageChange(page - 1)}
-            className="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-high transition-colors disabled:opacity-40"
+            className="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-muted hover:text-on-surface hover:bg-surface-container-high transition-colors disabled:opacity-40"
           >
             <Icon name="chevron_left" className="text-[16px]" />
           </button>
@@ -451,7 +451,7 @@ export function ResultsColumn({
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-mono-code text-label-caps text-outline">PER PAGE:</span>
+          <span className="font-mono-code text-label-caps text-muted">PER PAGE:</span>
           <select
             value={pageSize}
             onChange={(event) => onPageSizeChange(Number(event.target.value))}

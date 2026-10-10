@@ -24,13 +24,13 @@ function PreviewCard({
 }) {
   const artifact = guessArtifact(value);
   return (
-    <div className="p-3 rounded-lg bg-surface-container-high space-y-2">
+    <div className="p-4 rounded-lg bg-surface-container-high space-y-4">
       <div className="flex items-center justify-between">
-        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-variant font-mono-code text-[11px] text-on-surface-variant">
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-variant font-mono-code text-micro-label text-on-surface-variant">
           <Icon name={toolIcon[artifact.tool]} className="text-[13px]" />
           {artifact.kind}
         </span>
-        <span className="font-mono-code text-[10px] text-outline">
+        <span className="font-mono-code text-micro-label text-muted">
           {value.trim() ? "Resolved node" : "Awaiting input"}
         </span>
       </div>
@@ -38,7 +38,7 @@ function PreviewCard({
         {value.trim() || placeholder}
       </div>
       <div className="text-body-sm text-on-surface-variant truncate">{meta}</div>
-      <div className="flex items-center gap-2 pt-1 font-mono-code text-[11px] text-outline">
+      <div className="flex items-center gap-2 pt-1 font-mono-code text-micro-label text-muted">
         <Icon name="history" className="text-[14px]" />
         <span className="truncate">{footer}</span>
       </div>
@@ -76,7 +76,7 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
   return (
     <section
       id="link-wizard"
-      className="rounded-xl bg-surface-container-low p-6 shadow-xl relative overflow-hidden scroll-mt-24"
+      className="rounded-xl bg-surface-container-low p-4 shadow-xl relative overflow-hidden scroll-mt-24"
     >
       <div className="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-primary-container/10 blur-3xl pointer-events-none" />
 
@@ -94,24 +94,24 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
             </p>
           </div>
         </div>
-        <span className="px-2.5 py-1 rounded bg-surface-container font-mono-code text-label-caps text-outline uppercase tracking-wider">
+        <span className="px-2.5 py-1 rounded bg-surface-container font-mono-code text-label-caps text-muted uppercase tracking-wider">
           SYNAPSE-BUILDER
         </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start mt-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start mt-2">
         {/* 1. Source */}
-        <div className="lg:col-span-4 bg-surface-container rounded-xl p-4 space-y-3 shadow-sm">
+        <div className="lg:col-span-4 bg-surface-container rounded-xl p-4 space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <label htmlFor="link-source" className="font-label-caps text-label-caps uppercase text-outline">
+            <label htmlFor="link-source" className="font-label-caps text-label-caps uppercase text-muted">
               1. Source Artifact
             </label>
-            <span className="font-mono-code text-[11px] text-secondary">Origin Node</span>
+            <span className="font-mono-code text-micro-label text-secondary">Origin Node</span>
           </div>
           <div className="relative">
             <Icon
               name="search"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[18px]"
             />
             <input
               id="link-source"
@@ -121,7 +121,7 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
                 setStatus(null);
               }}
               placeholder="Search Figma, GitHub, Jira..."
-              className="w-full pl-9 pr-8 py-2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-mono-code focus:outline-none focus:ring-1 focus:ring-primary shadow-inner placeholder:text-outline"
+              className="w-full pl-9 pr-8 py-2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-mono-code focus:outline-none focus:ring-1 focus:ring-primary shadow-inner placeholder:text-muted"
             />
           </div>
           <PreviewCard
@@ -133,12 +133,12 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
         </div>
 
         {/* 2. Relationship */}
-        <div className="lg:col-span-4 bg-surface-container rounded-xl p-4 space-y-3 shadow-sm">
+        <div className="lg:col-span-4 bg-surface-container rounded-xl p-4 space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="font-label-caps text-label-caps uppercase text-outline">
+            <span className="font-label-caps text-label-caps uppercase text-muted">
               2. Relationship Type
             </span>
-            <span className="font-mono-code text-[11px] text-primary font-bold">{relation}</span>
+            <span className="font-mono-code text-micro-label text-primary font-bold">{relation}</span>
           </div>
           <div className="grid grid-cols-2 gap-1.5">
             {RELATIONS.map((rel) => {
@@ -163,23 +163,23 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
               );
             })}
           </div>
-          <div className="p-2.5 rounded bg-surface-container-lowest font-body-sm text-body-sm text-on-surface-variant italic">
+          <div className="p-3.5 rounded bg-surface-container-lowest font-body-sm text-body-sm text-on-surface-variant italic">
             {relationMeta[relation].description}
           </div>
         </div>
 
         {/* 3. Target */}
-        <div className="lg:col-span-4 bg-surface-container rounded-xl p-4 space-y-3 shadow-sm">
+        <div className="lg:col-span-4 bg-surface-container rounded-xl p-4 space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <label htmlFor="link-target" className="font-label-caps text-label-caps uppercase text-outline">
+            <label htmlFor="link-target" className="font-label-caps text-label-caps uppercase text-muted">
               3. Target Artifact
             </label>
-            <span className="font-mono-code text-[11px] text-tertiary">Destination Node</span>
+            <span className="font-mono-code text-micro-label text-tertiary">Destination Node</span>
           </div>
           <div className="relative">
             <Icon
               name="search"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[18px]"
             />
             <input
               id="link-target"
@@ -189,7 +189,7 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
                 setStatus(null);
               }}
               placeholder="Search target PR, Jira key..."
-              className="w-full pl-9 pr-8 py-2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-mono-code focus:outline-none focus:ring-1 focus:ring-primary shadow-inner placeholder:text-outline"
+              className="w-full pl-9 pr-8 py-2 rounded bg-surface-container-lowest text-on-surface font-mono-code text-mono-code focus:outline-none focus:ring-1 focus:ring-primary shadow-inner placeholder:text-muted"
             />
           </div>
           <PreviewCard
@@ -204,13 +204,13 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
       {/* Reason + commit bar */}
       <div className="mt-5 p-4 rounded-xl bg-surface-container-lowest flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="flex items-center gap-3 flex-1">
-          <div className="p-2 rounded bg-surface-container text-outline">
+          <div className="p-3 rounded bg-surface-container text-muted">
             <Icon name="swap_horiz" className="text-[20px]" />
           </div>
           <div className="flex-1 min-w-0">
             <label
               htmlFor="link-notes"
-              className="font-label-caps text-label-caps uppercase text-outline"
+              className="font-label-caps text-label-caps uppercase text-muted"
             >
               Link Reason / Context Notes (Optional)
             </label>
@@ -219,12 +219,12 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g., Implementing Sprint 44 spec from Figma design review"
-              className="w-full mt-1 px-3 py-1.5 rounded bg-surface-container text-body-sm text-on-surface placeholder-outline focus:outline-none focus:ring-1 focus:ring-secondary"
+              className="w-full mt-1 px-3 py-1.5 rounded bg-surface-container text-body-sm text-on-surface placeholder-muted focus:outline-none focus:ring-1 focus:ring-secondary"
             />
             {status ? (
               <p
                 aria-live="polite"
-                className={`mt-2 font-mono-code text-[11px] ${
+                className={`mt-2 font-mono-code text-micro-label ${
                   status.tone === "ok" ? "text-secondary" : "text-tertiary"
                 }`}
               >
@@ -244,7 +244,7 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
           <button
             type="button"
             onClick={establish}
-            className="flex items-center gap-2 px-5 py-2 rounded bg-secondary text-on-secondary hover:bg-secondary/90 transition-all font-body-sm font-semibold shadow-md shadow-secondary/20"
+            className="flex items-center gap-2 px-4 py-2 rounded bg-secondary text-on-secondary hover:bg-secondary/90 transition-all font-body-sm font-semibold shadow-md shadow-secondary/20"
           >
             <Icon name="link" className="text-[18px]" />
             <span>Establish Link</span>
@@ -253,7 +253,7 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
       </div>
 
       <p className="mt-3 flex items-start gap-2 font-body-sm text-body-sm text-on-surface-variant">
-        <Icon name="info" className="text-[15px] text-outline mt-0.5" />
+        <Icon name="info" className="text-[15px] text-muted mt-0.5" />
         <span>
           Links created here are <span className="text-on-surface font-semibold">manual</span>{" "}
           provenance and <span className="text-secondary font-semibold">confirmed</span> eligibility,

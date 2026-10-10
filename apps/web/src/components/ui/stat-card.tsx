@@ -34,7 +34,7 @@ export function StatCard({
           {label}
         </span>
         {icon ? (
-          <span className="material-symbols-outlined text-outline text-[18px]">{icon}</span>
+          <span className="material-symbols-outlined text-muted text-[18px]">{icon}</span>
         ) : null}
       </div>
       <div className="flex items-end justify-between gap-2 mt-1">
@@ -43,11 +43,11 @@ export function StatCard({
             {value}
           </div>
           {hint ? (
-            <div className="font-mono-code text-[11px] text-on-surface-variant truncate">{hint}</div>
+            <div className="font-mono-code text-micro-label text-on-surface-variant truncate">{hint}</div>
           ) : null}
         </div>
         {delta ? (
-          <span className={`font-mono-code text-[11px] font-bold ${deltaClass}`}>{delta}</span>
+          <span className={`font-mono-code text-micro-label font-bold ${deltaClass}`}>{delta}</span>
         ) : null}
       </div>
     </div>
@@ -73,7 +73,7 @@ export function PageHeader({
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
         {breadcrumb ? (
-          <p className="font-mono-code text-[11px] text-on-surface-variant mb-1">{breadcrumb}</p>
+          <p className="font-mono-code text-micro-label text-on-surface-variant mb-1">{breadcrumb}</p>
         ) : null}
         <h2 className="font-headline-lg text-headline-lg text-on-surface">{title}</h2>
         {description ? (

@@ -40,10 +40,10 @@ function AlertCard({ finding }: { finding: Finding }) {
 
   return (
     <article className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden hover:border-tertiary hover:bg-surface-container-high transition-all group">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-outline-variant bg-surface-container-high/50">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant bg-surface-container-high/50">
         <div className="flex items-center gap-2">
           <span
-            className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+            className={`text-eyebrow font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
               isCritical
                 ? "bg-tertiary text-on-tertiary-fixed"
                 : "bg-surface-variant text-on-surface-variant"
@@ -51,7 +51,7 @@ function AlertCard({ finding }: { finding: Finding }) {
           >
             {isCritical ? "Critical" : category}
           </span>
-          <span className="font-mono-code text-[11px] text-on-surface-variant px-2 py-0.5 rounded bg-surface-container-lowest">
+          <span className="font-mono-code text-micro-label text-on-surface-variant px-2 py-0.5 rounded bg-surface-container-lowest">
             {finding.policy}
           </span>
           <span className="text-on-surface-variant text-body-sm">Detected {finding.ageLabel} ago</span>
@@ -68,7 +68,7 @@ function AlertCard({ finding }: { finding: Finding }) {
         </div>
       </div>
 
-      <div className="p-4 flex flex-col md:flex-row gap-6">
+      <div className="p-4 flex flex-col md:flex-row gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <Link
@@ -77,7 +77,7 @@ function AlertCard({ finding }: { finding: Finding }) {
             >
               {title}
             </Link>
-            <span className="font-mono-code text-[11px] text-primary shrink-0">#{finding.id}</span>
+            <span className="font-mono-code text-micro-label text-primary shrink-0">#{finding.id}</span>
           </div>
           <p className="text-on-surface-variant mb-4">{finding.summary}</p>
 
@@ -85,11 +85,11 @@ function AlertCard({ finding }: { finding: Finding }) {
             {finding.artifacts.slice(0, 2).map((artifact) => (
               <div
                 key={`${artifact.tool}-${artifact.ref}`}
-                className="p-3 bg-surface-container-lowest border border-outline-variant rounded-lg"
+                className="p-4 bg-surface-container-lowest border border-outline-variant rounded-lg"
               >
                 <div className="flex items-center gap-2 mb-2 text-on-surface-variant">
                   <Icon name={toolIcon[artifact.tool]} className="text-sm" />
-                  <span className="font-label-caps uppercase text-[10px]">{artifact.label}</span>
+                  <span className="font-label-caps uppercase text-eyebrow">{artifact.label}</span>
                 </div>
                 <p className="font-bold text-body-md truncate">{artifact.ref}</p>
                 <p className="text-on-surface-variant text-body-sm mt-1 truncate">
@@ -101,7 +101,7 @@ function AlertCard({ finding }: { finding: Finding }) {
 
           <div className="flex flex-wrap items-center gap-3 text-body-sm mt-3">
             <span
-              className={`px-2 py-0.5 rounded font-mono-code text-[11px] font-bold ${
+              className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-bold ${
                 verdictChip[finding.verdict ?? "INSUFFICIENT_EVIDENCE"]
               }`}
             >
@@ -163,7 +163,7 @@ export function AlertsFeed() {
             <Icon name="auto_awesome" className="text-tertiary" fill />
           </div>
           <div className="flex-1">
-            <h3 className="text-tertiary font-bold text-body-md mb-1">{healthSummary.headline}</h3>
+            <h3 className="text-tertiary font-bold text-body-md mb-1.5">{healthSummary.headline}</h3>
             <p className="text-on-surface-variant text-body-md leading-relaxed">
               {healthSummary.lead}{" "}
               <span className="text-tertiary font-bold underline">{healthSummary.highlight}</span>{" "}
@@ -183,7 +183,7 @@ export function AlertsFeed() {
 
       {/* Filter tabs */}
       <div className="flex items-center justify-between border-b border-outline-variant mt-2">
-        <div className="flex gap-8 overflow-x-auto">
+        <div className="flex gap-4 overflow-x-auto">
           {alertTabs.map((tab) => {
             const isActive = tab.id === activeTab;
             return (
@@ -217,8 +217,8 @@ export function AlertsFeed() {
       {/* Conflict feed */}
       <div className="space-y-gutter pb-10">
         {visible.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-outline-variant p-8 text-center">
-            <Icon name="notifications_off" className="text-outline text-[28px]" />
+          <div className="rounded-xl border border-dashed border-outline-variant p-4 text-center">
+            <Icon name="notifications_off" className="text-muted text-[28px]" />
             <p className="text-body-md text-on-surface-variant mt-2">
               No alerts in this view — the workspace is quiet.
             </p>

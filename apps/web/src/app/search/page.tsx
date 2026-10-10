@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function SearchPage() {
   return (
-    <AppShell action={<span className="font-mono-code text-[11px] text-secondary">index sha 7a9f4c</span>}>
+    <AppShell>
       <SearchWorkspace />
     </AppShell>
   );

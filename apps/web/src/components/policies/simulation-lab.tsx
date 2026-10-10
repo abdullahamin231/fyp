@@ -226,10 +226,10 @@ function MetricCard({
   label,
   value,
   unit,
-  unitTone = "text-outline",
+  unitTone = "text-muted",
   valueTone = "text-on-surface",
   footnote,
-  footnoteTone = "text-outline-variant",
+  footnoteTone = "text-muted",
 }: {
   label: string;
   value: ReactNode;
@@ -241,14 +241,14 @@ function MetricCard({
 }) {
   return (
     <div className="p-stack-comfortable rounded-xl bg-surface-container-low shadow-sm flex flex-col justify-between">
-      <span className="font-label-caps text-label-caps text-outline uppercase">{label}</span>
-      <div className="flex items-baseline gap-1 mt-1">
+      <span className="font-label-caps text-label-caps text-muted uppercase">{label}</span>
+      <div className="flex items-baseline gap-1 mt-1.5">
         <span className={`font-headline-md text-headline-md font-bold font-mono-code ${valueTone}`}>
           {value}
         </span>
-        {unit ? <span className={`font-mono-code text-[11px] ${unitTone}`}>{unit}</span> : null}
+        {unit ? <span className={`font-mono-code text-micro-label ${unitTone}`}>{unit}</span> : null}
       </div>
-      <span className={`font-mono-code text-[10px] mt-1 ${footnoteTone}`}>{footnote}</span>
+      <span className={`font-mono-code text-micro-label mt-1.5 ${footnoteTone}`}>{footnote}</span>
     </div>
   );
 }
@@ -288,7 +288,7 @@ function EventRow({
             tag: "SUPPRESSED",
             tagClass: "bg-surface-container-highest text-on-surface-variant font-semibold",
             icon: cls.icon,
-            iconClass: "bg-surface-container-highest text-outline",
+            iconClass: "bg-surface-container-highest text-muted",
             cardClass: "bg-surface-container-low hover:bg-surface-container opacity-80",
           };
 
@@ -303,7 +303,7 @@ function EventRow({
     <article
       className={`group p-stack-comfortable rounded-xl transition-all shadow-sm flex flex-col gap-stack-compact ${presentation.cardClass}`}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <div
             className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${presentation.iconClass}`}
@@ -313,7 +313,7 @@ function EventRow({
           <div className="flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
               <span
-                className={`px-1.5 py-0.5 rounded font-mono-code text-[10px] ${presentation.tagClass}`}
+                className={`px-1.5 py-0.5 rounded font-mono-code text-micro-label ${presentation.tagClass}`}
               >
                 {presentation.tag}
               </span>
@@ -321,7 +321,7 @@ function EventRow({
                 {cls.title}
               </span>
             </div>
-            <span className="font-mono-code text-[11px] text-outline mt-0.5">
+            <span className="font-mono-code text-micro-label text-muted mt-0.5">
               Event UUID: {cls.uuid} · ×{occurrences} occurrences
             </span>
           </div>
@@ -331,12 +331,12 @@ function EventRow({
             {fmtDate(cls.iso)}
           </span>
           <span
-            className={`font-mono-code text-[11px] font-semibold ${
+            className={`font-mono-code text-micro-label font-semibold ${
               outcome === "triggered"
                 ? "text-error"
                 : outcome === "passed"
                   ? "text-secondary"
-                  : "text-outline"
+                  : "text-muted"
             }`}
           >
             {rightMeta}
@@ -345,12 +345,12 @@ function EventRow({
       </div>
 
       {/* Artifact chain */}
-      <div className="p-2.5 rounded bg-surface-container-lowest/80 flex items-center gap-2 flex-wrap font-mono-code text-[11px]">
+      <div className="p-3.5 rounded bg-surface-container-lowest/80 flex items-center gap-3 flex-wrap font-mono-code text-micro-label">
         {cls.artifacts.map((artifact, index) => (
           <span key={artifact.text} className="flex items-center gap-2">
-            {index > 0 ? <span className="text-outline">↔</span> : null}
+            {index > 0 ? <span className="text-muted">↔</span> : null}
             <span className={`flex items-center gap-1 ${toolTone[artifact.tool]}`}>
-              <Icon name={toolIcon[artifact.tool]} className="text-outline text-[14px]" />
+              <Icon name={toolIcon[artifact.tool]} className="text-muted text-[14px]" />
               <span>{artifact.text}</span>
             </span>
           </span>
@@ -360,7 +360,7 @@ function EventRow({
       {/* Guard evaluation */}
       <div className="flex flex-wrap items-center gap-1.5">
         {row.outcome === "suppressed" && cls.guard ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-error-container/30 text-error font-mono-code text-[10px]">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-error-container/30 text-error font-mono-code text-micro-label">
             <Icon name="block" className="text-[12px]" />
             blocked: {cls.guard.text}
           </span>
@@ -369,7 +369,7 @@ function EventRow({
           <span
             key={guard}
             title="Guard evaluated and passed"
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-mono-code text-[10px]"
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-mono-code text-micro-label"
           >
             <Icon name="check" className="text-[12px]" />
             {guard}
@@ -379,7 +379,7 @@ function EventRow({
 
       {/* Decision trace */}
       {outcome === "triggered" ? (
-        <div className="p-2.5 rounded bg-error-container/20 text-on-error-container font-mono-code text-[11px] flex items-start gap-2">
+        <div className="p-3.5 rounded bg-error-container/20 text-on-error-container font-mono-code text-micro-label flex items-start gap-2.5">
           <Icon name="report_problem" className="text-error text-[16px] shrink-0 mt-0.5" />
           <span>
             <span className="font-bold text-error">VIOLATION DETECTED:</span> {cls.detail} Exceeds
@@ -390,7 +390,7 @@ function EventRow({
           </span>
         </div>
       ) : outcome === "passed" ? (
-        <div className="p-2.5 rounded bg-surface-container font-mono-code text-[11px] flex items-start gap-2 text-on-surface-variant">
+        <div className="p-3.5 rounded bg-surface-container font-mono-code text-micro-label flex items-start gap-2.5 text-on-surface-variant">
           <Icon name="check_circle" className="text-secondary text-[16px] shrink-0 mt-0.5" />
           <span>
             <span className="font-bold text-on-surface">NO VIOLATION CREATED:</span>{" "}
@@ -398,8 +398,8 @@ function EventRow({
           </span>
         </div>
       ) : (
-        <div className="p-2.5 rounded bg-surface-container font-mono-code text-[11px] flex items-start gap-2 text-on-surface-variant">
-          <Icon name="shield" className="text-outline text-[16px] shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded bg-surface-container font-mono-code text-micro-label flex items-start gap-2.5 text-on-surface-variant">
+          <Icon name="shield" className="text-muted text-[16px] shrink-0 mt-0.5" />
           <span>
             <span className="font-bold text-on-surface">GUARD EXCLUSION:</span>{" "}
             {cls.guard ? `${cls.guard.text} (${cls.guard.clause}). ` : ""}
@@ -488,14 +488,14 @@ export function SimulationLab() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <Link href="/policies" className="font-body-sm text-body-sm text-outline hover:text-on-surface transition-colors">
+            <Link href="/policies" className="font-body-sm text-body-sm text-muted hover:text-on-surface transition-colors">
               Policy Configuration
             </Link>
-            <Icon name="chevron_right" className="text-outline text-[14px]" />
+            <Icon name="chevron_right" className="text-muted text-[14px]" />
             <Link href="/policies" className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors">
               {policy.id}: {policy.name}
             </Link>
-            <Icon name="chevron_right" className="text-outline text-[14px]" />
+            <Icon name="chevron_right" className="text-muted text-[14px]" />
             <span className="font-mono-code text-mono-code font-semibold text-primary">
               Simulation &amp; Historical Test
             </span>
@@ -543,7 +543,6 @@ export function SimulationLab() {
         {/* LEFT — parameters */}
         <div className="lg:col-span-5 flex flex-col gap-gutter">
           <div className="rounded-xl bg-surface-container-low p-margin-page shadow-md flex flex-col gap-4 relative overflow-hidden">
-            <div className="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-gradient-to-br from-primary-container/20 to-transparent blur-2xl pointer-events-none" />
 
             <div className="flex flex-col gap-1.5 relative">
               <span className="font-label-caps text-label-caps text-secondary uppercase tracking-wider">
@@ -568,11 +567,11 @@ export function SimulationLab() {
                   </option>
                 ))}
               </select>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="px-1.5 py-0.5 rounded bg-surface-container-highest text-primary font-mono-code text-[11px] font-semibold">
+              <div className="flex items-center gap-2 mt-1.5">
+                <span className="px-1.5 py-0.5 rounded bg-surface-container-highest text-primary font-mono-code text-micro-label font-semibold">
                   Draft parameters
                 </span>
-                <span className="font-mono-code text-[11px] text-outline">
+                <span className="font-mono-code text-micro-label text-muted">
                   {policy.firedLast7d} fired / 7d in production
                 </span>
               </div>
@@ -582,7 +581,7 @@ export function SimulationLab() {
 
             {/* Scenario selector */}
             <div className="flex flex-col gap-1.5">
-              <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+              <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                 What-if Scenario
               </span>
               <select
@@ -602,7 +601,7 @@ export function SimulationLab() {
                   <option value="custom">Custom parameters (unsaved)</option>
                 ) : null}
               </select>
-              <span className="font-body-sm text-[12px] text-outline">
+              <span className="font-body-sm text-[12px] text-muted">
                 {scenarioId === "custom"
                   ? "Hand-tuned window and guard state — run to re-evaluate the replay."
                   : simScenarios.find((scenario) => scenario.id === scenarioId)?.description}
@@ -610,10 +609,10 @@ export function SimulationLab() {
             </div>
 
             {/* Grace period slider */}
-            <div className="flex flex-col gap-2 bg-surface-container rounded-lg p-stack-comfortable">
+            <div className="flex flex-col gap-3 bg-surface-container rounded-lg p-stack-comfortable">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <Icon name="timer" className="text-outline text-[18px]" />
+                  <Icon name="timer" className="text-muted text-[18px]" />
                   <label
                     htmlFor="grace-slider"
                     className="font-body-sm text-body-sm font-semibold text-on-surface"
@@ -627,7 +626,7 @@ export function SimulationLab() {
                   </span>
                   <span className="font-mono-code text-[12px] text-on-surface-variant">minutes</span>
                   {params.stepIndex !== defaultStep[params.policyId] ? (
-                    <span className="px-1.5 py-0.2 rounded bg-surface-container-highest text-outline font-mono-code text-[10px] line-through">
+                    <span className="px-1.5 py-0.2 rounded bg-surface-container-highest text-muted font-mono-code text-micro-label line-through">
                       {configuredGrace}m
                     </span>
                   ) : null}
@@ -645,7 +644,7 @@ export function SimulationLab() {
                 }
                 className="w-full h-1.5 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-secondary"
               />
-              <div className="flex justify-between font-mono-code text-[10px] text-outline px-0.5">
+              <div className="flex justify-between font-mono-code text-micro-label text-muted px-0.5">
                 <span>{fmtMinutes(steps[0])} (Strict)</span>
                 <span>{fmtMinutes(steps[1])}</span>
                 <span className="text-secondary font-bold">
@@ -658,10 +657,10 @@ export function SimulationLab() {
 
             {/* Horizon selector */}
             <div className="flex flex-col gap-1.5">
-              <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+              <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                 Evaluation Sample Horizon
               </span>
-              <div className="flex items-center justify-between p-stack-comfortable rounded-lg bg-surface-container gap-2">
+              <div className="flex items-center justify-between p-stack-comfortable rounded-lg bg-surface-container gap-3">
                 <div className="flex items-center gap-stack-compact">
                   <Icon name="calendar_month" className="text-primary text-[18px]" />
                   <div className="flex flex-col">
@@ -679,10 +678,10 @@ export function SimulationLab() {
                         </option>
                       ))}
                     </select>
-                    <span className="font-mono-code text-[11px] text-outline">{horizon.range}</span>
+                    <span className="font-mono-code text-micro-label text-muted">{horizon.range}</span>
                   </div>
                 </div>
-                <span className="px-2 py-1 rounded bg-surface-container-high text-on-surface-variant font-mono-code text-[11px]">
+                <span className="px-2 py-1 rounded bg-surface-container-high text-on-surface-variant font-mono-code text-micro-label">
                   {horizon.events.toLocaleString("en-US")} Events
                 </span>
               </div>
@@ -690,26 +689,26 @@ export function SimulationLab() {
 
             {/* Scope matrix */}
             <div className="grid grid-cols-2 gap-stack-compact">
-              <div className="p-3 rounded-lg bg-surface-container flex flex-col gap-1">
-                <span className="font-label-caps text-label-caps text-outline uppercase">
+              <div className="p-4 rounded-lg bg-surface-container flex flex-col gap-1.5">
+                <span className="font-label-caps text-label-caps text-muted uppercase">
                   Active Triggers
                 </span>
-                <div className="flex flex-wrap gap-1 mt-1">
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {policy.trigger.split("|").map((trigger) => (
                     <span
                       key={trigger}
-                      className="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface font-mono-code text-[10px]"
+                      className="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface font-mono-code text-micro-label"
                     >
                       {trigger.trim()}
                     </span>
                   ))}
                 </div>
               </div>
-              <div className="p-3 rounded-lg bg-surface-container flex flex-col gap-1">
-                <span className="font-label-caps text-label-caps text-outline uppercase">
+              <div className="p-4 rounded-lg bg-surface-container flex flex-col gap-1.5">
+                <span className="font-label-caps text-label-caps text-muted uppercase">
                   Assigned Severity
                 </span>
-                <div className="flex items-center gap-1.5 mt-1">
+                <div className="flex items-center gap-1.5 mt-1.5">
                   <span className={`w-2 h-2 rounded-full ${severity.dot}`} />
                   <span className={`font-body-sm text-body-sm font-semibold ${severity.text}`}>
                     {severity.label} ({policy.id})
@@ -719,25 +718,25 @@ export function SimulationLab() {
             </div>
 
             {/* Scope bounds */}
-            <div className="p-3 rounded-lg bg-surface-container flex flex-col gap-2">
-              <span className="font-label-caps text-label-caps text-outline uppercase">
+            <div className="p-4 rounded-lg bg-surface-container flex flex-col gap-2">
+              <span className="font-label-caps text-label-caps text-muted uppercase">
                 Target Scope Bounds
               </span>
-              <div className="flex flex-col gap-1.5 font-mono-code text-[11px]">
+              <div className="flex flex-col gap-1.5 font-mono-code text-micro-label">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-outline flex items-center gap-1">
+                  <span className="text-muted flex items-center gap-1">
                     <Icon name="source" className="text-[14px]" /> Git Repos:
                   </span>
                   <span className="text-secondary font-medium">unify-core, unify-web</span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-outline flex items-center gap-1">
+                  <span className="text-muted flex items-center gap-1">
                     <Icon name="draw" className="text-[14px]" /> Figma Project:
                   </span>
                   <span className="text-secondary font-medium">Design System 2024</span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-outline flex items-center gap-1">
+                  <span className="text-muted flex items-center gap-1">
                     <Icon name="label" className="text-[14px]" /> Suppression Guard:
                   </span>
                   <span className="text-on-surface-variant font-medium">
@@ -764,10 +763,10 @@ export function SimulationLab() {
           {/* Sensitivity curve */}
           <div className="rounded-xl bg-surface-container-low p-stack-comfortable shadow-md flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+              <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                 Grace Period Sensitivity Curve
               </span>
-              <span className="font-mono-code text-[11px] text-tertiary">{horizon.label}</span>
+              <span className="font-mono-code text-micro-label text-tertiary">{horizon.label}</span>
             </div>
             <div className="h-20 w-full flex items-end justify-between gap-1 px-1 py-1">
               {curve.map((count, index) => (
@@ -782,14 +781,14 @@ export function SimulationLab() {
                     height: `${Math.max(6, Math.round((count / curveMax) * 100))}%`,
                   }}
                 >
-                  <span className="hidden group-hover:block absolute -top-6 bg-surface-container-highest text-on-surface font-mono-code text-[10px] px-1 py-0.5 rounded shadow whitespace-nowrap">
+                  <span className="hidden group-hover:block absolute -top-6 bg-surface-container-highest text-on-surface font-mono-code text-micro-label px-1 py-0.5 rounded shadow whitespace-nowrap">
                     {fmtMinutes(steps[index])}: {count} alerts
                     {index === params.stepIndex ? " (Selected)" : ""}
                   </span>
                 </div>
               ))}
             </div>
-            <div className="flex justify-between font-mono-code text-[10px] text-outline px-1">
+            <div className="flex justify-between font-mono-code text-micro-label text-muted px-1">
               {steps.map((step, index) => (
                 <span
                   key={step}
@@ -799,7 +798,7 @@ export function SimulationLab() {
                 </span>
               ))}
             </div>
-            <p className="font-mono-code text-[10px] text-outline">
+            <p className="font-mono-code text-micro-label text-muted">
               triggered candidates per grace window — guards {params.guards ? "armed" : "bypassed"},
               recomputed live
             </p>
@@ -810,7 +809,7 @@ export function SimulationLab() {
         <div className="lg:col-span-7 flex flex-col gap-gutter">
           {/* Stale banner */}
           {stale ? (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-tertiary-container/25 text-on-tertiary-container font-mono-code text-[11px]">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-tertiary-container/25 text-on-tertiary-container font-mono-code text-micro-label">
               <Icon name="history" className="text-[16px] shrink-0" />
               <span>
                 Parameters changed since run #{runNumber} — results below reflect the last run.
@@ -848,7 +847,7 @@ export function SimulationLab() {
                   `${(result.rate * 100).toFixed(2)}% trigger rate`
                 )
               }
-              footnoteTone="text-outline-variant"
+              footnoteTone="text-outline"
             />
             <MetricCard
               label="Est. Alert Volume"
@@ -866,7 +865,7 @@ export function SimulationLab() {
                   `${result.counts.triggered} across ${result.horizon.days} days`
                 )
               }
-              footnoteTone="text-outline"
+              footnoteTone="text-muted"
             />
             <MetricCard
               label="False Positives"
@@ -908,10 +907,10 @@ export function SimulationLab() {
                     {tab.dot ? <span className={`w-2 h-2 rounded-full ${tab.dot}`} /> : null}
                     <span>{tab.label}</span>
                     <span
-                      className={`px-1.5 py-0.2 rounded font-mono-code text-[10px] ${
+                      className={`px-1.5 py-0.2 rounded font-mono-code text-micro-label ${
                         tab.id === "triggered" && active
                           ? "bg-error-container/40 text-error font-bold"
-                          : "bg-surface-container-highest text-outline"
+                          : "bg-surface-container-highest text-muted"
                       }`}
                     >
                       {tab.count}
@@ -921,14 +920,14 @@ export function SimulationLab() {
               })}
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-mono-code text-[11px] text-outline">
+              <span className="font-mono-code text-micro-label text-muted">
                 Sort: {sortNewest ? "Newest" : "Oldest"} First
               </span>
               <button
                 type="button"
                 aria-label="Toggle sort order"
                 onClick={() => setSortNewest((value) => !value)}
-                className="p-1 rounded bg-surface-container-low hover:bg-surface-container text-outline hover:text-on-surface"
+                className="p-1 rounded bg-surface-container-low hover:bg-surface-container text-muted hover:text-on-surface"
               >
                 <Icon name="swap_vert" className="text-[18px]" />
               </button>
@@ -946,7 +945,7 @@ export function SimulationLab() {
               />
             ))}
             {visibleRows.length === 0 ? (
-              <div className="p-6 rounded-xl bg-surface-container-low border border-outline-variant/40 text-center font-mono-code text-[12px] text-outline">
+              <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 text-center font-mono-code text-[12px] text-muted">
                 No {filter} events in run #{runNumber} — every candidate either cleared the{" "}
                 {result.grace}m window or was blocked by a guard.
               </div>
@@ -954,33 +953,33 @@ export function SimulationLab() {
           </div>
 
           {/* Expected notifications */}
-          <div className="rounded-xl bg-surface-container-low p-4 shadow-sm flex flex-col gap-3">
+          <div className="rounded-xl bg-surface-container-low p-4 shadow-sm flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider flex items-center gap-1.5">
                 <Icon name="notifications_active" className="text-[16px] text-primary" />
                 Expected Notifications if Promoted
               </span>
-              <span className="px-2 py-0.5 rounded bg-primary/15 text-primary font-mono-code text-[11px] font-bold">
+              <span className="px-2 py-0.5 rounded bg-primary/15 text-primary font-mono-code text-micro-label font-bold">
                 {wouldDeliver} message{wouldDeliver === 1 ? "" : "s"} composed
               </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 font-mono-code text-[11px]">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-outline uppercase text-[10px]">Template</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 font-mono-code text-micro-label">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-muted uppercase text-micro-label">Template</span>
                 <span className="text-on-surface">{result.policy.notifyTemplate}</span>
               </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-outline uppercase text-[10px]">Channel</span>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-muted uppercase text-micro-label">Channel</span>
                 <span className="text-on-surface">
                   {meta.channel} · {meta.recipients.join(", ")}
                 </span>
               </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-outline uppercase text-[10px]">Escalation</span>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-muted uppercase text-micro-label">Escalation</span>
                 <span className="text-on-surface-variant">{meta.escalation}</span>
               </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-outline uppercase text-[10px]">Delivery Rule</span>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-muted uppercase text-micro-label">Delivery Rule</span>
                 <span className="text-secondary">delivery-only — never a reasoning input</span>
               </div>
             </div>
@@ -1004,7 +1003,7 @@ export function SimulationLab() {
             <span className="font-body-sm text-body-sm font-semibold text-on-surface">
               Ready to promote draft parameters for {result.policy.id}: {result.policy.name}
             </span>
-            <span className="font-mono-code text-[11px] text-outline">
+            <span className="font-mono-code text-micro-label text-muted">
               Simulated impact: {result.counts.triggered} violations across {result.horizon.days}{" "}
               days · run #{runNumber}
               {stale ? " · stale (re-run first)" : ""}
@@ -1024,7 +1023,7 @@ export function SimulationLab() {
           </button>
           <Link
             href="/policies"
-            className="px-5 py-2 rounded bg-primary-container hover:bg-inverse-primary text-on-primary font-body-sm text-body-sm font-bold shadow-md transition-all flex items-center gap-2"
+            className="px-4 py-2 rounded bg-primary-container hover:bg-inverse-primary text-on-primary font-body-sm text-body-sm font-bold shadow-md transition-all flex items-center gap-2"
           >
             <Icon name="bolt" className="text-[18px]" />
             <span>Apply Parameters in Editor</span>

@@ -10,14 +10,7 @@ export const metadata: Metadata = {
 
 export default function OnboardingPage() {
   return (
-    <AppShell
-      action={
-        <span className="font-mono-code text-[11px] text-secondary flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse" />
-          setup in progress
-        </span>
-      }
-    >
+    <AppShell>
       <OnboardingWizard />
     </AppShell>
   );

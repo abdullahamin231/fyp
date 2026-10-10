@@ -177,11 +177,11 @@ export function OnboardingWizard() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-[11px] text-primary tracking-wider uppercase">
+              <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-eyebrow text-primary tracking-wider uppercase">
                 Pipeline Provisioning
               </span>
-              <span className="text-outline text-body-sm font-mono-code">/</span>
-              <span className="font-mono-code text-[11px] text-on-surface-variant">
+              <span className="text-muted text-body-sm font-mono-code">/</span>
+              <span className="font-mono-code text-micro-label text-on-surface-variant">
                 Setup Wizard ID: #WIZ-8821
               </span>
             </div>
@@ -195,7 +195,7 @@ export function OnboardingWizard() {
           </div>
           <div className="flex items-center gap-3 bg-surface-container-low px-4 py-2 rounded-lg self-start md:self-auto">
             <div className="text-right">
-              <div className="font-label-caps text-label-caps uppercase text-outline">Progress</div>
+              <div className="font-label-caps text-label-caps uppercase text-muted">Progress</div>
               <div className="font-mono-code text-[15px] font-semibold text-secondary">
                 Step {step} of {steps.length} ({pct}%)
               </div>
@@ -219,7 +219,7 @@ export function OnboardingWizard() {
                   strokeWidth="3.5"
                 />
               </svg>
-              <span className="absolute font-mono-code text-[10px] text-on-surface font-bold">
+              <span className="absolute font-mono-code text-micro-label text-on-surface font-bold">
                 {step}/5
               </span>
             </div>
@@ -251,8 +251,8 @@ export function OnboardingWizard() {
               >
                 <div className="flex items-center justify-between">
                   <span
-                    className={`font-mono-code text-[10px] ${
-                      isActive ? "text-on-primary-container/80" : "text-outline"
+                    className={`font-mono-code text-micro-label ${
+                      isActive ? "text-on-primary-container/80" : "text-muted"
                     }`}
                   >
                     0{position}
@@ -262,9 +262,9 @@ export function OnboardingWizard() {
                   ) : isDone || (!isLocked && isStepConnected(definition.key, auth)) ? (
                     <Icon name="check_circle" className="text-secondary text-[16px]" />
                   ) : isLocked ? (
-                    <Icon name="lock" className="text-outline text-[16px]" />
+                    <Icon name="lock" className="text-muted text-[16px]" />
                   ) : (
-                    <Icon name="radio_button_unchecked" className="text-outline text-[16px]" />
+                    <Icon name="radio_button_unchecked" className="text-muted text-[16px]" />
                   )}
                 </div>
                 <span
@@ -272,20 +272,20 @@ export function OnboardingWizard() {
                     isActive
                       ? "text-on-primary-container"
                       : isLocked
-                        ? "text-outline"
+                        ? "text-muted"
                         : "text-on-surface"
                   }`}
                 >
                   {definition.label}
                 </span>
                 <span
-                  className={`font-mono-code text-[11px] truncate ${
+                  className={`font-mono-code text-micro-label truncate ${
                     isActive
                       ? "text-on-primary-container"
                       : isDone
                         ? "text-secondary"
                         : isLocked
-                          ? "text-outline"
+                          ? "text-muted"
                           : "text-on-surface-variant"
                   }`}
                 >
@@ -298,7 +298,7 @@ export function OnboardingWizard() {
       </section>
 
       {/* Security protocol architecture banner */}
-      <section className="w-full mt-8 bg-surface-container-low rounded-xl p-5 shadow-sm">
+      <section className="w-full mt-8 bg-surface-container-low rounded-xl p-4 shadow-sm">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0">
@@ -309,7 +309,7 @@ export function OnboardingWizard() {
                 <span className="font-headline-sm text-headline-sm text-on-surface">
                   Enterprise Zero-Knowledge Token Vault
                 </span>
-                <span className="px-2 py-0.2 rounded-full bg-secondary/10 text-secondary font-mono-code text-[11px] uppercase font-semibold">
+                <span className="px-2 py-0.2 rounded-full bg-secondary/10 text-secondary font-mono-code text-eyebrow uppercase font-semibold">
                   AES-256-GCM Active
                 </span>
               </div>
@@ -322,15 +322,15 @@ export function OnboardingWizard() {
             </div>
           </div>
           <div className="flex items-center gap-2 self-end lg:self-center flex-shrink-0 bg-surface-container px-3 py-1.5 rounded">
-            <Icon name="verified_user" className="text-outline text-[16px]" />
-            <span className="font-mono-code text-[11px] text-outline">SOC2 Type II Compliant</span>
+            <Icon name="verified_user" className="text-muted text-[16px]" />
+            <span className="font-mono-code text-micro-label text-muted">SOC2 Type II Compliant</span>
           </div>
         </div>
       </section>
 
       {/* Main asymmetric bento workspace */}
-      <div className="grid grid-cols-12 gap-6 items-start mt-8">
-        <div className="col-span-12 lg:col-span-7 flex flex-col gap-6">
+      <div className="grid grid-cols-12 gap-4 items-start mt-8">
+        <div className="col-span-12 lg:col-span-7 flex flex-col gap-4">
           <ActiveStepPanel
             step={step}
             auth={auth}
@@ -352,12 +352,12 @@ export function OnboardingWizard() {
           />
 
           {/* Live sync diagnostic preview */}
-          <div className="bg-surface-container-low rounded-xl p-5 shadow-sm">
+          <div className="bg-surface-container-low rounded-xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <span className="font-label-caps text-label-caps uppercase text-outline">
+              <span className="font-label-caps text-label-caps uppercase text-muted">
                 Ecosystem Pipeline Telemetry
               </span>
-              <span className="font-mono-code text-[11px] text-secondary">
+              <span className="font-mono-code text-micro-label text-secondary">
                 {["figma", "github", "jira"].filter((key) => auth[key as ConnectKey] === "connected")
                   .length === 3
                   ? "All systems operational"
@@ -366,7 +366,7 @@ export function OnboardingWizard() {
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-surface-container p-3 rounded">
-                <div className="font-mono-code text-[10px] text-outline uppercase">
+                <div className="font-mono-code text-eyebrow text-muted uppercase">
                   Egress Region
                 </div>
                 <div className="font-mono-code text-on-surface font-semibold mt-0.5">
@@ -374,7 +374,7 @@ export function OnboardingWizard() {
                 </div>
               </div>
               <div className="bg-surface-container p-3 rounded">
-                <div className="font-mono-code text-[10px] text-outline uppercase">
+                <div className="font-mono-code text-eyebrow text-muted uppercase">
                   Handshake Latency
                 </div>
                 <div className="font-mono-code text-secondary font-semibold mt-0.5">
@@ -382,7 +382,7 @@ export function OnboardingWizard() {
                 </div>
               </div>
               <div className="bg-surface-container p-3 rounded">
-                <div className="font-mono-code text-[10px] text-outline uppercase">Rate Reserve</div>
+                <div className="font-mono-code text-eyebrow text-muted uppercase">Rate Reserve</div>
                 <div className="font-mono-code text-on-surface font-semibold mt-0.5">
                   4,920 req/hr
                 </div>
@@ -405,12 +405,12 @@ export function OnboardingWizard() {
           <button
             type="button"
             onClick={skip}
-            className="px-3.5 py-2 rounded text-outline hover:text-on-surface font-body-sm transition-colors"
+            className="px-3.5 py-2 rounded text-muted hover:text-on-surface font-body-sm transition-colors"
           >
             Skip {current.label} for now
           </button>
-          <span className="text-outline/40">|</span>
-          <span className="font-mono-code text-[12px] text-outline">
+          <span className="text-muted/40">|</span>
+          <span className="font-mono-code text-[12px] text-muted">
             Step {step} of {steps.length} ({pct}% complete)
           </span>
         </div>
@@ -426,7 +426,7 @@ export function OnboardingWizard() {
           <button
             type="button"
             onClick={next}
-            className="px-6 py-2 rounded bg-primary-container hover:bg-inverse-primary text-on-primary-container font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-md"
+            className="px-4 py-2 rounded bg-primary-container hover:bg-inverse-primary text-on-primary-container font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-md"
           >
             <span>{step === 5 ? "Finish Setup" : "Save & Continue to Next Step"}</span>
             <Icon name="arrow_forward" className="text-[16px]" />

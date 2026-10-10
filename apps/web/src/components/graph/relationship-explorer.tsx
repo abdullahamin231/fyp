@@ -155,7 +155,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
       className="relative rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-lowest h-[calc(100vh-264px)] min-h-[640px] shadow-2xl"
     >
       {/* Canvas ambient grid */}
-      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[radial-gradient(var(--color-outline-variant)_1px,transparent_1px)] [background-size:32px_32px]" />
+      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-surface-container-lowest" />
 
       {/* Scrollable stage: SVG edges under absolutely positioned node tiles */}
       <div className="absolute inset-0 overflow-auto p-margin-page">
@@ -211,7 +211,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
                 <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-48 text-center px-2 py-1 rounded-md bg-surface-container/85 backdrop-blur-sm">
                   <p className="text-label-caps text-on-surface truncate">{node.label}</p>
                   <p
-                    className={`text-[10px] uppercase font-bold truncate ${
+                    className={`text-micro-label uppercase font-bold truncate ${
                       node.conflict ? "text-error" : "text-on-surface-variant"
                     }`}
                   >
@@ -225,17 +225,17 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
       </div>
 
       {/* Left filter panel */}
-      <div className="absolute left-margin-page top-margin-page bottom-24 w-64 bg-surface-container-low/95 border border-outline-variant backdrop-blur-md rounded-xl shadow-2xl p-4 flex flex-col gap-5 z-10 overflow-y-auto">
+      <div className="absolute left-margin-page top-margin-page bottom-24 w-64 bg-surface-container-low/95 border border-outline-variant backdrop-blur-md rounded-xl shadow-2xl p-4 flex flex-col gap-4 z-10 overflow-y-auto">
         <div className="flex items-center justify-between">
           <h3 className="font-headline-sm text-headline-sm text-on-surface">Graph Filters</h3>
-          <span className="font-mono-code text-[11px] text-on-surface-variant">
+          <span className="font-mono-code text-micro-label text-on-surface-variant">
             {visibleNodes.length}/{graph.nodes.length}
           </span>
         </div>
 
         <div>
           <span className="text-label-caps text-on-surface-variant mb-2 block">Source Tools</span>
-          <div className="space-y-2">
+          <div className="space-y-4">
             {SOURCE_FILTERS.map((filter) => {
               const active = filter.kinds.every((kind) => enabledKinds.has(kind));
               return (
@@ -261,7 +261,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
                       {filter.label}
                     </span>
                   </span>
-                  <span className="font-mono-code text-[10px] text-outline">
+                  <span className="font-mono-code text-micro-label text-muted">
                     {countFor(graph, filter.kinds)}
                   </span>
                 </label>
@@ -281,7 +281,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
                 <button
                   key={relation}
                   onClick={() => setEnabledRelations((prev) => toggle(prev, relation))}
-                  className={`px-2 py-1 text-[10px] rounded border font-bold transition-colors ${
+                  className={`px-2 py-1 text-micro-label rounded border font-bold transition-colors ${
                     active
                       ? "bg-primary-container text-on-primary-container border-primary"
                       : "bg-surface-variant text-on-surface-variant border-outline-variant hover:text-on-surface"
@@ -296,14 +296,14 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
 
         <div>
           <span className="text-label-caps text-on-surface-variant mb-2 block">Link Eligibility</span>
-          <div className="space-y-1.5">
+          <div className="space-y-3">
             {(Object.keys(eligibilityStyle) as LinkEligibility[]).map((eligibility) => {
               const style = eligibilityStyle[eligibility];
               const count = edges.filter((edge) => edge.eligibility === eligibility).length;
               return (
                 <div
                   key={eligibility}
-                  className="flex items-center justify-between px-2 py-1 bg-surface-container-lowest/60 rounded font-mono-code text-[11px]"
+                  className="flex items-center justify-between px-3 py-1.5 bg-surface-container-lowest/60 rounded font-mono-code text-micro-label"
                   title={style.hint}
                 >
                   <span className="flex items-center gap-2">
@@ -321,12 +321,12 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
                     </svg>
                     <span className="text-on-surface">{style.label}</span>
                   </span>
-                  <span className="text-outline">{count}</span>
+                  <span className="text-muted">{count}</span>
                 </div>
               );
             })}
           </div>
-          <p className="mt-2 text-[10px] leading-relaxed text-on-surface-variant">
+          <p className="mt-2 text-micro-label leading-relaxed text-on-surface-variant">
             Inferred and unconfirmed links are shown and confirmable — they can never produce a
             decisive finding.
           </p>
@@ -396,10 +396,10 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
       {notice ? (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 max-w-md flex items-start gap-2 px-3 py-2 rounded-lg bg-surface-container/95 border border-secondary/40 backdrop-blur shadow-xl">
           <Icon name="info" className="text-secondary text-[16px] mt-0.5 shrink-0" />
-          <p className="font-mono-code text-[11px] text-on-surface leading-relaxed">{notice}</p>
+          <p className="font-mono-code text-micro-label text-on-surface leading-relaxed">{notice}</p>
           <button
             onClick={() => setNotice(null)}
-            className="ml-1 text-outline hover:text-on-surface transition"
+            className="ml-1 text-muted hover:text-on-surface transition"
             title="Dismiss"
           >
             <Icon name="close" className="text-[14px]" />
@@ -415,7 +415,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
         aria-hidden={!selected}
       >
         {selected ? (
-          <div className="p-6 h-full flex flex-col">
+          <div className="p-4 h-full flex flex-col">
             <div className="flex items-center justify-between mb-6">
               <Badge tone={selected.findingId ? "critical" : "accent"}>
                 {selected.findingId ? "Active Conflict" : selected.kindLabel}
@@ -448,7 +448,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
               </div>
             </div>
 
-            <div className="space-y-5 flex-1 overflow-y-auto pr-2">
+            <div className="space-y-4 flex-1 overflow-y-auto pr-2">
               <section>
                 <h4 className="text-label-caps text-on-surface-variant mb-2">Description</h4>
                 <p className="text-body-md leading-relaxed text-on-surface/80">
@@ -460,14 +460,14 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
                 <h4 className="text-label-caps text-on-surface-variant mb-3">
                   Relationships ({selectedRelations.length})
                 </h4>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {selectedRelations.map(({ edge, other }) => {
                     const style = eligibilityStyle[edge.eligibility];
                     return (
                       <button
                         key={`${edge.from}-${edge.to}-${edge.label}`}
                         onClick={() => setSelectedId(other.id)}
-                        className="w-full p-3 bg-surface-container-low rounded-lg border border-outline-variant flex items-center justify-between group hover:border-primary transition-all cursor-pointer text-left"
+                        className="w-full p-4 bg-surface-container-low rounded-lg border border-outline-variant flex items-center justify-between group hover:border-primary transition-all cursor-pointer text-left"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <Icon
@@ -476,7 +476,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
                           />
                           <div className="min-w-0">
                             <p className="text-body-sm font-bold truncate">{other.label}</p>
-                            <p className="text-[10px] text-on-surface-variant">
+                            <p className="text-micro-label text-on-surface-variant">
                               {edge.label} · {style.label}
                               {edge.eligibility === "inferred" ||
                               edge.eligibility === "unconfirmed"
@@ -501,9 +501,9 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
                   {selected.fields.map((field) => (
                     <div
                       key={field.label}
-                      className="p-3 bg-surface-container-lowest rounded-lg border border-outline-variant"
+                      className="p-3.5 bg-surface-container-lowest rounded-lg border border-outline-variant"
                     >
-                      <p className="text-[10px] text-on-surface-variant uppercase">
+                      <p className="text-micro-label text-on-surface-variant uppercase">
                         {field.label}
                       </p>
                       <p
@@ -516,7 +516,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
                     </div>
                   ))}
                 </div>
-                <p className="mt-3 font-mono-code text-[11px] text-outline truncate">
+                <p className="mt-3 font-mono-code text-micro-label text-muted truncate">
                   {selected.locator}
                 </p>
               </section>

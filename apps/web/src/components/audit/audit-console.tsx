@@ -16,7 +16,7 @@ import { DiffModal, InspectModal } from "./audit-modals";
 
 const actionTone: Record<AuditActionType, string> = {
   CONFLICT_RESOLVED: "bg-secondary/15 text-secondary",
-  CONFLICT_SUPPRESSED: "bg-outline-variant/30 text-outline",
+  CONFLICT_SUPPRESSED: "bg-outline-variant/30 text-muted",
   LINK_MANUAL_ASSERTION: "bg-primary/20 text-primary",
   LINK_SUGGESTION_REJECTED: "bg-tertiary-container text-on-tertiary-container",
   POLICY_VERSION_BUMP: "bg-tertiary/20 text-tertiary",
@@ -67,7 +67,7 @@ function ActorCell({ event }: { event: AuditEvent }) {
           <span className="font-mono-code font-semibold text-on-surface text-[12px]">
             {actor.handle}
           </span>
-          <span className="font-label-caps text-label-caps text-secondary text-[10px]">
+          <span className="font-label-caps text-label-caps text-secondary text-eyebrow">
             {event.actorTag ?? actor.role}
           </span>
         </div>
@@ -78,7 +78,7 @@ function ActorCell({ event }: { event: AuditEvent }) {
   return (
     <div className="inline-flex items-center gap-2">
       <div
-        className={`w-6 h-6 rounded-full flex items-center justify-center font-mono-code text-[11px] font-bold ${
+        className={`w-6 h-6 rounded-full flex items-center justify-center font-mono-code text-micro-label font-bold ${
           avatarTone[actor.id] ?? "bg-primary-container text-on-primary"
         }`}
       >
@@ -88,7 +88,7 @@ function ActorCell({ event }: { event: AuditEvent }) {
         <span className="font-mono-code font-semibold text-on-surface text-[12px]">
           {actor.handle}
         </span>
-        <span className="font-body-sm text-outline text-[11px]">
+        <span className="font-body-sm text-muted text-micro-label">
           {actor.name} ({actor.role})
         </span>
       </div>
@@ -154,13 +154,13 @@ export function AuditConsole() {
           <div className="relative flex-1">
             <Icon
               name="search"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[18px]"
             />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Filter by Actor (@alex), Artifact (PR #142, Figma), or TxHash..."
-              className="w-full pl-9 pr-4 py-2 rounded bg-surface-container-lowest text-on-surface placeholder:text-outline font-mono-code text-body-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all"
+              className="w-full pl-9 pr-4 py-2 rounded bg-surface-container-lowest text-on-surface placeholder:text-muted font-mono-code text-body-sm focus:outline-none focus:ring-1 focus:ring-primary transition-all"
             />
           </div>
 
@@ -184,7 +184,7 @@ export function AuditConsole() {
               </select>
               <Icon
                 name="expand_more"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
               />
             </div>
 
@@ -204,7 +204,7 @@ export function AuditConsole() {
               </select>
               <Icon
                 name="expand_more"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
               />
             </div>
 
@@ -223,11 +223,11 @@ export function AuditConsole() {
               </select>
               <Icon
                 name="calendar_month"
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
               />
               <Icon
                 name="expand_more"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-outline text-[16px] pointer-events-none"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[16px] pointer-events-none"
               />
             </div>
 
@@ -236,7 +236,7 @@ export function AuditConsole() {
               onClick={resetFilters}
               title="Reset Filters"
               aria-label="Reset filters"
-              className="p-2 rounded bg-surface-container-lowest hover:bg-surface-container-high text-outline hover:text-on-surface transition-colors"
+              className="p-2 rounded bg-surface-container-lowest hover:bg-surface-container-high text-muted hover:text-on-surface transition-colors"
             >
               <Icon name="restart_alt" className="text-[18px]" />
             </button>
@@ -246,7 +246,7 @@ export function AuditConsole() {
         {/* Quick compliance presets */}
         <div className="flex items-center justify-between flex-wrap gap-stack-compact">
           <div className="flex items-center gap-stack-compact flex-wrap">
-            <span className="font-label-caps text-label-caps text-outline uppercase tracking-wider">
+            <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
               Quick Presets:
             </span>
             {auditPresets.map((preset) => (
@@ -254,7 +254,7 @@ export function AuditConsole() {
                 key={preset.id}
                 type="button"
                 onClick={() => applyPreset(preset.id)}
-                className="px-2.5 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] font-medium transition-colors flex items-center gap-1.5"
+                className="px-2.5 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-micro-label font-medium transition-colors flex items-center gap-1.5"
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${presetDot[preset.dot]}`} />
                 {preset.label}
@@ -275,14 +275,14 @@ export function AuditConsole() {
       >
         <div className="overflow-x-auto">
           <table className="w-full text-left font-body-sm text-body-sm text-on-surface border-collapse min-w-[1000px]">
-            <thead className="bg-surface-container-low font-label-caps text-label-caps text-outline uppercase tracking-wider select-none">
+            <thead className="bg-surface-container-low font-label-caps text-label-caps text-muted uppercase tracking-wider select-none">
               <tr>
-                <th className="py-3 px-4">Timestamp (UTC)</th>
-                <th className="py-3 px-4">Actor</th>
-                <th className="py-3 px-4">Action Type</th>
-                <th className="py-3 px-4">Affected Artifact</th>
-                <th className="py-3 px-4">Reason / Integrity Proof</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-4 px-4">Timestamp (UTC)</th>
+                <th className="py-4 px-4">Actor</th>
+                <th className="py-4 px-4">Action Type</th>
+                <th className="py-4 px-4">Affected Artifact</th>
+                <th className="py-4 px-4">Reason / Integrity Proof</th>
+                <th className="py-4 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody id="auditTableBody">
@@ -291,56 +291,56 @@ export function AuditConsole() {
                   key={event.id}
                   className="hover:bg-surface-container-high transition-colors align-top"
                 >
-                  <td className="py-3 px-4 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
+                  <td className="py-3.5 px-4 whitespace-nowrap font-mono-code text-[12px] text-on-surface-variant">
                     <span className="text-on-surface font-medium">{event.timestamp}</span>
-                    <span className="text-outline text-[11px] block">{event.relative}</span>
+                    <span className="text-muted text-micro-label block">{event.relative}</span>
                   </td>
-                  <td className="py-3 px-4 whitespace-nowrap">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <ActorCell event={event} />
                   </td>
-                  <td className="py-3 px-4 whitespace-nowrap">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <span
                       title={event.action}
-                      className={`px-2 py-0.5 rounded font-mono-code text-[11px] font-semibold ${actionTone[event.action]}`}
+                      className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-semibold ${actionTone[event.action]}`}
                     >
                       {event.action}
                     </span>
                   </td>
-                  <td className="py-3 px-4 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-[11px]">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest text-on-surface font-mono-code text-micro-label">
                       <Icon
                         name={actionIcon[event.action]}
                         className={`text-[13px] ${artifactIconTone[event.artifact.tool] ?? "text-primary"}`}
                       />
                       <span className="font-semibold">{event.artifact.label}</span>
                       {event.artifact.context ? (
-                        <span className="text-outline text-[10px]">• {event.artifact.context}</span>
+                        <span className="text-muted text-micro-label">• {event.artifact.context}</span>
                       ) : null}
                     </span>
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="py-3.5 px-4">
                     <div className="flex flex-col max-w-md">
                       <span className="text-on-surface text-body-sm line-clamp-1">
                         {event.reason}
                       </span>
-                      <span className="font-mono-code text-[11px] text-outline truncate">
+                      <span className="font-mono-code text-micro-label text-muted truncate">
                         SHA-256: {event.hash.slice(0, 24)}…{event.hash.slice(-4)}
                       </span>
                     </div>
                   </td>
-                  <td className="py-3 px-4 text-right whitespace-nowrap">
+                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <div className="inline-flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => setInspect(event)}
-                        className="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-[11px] transition-colors"
+                        className="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-on-surface font-mono-code text-micro-label transition-colors"
                       >
                         JSON
                       </button>
                       <button
                         type="button"
                         onClick={() => setDiff(event)}
-                        className="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-secondary font-mono-code text-[11px] transition-colors"
+                        className="px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-bright text-secondary font-mono-code text-micro-label transition-colors"
                       >
                         Diff
                       </button>
@@ -353,12 +353,12 @@ export function AuditConsole() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="p-8 flex flex-col items-center justify-center text-center">
-            <Icon name="find_in_page" className="text-[36px] text-outline mb-2" />
+          <div className="p-4 flex flex-col items-center justify-center text-center">
+            <Icon name="find_in_page" className="text-[36px] text-muted mb-2" />
             <p className="font-body-md text-body-md text-on-surface font-medium">
               No matching audit records found
             </p>
-            <p className="font-body-sm text-body-sm text-outline mt-1">
+            <p className="font-body-sm text-body-sm text-muted mt-1.5">
               Try relaxing actor or query constraints.
             </p>
             <button
@@ -405,7 +405,7 @@ export function AuditConsole() {
             >
               3
             </button>
-            <span className="px-1 text-outline">…</span>
+            <span className="px-1 text-muted">…</span>
             <button
               type="button"
               className="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors"
