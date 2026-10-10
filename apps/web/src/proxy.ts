@@ -82,7 +82,10 @@ export const config = {
   matcher: [
     /*
      * Everything except static assets, which never need a session check.
+     * Font files MUST be here too — otherwise self-hosted @font-face sources
+     * like /fonts/*.woff2 get bounced to /login and the browser decodes the
+     * login HTML as a font ("OTS parsing error: invalid sfntVersion").
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|otf|map)$).*)",
   ],
 };
