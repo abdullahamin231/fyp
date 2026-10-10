@@ -26,6 +26,7 @@ export * from "./enums.js";
 export * from "./event.js";
 export * from "./graph.js";
 export * from "./rule.js";
+export * from "./rules.js";
 export * from "./packet.js";
 export * from "./verdict.js";
 export * from "./finding.js";
