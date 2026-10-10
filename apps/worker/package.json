@@ -1,0 +1,19 @@
+{
+  "name": "@unify/worker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "UNIFY background worker — deterministic linking (FR-04) and, later, rule evaluation",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "demo:linking": "tsx src/demo/linking-demo.ts"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@types/node": "^26.6.4",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
