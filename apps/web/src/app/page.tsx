@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
-import { findings } from "@/lib/mock/findings";
-import { VERDICTS, type Severity, type Verdict } from "@/lib/types";
+import { VERDICTS, type Finding, type Severity, type Verdict } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -12,10 +11,15 @@ export const metadata: Metadata = {
 };
 
 /* ------------------------------------------------------------------ *
- * Everything on this screen is derived from the typed mock layer in
- * `src/lib/mock/` — the same shapes the API will return. No screen-local
- * filler copy or invented widget data.
+ * DATA HOLE — replace with the findings API.
+ *
+ * Every widget on this screen derives from the `findings` list declared
+ * below, typed to the shapes the API will return. It is empty until that
+ * endpoint exists, so the critical-findings list and verdict bars render
+ * at zero. No screen-local filler copy or invented widget data.
  * ------------------------------------------------------------------ */
+
+const findings: Finding[] = [];
 
 const verdictMeta: Record<
   Verdict,
@@ -112,21 +116,24 @@ export default function DashboardPage() {
   const reviewed = criteria.filter((criterion) => criterion.reviewRequired).length;
   const critical = findings.filter((finding) => finding.severity === "critical").slice(0, 3);
 
-  const nodes = [
-    { x: 18, y: 60, icon: "design_services", label: "Figma UI Kit", tone: "border border-secondary text-secondary" },
-    { x: 40, y: 28, icon: "code", label: "PR #244", tone: "border border-primary text-primary" },
-    { x: 40, y: 88, icon: "code", label: "PR #245", tone: "border border-primary text-primary" },
-    { x: 68, y: 58, icon: "chat", label: "#dev-sync", tone: "border border-tertiary text-tertiary" },
-    { x: 88, y: 60, icon: "confirmation_number", label: "PROJ-88", tone: "", muted: true },
-  ];
+  /**
+   * DATA HOLE — replace with the graph API.
+   * Empty until the endpoint exists: the canvas draws no nodes or edges.
+   */
+  const nodes: {
+    x: number;
+    y: number;
+    icon: string;
+    label: string;
+    tone: string;
+    muted?: boolean;
+  }[] = [];
 
-  const edges = [
-    { from: [18, 60], to: [40, 28], stroke: "#34D399" },
-    { from: [18, 60], to: [40, 88], stroke: "#34D399" },
-    { from: [40, 28], to: [68, 58], stroke: "#8B8B93" },
-    { from: [40, 88], to: [68, 58], stroke: "#8B8B93" },
-    { from: [68, 58], to: [88, 60], stroke: "#FBBF24" },
-  ];
+  const edges: {
+    from: [number, number];
+    to: [number, number];
+    stroke: string;
+  }[] = [];
 
   return (
     <AppShell contentClassName="w-full space-y-gutter">
@@ -265,37 +272,46 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-            {/* Edges share the 0–100 coordinate space with the node cards, so
-                lines stay attached to their nodes at any panel size. */}
-            <svg
-              className="absolute inset-0 w-full h-full pointer-events-none"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-            >
-              {edges.map((edge) => (
-                <path
-                  key={`${edge.from.join()}-${edge.to.join()}`}
-                  className="graph-line"
-                  d={`M${edge.from[0]},${edge.from[1]} L${edge.to[0]},${edge.to[1]}`}
-                  fill="none"
-                  stroke={edge.stroke}
-                  strokeWidth="1.5"
-                  vectorEffect="non-scaling-stroke"
-                />
-              ))}
-            </svg>
+            {nodes.length === 0 && edges.length === 0 ? (
+              <p className="text-body-sm text-muted text-center px-6">
+                No artifacts linked yet — the evidence graph appears once the graph API returns
+                nodes.
+              </p>
+            ) : (
+              <>
+                {/* Edges share the 0–100 coordinate space with the node cards, so
+                    lines stay attached to their nodes at any panel size. */}
+                <svg
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                >
+                  {edges.map((edge) => (
+                    <path
+                      key={`${edge.from.join()}-${edge.to.join()}`}
+                      className="graph-line"
+                      d={`M${edge.from[0]},${edge.from[1]} L${edge.to[0]},${edge.to[1]}`}
+                      fill="none"
+                      stroke={edge.stroke}
+                      strokeWidth="1.5"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  ))}
+                </svg>
 
-            {nodes.map((node) => (
-              <GraphNode
-                key={node.label}
-                x={node.x}
-                y={node.y}
-                tone={node.tone}
-                icon={node.icon}
-                label={node.label}
-                muted={node.muted}
-              />
-            ))}
+                {nodes.map((node) => (
+                  <GraphNode
+                    key={node.label}
+                    x={node.x}
+                    y={node.y}
+                    tone={node.tone}
+                    icon={node.icon}
+                    label={node.label}
+                    muted={node.muted}
+                  />
+                ))}
+              </>
+            )}
           </div>
         </div>
       </section>

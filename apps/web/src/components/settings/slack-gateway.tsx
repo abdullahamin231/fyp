@@ -5,10 +5,20 @@ import { Icon } from "@/components/ui/icon";
 import { SlackDispatchRules } from "@/components/settings/slack-dispatch-rules";
 import { SlackTestSandbox } from "@/components/settings/slack-test-sandbox";
 
-const tokenDetails = [
-  { label: "Installation ID", value: "inst_live_89104fa2", valueClass: "text-on-surface-variant" },
-  { label: "Rate Limit Quota", value: "Tier 3 (50 req/min)", valueClass: "text-secondary" },
-];
+type TokenDetail = { label: string; value: string; valueClass: string };
+
+/**
+ * DATA HOLE — replace with the Slack gateway token API.
+ * Empty until the endpoint exists; the detail strip renders its empty state.
+ */
+const tokenDetails: TokenDetail[] = [];
+
+/**
+ * DATA HOLE — replace with the Slack gateway workspace API.
+ * Empty until the endpoint exists; the identity block renders its empty state.
+ */
+type WorkspaceIdentity = { name?: string; id?: string; connectedBy?: string };
+const workspace: WorkspaceIdentity = {};
 
 const protections: { icon: string; iconClass: string; title: string; body: string }[] = [
   {
@@ -71,10 +81,17 @@ export function SlackGateway() {
                 Connected Workspace
               </h2>
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-secondary/10 text-secondary font-mono-code text-micro-label font-semibold flex items-center gap-1.5">
-              <Icon name="verified" className="text-[14px]" />
-              Authenticated (Bot User OAuth v2)
-            </span>
+            {workspace.name ? (
+              <span className="px-2.5 py-1 rounded-full bg-secondary/10 text-secondary font-mono-code text-micro-label font-semibold flex items-center gap-1.5">
+                <Icon name="verified" className="text-[14px]" />
+                Authenticated (Bot User OAuth v2)
+              </span>
+            ) : (
+              <span className="px-2.5 py-1 rounded-full bg-surface-container-high text-muted font-mono-code text-micro-label font-semibold flex items-center gap-1.5">
+                <Icon name="link_off" className="text-[14px]" />
+                Not connected
+              </span>
+            )}
           </div>
           <div className="rounded-xl bg-surface-container p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -85,23 +102,41 @@ export function SlackGateway() {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="font-headline-sm text-headline-sm text-on-surface font-bold">
-                    Unify Engineering HQ
+                    {workspace.name ?? "No workspace connected"}
                   </span>
-                  <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-micro-label text-muted font-medium">
-                    Primary Org
-                  </span>
+                  {workspace.name ? (
+                    <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-micro-label text-muted font-medium">
+                      Primary Org
+                    </span>
+                  ) : null}
                 </div>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-on-surface-variant font-body-sm text-body-sm">
-                  <span className="font-mono-code text-[12px] text-muted">
-                    Workspace ID: <span className="text-primary font-bold">T0394821</span>
-                  </span>
-                  <span className="text-outline">•</span>
-                  <span className="flex items-center gap-1">
-                    <Icon name="person" className="text-[14px] text-muted" />
-                    Connected by <span className="text-on-surface font-medium">Alex R.</span>{" "}
-                    (Workspace Admin)
-                  </span>
-                </div>
+                {workspace.id || workspace.connectedBy ? (
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-on-surface-variant font-body-sm text-body-sm">
+                    {workspace.id ? (
+                      <span className="font-mono-code text-[12px] text-muted">
+                        Workspace ID:{" "}
+                        <span className="text-primary font-bold">{workspace.id}</span>
+                      </span>
+                    ) : null}
+                    {workspace.id && workspace.connectedBy ? (
+                      <span className="text-outline">•</span>
+                    ) : null}
+                    {workspace.connectedBy ? (
+                      <span className="flex items-center gap-1">
+                        <Icon name="person" className="text-[14px] text-muted" />
+                        Connected by{" "}
+                        <span className="text-on-surface font-medium">
+                          {workspace.connectedBy}
+                        </span>{" "}
+                        (Workspace Admin)
+                      </span>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="mt-1 text-muted font-body-sm text-body-sm">
+                    Reconnect the workspace to load its details.
+                  </div>
+                )}
               </div>
             </div>
             <button
@@ -117,21 +152,32 @@ export function SlackGateway() {
           </div>
           {/* Token health & details strip */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {tokenDetails.map((detail) => (
-              <div
-                key={detail.label}
-                className="p-3 rounded-lg bg-surface-container-lowest/60 flex flex-col"
-              >
+            {tokenDetails.length === 0 ? (
+              <div className="p-3 rounded-lg bg-surface-container-lowest/60 flex flex-col sm:col-span-2">
                 <span className="font-label-caps text-label-caps text-muted uppercase">
-                  {detail.label}
+                  Token Health
                 </span>
-                <span
-                  className={`font-mono-code text-[12px] mt-0.5 truncate ${detail.valueClass}`}
-                >
-                  {detail.value}
+                <span className="font-mono-code text-[12px] text-on-surface-variant mt-0.5">
+                  Not yet reported — token details appear once the gateway API responds.
                 </span>
               </div>
-            ))}
+            ) : (
+              tokenDetails.map((detail) => (
+                <div
+                  key={detail.label}
+                  className="p-3 rounded-lg bg-surface-container-lowest/60 flex flex-col"
+                >
+                  <span className="font-label-caps text-label-caps text-muted uppercase">
+                    {detail.label}
+                  </span>
+                  <span
+                    className={`font-mono-code text-[12px] mt-0.5 truncate ${detail.valueClass}`}
+                  >
+                    {detail.value}
+                  </span>
+                </div>
+              ))
+            )}
             <div className="p-3 rounded-lg bg-surface-container-lowest/60 flex flex-col">
               <span className="font-label-caps text-label-caps text-muted uppercase">
                 SSL Handshake
@@ -160,7 +206,7 @@ export function SlackGateway() {
               </h2>
             </div>
             <span className="font-mono-code text-micro-label text-muted font-medium">
-              3 active protections
+              {protections.length} active protections
             </span>
           </div>
           <div className="flex flex-col gap-3">

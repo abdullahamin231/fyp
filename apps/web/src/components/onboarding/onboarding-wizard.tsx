@@ -9,8 +9,14 @@ import {
   type ConnectKey,
 } from "@/components/onboarding/step-panels";
 import { SideRecap } from "@/components/onboarding/side-recap";
-import { policies } from "@/lib/mock/policies";
-import type { PolicyId } from "@/lib/types";
+import type { Policy, PolicyId } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the policies API.
+ * Empty until the endpoint exists; the policy checklist renders nothing and
+ * the staged counter reads zero.
+ */
+const policies: Policy[] = [];
 
 type StepDef = {
   key: ConnectKey | "policy";
@@ -18,12 +24,17 @@ type StepDef = {
   value: () => string;
 };
 
+/**
+ * DATA HOLE — replace with each connector's live account/org handle from its
+ * API. Idle copy until then; `stepValue` overrides once wizard state says
+ * otherwise.
+ */
 const steps: StepDef[] = [
-  { key: "workspace", label: "Workspace", value: () => "acme-eng" },
-  { key: "figma", label: "Figma", value: () => "@acme-design" },
-  { key: "github", label: "GitHub", value: () => "acme-corp" },
-  { key: "jira", label: "Jira Cloud", value: () => "OAuth 2.0 Auth" },
-  { key: "policy", label: "Policy Run", value: () => "P1–P4 staged" },
+  { key: "workspace", label: "Workspace", value: () => "Not created" },
+  { key: "figma", label: "Figma", value: () => "Not connected" },
+  { key: "github", label: "GitHub", value: () => "Not connected" },
+  { key: "jira", label: "Jira Cloud", value: () => "Not connected" },
+  { key: "policy", label: "Policy Run", value: () => "Not staged" },
 ];
 
 const initialPolicies = Object.fromEntries(
@@ -39,13 +50,13 @@ function stepValue(
   definition: StepDef,
   state: { auth: Record<ConnectKey, AuthState>; run: "idle" | "running" | "done"; slug: string },
 ): string {
-  if (definition.key === "workspace") return state.slug || "acme-eng";
+  if (definition.key === "workspace") return state.slug || "—";
   if (definition.key === "jira") {
-    return state.auth.jira === "connected" ? "acme.atlassian.net" : definition.value();
+    return state.auth.jira === "connected" ? "Connected" : definition.value();
   }
   if (definition.key === "policy") {
     return state.run === "done"
-      ? "2 findings staged"
+      ? "Run complete"
       : state.run === "running"
         ? "Reconciling…"
         : definition.value();
@@ -67,10 +78,14 @@ export function OnboardingWizard() {
     github: "idle",
     jira: "idle",
   });
+  /**
+   * DATA HOLE — replace with the workspace API's created-workspace record
+   * (name, slug, import status). The wizard starts with nothing created.
+   */
   const [workspace, setWorkspace] = useState({
-    name: "Acme Engineering Core",
-    slug: "acme-eng",
-    imported: true,
+    name: "",
+    slug: "",
+    imported: false,
   });
   const [selectedPolicies, setSelectedPolicies] = useState<Record<PolicyId, boolean>>(
     initialPolicies,
@@ -96,7 +111,7 @@ export function OnboardingWizard() {
         setAuth((prev) => ({ ...prev, [key]: "connected" }));
         const label =
           key === "workspace"
-            ? `Workspace ${workspace.slug || "acme-eng"} created (200 OK)`
+            ? `Workspace ${workspace.slug || "created"} created (200 OK)`
             : `${key[0].toUpperCase()}${key.slice(1)} connected — read-only scopes granted`;
         toast(label, { icon: "cloud_done" });
       }, 1500),
@@ -157,7 +172,8 @@ export function OnboardingWizard() {
     timers.current.push(
       setTimeout(() => {
         setRun("done");
-        toast("First run complete — 2 candidate findings staged", { icon: "fact_check" });
+        // DATA HOLE — the staged finding count comes from the policy-run API.
+        toast("First run complete — no candidate findings staged yet", { icon: "fact_check" });
       }, 1800),
     );
   }
@@ -182,7 +198,8 @@ export function OnboardingWizard() {
               </span>
               <span className="text-muted text-body-sm font-mono-code">/</span>
               <span className="font-mono-code text-micro-label text-on-surface-variant">
-                Setup Wizard ID: #WIZ-8821
+                {/* DATA HOLE — replace with the onboarding session's id once the API mints one. */}
+                Setup Wizard ID: —
               </span>
             </div>
             <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">
@@ -370,7 +387,8 @@ export function OnboardingWizard() {
                   Egress Region
                 </div>
                 <div className="font-mono-code text-on-surface font-semibold mt-0.5">
-                  us-east-2 (VA)
+                  {/* DATA HOLE — replace with the provisioning API's egress region. */}
+                  —
                 </div>
               </div>
               <div className="bg-surface-container p-3 rounded">
@@ -378,13 +396,15 @@ export function OnboardingWizard() {
                   Handshake Latency
                 </div>
                 <div className="font-mono-code text-secondary font-semibold mt-0.5">
-                  14ms average
+                  {/* DATA HOLE — replace with measured handshake latency from the connector API. */}
+                  —
                 </div>
               </div>
               <div className="bg-surface-container p-3 rounded">
                 <div className="font-mono-code text-eyebrow text-muted uppercase">Rate Reserve</div>
                 <div className="font-mono-code text-on-surface font-semibold mt-0.5">
-                  4,920 req/hr
+                  {/* DATA HOLE — replace with the connector API's remaining rate budget. */}
+                  —
                 </div>
               </div>
             </div>

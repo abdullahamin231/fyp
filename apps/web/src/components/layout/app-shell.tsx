@@ -111,12 +111,34 @@ function NavEntry({
   );
 }
 
-function GroupLabel({ children }: { children: ReactNode }) {
+/**
+ * Fixed-height slot for a group's title.
+ *
+ * The slot is rendered in **both** rail and expanded modes at exactly the nav
+ * row height, and only its contents swap: the caps label when expanded, a
+ * divider when collapsed, nothing at the very top. Keeping the box constant is
+ * what stops the hover preview from reflowing the rows underneath the pointer —
+ * a slot that grew on hover would push every item below it down by ~a full row,
+ * so the cursor would land on a different item than the one it hovered.
+ */
+function GroupLabel({
+  children,
+  show,
+  divider,
+}: {
+  children?: ReactNode;
+  show: boolean;
+  divider: boolean;
+}) {
   return (
-    <div className="rail-label px-3 pt-4 pb-1.5">
-      <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
-        {children}
-      </span>
+    <div className="h-9 flex items-end px-3 pb-1.5 shrink-0">
+      {show && children ? (
+        <span className="rail-label font-label-caps text-label-caps text-muted uppercase tracking-wider whitespace-nowrap">
+          {children}
+        </span>
+      ) : divider ? (
+        <span aria-hidden className="w-full border-t border-outline-variant" />
+      ) : null}
     </div>
   );
 }
@@ -189,10 +211,9 @@ function SideNav({
 
         {navGroups.map((group, index) => (
           <div key={group.label ?? index}>
-            {open && group.label ? <GroupLabel>{group.label}</GroupLabel> : null}
-            {!open && index > 0 ? (
-              <div className="mx-3 my-1.5 border-t border-outline-variant" />
-            ) : null}
+            <GroupLabel show={open} divider={!open && index > 0}>
+              {group.label}
+            </GroupLabel>
             <nav className="flex flex-col gap-1 pt-2 pb-1">
               {group.items.map((item) => (
                 <NavEntry
@@ -274,12 +295,11 @@ function TopBar({
         {action}
         <button
           aria-label="Notifications"
-          className="relative p-1.5 rounded-md hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors"
+          className="p-1.5 rounded-md hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors"
         >
           <span className="material-symbols-outlined text-[19px] leading-none">
             notifications
           </span>
-          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-error rounded-full ring-2 ring-background" />
         </button>
         <Link
           href="/profile"

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
-import { auditTotals } from "@/lib/mock/audit";
 
 type VerifyState = "idle" | "running" | "done";
 
@@ -12,7 +11,7 @@ const EXPORT_OPTIONS = [
 ] as const;
 
 /** "Verify Integrity" button + "Export Filtered Records" dropdown (header row). */
-export function AuditHeaderActions() {
+export function AuditHeaderActions({ totalEvents }: { totalEvents: number }) {
   const [verify, setVerify] = useState<VerifyState>("idle");
   const [menuOpen, setMenuOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -54,7 +53,7 @@ export function AuditHeaderActions() {
   function startExport(format: "csv" | "json") {
     setMenuOpen(false);
     setNotice(
-      `Preparing verified cryptographic ${format.toUpperCase()} export of the filtered ledger slice, with tokens and raw vendor payloads redacted via policy #901…`,
+      `Preparing verified cryptographic ${format.toUpperCase()} export of the filtered ledger slice, with tokens and raw vendor payloads redacted via policy…`,
     );
     timers.current.push(window.setTimeout(() => setNotice(null), 5000));
   }
@@ -76,7 +75,7 @@ export function AuditHeaderActions() {
             {verify === "running"
               ? "Verifying SHA-256 Tree…"
               : verify === "done"
-                ? `${auditTotals.events.toLocaleString("en-US")} Blocks Validated`
+                ? `${totalEvents.toLocaleString("en-US")} Blocks Validated`
                 : "Verify Integrity"}
           </span>
         </button>
@@ -104,7 +103,7 @@ export function AuditHeaderActions() {
                   Cryptographic Export
                 </span>
                 <p className="font-body-sm text-body-sm text-on-surface-variant text-micro-label leading-tight mt-1">
-                  Tokens &amp; raw vendor payloads automatically redacted via policy #901.
+                  Tokens &amp; raw vendor payloads automatically redacted per the active redaction policy.
                 </p>
               </div>
               <div className="flex flex-col gap-1">

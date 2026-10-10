@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ChangeEvent } from "react";
+import { useState, type ChangeEvent, type ReactNode } from "react";
 import { Icon } from "@/components/ui/icon";
 
 /* ------------------------------------------------------------------ static */
@@ -97,6 +97,47 @@ const frequencyOptions: {
 const checkboxClass =
   "w-4 h-4 rounded accent-primary bg-surface-container-high cursor-pointer";
 
+/* ----------------------------------------------------------------- data holes */
+
+/**
+ * DATA HOLE — replace with the notification settings API.
+ * Empty until the endpoint exists; the chips render their empty state.
+ */
+const slaOverride: string | undefined = undefined;
+
+/** DATA HOLE — replace with the Slack webhook destination API. */
+const webhookDestination: string | undefined = undefined;
+
+/** DATA HOLE — replace with the escalation routing API. */
+type EscalationTarget = { icon: string; iconClass: string; label: string };
+const escalationTargets: EscalationTarget[] = [];
+
+/** DATA HOLE — replace with the digest metrics API. */
+type DigestStats = {
+  noiseReduction?: string;
+  incoming?: string;
+  batched?: string;
+  incomingShare?: number;
+  batchedShare?: number;
+  prevented?: string;
+};
+const digestStats: DigestStats = {};
+
+/** DATA HOLE — replace with the notification preview API. */
+type SlackPreviewMessage = {
+  appTime?: string;
+  headline?: ReactNode;
+  fields?: { label: string; value: string; valueClass?: string }[];
+};
+const slackPreviewMessage: SlackPreviewMessage = {};
+
+/** DATA HOLE — replace with the notification preview API. */
+type InAppPreviewMessage = { age?: string; title?: string; body?: string };
+const inAppPreviewMessage: InAppPreviewMessage = {};
+
+/** DATA HOLE — replace with the notification delivery log API. */
+const lastVerification: string | undefined = undefined;
+
 /* ---------------------------------------------------------------- component */
 
 export function NotificationPreferences() {
@@ -156,11 +197,8 @@ export function NotificationPreferences() {
               <span className="px-2 py-0.5 rounded bg-primary-container/40 text-on-primary-container font-mono-code text-eyebrow font-semibold uppercase tracking-wider">
                 ENGINE // ROUTING-SYS
               </span>
-              <span className="text-muted text-[12px] font-mono-code">•</span>
-              <span className="font-mono-code text-body-sm text-secondary flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-ping" />
-                Filter Daemon v4.19 Online
-              </span>
+              <span className="font-mono-code text-body-sm text-muted">•</span>
+              <span className="font-mono-code text-body-sm text-muted">Routing Engine</span>
             </div>
             <h1 className="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
               Notification Engine &amp; Alert Routing
@@ -216,10 +254,12 @@ export function NotificationPreferences() {
               </button>
             );
           })}
-          <div className="ml-auto hidden xl:flex items-center gap-2 text-muted text-body-sm font-mono-code bg-surface-container-lowest/60 px-3 py-1 rounded">
-            <Icon name="format_image_left" className="text-secondary text-[16px]" />
-            SLA Override: Enforced for Team Core Checkout
-          </div>
+          {slaOverride ? (
+            <div className="ml-auto hidden xl:flex items-center gap-2 text-muted text-body-sm font-mono-code bg-surface-container-lowest/60 px-3 py-1 rounded">
+              <Icon name="format_image_left" className="text-secondary text-[16px]" />
+              SLA Override: {slaOverride}
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -244,7 +284,7 @@ export function NotificationPreferences() {
                 </div>
               </div>
               <span className="font-mono-code text-[12px] px-2.5 py-1 rounded bg-surface-container text-secondary font-medium">
-                4 Streams Configured
+                {matrixRows.length} Streams Configured
               </span>
             </div>
             <div className="overflow-x-auto rounded-lg bg-surface-container-lowest shadow-inner">
@@ -343,7 +383,7 @@ export function NotificationPreferences() {
                 <Icon name="tune" className="text-[16px] text-secondary" />
                 Slack Webhook:{" "}
                 <span className="text-on-surface bg-surface-container px-1.5 py-0.5 rounded">
-                  #eng-platform-alerts
+                  {webhookDestination ?? "not yet mapped"}
                 </span>
               </div>
               <Link
@@ -491,7 +531,7 @@ export function NotificationPreferences() {
               <div className="md:col-span-8 p-4 rounded-lg bg-surface-container space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="font-label-caps text-label-caps uppercase text-muted">
-                    Rule SLA-904
+                    Escalation Rule
                   </span>
                   <span className="font-mono-code text-[12px] text-tertiary">
                     Max Latency: {threshold}h 00m
@@ -503,20 +543,25 @@ export function NotificationPreferences() {
                   high-priority incident escalation.
                 </p>
                 <div className="flex flex-wrap items-center gap-3 pt-1 font-mono-code text-[12px]">
-                  <span className="px-2 py-1 rounded bg-surface-container-high text-on-surface flex items-center gap-1">
-                    <Icon name="person" className="text-[14px] text-primary" />
-                    @lead-architect
-                  </span>
-                  <span className="text-muted">→</span>
-                  <span className="px-2 py-1 rounded bg-surface-container-high text-on-surface flex items-center gap-1">
-                    <Icon name="notifications_active" className="text-[14px] text-secondary" />
-                    PagerDuty P1
-                  </span>
-                  <span className="text-muted">→</span>
-                  <span className="px-2 py-1 rounded bg-surface-container-high text-on-surface flex items-center gap-1">
-                    <Icon name="campaign" className="text-[14px] text-error" />
-                    #war-room-emergency
-                  </span>
+                  {escalationTargets.length === 0 ? (
+                    <span className="text-muted">
+                      No escalation targets configured yet — routing appears once the escalation API
+                      reports them.
+                    </span>
+                  ) : (
+                    escalationTargets.map((target, index) => (
+                      <span key={target.label} className="flex items-center gap-2">
+                        {index > 0 ? <span className="text-muted">→</span> : null}
+                        <span className="px-2 py-1 rounded bg-surface-container-high text-on-surface flex items-center gap-1">
+                          <Icon
+                            name={target.icon}
+                            className={`text-[14px] ${target.iconClass}`}
+                          />
+                          {target.label}
+                        </span>
+                      </span>
+                    ))
+                  )}
                 </div>
               </div>
               <div className="md:col-span-4 p-4 rounded-lg bg-surface-container flex flex-col justify-between">
@@ -609,83 +654,102 @@ export function NotificationPreferences() {
 
             {previewTab === "slack" ? (
               <div className="p-4 rounded-lg bg-[#1a1d21] text-white shadow-inner space-y-3 font-sans">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded bg-primary-container flex items-center justify-center shrink-0">
-                    <Icon name="token" className="text-white text-[20px]" />
+                {Object.keys(slackPreviewMessage).length === 0 ? (
+                  <div className="py-8 text-center text-[13px] text-[#a0a0a0]">
+                    No test notification yet — dispatch a test to preview the outbound Slack
+                    payload.
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-[14px] text-[#f8f8f8]">Unify Bot</span>
-                      <span className="px-1 py-0.2 rounded bg-[#2c3136] text-micro-label uppercase font-mono text-[#a0a0a0]">
-                        APP
-                      </span>
-                      <span className="text-[12px] text-[#868686]">Just now</span>
+                ) : (
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded bg-primary-container flex items-center justify-center shrink-0">
+                      <Icon name="token" className="text-white text-[20px]" />
                     </div>
-                    <p className="text-[13px] text-[#d1d2d3] mt-1 font-medium">
-                      🚨 <strong className="text-white">[SEV-1 ALERT]</strong> Design drift
-                      detected in PR #142 (`feature/nav-overhaul`).
-                    </p>
-                    <div className="mt-2.5 p-3 rounded bg-[#222529] border-l-4 border-l-error space-y-2 text-[12px]">
-                      <div className="flex justify-between gap-3">
-                        <span className="text-[#a0a0a0]">Finding:</span>
-                        <span className="font-mono text-white">CONF-1048</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-bold text-[14px] text-[#f8f8f8]">Unify Bot</span>
+                        <span className="px-1 py-0.2 rounded bg-[#2c3136] text-micro-label uppercase font-mono text-[#a0a0a0]">
+                          APP
+                        </span>
+                        {slackPreviewMessage.appTime ? (
+                          <span className="text-[12px] text-[#868686]">
+                            {slackPreviewMessage.appTime}
+                          </span>
+                        ) : null}
                       </div>
-                      <div className="flex justify-between gap-3">
-                        <span className="text-[#a0a0a0]">Policy:</span>
-                        <span className="font-mono text-secondary">P1 · Design Drift after PR Merge</span>
+                      {slackPreviewMessage.headline ? (
+                        <p className="text-[13px] text-[#d1d2d3] mt-1 font-medium">
+                          {slackPreviewMessage.headline}
+                        </p>
+                      ) : null}
+                      {slackPreviewMessage.fields?.length ? (
+                        <div className="mt-2.5 p-3 rounded bg-[#222529] border-l-4 border-l-error space-y-2 text-[12px]">
+                          {slackPreviewMessage.fields.map((field) => (
+                            <div key={field.label} className="flex justify-between gap-3">
+                              <span className="text-[#a0a0a0]">{field.label}:</span>
+                              <span className={`font-mono ${field.valueClass ?? "text-white"}`}>
+                                {field.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                      <div className="mt-3 flex items-center gap-2">
+                        <button className="px-2.5 py-1 rounded bg-[#007a5a] hover:bg-[#148567] text-white text-[12px] font-semibold">
+                          Acknowledge SLA
+                        </button>
+                        <button className="px-2.5 py-1 rounded bg-[#2c3136] hover:bg-[#383f45] text-white text-[12px]">
+                          View Graph
+                        </button>
                       </div>
-                      <div className="flex justify-between gap-3">
-                        <span className="text-[#a0a0a0]">Verdict:</span>
-                        <span className="font-mono text-error">CONTRADICTED</span>
-                      </div>
-                      <div className="flex justify-between gap-3">
-                        <span className="text-[#a0a0a0]">Freshness:</span>
-                        <span className="font-mono text-white">CURRENT</span>
-                      </div>
-                    </div>
-                    <div className="mt-3 flex items-center gap-2">
-                      <button className="px-2.5 py-1 rounded bg-[#007a5a] hover:bg-[#148567] text-white text-[12px] font-semibold">
-                        Acknowledge SLA
-                      </button>
-                      <button className="px-2.5 py-1 rounded bg-[#2c3136] hover:bg-[#383f45] text-white text-[12px]">
-                        View Graph
-                      </button>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             ) : (
               <div className="p-4 rounded-lg bg-surface-container space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-error animate-pulse" />
-                    <span className="font-label-caps text-label-caps text-error uppercase font-bold">
-                      Unify Guardrail Warning
-                    </span>
+                {Object.keys(inAppPreviewMessage).length === 0 ? (
+                  <div className="py-8 text-center text-body-sm text-on-surface-variant">
+                    No in-app notification yet — dispatch a test to preview the inbox card.
                   </div>
-                  <span className="font-mono-code text-micro-label text-muted">1m ago</span>
-                </div>
-                <h4 className="font-headline-sm text-body-md font-semibold text-on-surface">
-                  Critical Contract Mismatch
-                </h4>
-                <p className="font-body-sm text-on-surface-variant">
-                  Production styling pipeline blocked. Variable reference `surface-elevated` is
-                  unregistered in Design Token Store.
-                </p>
-                <div className="pt-2 flex items-center justify-end gap-2">
-                  <button className="px-3 py-1 rounded bg-surface-container-highest text-on-surface text-body-sm font-semibold">
-                    Inspect Code
-                  </button>
-                  <button className="px-3 py-1 rounded bg-primary-container text-on-primary-container text-body-sm font-semibold">
-                    Quick Fix
-                  </button>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-error animate-pulse" />
+                        <span className="font-label-caps text-label-caps text-error uppercase font-bold">
+                          Unify Guardrail Warning
+                        </span>
+                      </div>
+                      {inAppPreviewMessage.age ? (
+                        <span className="font-mono-code text-micro-label text-muted">
+                          {inAppPreviewMessage.age}
+                        </span>
+                      ) : null}
+                    </div>
+                    <h4 className="font-headline-sm text-body-md font-semibold text-on-surface">
+                      {inAppPreviewMessage.title}
+                    </h4>
+                    <p className="font-body-sm text-on-surface-variant">
+                      {inAppPreviewMessage.body}
+                    </p>
+                    <div className="pt-2 flex items-center justify-end gap-2">
+                      <button className="px-3 py-1 rounded bg-surface-container-highest text-on-surface text-body-sm font-semibold">
+                        Inspect Code
+                      </button>
+                      <button className="px-3 py-1 rounded bg-primary-container text-on-primary-container text-body-sm font-semibold">
+                        Quick Fix
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
             <div className="p-3.5 rounded bg-surface-container-lowest/70 text-body-sm text-muted flex items-center gap-2.5 font-mono-code text-[12px]">
               <Icon name="verified_user" className="text-secondary text-[18px]" />
-              <span>Last verification test succeeded 12 mins ago</span>
+              <span>
+                {lastVerification ?? "No verification tests yet — dispatch a test to confirm delivery."}
+              </span>
             </div>
           </section>
 
@@ -695,33 +759,54 @@ export function NotificationPreferences() {
               <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
                 Digest Metric Impact
               </span>
-              <span className="font-mono-code text-[12px] text-secondary font-semibold">
-                -68% Noise
-              </span>
+              {digestStats.noiseReduction ? (
+                <span className="font-mono-code text-[12px] text-secondary font-semibold">
+                  {digestStats.noiseReduction} Noise
+                </span>
+              ) : null}
             </div>
-            <div className="space-y-4">
-              <div className="flex justify-between text-body-sm">
-                <span className="text-on-surface-variant">Incoming Raw Alerts (Weekly)</span>
-                <span className="font-mono-code font-semibold text-on-surface">1,480</span>
+            {digestStats.incoming ? (
+              <div className="space-y-4">
+                <div className="flex justify-between text-body-sm">
+                  <span className="text-on-surface-variant">Incoming Raw Alerts (Weekly)</span>
+                  <span className="font-mono-code font-semibold text-on-surface">
+                    {digestStats.incoming}
+                  </span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-surface-container overflow-hidden flex">
+                  <div
+                    className="bg-primary h-full"
+                    style={{ width: `${digestStats.incomingShare ?? 0}%` }}
+                  />
+                  <div className="bg-surface-container-highest h-full flex-1" />
+                </div>
+                <div className="flex justify-between text-body-sm pt-1">
+                  <span className="text-on-surface-variant">Batched Messages Delivered</span>
+                  <span className="font-mono-code font-semibold text-secondary">
+                    {digestStats.batched ?? "—"}
+                  </span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-surface-container overflow-hidden flex">
+                  <div
+                    className="bg-secondary h-full"
+                    style={{ width: `${digestStats.batchedShare ?? 0}%` }}
+                  />
+                  <div className="bg-surface-container-highest h-full flex-1" />
+                </div>
               </div>
-              <div className="w-full h-2 rounded-full bg-surface-container overflow-hidden flex">
-                <div className="bg-primary h-full" style={{ width: "32%" }} />
-                <div className="bg-surface-container-highest h-full flex-1" />
-              </div>
-              <div className="flex justify-between text-body-sm pt-1">
-                <span className="text-on-surface-variant">Batched Messages Delivered</span>
-                <span className="font-mono-code font-semibold text-secondary">474</span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-surface-container overflow-hidden flex">
-                <div className="bg-secondary h-full" style={{ width: "32%" }} />
-                <div className="bg-surface-container-highest h-full flex-1" />
-              </div>
-            </div>
-            <p className="text-[12px] text-muted pt-2 leading-relaxed">
-              Smart aggregation algorithm prevented{" "}
-              <strong>1,006 individual ping interrupts</strong> during your configured focus
-              intervals this sprint.
-            </p>
+            ) : (
+              <p className="text-body-sm text-muted py-2">
+                No digest telemetry yet — noise-reduction metrics appear once notifications are
+                delivered.
+              </p>
+            )}
+            {digestStats.prevented ? (
+              <p className="text-[12px] text-muted pt-2 leading-relaxed">
+                Smart aggregation algorithm prevented{" "}
+                <strong>{digestStats.prevented}</strong> during your configured focus intervals this
+                sprint.
+              </p>
+            ) : null}
           </section>
 
           {/* Export */}

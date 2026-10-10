@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
-import { kindLabels, squads, toolFilters, type SearchKind } from "@/lib/mock/search";
+import { kindLabels, toolFilters, type SearchKind } from "@/lib/domain/search";
+
+/**
+ * DATA HOLE — replace with the workspace/squad API.
+ * Empty until the endpoint exists; the squad scope section renders its
+ * empty copy.
+ */
+const squads: string[] = [];
 import type { FindingStatus, Severity } from "@/lib/types";
 
 export interface SearchFilters {
@@ -289,7 +296,8 @@ export function FiltersPanel({
             </div>
             <div className="flex items-center gap-1 text-micro-label font-mono-code text-muted mt-0.5">
               <Icon name="calendar_month" className="text-[13px]" />
-              <span>2026-10-01 → Present</span>
+              {/* Rolling window caption derived from the selected horizon — no absolute dates. */}
+              <span>Last {filters.horizon} (rolling)</span>
             </div>
           </>
         ) : null}
@@ -325,7 +333,12 @@ export function FiltersPanel({
           Squad scope
         </span>
         <div className="space-y-1.5">
-          {squads.map((squad) => (
+          {squads.length === 0 ? (
+            <p className="font-body-sm text-body-sm text-muted">
+              No squads indexed yet — scope appears once the workspace API returns teams.
+            </p>
+          ) : (
+            squads.map((squad) => (
             <label key={squad} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -341,7 +354,8 @@ export function FiltersPanel({
                 {squad}
               </span>
             </label>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

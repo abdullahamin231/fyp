@@ -4,8 +4,14 @@ import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
 import { useToast } from "@/components/ui/toast";
-import { policies } from "@/lib/mock/policies";
-import type { Severity } from "@/lib/types";
+import type { Policy, Severity } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with the policies API.
+ * Empty until the endpoint exists; the policy-derived watch rows render
+ * nothing and only artifact watches (also empty below) would show.
+ */
+const policies: Policy[] = [];
 
 type Delivery = "immediate" | "digest";
 
@@ -60,54 +66,12 @@ const policyRows: WatchTarget[] = policies.map((policy) => ({
   policyOff: !policy.enabled,
 }));
 
-const initialTargets: WatchTarget[] = [
-  {
-    id: "watch-checkout-modal",
-    kind: "artifact",
-    icon: "widgets",
-    iconTone: "text-secondary",
-    name: "CheckoutModal",
-    tag: "React + Figma",
-    tagTone: "bg-surface-container-highest text-primary font-bold",
-    ref: "figma://node/894:21290 ↔ @unify/ui-modals",
-    triggers: [
-      { label: "All visual drifts", tone: "bg-surface-container-highest text-tertiary font-mono-code" },
-      { label: "P1 / P3", tone: "bg-error-container text-error font-bold" },
-    ],
-    note: "Triggered 4 times in past 14 days",
-  },
-  {
-    id: "watch-unify-core",
-    kind: "artifact",
-    icon: "source",
-    iconTone: "text-primary",
-    name: "unify-dev/unify-core",
-    tag: "GitHub Monorepo",
-    tagTone: "bg-surface-container-highest text-secondary font-bold",
-    ref: "Branches: `main`, `release/2.4`",
-    triggers: [
-      { label: "Breaking schema changes", tone: "bg-surface-container-highest text-on-surface font-mono-code" },
-      { label: "Dependency conflicts", tone: "bg-surface-container-highest text-tertiary-fixed-dim font-mono-code" },
-    ],
-    note: "Escalation path: Core Checkout code owner",
-  },
-  {
-    id: "watch-proj",
-    kind: "artifact",
-    icon: "developer_board",
-    iconTone: "text-tertiary",
-    name: "PROJ (Core Infrastructure)",
-    tag: "Jira",
-    tagTone: "bg-surface-container-highest text-muted font-bold",
-    ref: "Epics & unassigned blockers",
-    triggers: [
-      { label: "State divergence", tone: "bg-surface-container-highest text-on-surface font-mono-code" },
-      { label: "Orphaned tickets > 5d", tone: "bg-surface-container-highest text-muted font-mono-code" },
-    ],
-    note: "Direct DM alerts via Slack bot",
-  },
-  ...policyRows,
-];
+/**
+ * DATA HOLE — replace with the watcher API's artifact watch list.
+ * Empty until the endpoint exists; combined with the (empty) policy rows the
+ * table renders its empty state.
+ */
+const initialTargets: WatchTarget[] = [...policyRows];
 
 type RowState = { delivery: Delivery; muted: boolean };
 
@@ -127,7 +91,8 @@ const initialRowState: Record<string, RowState> = Object.fromEntries(
  */
 export function WatcherTable() {
   const toast = useToast();
-  const [targets, setTargets] = useState<WatchTarget[]>(initialTargets);
+  // DATA HOLE: the setter returns with the watcher API's create call.
+  const [targets] = useState<WatchTarget[]>(initialTargets);
   const [rowState, setRowState] = useState<Record<string, RowState>>(initialRowState);
   const [filter, setFilter] = useState<string>("all");
 
@@ -162,29 +127,13 @@ export function WatcherTable() {
     );
   }
 
+  /**
+   * DATA HOLE — replace with the watcher API's create-subscription call.
+   * The picker that chooses which artifact to watch isn't wired yet, so this
+   * intentionally creates no record.
+   */
   function addWatcher() {
-    const id = `watch-event-contract-${targets.length}`;
-    setTargets((prev) => [
-      {
-        id,
-        kind: "artifact",
-        icon: "hub",
-        iconTone: "text-secondary",
-        name: "EventContract",
-        tag: "Schema",
-        tagTone: "bg-surface-container-highest text-primary font-bold",
-        ref: "unify-dev/api-gateway ↔ contract.graphql",
-        triggers: [
-          { label: "Field deprecations", tone: "bg-surface-container-highest text-tertiary font-mono-code" },
-          { label: "All PR checks", tone: "bg-surface-container-highest text-on-surface font-mono-code" },
-        ],
-        note: "Created just now",
-      },
-      ...prev,
-    ]);
-    setRowState((prev) => ({ ...prev, [id]: { delivery: "immediate", muted: false } }));
-    setFilter("all");
-    toast("Subscribed to EventContract schema watcher", { icon: "add_alert" });
+    toast("Connect the watcher API to add a subscription", { icon: "add_alert" });
   }
 
   return (
@@ -227,6 +176,17 @@ export function WatcherTable() {
         </div>
 
         <div>
+          {visible.length === 0 ? (
+            <div className="px-4 py-10 text-center">
+              <Icon name="notifications_off" className="text-[28px] text-muted mb-2" />
+              <p className="font-body-md text-body-md font-semibold text-on-surface">
+                No watcher subscriptions
+              </p>
+              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                Add a watcher to receive smart notifications and triage assignments.
+              </p>
+            </div>
+          ) : null}
           {visible.map((target, index) => {
             const state = rowState[target.id] ?? { delivery: "immediate", muted: false };
             const chip = target.policyOff

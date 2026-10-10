@@ -5,11 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
 import { edgePath, type Point } from "./geometry";
 import { eligibilityStyle, kindIcon, kindTone, toneClasses } from "./graph-styles";
-import type { EdgeRelation, ExplorerEdge, ExplorerGraph, ExplorerNode } from "@/lib/mock/graph";
-import { isDecisive } from "@/lib/mock/graph";
+import type { EdgeRelation, ExplorerEdge, ExplorerGraph, ExplorerNode } from "@/lib/domain/graph";
+import { isDecisive } from "@/lib/domain/graph";
 import type { GraphNodeKind, LinkEligibility } from "@/lib/types";
 
-/** Stage size in px — cards are centred on their `x`/`y` from the mock model. */
+/** Stage size in px — cards are centred on their `x`/`y` from the graph payload. */
 const STAGE_W = 1150;
 const STAGE_H = 620;
 
@@ -139,7 +139,8 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
         eligibility: "confirmed",
         confidence: 1,
         provenance: "manual",
-        confirmedBy: "Alex Rivera",
+        // DATA HOLE — set to the signed-in user's display name once the session API exists.
+        confirmedBy: undefined,
       },
     ]);
     setNotice(

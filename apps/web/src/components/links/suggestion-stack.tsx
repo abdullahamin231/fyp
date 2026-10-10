@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/ui/icon";
-import type { LinkSuggestion } from "@/lib/mock/link-suggestions";
+import type { LinkSuggestion } from "@/lib/domain/link-suggestions";
 import {
   ADVISORY_RULE,
   confidenceLabel,

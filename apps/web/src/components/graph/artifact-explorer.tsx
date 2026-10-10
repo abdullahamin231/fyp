@@ -11,11 +11,11 @@ import type {
   ExplorerGraph,
   ExplorerNode,
   LinkProposal,
-} from "@/lib/mock/graph";
-import { graphStats, isDecisive } from "@/lib/mock/graph";
+} from "@/lib/domain/graph";
+import { graphStats, isDecisive } from "@/lib/domain/graph";
 import type { GraphNodeKind, LinkEligibility } from "@/lib/types";
 
-/** Canvas stage (px) — cards centre on their mock coordinates. */
+/** Canvas stage (px) — cards centre on their node coordinates. */
 const STAGE_W = 660;
 const STAGE_H = 580;
 
@@ -45,9 +45,14 @@ const RELATIONS: EdgeRelation[] = [
 
 const ELIGIBILITIES: LinkEligibility[] = ["confirmed", "system-confirmed", "inferred", "unconfirmed"];
 
+/**
+ * Saved node-id subsets for the preset chips. Empty until the artifact API
+ * supplies real node ids — with no ids, no preset matches and the full graph
+ * (itself empty) is shown.
+ */
 const PRESETS: Record<string, string[]> = {
-  drift: ["FIG-A", "PR-142", "REQ-A", "CONF-1048"],
-  checkout: ["FIG-A", "PR-142", "REQ-A", "SPEC", "CONF-1048", "GHOST"],
+  drift: [],
+  checkout: [],
 };
 
 function eligibilityCaption(edge: ExplorerEdge): string {
@@ -122,7 +127,7 @@ function ArtifactNodeCard({
           <span className="w-2 h-2 rounded-full bg-error animate-pulse" />
         </div>
         <div className="font-body-sm font-semibold text-on-surface truncate">{node.label}</div>
-        <div className="mt-1 text-micro-label font-mono-code text-error">P1 · review required</div>
+        <div className="mt-1 text-micro-label font-mono-code text-error">{node.meta}</div>
       </button>
     );
   }
@@ -197,7 +202,7 @@ export function ArtifactGraphExplorer({
   driftAffected,
 }: {
   graph: ExplorerGraph;
-  proposal: LinkProposal;
+  proposal: LinkProposal | null;
   driftAffected: string[];
 }) {
   const [layout, setLayout] = useState<LayoutMode>("hierarchical");
@@ -211,7 +216,7 @@ export function ArtifactGraphExplorer({
     new Set(ELIGIBILITIES),
   );
   const [preset, setPreset] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string>("FIG-A");
+  const [selectedId, setSelectedId] = useState<string>("");
   const [proposalState, setProposalState] = useState<"pending" | "confirmed" | "dismissed">(
     "pending",
   );
@@ -223,6 +228,7 @@ export function ArtifactGraphExplorer({
   );
 
   const proposalPoint = useMemo(() => {
+    if (!proposal) return { x: STAGE_W / 2, y: STAGE_H / 2 };
     const origin = positions.get(proposal.from) ?? { x: STAGE_W / 2, y: STAGE_H / 2 };
     const half = { w: 116, h: 56 };
     return {
@@ -239,7 +245,7 @@ export function ArtifactGraphExplorer({
 
   /** Base edge list = graph edges + the (stateful) Slack link proposal. */
   const allEdges = useMemo<ExplorerEdge[]>(() => {
-    if (proposalState === "dismissed") return graph.edges;
+    if (!proposal || proposalState === "dismissed") return graph.edges;
     const confirmed = proposalState === "confirmed";
     const proposalEdge: ExplorerEdge = {
       from: proposal.from,
@@ -249,7 +255,7 @@ export function ArtifactGraphExplorer({
       eligibility: confirmed ? "confirmed" : "inferred",
       confidence: confirmed ? 1 : proposal.confidence,
       provenance: confirmed ? "manual" : "inferred",
-      confirmedBy: confirmed ? "Alex Rivera" : undefined,
+      confirmedBy: undefined,
     };
     return [...graph.edges, proposalEdge];
   }, [graph, proposal, proposalState]);
@@ -271,7 +277,7 @@ export function ArtifactGraphExplorer({
   const visibleEdges = useMemo(
     () =>
       allEdges.filter((edge) => {
-        const proposalEndpoint = edge.to === proposal.id || edge.from === proposal.id;
+        const proposalEndpoint = proposal !== null && (edge.to === proposal.id || edge.from === proposal.id);
         const endpointsVisible = proposalEndpoint
           ? proposalState !== "dismissed" && visibleNodeIds.has(proposal.from)
           : visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to);
@@ -281,13 +287,18 @@ export function ArtifactGraphExplorer({
           edge.confidence * 100 >= cutoff
         );
       }),
-    [allEdges, visibleNodeIds, enabledEligibility, cutoff, proposal.id, proposal.from, proposalState],
+    [allEdges, visibleNodeIds, enabledEligibility, cutoff, proposal, proposalState],
   );
 
-  const selected = graph.nodes.find((node) => node.id === selectedId) ?? graph.nodes[0];
+  const selected = graph.nodes.find((node) => node.id === selectedId) ?? graph.nodes[0] ?? null;
+
+  /** First diverging node in view, if the graph carries one — drives the alert pill. */
+  const divergenceNode = visibleNodes.find((node) => node.conflict) ?? null;
+  const conflictCount = graph.nodes.filter((node) => node.conflict).length;
 
   const selectedEdges = useMemo(() => {
     const entries: { edge: ExplorerEdge; other: ExplorerNode | null }[] = [];
+    if (!selected) return entries;
     for (const edge of visibleEdges) {
       if (edge.to === selected.id) {
         entries.push({
@@ -301,7 +312,7 @@ export function ArtifactGraphExplorer({
     return entries;
   }, [visibleEdges, selected, graph]);
 
-  const inDrift = driftAffected.includes(selected.id);
+  const inDrift = selected !== null && driftAffected.includes(selected.id);
   const relationCounts = RELATIONS.map((relation) => ({
     relation,
     count: allEdges.filter((edge) => edge.label === relation).length,
@@ -396,7 +407,7 @@ export function ArtifactGraphExplorer({
                     Edges
                   </span>
                   <span className="font-headline-sm text-headline-sm text-secondary font-bold">
-                    {stats.edges + (proposalState === "dismissed" ? 0 : 1)}
+                    {stats.edges + (proposal && proposalState !== "dismissed" ? 1 : 0)}
                   </span>
                 </div>
                 <div className="flex flex-col pt-1 border-t border-outline-variant/20">
@@ -412,7 +423,7 @@ export function ArtifactGraphExplorer({
                     Divergence
                   </span>
                   <span className="font-mono-code text-body-sm text-error font-bold animate-pulse">
-                    1 conflict
+                    {conflictCount} conflict{conflictCount === 1 ? "" : "s"}
                   </span>
                 </div>
               </div>
@@ -620,13 +631,15 @@ export function ArtifactGraphExplorer({
               <span className="text-on-surface">{visibleEdges.length}</span> | Zoom:{" "}
               <span className="text-secondary">{zoom}%</span>
             </div>
-            <button
-              onClick={() => setSelectedId("CONF-1048")}
-              className="px-2 py-1 rounded bg-error/10 border border-error/30 font-mono-code text-micro-label text-error flex items-center gap-1 pointer-events-auto"
-            >
-              <Icon name="warning" className="text-[12px] animate-pulse" />
-              CONF-1048 Divergence Alert
-            </button>
+            {divergenceNode ? (
+              <button
+                onClick={() => setSelectedId(divergenceNode.id)}
+                className="px-2 py-1 rounded bg-error/10 border border-error/30 font-mono-code text-micro-label text-error flex items-center gap-1 pointer-events-auto"
+              >
+                <Icon name="warning" className="text-[12px] animate-pulse" />
+                {divergenceNode.label} Divergence Alert
+              </button>
+            ) : null}
           </div>
 
           {/* Canvas grid */}
@@ -649,9 +662,13 @@ export function ArtifactGraphExplorer({
                 >
                   {visibleEdges.map((edge) => {
                     const a =
-                      edge.from === proposal.id ? proposalPoint : (positions.get(edge.from) ?? null);
+                      proposal !== null && edge.from === proposal.id
+                        ? proposalPoint
+                        : (positions.get(edge.from) ?? null);
                     const b =
-                      edge.to === proposal.id ? proposalPoint : (positions.get(edge.to) ?? null);
+                      proposal !== null && edge.to === proposal.id
+                        ? proposalPoint
+                        : (positions.get(edge.to) ?? null);
                     if (!a || !b) return null;
                     const style = eligibilityStyle[edge.eligibility];
                     const anchor = edgeLabelAnchor(a, b);
@@ -688,7 +705,7 @@ export function ArtifactGraphExplorer({
                 ))}
 
                 {/* Inferred Slack link proposal */}
-                {proposalState !== "dismissed" && visibleNodeIds.has(proposal.from) ? (
+                {proposal && proposalState !== "dismissed" && visibleNodeIds.has(proposal.from) ? (
                   <div
                     className="absolute w-56 p-3 rounded-lg border shadow-xl backdrop-blur-md"
                     style={{
@@ -704,7 +721,7 @@ export function ArtifactGraphExplorer({
                             <Icon name="check_circle" className="text-[13px]" />
                             Confirmed Link
                           </span>
-                          <span className="text-muted font-mono-code text-micro-label">Alex R.</span>
+                          <span className="text-muted font-mono-code text-micro-label">You</span>
                         </div>
                         <div className="font-body-sm text-[12px] text-on-surface truncate">
                           {proposal.channel}: {proposal.quote}
@@ -810,6 +827,17 @@ export function ArtifactGraphExplorer({
 
         {/* RIGHT: node inspector */}
         <aside className="col-span-12 lg:col-span-3 flex flex-col bg-surface-container-low/95 rounded-xl border border-outline-variant/30 overflow-hidden shadow-lg backdrop-blur-md h-[720px] lg:h-[calc(100vh-248px)] lg:min-h-[640px]">
+          {selected === null ? (
+            <div className="flex-1 grid place-items-center p-6 text-center">
+              <div>
+                <Icon name="interesting" className="text-[32px] text-muted mb-2" />
+                <p className="font-body-sm text-body-sm text-muted">
+                  No artifact selected. The graph is empty until the artifact API returns nodes.
+                </p>
+              </div>
+            </div>
+          ) : (
+          <>
           <div className="p-4 border-b border-outline-variant/25 bg-surface-container-lowest/60">
             <div className="flex items-center justify-between mb-1.5">
               <span className="font-label-caps text-label-caps text-primary uppercase tracking-wider">
@@ -858,26 +886,17 @@ export function ArtifactGraphExplorer({
                 <div className="bg-error-container/20 border border-error/30 rounded-lg p-3.5">
                   <div className="flex items-center gap-2 text-error font-semibold text-[12px]">
                     <Icon name="crisis_alert" className="text-[16px]" />
-                    1 PR &amp; 2 Tickets Affected by Drift
+                    Affected artifacts pending — awaiting the drift API.
                   </div>
                   <p className="font-body-sm text-micro-label text-on-surface-variant mt-1.5">
-                    Field{" "}
-                    <code className="font-mono-code bg-surface-container-lowest px-1 py-0.5 rounded text-error">
-                      securityBadges
-                    </code>{" "}
-                    removed in Figma v3.2 but actively rendered in PR #142 commit{" "}
-                    <code className="font-mono-code text-primary">8ef2a1</code>.
+                    {/* DATA HOLE — replace with the drift API's affected field, source artifact, and conflicting revision. */}
+                    Impact details unavailable.
                   </p>
                   <div className="mt-3 pt-3 border-t border-error/20 flex items-center justify-between">
                     <span className="font-mono-code text-micro-label text-muted">
                       Conflict Reference:
                     </span>
-                    <button
-                      onClick={() => setSelectedId("CONF-1048")}
-                      className="font-mono-code text-micro-label text-error hover:underline font-bold flex items-center gap-0.5"
-                    >
-                      #CONF-1048 <Icon name="north_east" className="text-micro-label" />
-                    </button>
+                    <span className="font-mono-code text-micro-label text-muted">—</span>
                   </div>
                 </div>
               </div>
@@ -945,7 +964,7 @@ export function ArtifactGraphExplorer({
                           onClick={() => other && setSelectedId(other.id)}
                           className="text-on-surface truncate font-medium hover:text-primary transition-colors text-left"
                         >
-                          {other ? `${other.kindLabel} ${other.label}` : "Slack #core-checkout"}
+                          {other ? `${other.kindLabel} ${other.label}` : proposal?.channel ?? "—"}
                         </button>
                         <Icon
                           name={
@@ -984,6 +1003,8 @@ export function ArtifactGraphExplorer({
               </button>
             </div>
           </div>
+          </>
+          )}
         </aside>
       </div>
     </>

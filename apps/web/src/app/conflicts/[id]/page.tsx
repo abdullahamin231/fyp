@@ -15,9 +15,30 @@ import {
   StakeholdersSection,
   VerificationPassesSection,
 } from "@/components/conflict-detail/sections";
-import { findings, getFinding } from "@/lib/mock/findings";
-import { formatUtcFull, getPolicy, packetHash } from "@/lib/mock/conflict-detail";
-import type { FindingStatus, Severity, Verdict } from "@/lib/types";
+import { formatUtcFull, packetHash } from "@/lib/domain/conflict-detail";
+import type { ActivityEvent, Finding, FindingStatus, Policy, Severity, Verdict } from "@/lib/types";
+
+/**
+ * DATA HOLE — replace with API lookups.
+ *
+ * The findings + policies endpoints do not exist yet, so both stores are empty
+ * and every route renders the "not found" state. Swap these two consts for real
+ * fetches and the rest of this screen works unchanged: the detail body below is
+ * already driven entirely by the `Finding` / `Policy` shapes.
+ */
+const findings: Finding[] = [];
+const policiesById: Record<string, Policy> = {};
+
+/** Activity events for a finding — supplied by the activity API. */
+const activity: ActivityEvent[] = [];
+
+function getFinding(id: string): Finding | undefined {
+  return findings.find((f) => f.id === id);
+}
+
+function getPolicy(finding: Finding): Policy {
+  return policiesById[finding.policy];
+}
 
 const severityMeta: Record<Severity, { chip: string; tone: Tone; bar: string }> = {
   critical: { chip: "CRITICAL SEV-1", tone: "critical", bar: "bg-error" },
@@ -59,7 +80,7 @@ function FindingNotFound({ id }: { id: string }) {
           </h2>
           <p className="font-body-md text-body-md text-on-surface-variant mt-1 max-w-2xl">
             This conflict id is not in the workspace index — it may have been purged, or the id is
-            mistyped. Known findings are prerendered from the immutable packet store.
+            mistyped. Findings resolve from the evidence packet API once it is connected.
           </p>
           <Link
             href="/conflicts"
@@ -238,10 +259,10 @@ export default async function ConflictDetailPage({
       </section>
 
       {/* Plain-language explanation + rule AST */}
-      <ExplanationBox finding={finding} />
+      <ExplanationBox finding={finding} policy={policy} />
 
       {/* Evidence chain + timeline */}
-      <EvidenceChainSection finding={finding} />
+      <EvidenceChainSection finding={finding} policy={policy} />
 
       {/* Affected artifacts */}
       <AffectedArtifactsSection finding={finding} />
@@ -258,7 +279,7 @@ export default async function ConflictDetailPage({
       {/* Stakeholders + audit trail */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-gutter">
         <StakeholdersSection finding={finding} />
-        <AuditTrailSection finding={finding} />
+        <AuditTrailSection finding={finding} activity={activity} />
       </div>
 
       {/* Sticky resolution dock */}
