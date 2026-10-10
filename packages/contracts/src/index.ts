@@ -29,6 +29,7 @@ export * from "./rule.js";
 export * from "./packet.js";
 export * from "./verdict.js";
 export * from "./finding.js";
+export * from "./ingestion.js";
 
 /** Version of the contract package; mirror this in DB migration notes. */
 export const CONTRACTS_VERSION = "0.1.0";
