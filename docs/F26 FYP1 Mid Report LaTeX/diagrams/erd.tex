@@ -120,13 +120,16 @@
     \fk subject\_node\_id \rarr{} nodes\\
     \fk rule\_id, rule\_version \rarr{} rules\\
     \fk verdict\_id \rarr{} verdicts\\
+    \fk superseded\_by\_id \rarr{} findings\\
     \ix kind : enum (rule | verdict)\\
     \ix idempotency\_key : text\\
     \ix annotation, severity : text\\
     \ix state : finding\_state (enum)\\
     \ix created\_at : tstz\\[2pt]
     \textrm{\textit{UNIQUE (idempotency\_key)}}\\
-    \textrm{\textit{CHECK exactly one of rule / verdict}}};
+    \textrm{\textit{CHECK exactly one of rule / verdict}}\\
+    \textrm{\textit{CHECK state = superseded}}\\
+    \textrm{\textit{\hphantom{CHECK }$\iff$ superseded\_by\_id set}}};
 
   \node[table=uVerify, anchor=north] (verdicts) at (6.5,-7.0) {%
     \hdr{verdicts}{}
@@ -208,6 +211,11 @@
   \hrel{findings}{verdicts}{1.2cm}{0..1}{0..1}{from}
   \hrel{verdicts}{packets}{1.2cm}{1..*}{1}{judges}
 
+  % self-reference: superseded_by_id (re-verification chain, finding lifecycle)
+  \draw[rel] ([yshift=-2.6cm]findings.north west) -- ++(-0.7,0) |- ([yshift=-1.9cm]findings.north west);
+  \node[card, anchor=east, align=right, font=\scriptsize] at ([xshift=-0.75cm,yshift=-2.22cm]findings.north west)
+       {0..1\\[-1pt]\textmd{\color{uMuted}newer}};
+
   % self-reference: prev_anchor_id (re-anchoring history)
   \draw[rel] ([yshift=-1.4cm]anchors.north east) -- ++(0.6,0) |- ([yshift=-0.75cm]anchors.north east);
   \node[card, anchor=west, align=left, font=\scriptsize] at ([xshift=0.65cm,yshift=-1.07cm]anchors.north east)
@@ -262,5 +270,6 @@
     \texttt{anchor\_method}: created | symbol | hash | hunk\\
     \texttt{anchor\_status}: active | broken\\
     \texttt{verdict\_status}: SUPPORTED | CONTRADICTED | PARTIAL | INSUFFICIENT\_EVIDENCE\\
-    \texttt{finding\_state}: open | acknowledged | resolved | disputed | suppressed};
+    \texttt{finding\_state}: open | acknowledged | resolved | disputed |
+      suppressed | superseded};
 \end{tikzpicture}

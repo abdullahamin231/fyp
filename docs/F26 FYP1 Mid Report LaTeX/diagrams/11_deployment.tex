@@ -47,12 +47,13 @@
 \draw[flow] (api) -- (redis);
 \draw[flow] (wrk) -- (redis);
 \draw[flow] (api) -- (pg);
-\draw[flow] (wrk) -- (pg);
+\draw[flow] (wrk) -- node[lbl,right=1pt,pos=.80]{events, graph, verdicts} (pg);
 \draw[flow] (wrk) -- node[lbl,above=-1pt]{packet} (mdl);
-\draw[flow] (mdl.south west) -- node[lbl,above=-1pt,pos=.4]{verdict + manifest} (pg.north east);
+\draw[flow] (14.2,-1.35) -- (14.2,-1.95) --
+      node[lbl,above=-1pt]{verdict + citations} (11.4,-1.95) -- (11.4,-1.35);
 \draw[flow] (wrk) -- (idx);
 \draw[flow] (pg)  -- (vpg);
-\draw[flow] (mdl.south) -- ++(0,-1.3) -| (vwt);
+\draw[flow] (mdl.south east) -- ++(0,-2.1) -| (vwt);
 \draw[flow] (idx) -- (vrepo);
 
 % ===================== external systems =================================
