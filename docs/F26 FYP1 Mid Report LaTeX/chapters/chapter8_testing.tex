@@ -654,12 +654,12 @@ D-10 & The contracts typecheck reports 6 errors in
 D-11 & The packet builder walks two hops from a criterion, which reaches a pull
   request and its commit but not the analyser's \texttt{CodeSymbol} and
   \texttt{TestCase} nodes one hop further. & Medium & Abdullah, Mishal &
-  Either a third hop or a direct pull-request-to-symbol edge type; decide
-  before the analyser output feeds live packets. \\
+  \textbf{Closed 11 Oct:} the walk bound was raised to three hops, and the demo
+  fixture links the pull request to its symbol and the criterion to its test. \\
 \hline\end{longtable}
 
-Two of the eleven defects (D-03, D-07) are closed, D-05 was not reproduced and
-D-09 is partly closed; the rest remain open with owners.
+Three of the eleven defects (D-03, D-07, D-11) are closed, D-05 was not
+reproduced and D-09 is partly closed; the rest remain open with owners.
 Every open defect can be reproduced from the commands above.
 
 % ---------------------------------------------------------------------------
