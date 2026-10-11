@@ -92,31 +92,36 @@ verified*, never as *verified as fine* (ch5).
 
 ## Deterministic linking (FR-04)
 
-`src/linking/` links a GitHub pull request to the Jira issues it names. It is
-separate from the verification pipeline above and does not touch the queue.
+Links a GitHub pull request to the Jira issues it names. Separate from the
+verification pipeline above; it does not touch the queue.
 
-| File | What it does |
+| Piece | What it does |
 |---|---|
-| `extract-keys.ts` | Finds keys such as `UNI-123` in the PR title, branch name and commit messages. Pure function. A project allow-list rejects lookalikes like `UTF-8`. |
-| `link-pull-request.ts` | One transaction: records the event (and stops if this delivery was seen before), upserts the `PullRequest` node, looks up each key's `Ticket` node, and inserts a `TRACKS` edge (`observed`, confidence 1.0, resolver `explicit-reference`). |
-| `local-db.ts` | In-process Postgres (PGlite) loaded with migrations 00001–00003, 00005 and 00010, used by the tests and the demo only. |
+| `src/linking/extract-keys.ts` | Finds keys such as `UNI-123` in the PR title, branch name and commit messages. Pure TypeScript. A project allow-list rejects lookalikes like `UTF-8`. |
+| `supabase/migrations/00015_link_pull_request_event.sql` | `link_pull_request_event(...)` RPC, one transaction: records the event (stops if this delivery was seen before), upserts the `PullRequest` node, looks up each key's `Ticket` node, inserts a `TRACKS` edge (`observed`, confidence 1.0, resolver `explicit-reference`). `service_role` only, like the queue RPCs. |
+| `src/linking/link-pull-request.ts` | Extracts the keys, then makes the one RPC call. |
+| `src/linking/callers.ts` | `viaSupabase(client)` calls the RPC through supabase-js; `viaSql(db)` calls the same function over plain SQL (tests, local demo). |
+| `src/linking/local-db.ts` | In-process Postgres (PGlite) loaded with migrations 00001–00003, 00005, 00010 and 00015. Tests and local demo only. |
 
 Outcomes: `linked`; `no_key`; `unknown_key` (no edge and no invented node;
 the key stays in `events.references`); `duplicate_event` (via
 `UNIQUE (source_tool, vendor_delivery_id)`); `already_linked` (via
-`edges_current_identity_uidx`, so a dismissed link stays dismissed).
-
-The `ON CONFLICT` clause names the index predicate
+`edges_current_identity_uidx`, so a dismissed link stays dismissed and a
+revoked one can be re-created). The RPC's `ON CONFLICT` names the predicate
 `where link_state <> 'revoked'`, which must match 00010 exactly.
 
+The steps live in SQL because they must commit together, and supabase-js sends
+each call as its own transaction.
+
 ```bash
-npm run demo:linking    # five PR events through the real linker, then the edges table
+npm run demo:linking              # local: in-process Postgres, same migrations
+npm run demo:linking -- --live    # hosted project: needs SUPABASE_URL and
+                                  # SUPABASE_SERVICE_ROLE_KEY in .env, and 00015 applied
 ```
 
-Not yet: a webhook endpoint that builds the `PullRequestEvent`, and a
-server-side connection so the linker runs against the hosted database. The
-linker uses one SQL transaction, which the Supabase JS client cannot express,
-so it needs either a direct Postgres connection or an RPC.
+`--live` writes to its own workspace (slug `linking-demo`) and uses a fresh
+demo repo name per run. Not yet: a webhook endpoint that builds the
+`PullRequestEvent` from a real GitHub payload.
 
 ## Known simplifications
 
