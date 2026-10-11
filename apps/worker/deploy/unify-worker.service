@@ -1,0 +1,55 @@
+# UNIFY verification worker — systemd unit (template)
+#
+# This file is a template: `@REPO@`, `@USER@`, `@GROUP@`, `@NODE@` and `@MODEL@`
+# are substituted by `deploy/install.sh`. Do not install this file directly —
+# run `./deploy/install.sh` instead.
+#
+# The worker is a poller, not a server: it makes outbound HTTPS calls to
+# Supabase and spawns the `opencode` CLI locally. It never opens a port, so it
+# must NOT be exposed to the internet — the service-role key stays on this box.
+
+[Unit]
+Description=UNIFY verification worker
+Documentation=file://@REPO@/apps/worker/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Run as your own user (not root) so the opencode CLI + model cache resolve.
+User=@USER@
+Group=@GROUP@
+
+# The worker reads .env from its working directory (see src/config.ts loadDotEnv).
+WorkingDirectory=@REPO@/apps/worker
+EnvironmentFile=@REPO@/apps/worker/.env
+
+# Model seam. `stub` = offline/deterministic (no model needed); `opencode` = the
+# real runner. There is no silent fallback between them.
+Environment=MODEL_PROVIDER=opencode
+# provider/model exactly as `opencode run -m` expects. Free-tier default:
+#   opencode/ling-3.1-flash-free   (fast, free, good JSON)
+#   opencode/space-bunny-free      (zero-retention, 1M ctx, time-limited)
+Environment=UNIFY_MODEL=@MODEL@
+
+# Optional tuning (defaults shown; see src/config.ts):
+# Environment=MODEL_TIMEOUT_MS=180000
+# Environment=POLL_INTERVAL_MS=3000
+# Environment=PACKET_TOKEN_BUDGET=8000
+
+ExecStart=@NODE@ dist/index.js
+
+# Restart on crash; back off a little so a hard failure loop doesn't spin.
+Restart=always
+RestartSec=5
+
+# Hardening. Deliberately light: the spawned `opencode` CLI writes to its own
+# home cache (~/.cache/opencode, ~/.local/share/opencode), so we do NOT set
+# ProtectHome=read-only. ProtectSystem=full only makes /usr, /boot, /etc
+# read-only — home stays writable.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

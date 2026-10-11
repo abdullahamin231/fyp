@@ -1,5 +1,6 @@
+import { NODE_TYPE_META, eligibilityFor, type NodeType } from "@unify/contracts";
 import { createClient } from "@/lib/supabase/server";
-import type { Finding, RelationLink } from "@/lib/types";
+import type { Finding, RelationLink, ToolKind } from "@/lib/types";
 import type { LinkSuggestion } from "@/lib/domain/link-suggestions";
 import { findingView } from "./map";
 import type {
@@ -148,26 +149,12 @@ const EDGE_COLUMNS =
   "id, from_id, to_id, type, source_class, confidence, resolver, link_state, created_at, resolved_at, resolution_reason";
 
 /** Which tool a node type belongs to — the endpoint icon in the relationship view. */
-function toolForNodeType(type: string): "github" | "jira" | "git" | "test" | "figma" {
-  switch (type) {
-    case "PullRequest":
-    case "Commit":
-      return "github";
-    case "Ticket":
-    case "Criterion":
-    case "Requirement":
-      return "jira";
-    case "TestCase":
-      return "test";
-    case "DesignArtifact":
-      return "figma";
-    default:
-      return "git";
-  }
+function toolForNodeType(type: string): ToolKind {
+  return NODE_TYPE_META[type as NodeType]?.tool ?? "git";
 }
 
 function endpointRef(node: NodeRow | undefined, fallbackId: string): {
-  tool: "github" | "jira" | "git" | "test" | "figma";
+  tool: ToolKind;
   ref: string;
   label: string;
 } {
@@ -180,23 +167,10 @@ function endpointRef(node: NodeRow | undefined, fallbackId: string): {
 }
 
 /**
- * Where a link's eligibility comes from — a read of FR-28's two-threshold band
- * rather than a re-derivation of it:
- *
- * - a human resolver (`user:`) is `confirmed`, whatever produced the link;
- * - a threshold policy (`system:`) is `system-confirmed`, reversible by a human;
- * - a webhook-declared `observed` link is `system-confirmed` too — the tool
- *   said so itself, but nobody has agreed to it yet;
- * - everything else (`derived`, `model_candidate`, `unresolved`) is still a
- *   suggestion and lands in the verification queue, never in a decisive finding.
+ * Where a link's eligibility comes from — `eligibilityFor` in `@unify/contracts`
+ * is the single source of truth, shared with the gate so the reviewer surface
+ * and the verdict gate can never disagree about the same edge.
  */
-function eligibilityFor(edge: EdgeRow): RelationLink["eligibility"] {
-  if (edge.resolver.startsWith("user:")) return "confirmed";
-  if (edge.resolver.startsWith("system:")) return "system-confirmed";
-  if (edge.source_class === "observed") return "system-confirmed";
-  if (edge.source_class === "unresolved") return "unconfirmed";
-  return "inferred";
-}
 
 function provenanceFor(edge: EdgeRow): RelationLink["provenance"] {
   if (edge.resolver.startsWith("user:")) return "manual";
@@ -237,7 +211,7 @@ export async function listLinks(): Promise<{
   const suggestions: LinkSuggestion[] = [];
 
   for (const edge of rows) {
-    const eligibility = eligibilityFor(edge);
+    const eligibility = eligibilityFor({ sourceClass: edge.source_class, resolver: edge.resolver });
     const relation = (KNOWN_RELATIONS as readonly string[]).includes(edge.type)
       ? (edge.type as RelationLink["relation"])
       : "REFERENCES";

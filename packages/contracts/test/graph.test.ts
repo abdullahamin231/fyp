@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   codeAnchorSchema,
   edgeIdentityKey,
+  eligibilityFor,
   isDecisiveEligibleEdge,
   nodeSchema,
 } from "../src/index.js";
@@ -36,17 +37,43 @@ describe("graph nodes", () => {
 describe("link eligibility (FR-05)", () => {
   const cases: Array<[string, Parameters<typeof isDecisiveEligibleEdge>[0], boolean]> = [
     ["observed + active is decisive-eligible", { sourceClass: "observed", linkState: "active", resolver: "explicit-reference" }, true],
-    ["derived + active is decisive-eligible", { sourceClass: "derived", linkState: "active", resolver: "manual:alex-rivera" }, true],
+    ["derived + active is decisive-eligible", { sourceClass: "derived", linkState: "active", resolver: "user:alex-rivera" }, true],
     ["model candidate confirmed by threshold is decisive-eligible", { sourceClass: "model_candidate", linkState: "active", resolver: "system:threshold" }, true],
-    ["model candidate confirmed by a human is decisive-eligible", { sourceClass: "model_candidate", linkState: "active", resolver: "manual:mishal-fatima" }, true],
+    ["model candidate confirmed by a human is decisive-eligible", { sourceClass: "model_candidate", linkState: "active", resolver: "user:mishal-fatima" }, true],
     ["raw model candidate is never decisive", { sourceClass: "model_candidate", linkState: "active", resolver: "model:run-9" }, false],
     ["unresolved link is never decisive", { sourceClass: "unresolved", linkState: "active", resolver: "model:run-9" }, false],
+    ["a human-confirmed unresolved link is decisive", { sourceClass: "unresolved", linkState: "active", resolver: "user:alex-rivera" }, true],
     ["dismissed link is inert", { sourceClass: "observed", linkState: "dismissed", resolver: "explicit-reference" }, false],
-    ["revoked link is inert", { sourceClass: "derived", linkState: "revoked", resolver: "manual:alex-rivera" }, false],
+    ["revoked link is inert", { sourceClass: "derived", linkState: "revoked", resolver: "user:alex-rivera" }, false],
   ];
 
   it.each(cases)("%s", (_name, edge, expected) => {
     expect(isDecisiveEligibleEdge(edge)).toBe(expected);
+  });
+});
+
+describe("link eligibility classification", () => {
+  const cases: Array<[string, Parameters<typeof eligibilityFor>[0], string]> = [
+    ["human confirmation is confirmed", { sourceClass: "model_candidate", resolver: "user:alex-rivera" }, "confirmed"],
+    ["threshold confirmation is system-confirmed", { sourceClass: "model_candidate", resolver: "system:threshold" }, "system-confirmed"],
+    ["observed source is system-confirmed", { sourceClass: "observed", resolver: "explicit-reference" }, "system-confirmed"],
+    ["derived source is system-confirmed", { sourceClass: "derived", resolver: "explicit-reference" }, "system-confirmed"],
+    ["raw model candidate is inferred", { sourceClass: "model_candidate", resolver: "model:run-9" }, "inferred"],
+    ["unresolved source is unconfirmed", { sourceClass: "unresolved", resolver: "model:run-9" }, "unconfirmed"],
+  ];
+
+  it.each(cases)("%s", (_name, edge, expected) => {
+    expect(eligibilityFor(edge)).toBe(expected);
+  });
+
+  it("agrees with the decisive boundary for every source class", () => {
+    for (const sourceClass of ["observed", "derived", "model_candidate", "unresolved"] as const) {
+      for (const resolver of ["user:alex", "system:threshold", "model:run-9", "explicit-reference"]) {
+        const edge = { sourceClass, resolver };
+        const decisive = eligibilityFor(edge) === "confirmed" || eligibilityFor(edge) === "system-confirmed";
+        expect(isDecisiveEligibleEdge({ ...edge, linkState: "active" })).toBe(decisive);
+      }
+    }
   });
 });
 

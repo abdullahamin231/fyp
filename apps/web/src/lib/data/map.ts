@@ -1,4 +1,4 @@
-import { evidenceSpanSchema, type EvidenceSpan } from "@unify/contracts";
+import { RULE_META, evidenceSpanSchema, type EvidenceSpan } from "@unify/contracts";
 import type {
   ArtifactRef,
   Citation,
@@ -146,12 +146,6 @@ export interface FindingViewContext {
   criterion: NodeRow | null;
 }
 
-const POLICY_TITLE: Record<string, { id: Finding["policy"]; title: string }> = {
-  RULE_1: { id: "P1", title: "Design drift after PR merge" },
-  RULE_2: { id: "P2", title: "Workflow state inconsistency" },
-  RULE_3: { id: "P3", title: "Overlapping change scope" },
-};
-
 /**
  * One `findings` row → the `Finding` the detail screen renders.
  *
@@ -163,7 +157,10 @@ const POLICY_TITLE: Record<string, { id: Finding["policy"]; title: string }> = {
 export function findingView(row: FindingRow, ctx: FindingViewContext): Finding {
   const { verdict, packet, criterion } = ctx;
   const requirementRef = criterion?.payload?.requirementRef ?? null;
-  const policy = row.origin === "rule" && row.rule_id ? POLICY_TITLE[row.rule_id] : undefined;
+  // Rule-origin findings carry the rule id end-to-end; verdict-origin findings
+  // are not a policy, so they carry `null` and a "Criterion verification" title.
+  const policyId = row.origin === "rule" && row.rule_id ? row.rule_id : null;
+  const policyTitle = policyId ? (RULE_META[policyId]?.title ?? "Criterion verification") : "Criterion verification";
 
   const citations = verdict ? citationsFrom(verdict, packet) : [];
   const missingEvidence = verdict?.missing_evidence ? [verdict.missing_evidence] : [];
@@ -195,8 +192,8 @@ export function findingView(row: FindingRow, ctx: FindingViewContext): Finding {
 
   return {
     id: row.id,
-    policy: policy?.id ?? "P4",
-    policyTitle: policy?.title ?? "Criterion verification",
+    policy: policyId,
+    policyTitle: policyTitle,
     title: row.annotation,
     severity: severityToWeb(row.severity),
     status: statusToWeb(row.state),

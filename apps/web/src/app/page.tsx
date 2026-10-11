@@ -189,7 +189,7 @@ export default function DashboardPage() {
                     </span>
                     <span className="text-outline">•</span>
                     <span className="font-mono-code text-micro-label text-muted">
-                      {finding.policy}
+                      {finding.policy ?? "verdict"}
                     </span>
                     {finding.verdict ? (
                       <>
