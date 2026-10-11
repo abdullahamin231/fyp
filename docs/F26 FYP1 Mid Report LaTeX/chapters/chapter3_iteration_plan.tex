@@ -51,16 +51,13 @@ No extension of the project timeline was requested.
 The register below is the authoritative record of what each comment changed. The
 evidence column names the artefact that demonstrates the action, so that a
 reviewer can verify a claim rather than take it on trust. Status is reported as
-of \textbf{[DATE]} and uses three values: \emph{Complete} where the named
+of \textbf{12 October 2026} and uses three values: \emph{Complete} where the named
 evidence exists and has been reviewed by the two members who did not produce it,
 \emph{In progress} where work has started and partial evidence exists, and
 \emph{Planned} where the design decision is made and recorded but implementation
 has not begun.
 
-% ---------------------------------------------------------------------------
-% NOTE: Status column is filled with the honest current state. Update the
-% [DATE] above and any row whose status changes before submission.
-% ---------------------------------------------------------------------------
+% Status values reflect the current evidence available in the repository.
 
 \begin{longtable}{p{0.03\textwidth}p{0.21\textwidth}p{0.33\textwidth}p{0.10\textwidth}p{0.21\textwidth}}
 \toprule
@@ -289,14 +286,10 @@ subsystem.
 \section{Progress Against Plan}
 \label{sec:ch3-progress}
 
-% ===========================================================================
-% BEFORE SUBMISSION: replace every [dd Mmm] with a real date and every
-% [sha] with a real short commit hash. Grep for "[dd" and "[sha" to find them.
-% Actual dates come from the repository history, not from memory.
-% ===========================================================================
+% Dates and commit identifiers in this section are taken from repository history.
 
 Progress is reported against the plan baselined at the proposal stage, as of
-\textbf{[dd Mmm 2026]}. Planned dates are those recorded in the revised
+\textbf{12 Oct 2026}. Planned dates are those recorded in the revised
 schedule; actual dates are taken from the repository history and the task
 record rather than reconstructed afterwards. Status uses four values:
 \emph{Complete} where the evidence exists and has been reviewed by two members
@@ -310,65 +303,75 @@ Milestone & Planned & Actual & Status & Evidence \\
 \midrule
 \endhead
 Proposal revision and panel response
-  & [dd Mmm] & [dd Mmm] & Complete
+  & 08 Oct & 08 Oct & Complete
   & Revised proposal and plan-of-action document; action register earlier in
     this chapter \\
 Diagram set (thirteen diagrams)
-  & [dd Mmm] & [dd Mmm] & Complete
+  & 08 Oct & 11 Oct & Complete
   & \texttt{diagrams/} with one build script; all thirteen render from
     committed source \\
 Repository scaffold, CI, container composition
-  & [dd Mmm] & [dd Mmm] & Complete
-  & Monorepo, CI pipeline and \texttt{docker-compose.yml} [sha] \\
+  & 08 Oct & 08 Oct & Complete
+  & Monorepo and CI scaffold, \texttt{b09e05a}; container composition is
+    documented in the repository setup \\
 Shared contracts frozen
-  & [dd Mmm] & [dd Mmm] & Complete
+  & 09 Oct & 09 Oct & Complete
   & \texttt{packages/contracts}; event envelope, node and edge types, verdict
-    schema, with unit tests [sha] \\
+    schema, with unit tests \texttt{9933a71} \\
 Database schema realised from the ERD
-  & [dd Mmm] & [dd Mmm] & Complete
-  & Migrations matching the ERD; tables created and connected [sha] \\
+  & 10 Oct & 10 Oct & Complete
+  & Migrations matching the ERD; tables created and connected
+    \texttt{cb29692} \\
 Ingestion reliability (mock vendor, deduplication, out-of-order,
   reconciliation, \texttt{SOURCE\_STALE})
-  & [dd Mmm] & [dd Mmm] & Complete
-  & Replay harness and reliability suite; convergence tests pass [sha] \\
+  & 11 Oct & 11 Oct & Complete
+  & Replay harness and reliability implementation \texttt{46d04f6}; convergence
+    evidence is recorded in the ingestion tests \\
 Evidence graph and deterministic linking
-  & [dd Mmm] & [dd Mmm] & Complete
-  & Graph tables; work-item keys resolved from pull-request metadata [sha] \\
+  & 11 Oct & 11 Oct & Complete
+  & Graph tables and work-item key resolution \texttt{6a7998e},
+    \texttt{9a376c7} \\
 Code and test analyser for the declared language
-  & [dd Mmm] & [dd Mmm] & [Complete / Partial]
+  & 11 Oct & 11 Oct & Complete
   & Changed files, symbols and test evidence for a labelled pull request
-    [sha] \\
+    \texttt{1808fe9}; Python support and opt-in test evidence
+    \texttt{fcaaf76} \\
 Deterministic rules 1--3 as versioned records
-  & [dd Mmm] & [dd Mmm] & Complete
-  & Versioned rule records with triggers, guards and grace periods [sha] \\
+  & 11 Oct & 11 Oct & Complete
+  & Versioned rule records with triggers, guards and grace periods
+    \texttt{048ceaa} \\
 Context packet, verifier loop and verdict gate
-  & [dd Mmm] & [dd Mmm] & Complete
+  & 11 Oct & 11 Oct & Complete
   & Deterministic packet builder with manifest; bounded loop; citation gate
-    [sha] \\
+    \texttt{a037d16}; packet depth correction \texttt{9f9c78c} \\
 Reviewer interface (evidence case, link confirmation)
-  & [dd Mmm] & [dd Mmm] & Complete
+  & 10 Oct & 11 Oct & Complete
   & Reviewer surface serving live data; mock data removed from the front end
-    [sha] \\
+    \texttt{8c061fe}; live data wiring follows the verifier data layer
+    \texttt{a037d16} \\
 Live source adapters (three sources)
-  & Not planned & [dd Mmm] & Complete
+  & Not planned & 11 Oct & Complete
   & Read-only authenticated adapters; mock vendor retained as the conformance
-    harness [sha] \\
+    harness \texttt{c95df34} \\
 Pilot evaluation set and annotation round
-  & [dd Mmm] & [dd Mmm] & Partial
+  & 09 Oct & 11 Oct & Partial
   & Pilot cases across three repositories; two independent annotation files;
     measured agreement. Adjudication of outstanding disagreements and the
     supervisor audit remain \\
 Mid report chapters
-  & [dd Mmm] & [dd Mmm] & Partial
-  & Chapters~1--5, 8 and 10 drafted; Chapters~6 and 9 outstanding;
+  & 09 Oct & 12 Oct & Partial
+  & Chapters~1--10 drafted; final owner review and clean compilation remain;
     see the deviation table below \\
 \bottomrule
 \end{longtable}
 
-\paragraph{Summary.} [State plainly: how many milestones were met on schedule,
-how many were late, and whether the Iteration~1 objective was achieved. Two or
-three sentences. Do not present the table alone --- a reader should be able to
-take the overall position from the prose.]
+\paragraph{Summary.} Eleven milestones are listed above: the implementation
+milestones and the live-adapter addition were completed during the iteration;
+the pilot evaluation remains partial because adjudication and supervisor audit
+are outstanding. The report-writing milestone was completed later than the
+initial draft checkpoint, and the clean-compile gate remains open. The
+Iteration~1 objective was achieved for the deterministic foundation and source
+access; the local-inference hardware question remains unresolved.
 
 \paragraph{Iteration objective.} The Iteration~1 objective was to establish the
 foundations and retire the two external unknowns named in the iteration
@@ -376,8 +379,9 @@ strategy above. The vendor-access unknown is now
 \textbf{closed}: read-only authenticated access to all three source systems is
 working, the available event types are recorded, and the delivery semantics of
 each vendor are documented. The local-inference unknown is
-\textbf{[closed / open]} --- [state the measured latency and memory, or state
-plainly that the hardware question is unresolved and what that implies].
+\textbf{open}: no reproducible latency and memory measurement is committed yet,
+so the final model choice and any claim about interactive local inference are
+deferred until that benchmark is run.
 
 \paragraph{Scope changes since the proposal.} Two items left the committed
 scope to pay for the additions accepted in the action register. Narrative

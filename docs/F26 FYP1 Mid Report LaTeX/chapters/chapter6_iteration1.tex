@@ -256,21 +256,9 @@ hunks arrive. The worker suite passes 76 of 76.
         against Supabase.
 \end{itemize}
 
-% ---------------------------------------------------------------------------
 % Haaniah Ismail: source ingestion (FR-01), event reliability (FR-02, FR-16)
-% and the deterministic rules (FR-12).
-%
-% BEFORE SUBMISSION -- every placeholder below must be replaced with a real
-% value taken from the repository or from a command you actually ran.
-% Grep for "[" to find them. The conventions are:
-%     [path]  a real file or directory path
-%     [n]     a real count or measurement
-%     [cmd]   the real npm script or command name
-%     [MIG]   the real migration number
-% Do not leave a placeholder in the submitted chapter, and do not write a
-% number you have not produced from a command. Mishal's subsection states the
-% date her numbers were produced on; do the same.
-% ---------------------------------------------------------------------------
+% and the deterministic rules (FR-12). Evidence below is limited to committed
+% implementation and repository history; unrun measurements are not claimed.
 \subsection{Source Ingestion and Event Reliability (Haaniah Ismail)}
 \label{sec:impl-ingestion}
 
@@ -280,7 +268,9 @@ normalised form (FR-01); a reliability layer guarantees that the graph reaches
 the same final state whether an event arrives once, twice, late or not at all
 (FR-02, FR-16); and three deterministic rules read the resulting state to raise
 findings without any model involvement (FR-12). All of it lives in
-\texttt{[path]} and writes through the tables Abdullah implemented as
+\texttt{apps/web/src/lib/integrations} and
+\texttt{packages/contracts/src/ingestion.ts}; it writes through the tables
+Abdullah implemented as
 migrations, which Mishal's linker and analyser then read from
 (Section~\ref{sec:impl-linking-analyser}).
 
@@ -345,11 +335,9 @@ even though it represents the same data, and the failure is silent --- the
 signature simply does not match, with nothing in the payload to indicate why.
 Verification therefore runs on the raw buffer before any parsing, in all three
 adapters.
-% [CONFIRM] If this was the problem you personally diagnosed, say so here in
-% one sentence and name how you found it (failing test, log, bisect). The
-% worksheet asks each member for one personally diagnosed problem and this is
-% a strong candidate. If it was not, replace this paragraph's framing with the
-% problem that actually cost you time.
+The implementation consequence is that signature verification is a separate
+boundary from parsing: malformed JSON cannot be treated as an authenticated
+event, and a re-serialized object cannot be substituted for the signed bytes.
 
 \paragraph{Event selection, and what is deliberately ignored.} Figma publishes
 seven webhook event types. Two are used: \texttt{FILE\_VERSION\_UPDATE}, sent
@@ -460,58 +448,64 @@ branch on whether it is being tested.
 
 \subsubsection{Demonstration evidence}
 
-% ---------------------------------------------------------------------------
-% Replace every [cmd], [n] and output block below with real commands you ran
-% and their real output. State the date, as Mishal does. If a scenario has not
-% been run against a live vendor yet, say so here rather than in Limitations.
-% ---------------------------------------------------------------------------
-
-\paragraph{Reliability scenarios.} \texttt{[cmd]} plays the controlled event
-sequences through the pipeline. Output on [dd Mmm]:
+\paragraph{Reliability scenarios.} The controlled scenarios are implemented in
+the ingestion contract tests and replay harness. A fresh execution output was
+not committed at the reporting date, so this report does not claim a numeric
+pass count. The required observations are duplicate no-op, out-of-order final
+state convergence, reconciliation closure of a missing webhook, and
+\texttt{SOURCE\_STALE} followed by recovery.
 {\small
 \begin{verbatim}
-[paste the real output: duplicate -> no-op; out-of-order -> final state
- unchanged; missing webhook -> gap closed by reconciliation; outage ->
- SOURCE_STALE then recovery]
+execution pending at reporting date; expected:
+duplicate -> no-op
+out-of-order -> final state unchanged
+missing webhook -> gap closed by reconciliation
+outage -> SOURCE_STALE then recovery
 \end{verbatim}
 }
 
-\paragraph{Live ingestion.} With the three adapters connected, [cmd] ingests a
-real event from each source. Output on [dd Mmm]:
+\paragraph{Live ingestion.} The three-provider OAuth and webhook routes are
+implemented in commit \texttt{c95df34}, with raw-body verification and
+idempotent delivery persistence. A reproducible run against external GitHub,
+Jira and Figma accounts was not present in the repository history at the
+reporting date, so no live event count is claimed here.
 {\small
 \begin{verbatim}
-[paste the real output: one normalised row per source, with the references
- field populated]
+live provider execution pending at reporting date;
+the testing guide specifies the signed fixtures and database queries
 \end{verbatim}
 }
 
-\paragraph{Rules firing on live data.} [State which of Rules 1--3 have fired on
-real vendor data and which have been demonstrated only against replayed
-events. This distinction is one a panel will ask about, so make it here rather
-than leaving it to be drawn out.]
+\paragraph{Rules firing on live data.} Rules~1--3 are implemented as versioned
+records in \texttt{048ceaa}. Their deterministic replay path is available, but
+the repository does not contain evidence of a rule firing against a live
+external vendor event. Live firing remains an integration-test gate.
 
-\paragraph{Tests.} [n] tests cover the adapters and the reliability layer:
-[n] on normalisation per event type including the empty case, [n] on
-convergence under duplicate and out-of-order delivery, [n] on reconciliation
-after a simulated outage, and [n] on signature verification including a
-rejected payload. [State the suite result, as Mishal does: ``the worker suite
-passes [n] of [n]''.]
+\paragraph{Tests.} Adapter and reliability test execution was not available in
+the checked-out environment at the reporting date because the relevant npm
+dependencies were not installed. The test plan remains explicit:
+normalisation for every supported event and the empty case, duplicate and
+out-of-order convergence, reconciliation after a simulated outage, and
+signature verification including a rejected payload. No numeric suite result
+is claimed until that suite is run and recorded.
 
 \subsubsection{Limitations}
 \begin{itemize}
-  \item [State honestly whether any adapter has run only against replayed
-        payloads rather than live traffic, and which.]
+  \item All three adapters are implemented, but the committed evidence is
+        currently code and documented fixtures rather than a reproducible
+        live-provider run.
   \item Figma reports design intent only at named-version granularity. A change
         made without creating a named version is invisible to Rule~1 until a
         version is cut or reconciliation polls the file.
   \item Jira's delivery is best-effort with no dead-letter queue, so an event
         lost after its retries are exhausted is recovered only at the next
         reconciliation poll, not immediately. The gap is bounded by the polling
-        interval, currently [n].
-  \item [State the rate limits actually observed per vendor and whether any
-        was approached during testing.]
-  \item [Any scenario in the replay harness that does not yet have a live
-        counterpart.]
+        interval; no measured interval is claimed here.
+  \item No provider rate-limit measurement is claimed because live traffic was
+        not captured in the repository evidence.
+  \item Duplicate, out-of-order, outage and missing-webhook scenarios remain
+        replay-only by design, because they cannot be induced reliably against
+        a live vendor.
 \end{itemize}
 
 % ---------------------------------------------------------------------------
