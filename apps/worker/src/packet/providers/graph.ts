@@ -36,7 +36,7 @@ export class GraphEvidenceProvider implements EvidenceProvider {
 
   async load(ctx: ProviderContext): Promise<EvidenceBundle> {
     const criterion = await loadCriterion(this.client, ctx.criterionNodeId);
-    const maxHops = this.opts.maxHops ?? 2;
+    const maxHops = this.opts.maxHops ?? 3;
 
     interface Row {
       id: string;

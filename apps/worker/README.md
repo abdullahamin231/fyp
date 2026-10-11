@@ -27,6 +27,25 @@ Everything the loop produces is recorded per pass in `verifier_passes`, so a
 reviewer can re-read *why* a verdict stopped where it did — and the stored
 verdict is only ever written by `gate()`, never by the model directly.
 
+## Evidence graph walk bound
+
+The `GraphEvidenceProvider` performs a bounded BFS walk from the criterion
+node. The default `maxHops` is **3** (previously 2). This walk reaches:
+
+* **Hop 1** — nodes directly linked from the criterion (e.g. PullRequests
+  via `SATISFIES` edges).
+* **Hop 2** — nodes linked from hop-1 nodes (e.g. Commits, CodeSymbols,
+  DesignArtifacts, neighbour notes).
+* **Hop 3** — nodes linked from hop-2 nodes (e.g. deeper graph neighbours).
+
+If a node type sits beyond 3 hops, it will not be included in the packet's
+evidence slots. To reach such nodes, add direct edge types (e.g. `IMPLEMENTS`
+from `PullRequest` → `CodeSymbol`) or increase `maxHops` further.
+
+The worker `TYPE_TO_SLOT` mapping (derived from `NODE_TYPE_META` in
+`@unify/contracts`) determines which slot each reached node's `payload.slotItems`
+lands in.
+
 ## Run it
 
 ```bash
