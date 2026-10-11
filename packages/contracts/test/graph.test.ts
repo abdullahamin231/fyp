@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { codeAnchorSchema, isDecisiveEligibleEdge, nodeSchema } from "../src/index.js";
+import {
+  codeAnchorSchema,
+  edgeIdentityKey,
+  isDecisiveEligibleEdge,
+  nodeSchema,
+} from "../src/index.js";
 import { NODE_ID, SHA256, T0, WS_ID } from "./fixtures.js";
 
 const baseNode = {
@@ -42,6 +47,27 @@ describe("link eligibility (FR-05)", () => {
 
   it.each(cases)("%s", (_name, edge, expected) => {
     expect(isDecisiveEligibleEdge(edge)).toBe(expected);
+  });
+});
+
+describe("edge identity (00010_edge_dedupe)", () => {
+  const link = {
+    fromId: "00000000-0000-4000-8000-0000000000a1",
+    toId: "00000000-0000-4000-8000-0000000000a2",
+    type: "IMPLEMENTS",
+  } as const;
+
+  it("keys a link on its endpoints and type", () => {
+    expect(edgeIdentityKey(link)).toBe(
+      "00000000-0000-4000-8000-0000000000a1|00000000-0000-4000-8000-0000000000a2|IMPLEMENTS",
+    );
+  });
+
+  it("distinguishes links that differ by direction or type", () => {
+    expect(edgeIdentityKey({ ...link, fromId: link.toId, toId: link.fromId })).not.toBe(
+      edgeIdentityKey(link),
+    );
+    expect(edgeIdentityKey({ ...link, type: "TRACKS" })).not.toBe(edgeIdentityKey(link));
   });
 });
 

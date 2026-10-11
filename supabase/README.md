@@ -22,6 +22,9 @@ the remote project (applied via the Supabase MCP `apply_migration`). Order:
 | `00007_workspace_created_by.sql` | `set_created_by()` BEFORE INSERT trigger (defaults `created_by`) |
 | `00008_create_workspace_rpc.sql` | `create_workspace(name, slug)` SECURITY DEFINER RPC |
 | `00009_seed_rules.sql` | Seeds version 1 of deterministic Rules 1–3 |
+| `00010_edge_dedupe.sql` | One current edge per `(from_id, to_id, type)` — partial unique index scoped to `link_state <> 'revoked'` |
+| `00011_finding_state_superseded.sql` | Adds `superseded` to the `finding_state` enum |
+| `00012_findings_superseded_by.sql` | `findings.superseded_by_id` self-FK + the `state = superseded ⟺ superseded_by_id set` CHECK |
 
 Schema highlights:
 
@@ -36,6 +39,32 @@ Schema highlights:
   have UPDATE/DELETE revoked from anon+authenticated **and** `forbid_mutation()`
   triggers. `code_anchors` is deliberately *not* trigger-locked (status flips
   `active → broken`); re-anchoring appends rows via `prev_anchor_id`.
+
+### Edge dedupe — and why dismissal is sticky (`00010`)
+
+`edges_current_identity_uidx` is a **partial** unique index over
+`(from_id, to_id, type)` scoped to `link_state <> 'revoked'`. Scoping it that
+way — rather than to `link_state = 'active'` — is the whole design:
+
+| State | Holds the identity? | Effect on a re-mention |
+|---|---|---|
+| `active` | yes | rejected as a duplicate |
+| `dismissed` | **yes** | rejected — the link stays gone |
+| `revoked` | no | a fresh link may be created |
+
+**The side effect, stated plainly:** once a reviewer dismisses a link,
+mentioning that `(PR, ticket, type)` key again does **not** bring it back. The
+dismissed row still occupies the identity, so the insert violates the index.
+This is deliberate — a human "no" is not overturned by the next vendor webhook,
+and the reviewer stays the authority over what counts as a link.
+
+To genuinely re-establish a dismissed link, **revoke the old row first** (with a
+reason, so it lands in the audit trail) and then insert afresh. Nothing in the
+API should flip `dismissed → active` directly; that would silently re-assert a
+link a human rejected.
+
+`00010` also revokes any pre-existing duplicate rows, keeping the newest edge
+per identity, so the index can be created on a populated table.
 
 ### Security-definer helpers (intentional)
 

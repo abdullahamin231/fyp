@@ -43,6 +43,14 @@ export const findingSchema = z
     severity: severitySchema,
     state: findingStateSchema,
     createdAt: isoDateTime,
+
+    /**
+     * The finding that replaced this one (ERD self-reference). Set exactly when
+     * `state === "superseded"` — the DB CHECK enforces the same biconditional.
+     * Superseding appends rather than overwrites, so the superseded row stays
+     * readable against the artifact versions it cited (FR-03 / FR-18).
+     */
+    supersededById: uuid.nullable(),
   })
   .refine(
     (f) =>
@@ -52,16 +60,29 @@ export const findingSchema = z
       message: "a finding must carry exactly one origin: rule+version or verdict",
       path: ["origin"],
     },
-  );
+  )
+  .refine((f) => (f.state === "superseded") === (f.supersededById !== null), {
+    message: "a finding is superseded exactly when it names its replacement",
+    path: ["state"],
+  });
 export type Finding = z.infer<typeof findingSchema>;
 
-/** Transitions allowed by FR-18. Each is recorded with a reason and audited. */
+/**
+ * Transitions allowed by FR-18. Each is recorded with a reason and audited.
+ *
+ * Superseding is reachable from every non-terminal state: re-verification on a
+ * newer commit can replace a finding wherever it currently stands, and the
+ * lifecycle diagram draws the arrow from `resolved` only as the common case.
+ * `superseded` is terminal — the finding was replaced, so there is nothing
+ * further for a reviewer to act on.
+ */
 export const FINDING_TRANSITIONS: Record<FindingStateKey, readonly FindingStateKey[]> = {
-  open: ["acknowledged", "resolved", "disputed", "suppressed"],
-  acknowledged: ["resolved", "disputed", "suppressed", "open"],
-  resolved: ["open"],
-  disputed: ["open", "resolved"],
-  suppressed: ["open"],
+  open: ["acknowledged", "resolved", "disputed", "suppressed", "superseded"],
+  acknowledged: ["resolved", "disputed", "suppressed", "open", "superseded"],
+  resolved: ["open", "superseded"],
+  disputed: ["open", "resolved", "superseded"],
+  suppressed: ["open", "superseded"],
+  superseded: [],
 };
 
 type FindingStateKey = z.infer<typeof findingStateSchema>;
