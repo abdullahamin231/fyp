@@ -90,6 +90,34 @@ decisive verdict with zero citations is rejected as an abstention (hard gate
 1); a stale source shows no verdict (UC-01); a model outage reads as *not
 verified*, never as *verified as fine* (ch5).
 
+## Deterministic linking (FR-04)
+
+`src/linking/` links a GitHub pull request to the Jira issues it names. It is
+separate from the verification pipeline above and does not touch the queue.
+
+| File | What it does |
+|---|---|
+| `extract-keys.ts` | Finds keys such as `UNI-123` in the PR title, branch name and commit messages. Pure function. A project allow-list rejects lookalikes like `UTF-8`. |
+| `link-pull-request.ts` | One transaction: records the event (and stops if this delivery was seen before), upserts the `PullRequest` node, looks up each key's `Ticket` node, and inserts a `TRACKS` edge (`observed`, confidence 1.0, resolver `explicit-reference`). |
+| `local-db.ts` | In-process Postgres (PGlite) loaded with migrations 00001–00003, 00005 and 00010, used by the tests and the demo only. |
+
+Outcomes: `linked`; `no_key`; `unknown_key` (no edge and no invented node;
+the key stays in `events.references`); `duplicate_event` (via
+`UNIQUE (source_tool, vendor_delivery_id)`); `already_linked` (via
+`edges_current_identity_uidx`, so a dismissed link stays dismissed).
+
+The `ON CONFLICT` clause names the index predicate
+`where link_state <> 'revoked'`, which must match 00010 exactly.
+
+```bash
+npm run demo:linking    # five PR events through the real linker, then the edges table
+```
+
+Not yet: a webhook endpoint that builds the `PullRequestEvent`, and a
+server-side connection so the linker runs against the hosted database. The
+linker uses one SQL transaction, which the Supabase JS client cannot express,
+so it needs either a direct Postgres connection or an RPC.
+
 ## Known simplifications
 
 - The OpenCode wrapper runs one process per model call (warm sessions would be
