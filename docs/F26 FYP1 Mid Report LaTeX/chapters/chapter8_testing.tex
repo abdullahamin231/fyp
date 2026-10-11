@@ -216,9 +216,12 @@ duplicate-delivery cases used in the demonstration (TC-10 to TC-15). They run
 against the same migrations as the hosted Supabase project, so a broken
 constraint fails here: an earlier version of the linker named an index
 predicate that did not match migration 00010, and the tests caught it. They do
-\emph{not} show that the linker works against the hosted database. The edge
-index it relies on (00010) is applied there, but the linking function (00015)
-is not yet, and no real GitHub webhook has been fed through it (D-09).
+\emph{not} by themselves show that the linker works against the hosted
+database. That was checked separately: with migration 00015 applied to the
+hosted project, \texttt{npm run demo:\allowbreak{}linking -- -{}-live} played the
+same five events through \texttt{supabase-js} on 11 October and produced the
+same outcomes as the local run (one edge, four event rows, one duplicate). No
+real GitHub webhook has been fed through it yet (D-09).
 
 \paragraph{Agreement.} Both annotation sheets are complete. Verdict agreement
 is $\kappa = 0.90$ against a pre-declared gate of 0.70, so the pilot passed
@@ -570,12 +573,11 @@ D-08 & External review agreement below the gate (verdict $\alpha = 0.48$); no
   question placed first) and re-run the external review on a fresh panel; agree
   with the supervisor whether the abstention boundary in manual v1 is kept,
   before any case is frozen into the gold set. \\
-D-09 & Linker tested only against an in-process copy of the schema; the
-  linking function (00015) is not applied to the hosted database, and no real
-  GitHub webhook has been fed through it. The edge index it relies on (00010)
-  is applied. & Medium & Mishal, Abdullah & Apply 00015 on Supabase, run
-  \texttt{npm run demo:\allowbreak{}linking -- -{}-live}, add the webhook endpoint,
-  then repeat TC-11 to TC-15 against the hosted project. \\
+D-09 & No real GitHub webhook has been fed through the linker; on the
+  hosted database it has only been exercised by the scripted demo events. &
+  Medium & Mishal & \textbf{Partly closed 11 Oct:} 00015 applied on Supabase
+  and the live demo run produced the expected outcomes. Remaining: add the
+  webhook endpoint and repeat TC-11 to TC-15 with real pull requests. \\
 \hline\end{longtable}
 
 Two of the nine defects (D-03, D-07) are closed; seven remain open with owners.
@@ -596,8 +598,8 @@ Every open defect can be reproduced from the commands above.
 Functional correctness & Typecheck, lint and production build pass on all 19
   routes; 8 detail pages pre-rendered. Contracts suite 115 of 115; worker suite
   56 of 56, of which 16 are linking tests against the project schema.
-  & No behavioural tests for the front end; the linker has not run against the
-    hosted database.
+  & No behavioural tests for the front end; the linker has run on the hosted
+    database only with scripted demo events, not real webhooks.
   & Component tests (D-04); linker against Supabase (D-09); scenario matrix
     T1--T11 once ingestion exists \\
 Performance / resource use & Not applicable yet: no server, no model, nothing
