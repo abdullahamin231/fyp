@@ -150,11 +150,43 @@ found and 21/21 unchanged not flagged; one miss (P06-S3, a key inside
 `package.json`: JSON is listed as a changed file but not parsed into symbols).
 Median 0.3 s per case, max 4 s.
 
-Not yet: publishing the nodes to Supabase (the output is ready for it);
-Python; coverage from running tests. Note for the packet builder: its
-two-hop walk from a criterion reaches a `PullRequest` and its `Commit`, but
-not `CodeSymbol`/`TestCase` nodes, which sit one hop further. Reaching them
-needs either a third hop or a direct PR–symbol edge type.
+**Python** (`parse-python.ts`): `.py` files go through an indentation-based
+parser (functions, methods, classes with dotted nesting, decorators,
+docstrings, `import`/`from` imports, `test_*` functions, `importlib` /
+`getattr` dynamic sites). Not a full grammar: functions made with `exec` or
+`type(...)` are not seen. Tested on synthetic repos only; the pilot cases are
+all TypeScript.
+
+**Test runs and coverage** (`run-tests.ts`, `coverage.ts`), opt-in because
+this is the only part that executes repository code. `--run-tests "<cmd>"`
+runs the command in a throwaway worktree at head (removed afterwards, `npm_*`
+variables not inherited), records pass/fail and the log tail as a `test_run`
+item, and if `--coverage-file` names the LCOV file it writes, adds per-symbol
+line coverage (all lines and changed lines) to the symbol cards. Where the
+LCOV file lands depends on the repo's own test config. Pilot P01
+(react-hook-form), 11 Oct:
+
+```bash
+npm run analyse -- --repo <RHF clone> --base 3413809 --head 0d24669 \
+  --coverage-file scripts/jest/coverage/lcov.info \
+  --run-tests "pnpm install --frozen-lockfile --ignore-scripts; pnpm exec jest --config ./scripts/jest/jest.config.js --coverage --coverageReporters=lcov --collectCoverageFrom=../../src/logic/createFormControl.ts src/__tests__/useForm/formState.test.tsx -t 'new errors reference'"
+# createFormControl.clearErrors  coverage 8/11 lines run; changed lines 1/1
+# createFormControl.setError     coverage 9/9 lines run; changed lines 1/1
+```
+
+`--lcov <file> [--lcov-root <dir>]` reads a report produced elsewhere instead.
+
+**Publishing** (`publish.ts`, migration `00016_publish_analysis.sql`):
+`--publish [--workspace <slug>]` writes the nodes and edges through the
+`publish_analysis` RPC (service_role only, one transaction). Nodes are
+upserted, so re-running updates rather than duplicates; an edge whose endpoint
+is not in the graph (e.g. a PR not ingested yet) is reported as skipped, never
+invented. Needs 00016 applied and the worker's `.env`.
+
+Note for the packet builder: its two-hop walk from a criterion reaches a
+`PullRequest` and its `Commit`, but not `CodeSymbol`/`TestCase` nodes, which
+sit one hop further. Reaching them needs either a third hop or a direct
+PR–symbol edge type.
 
 ## Known simplifications
 
