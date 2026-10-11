@@ -33,7 +33,13 @@ export const evidenceSpanSchema = z.strictObject({
   /** The slot the span came from, so the gate can check the packet manifest. */
   slot: packetSlotSchema,
   file: nonEmpty,
-  symbol: nonEmpty.optional(),
+  /**
+   * `null` (the common spelling when a citation names no symbol) and an absent
+   * key are both accepted — presentation detail, not citation identity: the
+   * gate's decisive fields are `spanId` and `contentSha256`. Every gold case in
+   * the dataset carries a real symbol, so strictness lives where it matters.
+   */
+  symbol: nonEmpty.nullable().optional(),
   startLine: z.number().int().positive(),
   endLine: z.number().int().positive(),
   /** SHA-256 of the cited text — lets a stale citation be detected (FR-10). */

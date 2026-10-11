@@ -14,6 +14,7 @@
  * - `rule`       declarative, versioned rule records (§9.3, FR-12/FR-19/FR-24)
  * - `packet`     context packets and their manifests (FR-08, §1.7, §27.1)
  * - `verdict`    verifier output, abstention rule, gated verdict (§11.4–§11.8)
+ * - `gate`       the deterministic verdict/provenance gate (FR-10, §11.8)
  * - `finding`    findings and the FR-18 lifecycle
  *
  * Validation stance: every object schema is strict. A malformed payload is
@@ -29,6 +30,7 @@ export * from "./rule.js";
 export * from "./rules.js";
 export * from "./packet.js";
 export * from "./verdict.js";
+export * from "./gate.js";
 export * from "./finding.js";
 export * from "./ingestion.js";
 

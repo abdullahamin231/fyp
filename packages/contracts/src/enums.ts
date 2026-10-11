@@ -178,12 +178,17 @@ export type FindingOrigin = z.infer<typeof findingOriginSchema>;
 /**
  * The finding kinds the committed rule set can produce: Rules 1–3 (FR-12) and
  * policy P4 (FR-24). This is `rules.produces`.
+ *
+ * `criterion_verification` is the one kind that comes from a gated verdict
+ * rather than a rule (`origin = 'verdict'`): the finding that carries a
+ * criterion's evidence case into the reviewer's queue.
  */
 export const FINDING_KINDS = [
   "design_version_drift",
   "workflow_state_inconsistency",
   "overlapping_change_scope",
   "requirement_implementation_divergence",
+  "criterion_verification",
 ] as const;
 export const findingKindSchema = z.enum(FINDING_KINDS);
 export type FindingKind = z.infer<typeof findingKindSchema>;
@@ -246,7 +251,10 @@ export type OmissionReason = z.infer<typeof omissionReasonSchema>;
  * Stop reason for a verifier pass (FR-09: every pass logs one). The pass cap
  * (3) is enforced by `PASS_CAP_REACHED`; a model-server timeout is
  * `MODEL_UNAVAILABLE` and is reported as an unavailable verdict, never as a
- * clean result (ch5).
+ * clean result (ch5). `MALFORMED_OUTPUT` covers the third way a run ends
+ * badly: the model answered, but not in the schema — the gate rejects that
+ * output, and the stop reason says why the loop stopped rather than
+ * pretending the run verified anything.
  */
 export const STOP_REASONS = [
   "NO_APPLICABLE_EVIDENCE",
@@ -254,6 +262,7 @@ export const STOP_REASONS = [
   "CRITIC_REVIEWED",
   "PASS_CAP_REACHED",
   "MODEL_UNAVAILABLE",
+  "MALFORMED_OUTPUT",
 ] as const;
 export const stopReasonSchema = z.enum(STOP_REASONS);
 export type StopReason = z.infer<typeof STOP_REASONS>;

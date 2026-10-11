@@ -1,30 +1,29 @@
 /**
  * UNIFY frontend domain types.
  *
- * These mirror the frozen contract vocabulary from the proposal / dataset
- * protocol (four verdicts only, separate freshness + review fields) so that
- * wiring the real API to these shapes is a drop-in change.
+ * Verdict vocabulary is imported straight from `@unify/contracts` so the UI
+ * cannot drift from what the worker stores — a new reason code shows up in the
+ * evidence case without anyone editing this file. Severity and finding state
+ * below stay presentation-level: the database speaks `critical|high|medium|low`
+ * and six finding states, and `lib/data/map.ts` is where that becomes three
+ * severity chips and the statuses this inbox shows.
  */
+import { VERDICT_STATUSES } from "@unify/contracts";
+import type {
+  FreshnessState as ContractFreshness,
+  ReasonCode as ContractReasonCode,
+  VerdictStatus,
+} from "@unify/contracts";
 
 /* ------------------------------------------------------------------ verdicts */
 
-export const VERDICTS = [
-  "SUPPORTED",
-  "CONTRADICTED",
-  "PARTIAL",
-  "INSUFFICIENT_EVIDENCE",
-] as const;
-export type Verdict = (typeof VERDICTS)[number];
+export type Verdict = VerdictStatus;
+/** The four verdicts, as values — filters, tallies and sort orders use it. */
+export const VERDICTS = VERDICT_STATUSES;
 
-export type FreshnessState = "CURRENT" | "STALE" | "UNKNOWN";
+export type FreshnessState = ContractFreshness;
 
-export type ReasonCode =
-  | "SOURCE_STALE"
-  | "CITATION_UNRESOLVED"
-  | "LINK_NOT_ELIGIBLE"
-  | "BELOW_THRESHOLD"
-  | "SCHEMA_VIOLATION"
-  | "ABSTAINED";
+export type ReasonCode = ContractReasonCode;
 
 /* -------------------------------------------------------------------- tools */
 
@@ -56,7 +55,14 @@ export interface CriterionResult {
 
 export type Severity = "critical" | "warning" | "info";
 
-export type FindingStatus = "open" | "acknowledged" | "resolved" | "suppressed";
+/** The six states the DB stores (FR-18); the worker only ever writes `open`. */
+export type FindingStatus =
+  | "open"
+  | "acknowledged"
+  | "resolved"
+  | "suppressed"
+  | "disputed"
+  | "superseded";
 
 export type PolicyId = "P1" | "P2" | "P3" | "P4";
 
@@ -87,6 +93,25 @@ export interface Finding {
   reviewRequired: boolean;
   reasonCode?: ReasonCode;
   criteria: CriterionResult[];
+
+  /* ---- provenance, straight from `verdicts` + `context_packets` (§11.8) ---- */
+  /** Did the deterministic gate accept the model's answer? */
+  gateOutcome?: "PASSED" | "DOWNGRADED" | "REJECTED";
+  /** Why the verifier loop stopped (§11.4): VERIFIED, CRITIC_REVIEWED, … */
+  stopReason?: string;
+  /** How many of the bounded passes actually ran (max 3). */
+  passCount?: number;
+  /** SHA-256 of the packet manifest the verdict was computed from. */
+  packetHash?: string;
+  /** The model that produced the verdict, as recorded in `model_and_run`. */
+  modelId?: string;
+  /** Commits the packet spans, so the reviewer can check out the same code. */
+  baseCommit?: string;
+  headCommit?: string;
+  /** The criterion this verdict is about, verbatim. */
+  criterionText?: string;
+  /** Set when a newer verdict replaced this finding (00012). */
+  supersededById?: string;
 }
 
 /* --------------------------------------------------------------------- links */

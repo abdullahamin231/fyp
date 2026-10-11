@@ -23,8 +23,65 @@ export const packetItemSchema = z.strictObject({
   /** What kind of thing it is, e.g. `span`, `symbol_card`, `diff_hunk`. */
   kind: nonEmpty,
   tokens: z.number().int().nonnegative(),
+  /**
+   * SHA-256 of the item's verbatim content, when the packet recorded it.
+   * The gate checks a citation's `contentSha256` against this so a model that
+   * quotes the right id but the wrong text is caught (FR-10).
+   */
+  contentSha256: sha256Hex.optional(),
+  /**
+   * The verbatim text itself, when the packet recorded it.
+   *
+   * A verdict that cannot be re-read is a verdict a reviewer has to take on
+   * trust — the opposite of the evidence case this project exists for. Keeping
+   * the text in the manifest (and therefore under `packetHash`) means the
+   * reviewer sees the exact bytes the model cited, byte-checkable against the
+   * hash, without re-deriving them from a source that may since have moved.
+   */
+  content: z.string().optional(),
+  /** Where the item lives, so a reviewer can open it from the evidence case. */
+  cite: z
+    .strictObject({
+      file: nonEmpty.optional(),
+      symbol: nonEmpty.optional(),
+      startLine: z.number().int().positive().optional(),
+      endLine: z.number().int().positive().optional(),
+    })
+    .optional(),
 });
 export type PacketItem = z.infer<typeof packetItemSchema>;
+
+/**
+ * One piece of evidence as the *analyser* produces it, before budgeting.
+ *
+ * This is the handover shape between the code/test analyser (Slice B) and the
+ * packet builder (Slice C): the analyser writes a `slotItems` array into the
+ * payload of the graph node that owns the evidence, and the builder reads it
+ * back, counts tokens, admits or evicts, and turns it into a `PacketItem`.
+ * `content` is verbatim and never rewritten — the hash is what the verdict
+ * gate compares a citation against.
+ */
+export const evidenceItemSchema = z.strictObject({
+  /** Stable citation handle, unique within the packet. */
+  id: nonEmpty,
+  /** `span` | `symbol_card` | `diff_hunk` | `test_run` | `requirement` | … */
+  kind: nonEmpty,
+  content: z.string(),
+  contentSha256: sha256Hex,
+  cite: z
+    .strictObject({
+      file: nonEmpty.optional(),
+      symbol: nonEmpty.optional(),
+      startLine: z.number().int().positive().optional(),
+      endLine: z.number().int().positive().optional(),
+    })
+    .optional(),
+});
+export type EvidenceItem = z.infer<typeof evidenceItemSchema>;
+
+/** Payload key every UNIFY analyser uses to publish evidence for a node. */
+export const SLOT_ITEMS_KEY = "slotItems";
+export type NodePayloadWithSlotItems = { slotItems?: EvidenceItem[] };
 
 /** One item excluded from a slot — recorded, never silently dropped (§1.7). */
 export const omittedItemSchema = z.strictObject({
@@ -60,6 +117,12 @@ export const packetManifestSchema = z
     truncated: z.boolean(),
     assemblyOrder: z.array(packetSlotSchema),
     evictionOrder: z.array(packetSlotSchema),
+    /**
+     * Which token estimator produced the budgets above — recorded because
+     * "8000 tokens" means nothing without the counting method beside it, and
+     * reproducibility (FR-08) covers the counting too.
+     */
+    tokenEstimator: nonEmpty.optional(),
   })
   .refine(
     (m) => m.truncated === m.slots.some((s) => s.omitted.length > 0),

@@ -417,6 +417,8 @@ const dispatchByStatus: Record<
   acknowledged: { status: "Acknowledged (Web)", tone: "primary", icon: "done" },
   resolved: { status: "Resolved (Web)", tone: "secondary", icon: "check_circle" },
   suppressed: { status: "Suppressed (Web)", tone: "tertiary", icon: "do_not_disturb_on" },
+  disputed: { status: "Disputed (Web)", tone: "primary", icon: "forum" },
+  superseded: { status: "Superseded (System)", tone: "tertiary", icon: "history" },
 };
 
 export function stakeholdersFor(finding: Finding): Stakeholder[] {

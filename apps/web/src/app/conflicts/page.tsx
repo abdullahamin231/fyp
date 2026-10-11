@@ -3,14 +3,16 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { Badge, ToolPill, type Tone } from "@/components/ui/badge";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { listFindings } from "@/lib/data/queries";
 import type { Finding, FindingStatus, Severity } from "@/lib/types";
 
 /**
- * DATA HOLE — replace with the findings API.
- * Empty until the endpoint exists: the table renders its empty state and the
- * status counts below all read zero.
+ * Conflict inbox — a server component over the RLS client.
+ *
+ * The query runs as the signed-in reviewer, so what lands in this table is
+ * exactly what Postgres says they may see; there is no second, wider query
+ * anywhere behind it. Workspaces they don't belong to simply aren't here.
  */
-const findings: Finding[] = [];
 
 /**
  * DATA HOLE — replace with the teams API's active-squad list.
@@ -19,13 +21,15 @@ const findings: Finding[] = [];
 const teams: string[] = [];
 
 /** Per-status counts derived from the findings list. */
-const findingsByStatus = {
-  all: findings.length,
-  open: findings.filter((f) => f.status === "open").length,
-  acknowledged: findings.filter((f) => f.status === "acknowledged").length,
-  resolved: findings.filter((f) => f.status === "resolved").length,
-  suppressed: findings.filter((f) => f.status === "suppressed").length,
-};
+function countsFor(findings: Finding[]) {
+  return {
+    all: findings.length,
+    open: findings.filter((f) => f.status === "open").length,
+    acknowledged: findings.filter((f) => f.status === "acknowledged").length,
+    resolved: findings.filter((f) => f.status === "resolved").length,
+    suppressed: findings.filter((f) => f.status === "suppressed").length,
+  };
+}
 
 const severityTone: Record<Severity, Tone> = {
   critical: "critical",
@@ -47,42 +51,46 @@ const statusPresentation: Record<
   acknowledged: { label: "Acknowledged", tone: "neutral", icon: "check" },
   resolved: { label: "Resolved", tone: "success", icon: "check_circle" },
   suppressed: { label: "Suppressed", tone: "neutral", icon: "do_not_disturb_on" },
+  disputed: { label: "Disputed", tone: "warning", icon: "forum" },
+  superseded: { label: "Superseded", tone: "neutral", icon: "history" },
 };
 
-const statCards = [
-  {
-    label: "Open",
-    value: String(findingsByStatus.open),
-    meta: "Needs a decision",
-    metaTone: "text-error",
-    icon: "error",
-    iconClass: "bg-error-container/20 text-error",
-  },
-  {
-    label: "Acknowledged",
-    value: String(findingsByStatus.acknowledged),
-    meta: "Owned by a human",
-    metaTone: "text-tertiary",
-    icon: "sync",
-    iconClass: "bg-tertiary-container/30 text-tertiary",
-  },
-  {
-    label: "Resolved",
-    value: String(findingsByStatus.resolved),
-    meta: "Closed by rule",
-    metaTone: "text-secondary",
-    icon: "check_circle",
-    iconClass: "bg-secondary/20 text-secondary",
-  },
-  {
-    label: "Suppressed",
-    value: String(findingsByStatus.suppressed),
-    meta: "Policy bypass",
-    metaTone: "text-on-surface-variant",
-    icon: "do_not_disturb_on",
-    iconClass: "bg-surface-container-highest text-on-surface-variant",
-  },
-];
+function statCardsFor(findingsByStatus: ReturnType<typeof countsFor>) {
+  return [
+    {
+      label: "Open",
+      value: String(findingsByStatus.open),
+      meta: "Needs a decision",
+      metaTone: "text-error",
+      icon: "error",
+      iconClass: "bg-error-container/20 text-error",
+    },
+    {
+      label: "Acknowledged",
+      value: String(findingsByStatus.acknowledged),
+      meta: "Owned by a human",
+      metaTone: "text-tertiary",
+      icon: "sync",
+      iconClass: "bg-tertiary-container/30 text-tertiary",
+    },
+    {
+      label: "Resolved",
+      value: String(findingsByStatus.resolved),
+      meta: "Closed by rule",
+      metaTone: "text-secondary",
+      icon: "check_circle",
+      iconClass: "bg-secondary/20 text-secondary",
+    },
+    {
+      label: "Suppressed",
+      value: String(findingsByStatus.suppressed),
+      meta: "Policy bypass",
+      metaTone: "text-on-surface-variant",
+      icon: "do_not_disturb_on",
+      iconClass: "bg-surface-container-highest text-on-surface-variant",
+    },
+  ];
+}
 
 function PersonCell({ name, role, initials }: { name: string; role: string; initials: string }) {
   return (
@@ -191,7 +199,11 @@ function ConflictRow({ finding, index }: { finding: Finding; index: number }) {
   );
 }
 
-export default function ConflictInboxPage() {
+export default async function ConflictInboxPage() {
+  const findings = await listFindings();
+  const findingsByStatus = countsFor(findings);
+  const statCards = statCardsFor(findingsByStatus);
+
   return (
     <AppShell
       action={
@@ -378,7 +390,8 @@ export default function ConflictInboxPage() {
                       No findings yet
                     </p>
                     <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                      Conflicts appear here once the findings API returns the triaged queue.
+                      Conflicts appear here once a verification job or a rule produces a finding
+                      for a workspace you belong to.
                     </p>
                   </td>
                 </tr>
