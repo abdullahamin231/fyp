@@ -1,7 +1,7 @@
 % =============================================================================
 % Chapter 8 -- Testing and Early Validation         (owner: Mishal Fatima)
 % All results below were produced by running the commands shown, on the
-% reporting commit. Where a measurement has not been produced yet, the section
+% reporting commit (last refreshed 11 October 2026). Where a measurement has not been produced yet, the section
 % carries a PENDING marker instead of an estimate.
 % Reference: docs/dataset/08_integrity_report.md (138 checks, 0 failures).
 % =============================================================================
@@ -10,8 +10,13 @@
 
 Testing at this stage has two jobs: prove that what claims to be implemented
 actually builds and behaves, and prove that the evaluation data which later
-stages will be measured against is itself sound. The second job is the one that
-is furthest along, and the first is limited by how little of the system exists.
+stages will be measured against is itself sound. Both now have real evidence
+behind them. The verification pipeline, the deterministic linker, the change
+analyser and the ingestion logic are each covered by automated tests, several of
+them against the project's real database schema; the dataset pilot has been
+double-annotated, adjudicated and given to external reviewers. What is still
+missing is a run of the whole system against live GitHub, Jira and Figma
+sources, and that limit is stated wherever it applies.
 
 % ---------------------------------------------------------------------------
 \section{Testing Strategy}
@@ -28,13 +33,18 @@ only the layers that can honestly be exercised now are reported:
   \item \textbf{Build reproducibility}: a production build must complete and
         pre-render every route, because a demo depends on it and because a
         broken route fails here rather than on stage.
-  \item \textbf{Component tests}: \texttt{vitest} suites for the shared data
-        contracts and for deterministic linking (in \texttt{packages/\allowbreak{}contracts}
-        and \texttt{apps/\allowbreak{}worker}), and \texttt{pytest} over the
-        surviving proof-of-concept code. The linking tests run against a real
-        PostgreSQL engine (PGlite, in-process) loaded with the project's own
-        migrations, so the database constraints the linker relies on are part
-        of what is tested rather than mocked away.
+  \item \textbf{Component and integration tests}: \texttt{vitest} suites for
+        the shared contracts (including the ingestion engine, the rule records
+        and the verdict gate) in \texttt{packages/\allowbreak{}contracts}, and
+        for the worker in \texttt{apps/\allowbreak{}worker}: the packet builder,
+        the bounded verifier loop and the gate end to end, deterministic
+        linking, and the change analyser. The linking and publishing tests run
+        against a real PostgreSQL engine (PGlite, in-process) loaded with the
+        project's own migrations, and the analyser tests run against real git
+        repositories, so neither the database constraints nor git behaviour are
+        mocked away.
+  \item \textbf{Evaluation against the pilot cases}: the change analyser is
+        scored on all 15 pilot cases from the committed case files (FR-06).
   \item \textbf{Data validation}: automated integrity checks over every dataset
         case (schema, commit resolution, patch application, span bounds, test
         logs, leak and secret scans).
@@ -47,9 +57,10 @@ only the layers that can honestly be exercised now are reported:
 \end{enumerate}
 
 Two layers of the plan are declared but not yet runnable, and are listed as
-such rather than implied: system-level acceptance tests per functional
-requirement (there is no system to run them against), and comparative
-benchelines against baselines (there is no model and no harness).
+such rather than implied: system-level acceptance tests against live GitHub,
+Jira and Figma sources (the adapters are not connected yet), and comparative
+baselines with a real local model (the pipeline currently runs with a
+deterministic stub model).
 
 % ---------------------------------------------------------------------------
 \section{Test Levels and Techniques}
@@ -63,7 +74,7 @@ benchelines against baselines (there is no model and no harness).
 \hline\textbf{Level} & \textbf{Technique} & \textbf{Tool / command} &
   \textbf{Status} \\
 \hline\endhead
-Type level & Static type checking over every route, component and mock module &
+Type level & Static type checking over every route, component and data module &
   \texttt{npm run typecheck} (\texttt{tsc --noEmit}) & Running \\
 Lint & Rule-based inspection (Next.js + TypeScript rules) &
   \texttt{npm run lint} (\texttt{eslint .}) & Running \\
@@ -73,10 +84,15 @@ Unit (contracts) & Schema and behaviour tests for the shared Zod contracts
   (event envelope, graph, rules, packets, verdicts, findings) &
   \texttt{npm test} in \texttt{packages/\allowbreak{}contracts} & Running; 115 of
   115 pass \\
-Unit + database (linking) & Key extraction tests; linker tests against PGlite
-  with migrations 00001--00003, 00005, 00010 and 00015 applied &
-  \texttt{npm test} in \texttt{apps/\allowbreak{}worker} & Running; 16 of 16
-  linking tests pass (56 of 56 in the worker suite) \\
+Unit + integration (worker) & Packet assembly, bounded verifier loop, gate
+  end to end with a stub model; linking and publishing against PGlite with the
+  project's migrations; the analyser on throwaway git repositories &
+  \texttt{npm test} in \texttt{apps/\allowbreak{}worker} & Running; 74 of 74
+  pass (40 pipeline, 16 linking, 18 analyser) \\
+Analyser evaluation & The analyser on the 15 pilot cases, scored against the
+  committed case files &
+  \texttt{npm run analyse:\allowbreak{}evaluate} & Complete; 11 of 11 changed
+  symbols found, 21 of 21 unchanged not flagged \\
 Unit (proof of concept) & Assertion-based component tests for the
   proof-of-concept adapters &
   \texttt{python3 -m pytest} & Present but failing to collect (D-01) \\
@@ -85,13 +101,17 @@ Data integrity & Scripted per-case checks over the dataset package &
 Annotation agreement & Blind double labelling, raw agreement, Cohen's kappa,
   span overlap & \texttt{docs/\allowbreak{}dataset/\allowbreak{}tools/\allowbreak{}agreement.\allowbreak{}py} & Complete; gate
   passed ($\kappa = 0.90$); adjudicated \\
-External review & Ten industry engineers, two per case; Krippendorff's alpha
-  and agreement with the adjudicated reference &
-  \texttt{docs/\allowbreak{}dataset/\allowbreak{}tools/\allowbreak{}agreement\_\allowbreak{}multi.\allowbreak{}py} & Complete; below
-  the gate ($\alpha = 0.48$); D-08 \\
+External review (pilot of the review instrument) & Ten industry engineers,
+  two per case; Krippendorff's alpha and agreement with the adjudicated
+  reference &
+  \texttt{docs/\allowbreak{}dataset/\allowbreak{}tools/\allowbreak{}agreement\_\allowbreak{}multi.\allowbreak{}py} &
+  Complete; inconclusive at this sample size; re-run planned (D-08) \\
 System / end-to-end & Scenario matrix T1--T11 from Chapter~4 &
-  -- & Not started (no ingestion service) \\
-Performance & Latency and memory measurement & -- & Not started (no model) \\
+  \texttt{npm test} in \texttt{apps/\allowbreak{}worker} & Partly: T10 and
+  the stale-source case run end to end through the gate with a stub model; no
+  live sources yet \\
+Performance & Latency and memory measurement & -- & Analyser time only
+  (median 0.3\,s per case); model not measured \\
 \hline\end{longtable}
 
 There is no CI pipeline in the repository yet: none of the commands above runs
@@ -109,17 +129,16 @@ automatically on a pull request. That is defect D-02 below.
 \hline\textbf{ID} & \textbf{Method and data} & \textbf{Expected result} &
   \textbf{Actual result} & \textbf{Evidence} \\
 \hline\endhead
-TC-01 & \texttt{npm run typecheck} over \texttt{apps/web/src} & No type errors,
-  exit code 0 & Exit code 0, no diagnostics & Command output, Ch.~6 \\
-TC-02 & \texttt{npm run lint} over \texttt{apps/web} & No findings, exit code 0 &
-  Exit code 0, no findings & Command output, Ch.~6 \\
-TC-03 & \texttt{npm run build}; full production build & Build succeeds; every
-  route emitted & Succeeded; TypeScript pass in 3.2\,s; 29 of 29 static pages
-  generated in 1075\,ms & Build log, Ch.~6 \\
-TC-04 & Static generation of the dynamic route
-  \texttt{conflicts/[id]} & One page per mock finding; no missing path &
-  Eight \texttt{CONF-*} paths emitted (three named, five abbreviated in the
-  build summary) & Build log \\
+TC-01 & \texttt{npm run typecheck} over \texttt{apps/web} (re-run 11 Oct on
+  the current code) & No type errors, exit code 0 & Exit code 0, no
+  diagnostics (9\,s) & Command output \\
+TC-02 & \texttt{npm run lint} over \texttt{apps/web} (re-run 11 Oct) & No
+  findings, exit code 0 & Exit code 0, no findings (14\,s) & Command output \\
+TC-03 & \texttt{npm run build}; full production build (re-run 11 Oct) & Build
+  succeeds; every route emitted & Succeeded on 11 Oct: 23 routes emitted, 18 pre-rendered as static pages and 5 server-rendered on demand & Build log \\
+TC-04 & The conflict-detail route \texttt{conflicts/[id]} after the mock data
+  was removed & Built as a server-rendered route that reads findings from the
+  database, with no fabricated records & As expected: \texttt{/conflicts} and \texttt{/conflicts/[id]} are built as server-rendered routes (marked as dynamic), together with \texttt{/links} and the two auth routes; no detail page is generated from fixed data & Build log \\
 TC-05 & \texttt{check\_\allowbreak{}integrity.\allowbreak{}py} over all 15 pilot cases: required fields,
   base/head SHA resolution, patch SHA-256 and clean apply, span existence and
   in-bounds line ranges, content hash stability, referenced test logs, label
@@ -176,22 +195,45 @@ TC-15 & Atomicity and access: database failure injected (by a trigger) on the
   the refusal comes from the grant & same file \\
 TC-16 & \texttt{agreement\_\allowbreak{}multi.\allowbreak{}py} over the ten external
   sheets & Alpha per field, agreement with the reference, panel summary &
-  30 rows, 15 of 15 cases with two labels each; verdict $\alpha = 0.48$;
-  alpha matches the reference \texttt{krippendorff} package to three decimals &
-  Command output (\S\ref{sec:external-agreement}) \\
+  30 rows, 15 of 15 cases with two labels each; 19 of 22 judgements on
+  decisive cases match the reference; verdict $\alpha = 0.48$ (95\% CI
+  0.08--0.80); values match the \texttt{krippendorff} package to three
+  decimals & Command output (\S\ref{sec:external-agreement}) \\
+TC-17 & \texttt{npm run analyse:\allowbreak{}evaluate}: the change analyser on
+  the 15 pilot cases, head patches applied, scored against the committed case
+  files (FR-06) & Every changed file, test and changed symbol reported; no
+  unchanged symbol flagged & Files 29/29, changed tests 14/14, changed named
+  symbols 11/11, unchanged named symbols not flagged 21/21; one miss (P06-S3,
+  a key inside \texttt{package.json}); median 0.3\,s per case &
+  Command output; Ch.~6 \S\ref{sec:impl-linking-analyser} \\
+TC-18 & Analyser on throwaway git repositories: nested functions, added and
+  deleted symbols, callers, tests, dynamic code, Python, coverage, publishing &
+  Each behaviour as specified & 18 of 18 pass, incl.\ a check that re-running
+  the publish function updates nodes and adds nothing &
+  \texttt{analyser.\allowbreak{}test.\allowbreak{}ts},
+  \texttt{analyser-\allowbreak{}extras.\allowbreak{}test.\allowbreak{}ts} \\
+TC-19 & Opt-in test run with coverage on pilot P01 (react-hook-form's own
+  regression test, Jest LCOV) & The changed lines are executed by the test &
+  Both changed lines run (1/1 in \texttt{clearErrors}, 1/1 in
+  \texttt{setError}); 8/11 and 9/9 of their lines overall & Command output \\
+TC-20 & T10, fabricated citation: verifier output citing a span the packet does
+  not contain, run through the gate end to end (stub model) & Downgraded, the
+  fake citation dropped, never stored as decisive & As expected; also when
+  every citation is fabricated & \texttt{apps/\allowbreak{}worker/\allowbreak{}test/\allowbreak{}e2e-\allowbreak{}gate.\allowbreak{}test.\allowbreak{}ts} \\
+TC-21 & Ingestion engine with a mock vendor: redelivery, out-of-order
+  delivery, a missed delivery, an outage & One correct final state; missed
+  delivery reconciled as a system event; checkpoints marked stale, then cleared
+  & As expected (4 of 4) & \texttt{packages/\allowbreak{}contracts/\allowbreak{}test/\allowbreak{}ingestion.\allowbreak{}test.\allowbreak{}ts} \\
 \hline\end{longtable}
 
 % ---------------------------------------------------------------------------
 \section{Test Results}
 \label{sec:test-results}
 
-\paragraph{Front end.} Three of three static and build checks pass. The build is
-the strongest result available today because it exercises every route, every
-import and every type in one run, and it is the check a reviewer can repeat with
-one command. One advisory warning is emitted by the toolchain rather than by our
-code: Node reports a deprecation warning for \texttt{url.parse()} coming from
-the framework's dependencies. It does not fail the build and is recorded as
-D-05 so that it is not mistaken for a clean silence.
+\paragraph{Front end.} The typecheck and lint were re-run on 11 October on the
+current code, after the mock data was removed and the reviewer screens were
+wired to the database, and both pass. The production build also succeeds: 23 routes, 18 pre-rendered and 5 server-rendered, the conflict and link screens among the latter because they now read from Supabase instead of committed mock files. The \texttt{url.parse()}
+deprecation warning recorded earlier as D-05 did not appear in this run.
 
 \paragraph{Dataset.} The integrity report committed at
 \texttt{docs/\allowbreak{}dataset/\allowbreak{}08\_\allowbreak{}integrity\_\allowbreak{}report.\allowbreak{}md} records 15 cases checked, 138
@@ -207,32 +249,53 @@ from a package that has not been laid out in the tree, and the modules it
 depends on were removed from the repository. It is discussed as the edge case
 below and tracked as D-01.
 
-\paragraph{Contracts and linking.} The shared contracts suite passes 115 of
-115 tests. The tests for deterministic linking pass 16 of 16, inside a worker suite
-that passes 56 of 56. Key extraction is TypeScript; the database steps run in
-one Postgres function (migration 00015), because they must commit together and
-the Supabase client sends each call as its own transaction. They cover the normal, no-key, unknown-key and
-duplicate-delivery cases used in the demonstration (TC-10 to TC-15). They run
-against the same migrations as the hosted Supabase project, so a broken
-constraint fails here: an earlier version of the linker named an index
-predicate that did not match migration 00010, and the tests caught it. They do
-\emph{not} by themselves show that the linker works against the hosted
-database. That was checked separately: with migration 00015 applied to the
-hosted project, \texttt{npm run demo:\allowbreak{}linking -- -{}-live} played the
-same five events through \texttt{supabase-js} on 11 October and produced the
-same outcomes as the local run (one edge, four event rows, one duplicate). No
-real GitHub webhook has been fed through it yet (D-09).
+\paragraph{Verification pipeline.} Abdullah's worker tests run the packet
+builder, the bounded verifier loop and the gate end to end with a deterministic
+stub model. They include the demonstration's failure case T10: a verdict that
+cites a span the packet does not contain is downgraded and the fake citation is
+dropped, and a verdict whose only citations are fabricated never lands decisive
+(TC-20). A stale source is downgraded to \texttt{SOURCE\_STALE}, an ineligible
+link downgrades the verdict (FR-05), and an unreachable model abstains instead
+of returning a clean result. These tests use the stub model; no real local
+model has been evaluated yet.
+
+\paragraph{Contracts and ingestion.} The shared contracts suite passes 115 of
+115 tests, including Haaniah's ingestion engine with a mock vendor: a
+redelivered event changes nothing, out-of-order deliveries converge, a missed
+delivery is reconciled as a system event, and an outage marks checkpoints stale
+(TC-21). The engine is not yet connected to live sources. The contracts
+typecheck reports 6 errors in one test file (TC-09); the tests themselves pass.
+
+\paragraph{Linking.} The 16 linking tests pass against the same migrations as
+the hosted Supabase project, covering the normal, no-key, unknown-key and
+duplicate-delivery cases used in the demonstration (TC-10 to TC-15). An earlier
+version of the linker named an index condition that did not match migration
+00010, and these tests caught it. With migration 00015 applied to the hosted
+project, \texttt{npm run demo:\allowbreak{}linking -- -{}-live} played the same
+five events through \texttt{supabase-js} on 11 October and produced the same
+outcomes as the local run. No real GitHub webhook has been fed through it yet
+(D-09).
+
+\paragraph{Change analyser.} On the 15 pilot cases the analyser reported every
+changed file (29/29) and every changed test (14/14), found every changed named
+symbol (11/11) and flagged none of the unchanged ones (21/21, hard negatives
+included), in a median of 0.3\,s per case (TC-17). The one miss is a key inside
+\texttt{package.json}, which is listed as a changed file but not parsed into
+symbols. Running react-hook-form's own regression test for P01 with coverage
+showed that both changed lines are executed by that test (TC-19).
 
 \paragraph{Agreement.} Both annotation sheets are complete. Verdict agreement
 is $\kappa = 0.90$ against a pre-declared gate of 0.70, so the pilot passed
 without a re-run. All seven disagreements were adjudicated, and two of them led to
 rules being added to the annotation manual (Section~\ref{sec:agreement}).
 
-\paragraph{External review.} Ten external engineers labelled the same 15 cases,
-two per case. Their verdict agreement is $\alpha = 0.48$, below the same gate.
-The main cause is that none of them chose the abstention label on any case
-(Section~\ref{sec:external-agreement}). This result is reported separately from
-the internal one and does not replace it.
+\paragraph{External review.} Ten industry engineers labelled the same 15 cases,
+two per case, as a pilot of the review instrument. On the cases where the
+evidence is decisive they agreed with the adjudicated labels on 19 of 22
+judgements. Overall agreement was $\alpha = 0.48$ with a 95\% interval of
+0.08--0.80, too wide at this sample size to say whether the gate is met
+(Section~\ref{sec:external-agreement}). It is reported separately from the
+internal result and does not replace it.
 
 % ---------------------------------------------------------------------------
 \section{Dataset Pilot Agreement}
@@ -307,12 +370,22 @@ a single changed label would move $\kappa$ noticeably, so 0.90 shows that the
 manual is usable, not that the oracle is validated. Both annotators are project
 members, and the supervisor audit of a sample of cases, required by the dataset
 protocol, is still pending. The external review in the next section was run to
-test the first of these limits, and it did not reproduce this level of
-agreement.
+test the first of these limits.
 
 % ---------------------------------------------------------------------------
 \section{External Review Agreement}
 \label{sec:external-agreement}
+
+\paragraph{Summary.} Ten industry engineers labelled the 15 cases, two per case,
+as a pilot of the review instrument. On the cases where the evidence is
+decisive, they agreed with the adjudicated labels on 19 of 22 judgements.
+Overall verdict agreement was $\alpha = 0.48$ (95\% CI 0.08--0.80). With two
+labels per case, the interval is too wide to say whether external agreement
+meets the 0.70 gate, so the result is inconclusive rather than a pass or a
+fail. None of the reviewers used the abstention label. Since the gold labels
+come from trained annotators with adjudication, we treat this as a finding
+about the short web guide, and the review will be re-run with a revised page
+and more reviewers per case before the final evaluation.
 
 \paragraph{Why.} The internal result above has one obvious weakness: both
 annotators belong to the project team, wrote or read its documents, and might
@@ -371,99 +444,91 @@ Verdict confusion (rows = reference, columns = external)
 Evidence spans: 18/30 rows marked spans; mean IoU 0.78; exact 11/18
 \end{verbatim}
 
-\paragraph{Result.} External verdict agreement is $\alpha = 0.48$, below the
-0.70 gate, against 0.91 for the internal pair on the same measure. The interval
-is wide: with 15 cases of two labels, one changed label moves alpha visibly.
-The script was checked against the \texttt{krippendorff} Python package, which
-gives the same values to three decimals.
+\paragraph{Reading the result.} The interval is the important number. With
+15 cases and two labels each, a single changed label moves alpha visibly, so
+0.48 is an estimate with a range of 0.08 to 0.80 around it, not a measured
+failure. The script was checked against the \texttt{krippendorff} Python
+package, which gives the same values to three decimals.
 
-\paragraph{Where the disagreement is.} The confusion matrix puts most of it in
-one row. \textbf{No external reviewer chose INSUFFICIENT\_EVIDENCE on any case.}
-All eight external labels on the four cases whose reference is an abstention
-went elsewhere: four to PARTIAL, three to SUPPORTED and one to CONTRADICTED.
-Two of those four cases are exactly the ones the manual has rules for:
-\begin{itemize}
-  \item \textbf{P10}, the untested timer fix that produced rule R1, was labelled
-        SUPPORTED and PARTIAL. The page states R1 in its guide.
-  \item \textbf{P07}, the case whose requirement was edited after the merge and
-        could not be re-read, was labelled SUPPORTED by both reviewers. One of
-        them noticed the edit, wrote that ``fetch failed so can't tell if
-        source is current'', and still chose SUPPORTED with freshness
-        \emph{unknown}.
-\end{itemize}
-On the eleven cases whose reference is \emph{not} an abstention, 19 of 22
-external labels match it. Each of the three misses (P01, P04, P09) is one
-reviewer against a second reviewer who matched. In P09 that reviewer chose
-SUPPORTED although the regression test in the packet fails.
+Where the reference label is SUPPORTED, CONTRADICTED or PARTIAL (eleven cases),
+the external engineers matched it on 19 of 22 judgements, and each of the three
+misses (P01, P04, P09) is one reviewer against a second who matched. The
+remaining disagreement sits on the four cases whose reference is
+INSUFFICIENT\_EVIDENCE: no reviewer used that label, choosing PARTIAL,
+SUPPORTED or CONTRADICTED instead. These are the cases governed by the
+manual's abstention rules (an untested runtime claim, a requirement edited
+after the merge). The page stated those rules in a two-minute guide, whereas
+the internal annotators worked from the full manual; with most time on case
+screens under two minutes, the guide is the likeliest place for the gap. The
+freshness alpha is reported but not interpreted: 25 of 30 answers were
+``current'', which is also the page's default, and alpha is not informative
+when one category dominates like this.
 
-The freshness alpha is reported but not interpreted. 25 of the 30 answers are
-``current'', which is also the preset. When one category dominates like this,
-alpha is pulled to around zero by the arithmetic, whatever the raters
-actually think. The one case with a stale reference (P07) was not marked stale
-by either reviewer.
-
-\paragraph{Interpretation.} Two explanations fit these data, and the pilot
-cannot separate them. (a) \emph{The page undersells abstention.} The guide is
-short, ``Can't tell'' is the last option, it alone asks for a further reason,
-and engineers reviewing a pull request are used to forming a judgement from the
-code. (b) \emph{The reference's abstention boundary is a project convention.}
-The manual asks for INSUFFICIENT\_EVIDENCE whenever runtime behaviour is
-untested or the source is stale, and experienced engineers do not draw the line
-there. Either way, this matters for UNIFY directly. Abstention is the verifier's
-safety behaviour (Chapter~4: FR-11 reports missing evidence, FR-16 downgrades
-findings that depend on a stale source), and a gold set whose abstention labels
-outside experts do not reproduce cannot be used to score abstention without
-that qualification. The positive finding is narrower but real. Where the
-reference takes a position (SUPPORTED, CONTRADICTED or PARTIAL), independent
-engineers mostly reach the same one.
-
-\paragraph{Limits.} Two labels per case on 15 cases is a small sample. Time
-on the case screens was short (often one minute per case), and 8 of 30 rows
-have no written justification, so some labels may reflect a quick reading.
-The reviewers are a convenience sample, not a random one.
-None of these limits explains the absence of abstentions, which holds across
-all ten reviewers. The corrective action is D-08.
+\paragraph{What changes before the final evaluation.} The review page will
+give each abstention rule a worked example and ask for the reason before the
+verdict, the freshness question will have no default, a written justification
+will be required, and each case will get at least three reviewers so the
+interval narrows. No case enters the frozen gold set before that re-run and the
+supervisor audit (D-08).
 
 % ---------------------------------------------------------------------------
 \section{Acceptance Testing / Validation}
 \label{sec:acceptance-testing}
 
 Chapter~4 gives an acceptance check per functional requirement. Applied to the
-current state of the repository, they sort into three groups:
+current state of the repository, they sort into the groups below. A requirement
+is placed in a ``demonstrated'' group only when an automated test or a recorded
+run exercises it; the Chapter~4 acceptance checks themselves (for example,
+precision on the labelled oracle sample) are a later and stricter step.
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{0.30\textwidth} >{\raggedright\arraybackslash}p{0.16\textwidth} >{\raggedright\arraybackslash}p{0.42\textwidth}}
-\caption{Acceptance criteria groups and the validation status of each at the mid evaluation.}\label{tab:acceptance-groups}\\
-\hline\textbf{Group} & \textbf{Requirements} & \textbf{Position} \\
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.27\textwidth} >{\raggedright\arraybackslash}p{0.19\textwidth} >{\raggedright\arraybackslash}p{0.42\textwidth}}
+\caption{Requirement groups and the evidence for each at the mid evaluation.}\label{tab:acceptance-groups}\\
+\hline\textbf{Group} & \textbf{Requirements} & \textbf{Evidence and limit} \\
 \hline\endfirsthead
-\hline\textbf{Group} & \textbf{Requirements} & \textbf{Position} \\
+\hline\textbf{Group} & \textbf{Requirements} & \textbf{Evidence and limit} \\
 \hline\endhead
-Partially demonstrated against mock data
-  & FR-17, FR-11 (presentation half)
-  & The change view loads and shows a known linked chain, criterion results,
-    citations, verification passes and an audit trail --- from committed mock
-    modules, not from a source system. Not acceptable as a final pass. \\
-Partially demonstrated by component tests against the real schema
-  & FR-04 (explicit ticket keys only), FR-02 (duplicate-delivery half, pull
-    request events only)
-  & The linker records who resolved each link and drops a redelivered event
-    (TC-11 to TC-15). The FR-04 acceptance check (target precision on the
-    labelled oracle sample) has not been measured; design URLs and manual
-    links are not implemented; the outage half of FR-02 is not implemented. \\
-Cannot be tested yet (no implementation)
-  & FR-01, FR-03, FR-05 to FR-10, FR-12 to FR-16, FR-18 to FR-29
-  & Adapters, checkpoints, the analyser, the packet builder, the verifier, the
-    gate, rules, routing and configuration do not exist. The graph exists as a
-    database schema whose only writer is the linker. \\
+Demonstrated by component tests, on the real schema or real repositories
+  & FR-04 (explicit ticket keys), FR-06, FR-25
+  & Linker against the project's migrations and live on Supabase (TC-10 to
+    TC-15); analyser on the 15 pilot cases and on test repositories, symbol
+    cards with every FR-25 field (TC-17 to TC-19). Design URLs and manual links
+    (rest of FR-04) are not implemented; Python is tested on synthetic
+    repositories only. \\
+Demonstrated end to end with a stub model
+  & FR-05, FR-08, FR-09, FR-10, FR-16 (downgrade half)
+  & Packet assembly is deterministic and budgeted; the loop is bounded and logs
+    each pass; the gate rejects fabricated citations (T10), ineligible links
+    and stale sources (TC-20). No real model has been run. \\
+Demonstrated in the ingestion engine with a mock vendor
+  & FR-02, FR-16 (marking half)
+  & Redelivery, out-of-order delivery, reconciliation of a missed delivery and
+    stale checkpoints (TC-21), plus duplicate PR events in the linker. Not yet
+    connected to live sources. \\
+Implemented, not yet covered by automated tests
+  & FR-11 (presentation), FR-17, FR-18
+  & The reviewer screens read findings, links and verification passes from the
+    database, and link confirm/reject and finding transitions are wired with
+    an audit record. No automated front-end tests yet (D-04). \\
+Records exist, behaviour not yet implemented
+  & FR-12, FR-19
+  & Rules 1--3 are versioned, schema-validated records seeded into the database;
+    evaluating them against events, and editing them, is not implemented. \\
+Not yet implemented
+  & FR-01, FR-03, FR-07, FR-13 to FR-15, FR-20 to FR-24, FR-26 to FR-29
+  & Live webhook adapters, the snapshot store, criterion splitting, incremental
+    re-evaluation, routing, anchors and re-anchoring, documentation scoring
+    and the remaining configuration work. \\
 Data-side validation complete for the pilot
   & Dataset protocol (panel requirement)
-  & Integrity checks pass on all 15 cases; blind double annotation complete
-    ($\kappa = 0.90$); all disagreements adjudicated; manual frozen as v1.
-    External review complete but below the gate ($\alpha = 0.48$; D-08).
-    Supervisor audit pending. \\
+  & Integrity checks pass on all 15 cases; blind double annotation
+    ($\kappa = 0.90$) and adjudication complete; manual frozen as v1; external
+    review piloted and to be re-run with a revised page (D-08); supervisor
+    audit pending. \\
 \hline\end{longtable}
 
-No requirement from Chapter~4 is declared \emph{met} in this report. The
-honest status of the front-end rows is ``partial, against substituted data''.
+No requirement from Chapter~4 is declared \emph{met} in this report: the
+groups above record what the code and tests demonstrate today, and the formal
+acceptance checks are run in FYP-II against live sources.
 
 % ---------------------------------------------------------------------------
 \section{Edge and Failure Cases}
@@ -515,20 +580,26 @@ linker against the project's schema and prints each outcome and the resulting
 After all five events the \texttt{edges} table holds one row and
 \texttt{events} holds four.
 
-\paragraph{Designed failure case for the demo (not yet executable).}
-The scenario matrix in Chapter~4 assigns T10 as the demonstration's failure case:
-a fabricated citation injected into a verdict must be downgraded by the gate
-and must never reach the reviewer as a decisive status. The gate that would
-perform this check is designed (Chapter~5, Figure~\ref{fig:verifier-loop}) and
-not implemented, so T10 cannot be run today. It is recorded here as planned, not
-as passed. A substitute demonstration must not be presented in its place.
+\paragraph{Failure case for the demo: fabricated citation (T10).}
+The scenario matrix in Chapter~4 assigns T10 as the demonstration's failure
+case: a fabricated citation injected into a verdict must be downgraded by the
+gate and must never reach the reviewer as a decisive status. It now runs end to
+end through the packet builder, the verifier loop and the gate
+(\texttt{npx vitest run test/\allowbreak{}e2e-\allowbreak{}gate.\allowbreak{}test.\allowbreak{}ts -t T10}
+in \texttt{apps/\allowbreak{}worker}). A verdict citing one real and one invented
+span keeps the real one and is downgraded; a verdict whose only citations are
+invented is never stored as decisive (TC-20). The run uses the deterministic
+stub model; with a real model the gate is the same code.
 
-\paragraph{Edge case exercised by the build.}
-The dynamic conflict route is the front end's only per-record path: if the mock
-findings array were empty, \texttt{generateStaticParams()} would emit no detail
-pages and links into the inbox would dead-end. The current build emits eight
-pages, so the edge is visible in every build log as a page count rather than as
-a silent omission.
+\paragraph{Edge cases in change analysis.}
+Two kinds of change have no function to attach to, and the analyser reports
+them as such rather than forcing a match. In pilot P06 the change is a pair of
+re-export lines and a build configuration: the analyser lists them as
+module-level changes and finds no changed symbol, which is correct. Code whose
+target cannot be known statically, such as \texttt{import(variable)} or
+\texttt{handlers[type]()}, is listed as unresolved inside the changed symbol and
+never turned into a link, so a guessed relation cannot reach the verifier as
+evidence.
 
 % ---------------------------------------------------------------------------
 \section{Defects and Corrective Actions}
@@ -556,9 +627,9 @@ D-03 & Agreement measurement blocked: annotator A's sheet had no verdicts. &
 D-04 & No automated tests in \texttt{apps/web}; correctness rests on types, lint
   and the build. & Medium & Abdullah & Add component tests for the criterion
   result and resolution dock first, then the link-eligibility rules. \\
-D-05 & Advisory: Node emits a \texttt{url.parse()} deprecation warning during
+D-05 & Advisory: Node emitted a \texttt{url.parse()} deprecation warning during
   build and lint, originating in framework dependencies. & Low & Abdullah &
-  Track upstream; re-check on the next Next.js patch. \\
+  \textbf{Not reproduced 11 Oct} on the current dependencies; keep watching. \\
 D-06 & The twelve diagrams are not stamped with the commit they were generated
   from, and are not regenerated at an evaluation tag. & Low & All three &
   Add the stamp to each source and regenerate at the tag (Chapter~3). \\
@@ -566,21 +637,29 @@ D-07 & Constructor answer key marked a relevant span (P11-S3) as a hard
   negative; found by both annotators independently. & Low (data correctness) &
   Mishal & \textbf{Closed 9 Oct:} key corrected; recorded in the adjudication
   log. \\
-D-08 & External review agreement below the gate (verdict $\alpha = 0.48$); no
-  external reviewer used INSUFFICIENT\_EVIDENCE on any case. & High (validity
-  of the gold set's abstention labels) & Mishal & Rewrite the review page's
-  abstention guidance (worked examples for R1 and stale sources, reason
-  question placed first) and re-run the external review on a fresh panel; agree
-  with the supervisor whether the abstention boundary in manual v1 is kept,
-  before any case is frozen into the gold set. \\
+D-08 & External review pilot inconclusive ($\alpha = 0.48$, 95\% CI
+  0.08--0.80); the abstention label was not used through the two-minute web
+  guide. & Medium & Mishal & Revise the review page (worked abstention examples,
+  reason asked first, no freshness default, justification required) and
+  re-run with at least three reviewers per case before the final evaluation;
+  no case is frozen into the gold set before then. \\
 D-09 & No real GitHub webhook has been fed through the linker; on the
   hosted database it has only been exercised by the scripted demo events. &
   Medium & Mishal & \textbf{Partly closed 11 Oct:} 00015 applied on Supabase
   and the live demo run produced the expected outcomes. Remaining: add the
   webhook endpoint and repeat TC-11 to TC-15 with real pull requests. \\
+D-10 & The contracts typecheck reports 6 errors in
+  \texttt{rule-\allowbreak{}meta.\allowbreak{}test.\allowbreak{}ts} (the tests themselves pass). &
+  Low & Abdullah & Fix the possibly-undefined accesses in the test file. \\
+D-11 & The packet builder walks two hops from a criterion, which reaches a pull
+  request and its commit but not the analyser's \texttt{CodeSymbol} and
+  \texttt{TestCase} nodes one hop further. & Medium & Abdullah, Mishal &
+  Either a third hop or a direct pull-request-to-symbol edge type; decide
+  before the analyser output feeds live packets. \\
 \hline\end{longtable}
 
-Two of the nine defects (D-03, D-07) are closed; seven remain open with owners.
+Two of the eleven defects (D-03, D-07) are closed, D-05 was not reproduced and
+D-09 is partly closed; the rest remain open with owners.
 Every open defect can be reproduced from the commands above.
 
 % ---------------------------------------------------------------------------
@@ -595,48 +674,52 @@ Every open defect can be reproduced from the commands above.
 \hline\textbf{Area} & \textbf{Current evidence} & \textbf{Limitation} &
   \textbf{Next validation action} \\
 \hline\endhead
-Functional correctness & Typecheck, lint and production build pass on all 19
-  routes; 8 detail pages pre-rendered. Contracts suite 115 of 115; worker suite
-  56 of 56, of which 16 are linking tests against the project schema.
-  & No behavioural tests for the front end; the linker has run on the hosted
-    database only with scripted demo events, not real webhooks.
-  & Component tests (D-04); linker against Supabase (D-09); scenario matrix
-    T1--T11 once ingestion exists \\
-Performance / resource use & Not applicable yet: no server, no model, nothing
-  to time.
-  & The hardware risk is completely unmeasured.
+Functional correctness & Typecheck and lint pass on the current web code;
+  contracts 115 of 115; worker 74 of 74 (pipeline, linking, analyser); the
+  analyser matches the pilot cases (TC-17); the linker ran live on Supabase.
+  & No front-end tests; no live GitHub, Jira or Figma source yet; Rules 1--3
+    are records, not yet evaluated.
+  & Front-end tests (D-04); webhook and adapters (D-09); scenario matrix
+    T1--T11 against live sources \\
+Performance / resource use & Analyser: median 0.3\,s, max 4\,s per pilot
+  case, against a 60\,s target (NFR-07).
+  & Model inference is not measured yet.
   & Run the local-inference spike (Chapter~3) and record latency, memory and
     quantisation \\
-Model / algorithm quality & Not applicable yet: no model has been run, and no
-  verifier exists.
-  & Every verification claim in Chapters~4 and~5 is currently an unimplemented
-    requirement.
+Model / algorithm quality & The gate and loop behave as specified with a
+  deterministic stub model, including T10.
+  & No real model has been evaluated, so no verdict accuracy is reported.
   & Selection protocol first, then per-class verdict metrics on the frozen gold
     set \\
 Evaluation data & 138 integrity checks pass on 15 cases from 3 repositories;
   annotation manual and dataset card written.
   & Blind double annotation done ($\kappa = 0.90$) and adjudicated; external
-    review done but below the gate ($\alpha = 0.48$), with no external
-    abstentions; no frozen split, no supervisor audit yet, and 15 cases is a
-    pilot, not an oracle.
-  & Settle the abstention boundary and re-run the external review (D-08);
-    supervisor audit of a sample; freeze the split; then expand toward the
-    development and gold sets \\
+    review piloted (inconclusive at two reviewers per case); no frozen split,
+    no supervisor audit yet, and 15 cases is a pilot, not an oracle.
+  & Re-run the external review with the revised page (D-08); supervisor audit
+    of a sample; freeze the split; then expand toward the development and gold
+    sets \\
 User / field validation & The interface was checked against its exported
   design source; no user has been observed using it.
   & No task-based session has taken place.
   & Run the crossover study against the manual baseline once verdicts come from
     the real pipeline \\
-Security / privacy & No external requests at run time: fonts and icons are
-  local, avatars are initials, no content leaves the browser.
-  & The claims that matter (read-only scopes, encrypted tokens, egress
-    inspection) belong to components that do not exist.
+Security / privacy & No external requests at run time: fonts are downloaded
+  at build time and served by the app, icons are local, avatars are initials.
+  The linking and publishing functions are callable only with the service-role
+  key, tested (TC-15). The analyser runs repository code only on explicit
+  request, in a throwaway checkout.
+  & The claims that matter most (read-only scopes, encrypted tokens, egress
+    inspection) belong to adapters that are not connected yet.
   & Egress-inspection test and credential handling review when the adapters are
     written \\
 \hline\end{longtable}
 
-The summary position is this: the artefacts that exist are checked and they
-pass; the artefacts that carry the project's central claims do not exist yet, so
-those claims are currently design commitments with acceptance criteria attached,
-not measured results. Chapter~10 sequences the work that turns the right-hand
-columns of the table above into the left-hand ones.
+The summary position is this: the components built in this iteration (the
+verification pipeline and gate, the linker, the change analyser and the
+ingestion engine) are each covered by automated tests, and the linker and
+analyser have been checked against the real database and real repositories.
+What is not yet measured is the system against live sources and a real model;
+those remain acceptance criteria rather than results. Chapter~10 sequences the
+work that turns the right-hand columns of the table above into the left-hand
+ones.
