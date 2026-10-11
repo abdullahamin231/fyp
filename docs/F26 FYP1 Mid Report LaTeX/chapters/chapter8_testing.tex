@@ -71,11 +71,12 @@ Build & Production compilation and static generation of all routes &
   \texttt{npm run build} (\texttt{next build}) & Running \\
 Unit (contracts) & Schema and behaviour tests for the shared Zod contracts
   (event envelope, graph, rules, packets, verdicts, findings) &
-  \texttt{npm test} in \texttt{packages/\allowbreak{}contracts} & Running; 60 of 60
-  pass \\
+  \texttt{npm test} in \texttt{packages/\allowbreak{}contracts} & Running; 115 of
+  115 pass \\
 Unit + database (linking) & Key extraction tests; linker tests against PGlite
-  with migrations 00001--00003, 00005 and 00009 applied &
-  \texttt{npm test} in \texttt{apps/\allowbreak{}worker} & Running; 14 of 14 pass \\
+  with migrations 00001--00003, 00005 and 00010 applied &
+  \texttt{npm test} in \texttt{apps/\allowbreak{}worker} & Running; 15 of 15
+  linking tests pass (55 of 55 in the worker suite) \\
 Unit (proof of concept) & Assertion-based component tests for the
   proof-of-concept adapters &
   \texttt{python3 -m pytest} & Present but failing to collect (D-01) \\
@@ -138,9 +139,10 @@ TC-07 & \texttt{python3 -m pytest tests/\allowbreak{}} in \texttt{unify\_poc} & 
 TC-08 & Type-level check: assign a non-vocabulary string to a
   \texttt{Verdict} & Compile error & Compile error by construction
   (\texttt{VERDICTS} is a const tuple) & \texttt{src/\allowbreak{}lib/\allowbreak{}types.\allowbreak{}ts} \\
-TC-09 & \texttt{npm test} in \texttt{packages/\allowbreak{}contracts}; six suites
-  over the shared contracts & All tests pass & 60 of 60 pass; typecheck exit
-  code 0 & Command output \\
+TC-09 & \texttt{npm test} in \texttt{packages/\allowbreak{}contracts}; ten suites
+  over the shared contracts & All tests pass & 115 of 115 pass; the typecheck
+  reports 6 errors in one test file (\texttt{rule-\allowbreak{}meta.\allowbreak{}test.\allowbreak{}ts}),
+  reported to its owner & Command output \\
 TC-10 & Key extraction: PR titles, branch names and commit messages with and
   without keys, including \texttt{feature/\allowbreak{}UNI-123-login},
   \texttt{[UNI-7]}, \texttt{uni-123}, \texttt{XUNI-1}, \texttt{UNI-0123},
@@ -161,8 +163,10 @@ TC-13 & Failure case: PR naming a key with no ticket (\texttt{UNI-999}) & No
   re-resolution & As expected (\texttt{unknown\_key}); node count rises by one
   (the PR only) & same file \\
 TC-14 & Dedupe: the same webhook delivery twice; a second event naming an
-  already-linked key; a re-mention of a link a reviewer dismissed & One event
-  row and one edge in each case; a dismissed link stays dismissed &
+  already-linked key; a re-mention of a link a reviewer dismissed; a re-mention
+  after the link was revoked & One event row and one edge in the first three
+  cases; a dismissed link stays dismissed; a revoked link is replaced by a new
+  one &
   As expected (\texttt{duplicate\_\allowbreak{}event}, \texttt{already\_\allowbreak{}linked}) & same file \\
 TC-15 & Atomicity: database failure injected on the edge insert, after the
   event row was written & Nothing persists & Event and edge counts both 0. With
@@ -201,14 +205,17 @@ from a package that has not been laid out in the tree, and the modules it
 depends on were removed from the repository. It is discussed as the edge case
 below and tracked as D-01.
 
-\paragraph{Contracts and linking.} The shared contracts suite passes 60 of 60
-tests. The deterministic-linking suite passes 14 of 14, covering the normal,
-no-key, unknown-key and duplicate-delivery cases used in the demonstration
-(TC-10 to TC-15). These are the first tests in the repository that exercise a
-database. They run against the same migrations as the hosted Supabase project,
-so a broken constraint would fail here. They do \emph{not} show that the linker
-works against the hosted database: migration 00009 has not been applied there
-yet, and no real GitHub webhook has been fed through it (D-09).
+\paragraph{Contracts and linking.} The shared contracts suite passes 115 of
+115 tests. The tests for deterministic linking pass 15 of 15, inside a worker suite
+that passes 55 of 55. They cover the normal, no-key, unknown-key and
+duplicate-delivery cases used in the demonstration (TC-10 to TC-15). They run
+against the same migrations as the hosted Supabase project, so a broken
+constraint fails here: an earlier version of the linker named an index
+predicate that did not match migration 00010, and the tests caught it. They do
+\emph{not} show that the linker works against the hosted database. The edge
+index it relies on (00010) is applied there, but the linker has not been run
+against the hosted project and no real GitHub webhook has been fed through it
+(D-09).
 
 \paragraph{Agreement.} Both annotation sheets are complete. Verdict agreement
 is $\kappa = 0.90$ against a pre-declared gate of 0.70, so the pilot passed
@@ -494,9 +501,10 @@ linker against the project's schema and prints each outcome and the resulting
         Because the check and the insert are one statement, two concurrent
         redeliveries cannot both pass.
   \item \emph{Edge: new event, same link.} A later edit to the same pull
-        request names \texttt{UNI-123} again. The partial unique index added in
-        migration 00009 keeps one live edge per pair and type, and a link a
-        reviewer has dismissed is not revived.
+        request names \texttt{UNI-123} again. The partial unique index from
+        migration 00010 keeps one current edge per pair and type. A link a
+        reviewer has dismissed is not revived; one that was revoked can be
+        created afresh.
 \end{itemize}
 After all five events the \texttt{edges} table holds one row and
 \texttt{events} holds four.
@@ -559,11 +567,12 @@ D-08 & External review agreement below the gate (verdict $\alpha = 0.48$); no
   question placed first) and re-run the external review on a fresh panel; agree
   with the supervisor whether the abstention boundary in manual v1 is kept,
   before any case is frozen into the gold set. \\
-D-09 & Linker tested only against an in-process copy of the schema; migration
-  00009 (edge dedupe) is not applied to the hosted database, and no real
-  GitHub webhook has been fed through it. & Medium & Mishal, Abdullah & Agree
-  and apply 00009 on Supabase, add the webhook endpoint, then repeat TC-11 to
-  TC-15 against the hosted project. \\
+D-09 & Linker tested only against an in-process copy of the schema; it has
+  not been run against the hosted database, and no real GitHub webhook has been
+  fed through it. The edge index it relies on (00010) is applied on Supabase. &
+  Medium & Mishal, Abdullah & Give the linker a server-side database connection
+  in the worker, add the webhook endpoint, then repeat TC-11 to TC-15 against
+  the hosted project. \\
 \hline\end{longtable}
 
 Two of the nine defects (D-03, D-07) are closed; seven remain open with owners.
@@ -582,10 +591,10 @@ Every open defect can be reproduced from the commands above.
   \textbf{Next validation action} \\
 \hline\endhead
 Functional correctness & Typecheck, lint and production build pass on all 19
-  routes; 8 detail pages pre-rendered. Contracts suite 60 of 60; linking suite
-  14 of 14 against the project schema.
-  & No behavioural tests for the front end; the linker is the only back-end
-    component, and it has not run against the hosted database.
+  routes; 8 detail pages pre-rendered. Contracts suite 115 of 115; worker suite
+  55 of 55, of which 15 are linking tests against the project schema.
+  & No behavioural tests for the front end; the linker has not run against the
+    hosted database.
   & Component tests (D-04); linker against Supabase (D-09); scenario matrix
     T1--T11 once ingestion exists \\
 Performance / resource use & Not applicable yet: no server, no model, nothing
