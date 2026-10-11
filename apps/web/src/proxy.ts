@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const PUBLIC_PATHS = ["/login", "/signup", "/auth"];
 
 function isPublic(pathname: string): boolean {
+  if (pathname.startsWith("/api/webhooks/")) return true;
   return PUBLIC_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
