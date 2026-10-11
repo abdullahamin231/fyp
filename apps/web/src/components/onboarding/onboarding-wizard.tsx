@@ -100,11 +100,36 @@ export function OnboardingWizard() {
     };
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const provider = params.get("integration");
+    if (provider === "figma" || provider === "github" || provider === "jira") {
+      setAuth((prev) => ({ ...prev, [provider]: "connected" }));
+      setStep(provider === "figma" ? 2 : provider === "github" ? 3 : 4);
+      if (params.get("connected") === "1") {
+        toast(`${provider[0].toUpperCase()}${provider.slice(1)} connected — read-only scopes granted`, {
+          icon: "cloud_done",
+        });
+      }
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.search = "";
+      window.history.replaceState({}, "", cleanUrl);
+    } else if (params.get("error")) {
+      toast(`Integration authorization failed: ${params.get("error")}`, { icon: "error", tone: "neutral" });
+    }
+  }, [toast]);
+
   const current = steps[step - 1];
   const pct = Math.round((step / steps.length) * 100);
 
   function authorize(key: ConnectKey) {
     if (auth[key] !== "idle") return;
+    if (key !== "workspace") {
+      window.location.assign(
+        `/api/integrations/${key}/authorize?workspace=${encodeURIComponent(workspace.slug)}`,
+      );
+      return;
+    }
     setAuth((prev) => ({ ...prev, [key]: "authorizing" }));
     timers.current.push(
       setTimeout(() => {
