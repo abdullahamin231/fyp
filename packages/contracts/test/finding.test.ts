@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canTransitionFinding, findingResolutionSchema, findingSchema } from "../src/index.js";
-import { ACTOR_ID, NODE_ID, VERDICT_ID } from "./fixtures.js";
+import { ACTOR_ID, NODE_ID, VERDICT_ID, uniqueId } from "./fixtures.js";
 
 const baseFinding = {
   id: "00000000-0000-4000-8000-00000000000a",
@@ -15,6 +15,7 @@ const baseFinding = {
   severity: "high",
   state: "open",
   createdAt: "2026-10-09T10:05:00Z",
+  supersededById: null,
 } as const;
 
 describe("findings (FR-12, FR-15, FR-18)", () => {
@@ -64,6 +65,27 @@ describe("findings (FR-12, FR-15, FR-18)", () => {
   it("refuses a transition the lifecycle does not define", () => {
     expect(canTransitionFinding("suppressed", "resolved")).toBe(false);
     expect(canTransitionFinding("resolved", "suppressed")).toBe(false);
+  });
+
+  it("treats superseded as reachable from any non-terminal state and terminal itself", () => {
+    for (const from of ["open", "acknowledged", "resolved", "disputed", "suppressed"] as const) {
+      expect(canTransitionFinding(from, "superseded")).toBe(true);
+    }
+    expect(canTransitionFinding("superseded", "open")).toBe(false);
+    expect(canTransitionFinding("superseded", "resolved")).toBe(false);
+  });
+
+  it("pairs state = superseded with supersededById in both directions (ERD CHECK)", () => {
+    const superseded = { ...baseFinding, state: "superseded", supersededById: uniqueId() };
+    expect(findingSchema.safeParse(superseded).success).toBe(true);
+
+    // named a replacement but not marked superseded
+    const namedOnly = { ...baseFinding, supersededById: uniqueId() };
+    expect(findingSchema.safeParse(namedOnly).success).toBe(false);
+
+    // marked superseded but naming nothing
+    const stateOnly = { ...baseFinding, state: "superseded" };
+    expect(findingSchema.safeParse(stateOnly).success).toBe(false);
   });
 
   it("requires a reason on every resolution record (FR-18)", () => {

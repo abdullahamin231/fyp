@@ -76,7 +76,9 @@
     \ix created\_at : tstz\\
     \ix valid\_from, valid\_to : tstz\\
     \ix metadata : jsonb\\[2pt]
-    \textrm{\textit{INDEX (from\_id, type), (to\_id, type)}}};
+    \textrm{\textit{INDEX (from\_id, type), (to\_id, type)}}\\
+    \textrm{\textit{UNIQUE (from\_id, to\_id, type)}}\\
+    \textrm{\textit{\hphantom{UNIQUE }\textcolor{uMuted}{WHERE link\_state $\neq$ 'revoked'}}}};
 
   \node[table=uGraph, anchor=north] (anchors) at (13,0) {%
     \hdr{code\_anchors}{\guillemotleft commit-pinned\guillemotright}
