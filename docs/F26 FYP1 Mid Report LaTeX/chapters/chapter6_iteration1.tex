@@ -256,6 +256,273 @@ hunks arrive. The worker suite passes 76 of 76.
         against Supabase.
 \end{itemize}
 
+% ---------------------------------------------------------------------------
+% Haaniah Ismail: source ingestion (FR-01), event reliability (FR-02, FR-16)
+% and the deterministic rules (FR-12).
+%
+% BEFORE SUBMISSION -- every placeholder below must be replaced with a real
+% value taken from the repository or from a command you actually ran.
+% Grep for "[" to find them. The conventions are:
+%     [path]  a real file or directory path
+%     [n]     a real count or measurement
+%     [cmd]   the real npm script or command name
+%     [MIG]   the real migration number
+% Do not leave a placeholder in the submitted chapter, and do not write a
+% number you have not produced from a command. Mishal's subsection states the
+% date her numbers were produced on; do the same.
+% ---------------------------------------------------------------------------
+\subsection{Source Ingestion and Event Reliability (Haaniah Ismail)}
+\label{sec:impl-ingestion}
+
+This part of the iteration is everything between an external tool and the
+evidence graph. Three read-only adapters turn vendor notifications into one
+normalised form (FR-01); a reliability layer guarantees that the graph reaches
+the same final state whether an event arrives once, twice, late or not at all
+(FR-02, FR-16); and three deterministic rules read the resulting state to raise
+findings without any model involvement (FR-12). All of it lives in
+\texttt{[path]} and writes through the tables Abdullah implemented as
+migrations, which Mishal's linker and analyser then read from
+(Section~\ref{sec:impl-linking-analyser}).
+
+The design question this part answers is not how to call three APIs. It is how
+to build a dependable record of what happened out of three services that
+version their data on independent clocks, deliver notifications on a
+best-effort basis, and occasionally do not deliver them at all.
+
+\subsubsection{The normalised event envelope}
+
+Every adapter produces the same record, defined once in
+\texttt{packages/\allowbreak{}contracts} so that the database, the tests, the
+diagrams and this chapter cannot drift apart. Four of its fields carry the
+reliability guarantees and are worth stating individually.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.26\textwidth} >{\raggedright\arraybackslash}p{0.64\textwidth}}
+\caption{Envelope fields that the reliability layer depends on.}\label{tab:envelope-fields}\\
+\hline\textbf{Field} & \textbf{What it decides} \\
+\hline\endfirsthead
+\hline\textbf{Field} & \textbf{What it decides} \\
+\hline\endhead
+\texttt{event\_id}, \texttt{vendor\_delivery\_id} & Whether this delivery has
+  been seen before. Derived from vendor data, never generated, so a
+  re-delivery produces the same identifier. \\
+\texttt{entity\_id}, \texttt{version} & Whether this event is newer than what
+  the graph already holds. This is what makes out-of-order delivery safe. \\
+\texttt{occurred\_at} vs \texttt{received\_at} & Vendor delay separated from
+  internal delay. Collapsing the two would make a slow vendor
+  indistinguishable from a slow worker. \\
+\texttt{references} & Explicit work-item keys and design URLs found in the
+  payload, with the place each was found. This is the field Mishal's linker
+  consumes. \\
+\hline\end{longtable}
+
+\noindent The raw payload is stored next to the envelope with a hash of its
+bytes, because a finding cites evidence and that evidence must remain readable
+after the source record changes.
+
+\subsubsection{Source adapters}
+
+\paragraph{One interface, three implementations.} Each adapter exposes
+\texttt{verify}, \texttt{normalise} and \texttt{poll}. The interface is defined
+by the \emph{role} a source plays --- design intent, work item, change --- not
+by the product that currently fills it, so adding a fourth source is one
+adapter written against the existing contract and changes no layer above it.
+
+\paragraph{\texttt{normalise} is a pure function.} It takes a payload and
+returns envelopes. No database, no clock, no environment. This is a deliberate
+seam rather than a style preference: it is what lets the same function be
+driven by a live webhook and by a recorded payload from the replay harness, so
+the harness tests the production code path rather than a parallel one. It also
+means a payload that maps to nothing returns an empty list rather than throwing,
+because the vendor must still receive a success response or it will retry.
+
+\paragraph{Verification differs by vendor, and the difference bites.}
+GitHub signs with an HMAC-SHA256 digest of the request body in
+\texttt{X-Hub-\allowbreak{}Signature-256}. Jira signs with the same algorithm
+but names the header \texttt{X-Hub-\allowbreak{}Signature}, without the suffix.
+Both digests are computed over the \emph{raw} bytes of the body: a payload that
+has been parsed into an object and re-serialised produces a different digest
+even though it represents the same data, and the failure is silent --- the
+signature simply does not match, with nothing in the payload to indicate why.
+Verification therefore runs on the raw buffer before any parsing, in all three
+adapters.
+% [CONFIRM] If this was the problem you personally diagnosed, say so here in
+% one sentence and name how you found it (failing test, log, bisect). The
+% worksheet asks each member for one personally diagnosed problem and this is
+% a strong candidate. If it was not, replace this paragraph's framing with the
+% problem that actually cost you time.
+
+\paragraph{Event selection, and what is deliberately ignored.} Figma publishes
+seven webhook event types. Two are used: \texttt{FILE\_VERSION\_UPDATE}, sent
+when a user creates a named version, and
+\texttt{DEV\_MODE\_STATUS\_UPDATE}, sent when the development status of a layer
+changes. The general \texttt{FILE\_UPDATE} event is deliberately not used as a
+drift trigger: it fires only after a period of editing inactivity, so it is
+both delayed and too coarse to attribute to a particular design decision. This
+is why design intent is versioned in the graph at named-version granularity ---
+that is the finest granularity the source actually reports.
+
+\paragraph{Reference extraction.} Work-item keys are read from a pull request's
+title, body, branch name and commit messages; design URLs and development
+resources are read from work-item descriptions. Extraction is string matching
+only --- nothing is inferred from similar wording --- and every candidate is
+recorded together with where it was found, because a key in a branch name and a
+key in a comment do not carry the same confidence. Filtering and ranking are
+not done here; they belong to the linker, which decides what becomes an edge.
+
+\subsubsection{Reliability: three mechanisms, not one}
+
+The most common way to get this wrong is to assume a queue with retries covers
+it. It does not, and the reason is worth stating precisely: a queue can only
+replay what was delivered. An event a vendor never sent will never be retried,
+and nothing in the receiving system knows it is missing. Three distinct
+mechanisms are therefore implemented.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.20\textwidth} >{\raggedright\arraybackslash}p{0.34\textwidth} >{\raggedright\arraybackslash}p{0.36\textwidth}}
+\caption{The three reliability mechanisms and the failure each addresses.}\label{tab:reliability-mechanisms}\\
+\hline\textbf{Mechanism} & \textbf{Failure it addresses} & \textbf{How} \\
+\hline\endfirsthead
+\hline\textbf{Mechanism} & \textbf{Failure it addresses} & \textbf{How} \\
+\hline\endhead
+Idempotency & The same event delivered twice & The identifier is checked before
+  processing; a repeat is a no-op and the graph is not touched \\
+Checkpointing & Not knowing what was missed & A marker per connected resource
+  records the last event processed and when \\
+Reconciliation & An event the vendor never sent & The adapter polls, compares
+  against the checkpoint, and synthesises the missing event into the normal
+  pipeline \\
+\hline\end{longtable}
+
+\paragraph{Step order is the guarantee.} Processing follows a fixed order: the
+raw payload and envelope are persisted \emph{before} any evaluation, and the
+checkpoint advances \emph{last}. The consequence is that a crash mid-way causes
+re-processing rather than loss, and re-processing is safe because the duplicate
+branch is a no-op. Reversing either end of that order would break it: advancing
+the checkpoint first would silently lose the event, and evaluating before
+persisting would produce findings that cite evidence the system never stored.
+
+\paragraph{Three different outcomes that all mean ``nothing happened''.} A
+rejected event failed verification and was never trusted. A discarded event was
+already applied once. An ignored event was superseded by a newer version. These
+are counted separately rather than collapsed, because collapsing them would
+hide a real failure --- a rising rejection rate means a secret has rotated,
+while a rising duplicate rate is normal vendor behaviour.
+
+\paragraph{Stale sources (FR-16).} When a source cannot be reached beyond a
+configured threshold, its connected resources are marked
+\texttt{SOURCE\_\allowbreak{}STALE} and every finding that depends on them is
+downgraded rather than computed from data that may no longer be current. The
+reviewer is told the system cannot establish current state. The alternative ---
+serving an old verdict as though it were current --- is the failure this
+project exists to prevent, so it is not available even as a fallback.
+
+\paragraph{Vendor delivery semantics differ, and the design accounts for it.}
+Jira's delivery is documented as best-effort: roughly five retries with
+exponential back-off over about thirty minutes, after which the event is lost,
+with no dead-letter queue. Its connection and response timeouts are fixed at
+five and twenty seconds, which is why the receiver persists and enqueues rather
+than doing any analysis inside the request. Ordering is not guaranteed under
+concurrency. Each of these is a reason the reconciliation path is not optional:
+webhooks are treated as an optimisation over polling, never as the mechanism of
+record.
+
+\subsubsection{Deterministic rules as versioned records}
+
+Rules 1--3 are stored as declarative records rather than written as code in a
+handler, each carrying an identifier and version, the edge type it attaches to,
+its trigger, its guards, a grace period, what it produces, whom it notifies and
+the resolution actions it offers. Two consequences follow. A finding records
+which \emph{version} of a rule produced it, so a finding raised last month can
+still be explained after the rule changes. And a rule can be re-parameterised
+for a team whose workflow differs without editing and redeploying code.
+
+Guards matter as much as triggers. Rule~1 does not fire on a cosmetic design
+edit; Rule~2 does not fire when the ticket sits in a workflow state the team
+has mapped as an acceptable post-merge state. Without guards both rules would
+be technically correct and practically useless, because the finding that is
+always raised is the finding that is always dismissed.
+
+\subsubsection{The replay harness, kept permanently}
+
+The mock vendor is not scaffolding awaiting removal. It is the conformance
+harness every adapter passes before it is given live credentials, and it is
+retained for a reason that does not expire: duplicate delivery, out-of-order
+arrival, an undelivered webhook and a prolonged outage cannot be produced on
+demand against a live service. The scenarios behind every reliability claim in
+this project are only testable through replay.
+
+It runs in two modes. In \emph{envelope} mode it emits envelopes directly into
+the reliability layer, which tests that layer in isolation and is how a new
+integration is exercised before its adapter exists. In \emph{payload} mode it
+replays recorded vendor payloads through the real \texttt{normalise}, which
+tests normalisation and reliability together on the production code path. Which
+driver feeds the pipeline is an environment setting; no adapter contains a
+branch on whether it is being tested.
+
+\subsubsection{Demonstration evidence}
+
+% ---------------------------------------------------------------------------
+% Replace every [cmd], [n] and output block below with real commands you ran
+% and their real output. State the date, as Mishal does. If a scenario has not
+% been run against a live vendor yet, say so here rather than in Limitations.
+% ---------------------------------------------------------------------------
+
+\paragraph{Reliability scenarios.} \texttt{[cmd]} plays the controlled event
+sequences through the pipeline. Output on [dd Mmm]:
+{\small
+\begin{verbatim}
+[paste the real output: duplicate -> no-op; out-of-order -> final state
+ unchanged; missing webhook -> gap closed by reconciliation; outage ->
+ SOURCE_STALE then recovery]
+\end{verbatim}
+}
+
+\paragraph{Live ingestion.} With the three adapters connected, [cmd] ingests a
+real event from each source. Output on [dd Mmm]:
+{\small
+\begin{verbatim}
+[paste the real output: one normalised row per source, with the references
+ field populated]
+\end{verbatim}
+}
+
+\paragraph{Rules firing on live data.} [State which of Rules 1--3 have fired on
+real vendor data and which have been demonstrated only against replayed
+events. This distinction is one a panel will ask about, so make it here rather
+than leaving it to be drawn out.]
+
+\paragraph{Tests.} [n] tests cover the adapters and the reliability layer:
+[n] on normalisation per event type including the empty case, [n] on
+convergence under duplicate and out-of-order delivery, [n] on reconciliation
+after a simulated outage, and [n] on signature verification including a
+rejected payload. [State the suite result, as Mishal does: ``the worker suite
+passes [n] of [n]''.]
+
+\subsubsection{Limitations}
+\begin{itemize}
+  \item [State honestly whether any adapter has run only against replayed
+        payloads rather than live traffic, and which.]
+  \item Figma reports design intent only at named-version granularity. A change
+        made without creating a named version is invisible to Rule~1 until a
+        version is cut or reconciliation polls the file.
+  \item Jira's delivery is best-effort with no dead-letter queue, so an event
+        lost after its retries are exhausted is recovered only at the next
+        reconciliation poll, not immediately. The gap is bounded by the polling
+        interval, currently [n].
+  \item [State the rate limits actually observed per vendor and whether any
+        was approached during testing.]
+  \item [Any scenario in the replay harness that does not yet have a live
+        counterpart.]
+\end{itemize}
+
+% ---------------------------------------------------------------------------
+% Abdullah Amin: context packet, bounded verifier loop, verdict/provenance
+% gate, reviewer surface. To be written by Abdullah against real files,
+% commands and measured numbers, in the same form as the two subsections
+% above: design reasoning, then demonstration evidence, then limitations.
+% ---------------------------------------------------------------------------
+% \subsection{Verification Pipeline and Reviewer Surface (Abdullah Amin)}
+% \label{sec:impl-verification}
+
 \section{Completed Features / Module}
 \section{Technical Implementation Details}
 Describe important files, classes, functions, algorithms, configurations, and technical decisions.
