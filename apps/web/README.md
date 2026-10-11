@@ -88,6 +88,33 @@ top bar of `components/layout/app-shell.tsx`.
 Env lives in `apps/web/.env.local` (gitignored):
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 
+Provider integrations use the server-only variables below. The OAuth callback
+stores access and refresh tokens encrypted with AES-256-GCM; the webhook
+endpoint never accepts a token from the browser.
+
+```
+SUPABASE_SERVICE_ROLE_KEY
+INTEGRATION_ENCRYPTION_KEY
+OAUTH_STATE_SECRET
+GITHUB_CLIENT_ID
+GITHUB_CLIENT_SECRET
+JIRA_CLIENT_ID
+JIRA_CLIENT_SECRET
+FIGMA_CLIENT_ID
+FIGMA_CLIENT_SECRET
+GITHUB_WEBHOOK_SECRET
+JIRA_WEBHOOK_SECRET
+FIGMA_WEBHOOK_SECRET
+```
+
+Register each provider webhook to
+`/api/webhooks/{provider}/{workspace-id}` and use the same server-side webhook
+secret configured above. GitHub sends `X-Hub-Signature-256`, Jira sends
+`X-Hub-Signature`, and Figma v2 sends its creation passcode in the payload.
+Webhook requests are verified against the raw body, persisted idempotently,
+and then normalized into `events`. Apply migration
+`supabase/migrations/00010_integrations.sql` before enabling live delivery.
+
 **Creating a workspace:** call `supabase.rpc("create_workspace", { p_name, p_slug })`,
 not a direct `.insert().select()` — the latter hits a PostgREST
 data-modifying-CTE path where `auth.uid()` evaluates NULL in the RLS
