@@ -123,6 +123,39 @@ npm run demo:linking -- --live    # hosted project: needs SUPABASE_URL and
 demo repo name per run. Not yet: a webhook endpoint that builds the
 `PullRequestEvent` from a real GitHub payload.
 
+## TypeScript change analyser (FR-06, FR-25)
+
+`src/analyser/` reads a repository at two commits (base, head) and reports
+what changed, at symbol level. It reads git objects only (never a working
+tree) and never runs repository code, so the same base/head always give the
+same output.
+
+| File | What it does |
+|---|---|
+| `git.ts` | Changed files (`--name-status -M`), diff hunks with exact line ranges (`-U0`), file content at a commit, `git grep` for names. |
+| `parse.ts` | TypeScript compiler parser (syntax only): every function, method, class and function-valued variable at any depth (nested ones get dotted names, e.g. `createFormControl.clearErrors`), with signature, JSDoc, leading comments; imports; `it`/`test` blocks; dynamic sites (`import(x)`, `require(x)`, `obj[x]()`). |
+| `analyse.ts` | Each changed line → the innermost symbol around it (head for added lines, base for removed ones) → added / modified / deleted. Bounded callers (same file, or files whose relative import resolves to the symbol's file; name-only matches are counted, not trusted). Test evidence: changed test blocks, and test blocks that mention a changed symbol. Dynamic sites inside changed symbols are reported as unresolved, never as edges. |
+| `payloads.ts` | Graph nodes with `payload.slotItems` in the contracts' `EvidenceItem` shape: `Commit` (diff hunks), `CodeSymbol` (one symbol card, FR-25 fields in fixed order), `TestCase` (test blocks). Edges only for established relations: `Commit PART_OF PullRequest`, `TestCase COVERS CodeSymbol` when the test imports the symbol's file. |
+
+```bash
+npm run analyse -- --repo <git repo> --base <rev> --head <rev> [--name owner/repo] [--pr <id>] [--json out.json]
+npm run analyse:evaluate -- --clones <empty folder outside the repo> --fetch    # FR-06 check on the 15 pilot cases
+```
+
+`analyse:evaluate` fetches only the base/head commits each pilot case needs,
+applies the case's `head_patch` where it has one, and scores the analyser
+against the case files (never the constructor's answer key). On 11 Oct:
+29/29 changed files, 14/14 changed tests; named-symbol spans 11/11 changed
+found and 21/21 unchanged not flagged; one miss (P06-S3, a key inside
+`package.json`: JSON is listed as a changed file but not parsed into symbols).
+Median 0.3 s per case, max 4 s.
+
+Not yet: publishing the nodes to Supabase (the output is ready for it);
+Python; coverage from running tests. Note for the packet builder: its
+two-hop walk from a criterion reaches a `PullRequest` and its `Commit`, but
+not `CodeSymbol`/`TestCase` nodes, which sit one hop further. Reaching them
+needs either a third hop or a direct PR–symbol edge type.
+
 ## Known simplifications
 
 - The OpenCode wrapper runs one process per model call (warm sessions would be

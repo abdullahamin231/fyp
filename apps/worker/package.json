@@ -15,18 +15,20 @@
     "dev": "tsx src/index.ts",
     "once": "tsx src/scripts/run-once.ts",
     "seed": "tsx src/scripts/seed-demo.ts",
-    "demo:linking": "tsx src/scripts/linking-demo.ts"
+    "demo:linking": "tsx src/scripts/linking-demo.ts",
+    "analyse": "tsx src/scripts/analyse.ts",
+    "analyse:evaluate": "tsx src/scripts/evaluate-analyser.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
     "@unify/contracts": "^0.1.0",
+    "typescript": "^5.9.3",
     "zod": "^4.3.11"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",
     "@types/node": "^26.6.4",
     "tsx": "^4.19.2",
-    "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }
 }
