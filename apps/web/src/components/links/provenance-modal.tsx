@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { Icon } from "@/components/ui/icon";
-import { eligibilityMeta, provenanceMeta, type ProvenanceRecord } from "./present";
+import { eligibilityMeta, isDecisive, provenanceMeta, type ProvenanceRecord } from "./present";
 
 /**
  * Provenance Record & Evidence Chain slide-over — mirrors the Stitch modal,
@@ -28,6 +28,7 @@ export function ProvenanceModal({
 
   const meta = eligibilityMeta[record.eligibility];
   const prov = provenanceMeta[record.provenance];
+  const decisive = isDecisive(record.eligibility);
 
   return (
     <div
@@ -53,10 +54,10 @@ export function ProvenanceModal({
                 </h3>
                 <span
                   className={`px-2 py-0.5 rounded font-mono-code text-micro-label font-semibold ${
-                    meta.decisive ? "bg-secondary/15 text-secondary" : "bg-tertiary/20 text-tertiary"
+                    decisive ? "bg-secondary/15 text-secondary" : "bg-tertiary/20 text-tertiary"
                   }`}
                 >
-                  {meta.decisive ? "VERIFIED" : "ADVISORY"}
+                  {decisive ? "VERIFIED" : "ADVISORY"}
                 </span>
               </div>
               <p className="font-mono-code text-[12px] text-on-surface-variant">
@@ -119,7 +120,7 @@ export function ProvenanceModal({
               </span>
               <span
                 className={`font-mono-code text-body-sm font-bold ${
-                  meta.decisive ? "text-secondary" : "text-tertiary"
+                  decisive ? "text-secondary" : "text-tertiary"
                 }`}
               >
                 {record.confidence}
@@ -138,7 +139,7 @@ export function ProvenanceModal({
         </div>
 
         {/* Advisory rule */}
-        {!meta.decisive ? (
+        {!decisive ? (
           <div className="flex items-start gap-2 p-3 rounded-lg bg-tertiary-container/15 border border-tertiary/30">
             <Icon name="warning" className="text-[16px] text-tertiary mt-0.5 shrink-0" />
             <p className="font-body-sm text-body-sm text-on-surface-variant">
@@ -157,15 +158,15 @@ export function ProvenanceModal({
             </span>
             <div
               className={`mt-1 flex items-center gap-1.5 font-mono-code text-body-sm font-bold ${
-                meta.decisive ? "text-secondary" : "text-tertiary"
+                decisive ? "text-secondary" : "text-tertiary"
               }`}
             >
               <span
                 className={`w-2 h-2 rounded-full ${
-                  meta.decisive ? "bg-secondary" : "bg-tertiary"
+                  decisive ? "bg-secondary" : "bg-tertiary"
                 }`}
               />
-              {meta.decisive ? "Synced & Unbroken" : "Advisory — awaiting confirmation"}
+              {decisive ? "Synced & Unbroken" : "Advisory — awaiting confirmation"}
             </div>
           </div>
           <div className="p-3 rounded-lg bg-surface-container">
@@ -173,7 +174,7 @@ export function ProvenanceModal({
               Policy Classification
             </span>
             <div className="mt-1 font-mono-code text-body-sm text-on-surface font-semibold">
-              {prov.label} provenance · {meta.decisive ? "Zero-Trust Bound (Level 2)" : "Unbound"}
+              {prov.label} provenance · {decisive ? "Zero-Trust Bound (Level 2)" : "Unbound"}
             </div>
           </div>
         </div>

@@ -11,7 +11,9 @@
 import { VERDICT_STATUSES } from "@unify/contracts";
 import type {
   FreshnessState as ContractFreshness,
+  LinkEligibility as ContractLinkEligibility,
   ReasonCode as ContractReasonCode,
+  ToolKind as ContractToolKind,
   VerdictStatus,
 } from "@unify/contracts";
 
@@ -27,7 +29,7 @@ export type ReasonCode = ContractReasonCode;
 
 /* -------------------------------------------------------------------- tools */
 
-export type ToolKind = "figma" | "github" | "jira" | "slack" | "git" | "test";
+export type ToolKind = ContractToolKind;
 
 export interface Citation {
   /** e.g. `src/checkout/CheckoutModal.tsx:118-141` */
@@ -64,7 +66,12 @@ export type FindingStatus =
   | "disputed"
   | "superseded";
 
-export type PolicyId = "P1" | "P2" | "P3" | "P4";
+/**
+ * A policy reference. Committed rules use rule ids (`RULE_1`…); the mock
+ * policy-config screens still use the proposal's `P1`–`P4` display ids. Both
+ * are strings, so this is a plain alias rather than a second id space.
+ */
+export type PolicyId = string;
 
 export interface ArtifactRef {
   tool: ToolKind;
@@ -77,7 +84,8 @@ export interface ArtifactRef {
 
 export interface Finding {
   id: string;
-  policy: PolicyId;
+  /** Rule id (`RULE_1`…) for rule-origin findings, `null` for verdict-origin. */
+  policy: string | null;
   policyTitle: string;
   title: string;
   severity: Severity;
@@ -116,7 +124,7 @@ export interface Finding {
 
 /* --------------------------------------------------------------------- links */
 
-export type LinkEligibility = "confirmed" | "system-confirmed" | "inferred" | "unconfirmed";
+export type LinkEligibility = ContractLinkEligibility;
 
 export interface RelationLink {
   id: string;
@@ -156,7 +164,8 @@ export interface ActivityEvent {
 /* ------------------------------------------------------------------ policies */
 
 export interface Policy {
-  id: PolicyId;
+  /** Rule id (`RULE_1`…) or `criterion_verification` for a verdict-origin finding. */
+  id: string;
   name: string;
   description: string;
   trigger: string;
