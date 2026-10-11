@@ -165,6 +165,7 @@ export const FINDING_STATES = [
   "resolved",
   "disputed",
   "suppressed",
+  "superseded",
 ] as const;
 export const findingStateSchema = z.enum(FINDING_STATES);
 export type FindingState = z.infer<typeof findingStateSchema>;

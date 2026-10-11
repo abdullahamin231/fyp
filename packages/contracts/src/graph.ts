@@ -73,6 +73,21 @@ export const edgeSchema = z.strictObject({
 export type Edge = z.infer<typeof edgeSchema>;
 
 /**
+ * A link's logical identity. The DB enforces at most one *current* edge per
+ * identity (migration `00010_edge_dedupe.sql`): a partial unique index over
+ * `(from_id, to_id, type)` scoped to `link_state <> 'revoked'`.
+ *
+ * Note what that implies — a dismissed edge still holds its identity, so
+ * re-mentioning a key a reviewer dismissed does not resurrect the link. Clear
+ * the dismissal by revoking the old edge first; that keeps the reversal
+ * explicit and audited rather than silently re-asserting a link a human
+ * rejected.
+ */
+export function edgeIdentityKey(edge: Pick<Edge, "fromId" | "toId" | "type">): string {
+  return `${edge.fromId}|${edge.toId}|${edge.type}`;
+}
+
+/**
  * May this edge contribute to a decisive finding? (FR-05 / §9.2.)
  *
  * Unconfirmed or inferred edges may exist — they simply can never be decisive
