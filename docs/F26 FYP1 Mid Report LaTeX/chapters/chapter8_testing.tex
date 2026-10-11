@@ -87,8 +87,8 @@ Unit (contracts) & Schema and behaviour tests for the shared Zod contracts
 Unit + integration (worker) & Packet assembly, bounded verifier loop, gate
   end to end with a stub model; linking and publishing against PGlite with the
   project's migrations; the analyser on throwaway git repositories &
-  \texttt{npm test} in \texttt{apps/\allowbreak{}worker} & Running; 74 of 74
-  pass (40 pipeline, 16 linking, 18 analyser) \\
+  \texttt{npm test} in \texttt{apps/\allowbreak{}worker} & Running; 76 of 76
+  pass (40 pipeline, 16 linking, 20 analyser) \\
 Analyser evaluation & The analyser on the 15 pilot cases, scored against the
   committed case files &
   \texttt{npm run analyse:\allowbreak{}evaluate} & Complete; 11 of 11 changed
@@ -224,6 +224,12 @@ TC-21 & Ingestion engine with a mock vendor: redelivery, out-of-order
   delivery, a missed delivery, an outage & One correct final state; missed
   delivery reconciled as a system event; checkpoints marked stale, then cleared
   & As expected (4 of 4) & \texttt{packages/\allowbreak{}contracts/\allowbreak{}test/\allowbreak{}ingestion.\allowbreak{}test.\allowbreak{}ts} \\
+TC-22 & Hand-off from analyser to packet: real analyser output placed in a
+  graph, read by the production \texttt{GraphEvidenceProvider}, assembled by
+  \texttt{buildPacket}; control run with the pull request's
+  \texttt{IMPLEMENTS} edges removed & Diff hunks, symbol cards and test
+  evidence all admitted to the packet; without the edges only the diff hunks &
+  As expected, in both runs & \texttt{apps/\allowbreak{}worker/\allowbreak{}test/\allowbreak{}analyser-\allowbreak{}packet.\allowbreak{}test.\allowbreak{}ts} \\
 \hline\end{longtable}
 
 % ---------------------------------------------------------------------------
@@ -282,7 +288,10 @@ symbol (11/11) and flagged none of the unchanged ones (21/21, hard negatives
 included), in a median of 0.3\,s per case (TC-17). The one miss is a key inside
 \texttt{package.json}, which is listed as a changed file but not parsed into
 symbols. Running react-hook-form's own regression test for P01 with coverage
-showed that both changed lines are executed by that test (TC-19).
+showed that both changed lines are executed by that test (TC-19). Its output
+reaches the verifier's input: run through the production evidence provider and
+packet builder, it fills the diff-hunk, symbol-card and test-evidence slots of
+a packet (TC-22).
 
 \paragraph{Agreement.} Both annotation sheets are complete. Verdict agreement
 is $\kappa = 0.90$ against a pre-declared gate of 0.70, so the pilot passed
@@ -495,10 +504,12 @@ Demonstrated by component tests, on the real schema or real repositories
     (rest of FR-04) are not implemented; Python is tested on synthetic
     repositories only. \\
 Demonstrated end to end with a stub model
-  & FR-05, FR-08, FR-09, FR-10, FR-16 (downgrade half)
+  & FR-05, FR-08, FR-09, FR-10, FR-16 (downgrade half), FR-28 (threshold
+    check)
   & Packet assembly is deterministic and budgeted; the loop is bounded and logs
     each pass; the gate rejects fabricated citations (T10), ineligible links
-    and stale sources (TC-20). No real model has been run. \\
+    and stale sources (TC-20), and holds a verdict resting on a link below
+    the workspace's confidence band. No real model has been run. \\
 Demonstrated in the ingestion engine with a mock vendor
   & FR-02, FR-16 (marking half)
   & Redelivery, out-of-order delivery, reconciliation of a missed delivery and
@@ -514,10 +525,11 @@ Records exist, behaviour not yet implemented
   & Rules 1--3 are versioned, schema-validated records seeded into the database;
     evaluating them against events, and editing them, is not implemented. \\
 Not yet implemented
-  & FR-01, FR-03, FR-07, FR-13 to FR-15, FR-20 to FR-24, FR-26 to FR-29
+  & FR-01, FR-03, FR-07, FR-13 to FR-15, FR-20 to FR-24, FR-26, FR-27, FR-29,
+    rest of FR-28
   & Live webhook adapters, the snapshot store, criterion splitting, incremental
-    re-evaluation, routing, anchors and re-anchoring, documentation scoring
-    and the remaining configuration work. \\
+    re-evaluation, routing, anchors and re-anchoring, documentation scoring,
+    automatic link confirmation and the remaining configuration work. \\
 Data-side validation complete for the pilot
   & Dataset protocol (panel requirement)
   & Integrity checks pass on all 15 cases; blind double annotation
@@ -675,7 +687,7 @@ Every open defect can be reproduced from the commands above.
   \textbf{Next validation action} \\
 \hline\endhead
 Functional correctness & Typecheck and lint pass on the current web code;
-  contracts 115 of 115; worker 74 of 74 (pipeline, linking, analyser); the
+  contracts 115 of 115; worker 76 of 76 (pipeline, linking, analyser); the
   analyser matches the pilot cases (TC-17); the linker ran live on Supabase.
   & No front-end tests; no live GitHub, Jira or Figma source yet; Rules 1--3
     are records, not yet evaluated.

@@ -1,6 +1,6 @@
 % =============================================================================
 % UNIFY traceability matrix -- GENERATED FILE, DO NOT EDIT BY HAND.
-% Source:  docs/traceability/traceability_matrix.csv (sha256 9ca6fcd2311b)
+% Source:  docs/traceability/traceability_matrix.csv (sha256 48d4ff1b431d)
 % Generate: python3 docs/traceability/build_matrix.py
 % Rows: 43 (FR-01..FR-29 and NFR-01..NFR-14), identical to the CSV and to
 %        docs/traceability/traceability_matrix.md.
@@ -30,9 +30,9 @@ repository matrix.}\label{tab:traceability}\\
 FR-01 & Receive and normalise vendor events into the common envelope & Normalised event envelope (ch5 Interfaces); DFD webhook -> normalisation path [fig:\allowbreak{}dfd] & ingestion/\allowbreak{} & T7, T8 & designed & -- \\
 FR-02 & Discard duplicate events and reconcile checkpoint gaps & DFD no-op duplicate path; ingestion sequence for duplicate/\allowbreak{}out-of-order delivery [fig:\allowbreak{}dfd; diagrams/\allowbreak{}05\_\allowbreak{}ingestion\_\allowbreak{}sequence.\allowbreak{}tex (unwired)] & ingestion/\allowbreak{} & T7, T8 & designed & demo-failure \\
 FR-03 & Store each artifact version as an immutable snapshot & artifact\_\allowbreak{}snapshots table; append-only/\allowbreak{}immutable rule (ch5 Data Design) [fig:\allowbreak{}erd] & store/\allowbreak{} & -- & designed & -- \\
-FR-04 & Link artifacts across tools and record resolver provenance & Typed edges carrying provenance; link eligibility (ch5 Domain Model) [fig:\allowbreak{}domain-model] & resolution/\allowbreak{} & T1 & partially\newline implemented & demo-normal \\
+FR-04 & Link artifacts across tools and record resolver provenance & Typed edges carrying provenance; link eligibility (ch5 Domain Model) [fig:\allowbreak{}domain-model] & apps/\allowbreak{}worker/\allowbreak{}src/\allowbreak{}linking/\allowbreak{}; supabase/\allowbreak{}migrations/\allowbreak{}00015 & T1 & partially\newline implemented & demo-normal \\
 FR-05 & Prevent unconfirmed inferred links from producing decisive findings & Link eligibility gate; only deterministic or confirmed edges may fire (ch5 Domain Model) [fig:\allowbreak{}domain-model] & resolution/\allowbreak{} & T1 & designed & -- \\
-FR-06 & Extract base/\allowbreak{}head diff, changed symbols, neighbourhood and test evidence & CodeSymbol entity; analyser responsibilities (ch1 Project Modules) [fig:\allowbreak{}domain-model] & analyser/\allowbreak{} (planned) & -- & designed & demo-normal \\
+FR-06 & Extract base/\allowbreak{}head diff, changed symbols, neighbourhood and test evidence & CodeSymbol entity; analyser responsibilities (ch1 Project Modules) [fig:\allowbreak{}domain-model] & apps/\allowbreak{}worker/\allowbreak{}src/\allowbreak{}analyser/\allowbreak{} & -- & partially\newline implemented & demo-normal \\
 FR-07 & Treat atomic criteria and approved design constraints as the verification unit & Criterion decomposition; use case UC-01 (ch4 Detailed Use Cases) [fig:\allowbreak{}usecase] & verify/\allowbreak{} (planned) & T10 & designed & -- \\
 FR-08 & Build a deterministic, size-bounded context packet with a truncation manifest & context\_\allowbreak{}packets table and per-slot budgets (ch5 Data Design) [fig:\allowbreak{}erd] & verify/\allowbreak{} (planned) & T10 & designed & -- \\
 FR-09 & Run the bounded verification loop with per-pass logging & Bounded verifier loop, pass 1-2-3 with stop reasons (ch5 Process/\allowbreak{}Behavior Design) [fig:\allowbreak{}verifier-loop] & verify/\allowbreak{} (planned) & T10 & designed & -- \\
@@ -51,10 +51,10 @@ FR-21 & Export benchmark and audit evidence without secrets & Export audit evide
 FR-22 & Store versioned requirement entities with commit-pinned SATISFIES anchors & Requirement entity + CodeAnchor association class on SATISFIES (ch5 Domain Model) [fig:\allowbreak{}domain-model; fig:\allowbreak{}anchor] & graph/\allowbreak{} & -- & designed & -- \\
 FR-23 & Re-anchor after each commit and mark failed anchors broken & Re-anchoring order:\allowbreak{} symbol name -> content hash -> diff hunk -> broken (ch5 Process/\allowbreak{}Behavior Design) [fig:\allowbreak{}anchor] & graph/\allowbreak{} & -- & designed & -- \\
 FR-24 & Evaluate policy P4 and raise requirement-code divergence findings & Policy P4 rule record; UC-04 divergence review (ch4 Detailed Use Cases) [fig:\allowbreak{}usecase] & conflicts/\allowbreak{} & -- & designed & -- \\
-FR-25 & Build a symbol card for every indexed function or class & CodeSymbol /\allowbreak{} symbol card (ch4 traceability; proposal §26.1) [fig:\allowbreak{}domain-model] & analyser/\allowbreak{} (planned) & -- & designed & -- \\
+FR-25 & Build a symbol card for every indexed function or class & CodeSymbol /\allowbreak{} symbol card (ch4 traceability; proposal §26.1) [fig:\allowbreak{}domain-model] & apps/\allowbreak{}worker/\allowbreak{}src/\allowbreak{}analyser/\allowbreak{} & -- & partially\newline implemented & -- \\
 FR-26 & Raise a finding when a comment contradicts the code & Comment-code consistency check rendered by templates (proposal §26.1; TODO §1.6) & analyser/\allowbreak{} (planned) & -- & designed & -- \\
 FR-27 & Score repository documentation quality at connection time & UC-06 connect repository and view eligibility score (ch4 Detailed Use Cases) [fig:\allowbreak{}usecase] & analyser/\allowbreak{} (planned) & -- & designed & -- \\
-FR-28 & Auto-confirm, route or hold links by confidence band & Confirmation loop; UC-02 two-threshold link policy (ch4 User Interactions) [fig:\allowbreak{}usecase] & resolution/\allowbreak{} & -- & designed & -- \\
+FR-28 & Auto-confirm, route or hold links by confidence band & Confirmation loop; UC-02 two-threshold link policy (ch4 User Interactions) [fig:\allowbreak{}usecase] & resolution/\allowbreak{} & -- & partially\newline implemented & -- \\
 FR-29 & Propose the workflow state map and default grace period for PM approval & Configuration loop; UC-05 approve a pre-filled workflow configuration [fig:\allowbreak{}usecase] & conflicts/\allowbreak{} & -- & designed & -- \\
 \hline
 \multicolumn{7}{l}{\textbf{Non-functional requirements (NFR-01--NFR-14)}} \\
