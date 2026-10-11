@@ -227,10 +227,14 @@ which is the coverage line on the card above.
 \paragraph{Tests.} 16 tests cover the linker against an in-process Postgres
 loaded with the real migrations, including a failure injected after the event
 insert (nothing is kept) and a check that the anonymous and authenticated
-roles cannot call the function. 18 tests cover the analyser on small
+roles cannot call the function. 20 tests cover the analyser: 18 on small
 throwaway git repositories (nested symbols, added and deleted symbols,
-callers, tests, dynamic sites, Python, coverage, publishing). The worker
-suite passes 74 of 74.
+callers, tests, dynamic sites, Python, coverage, publishing) and 2 that run its
+real output through Abdullah's production evidence provider and packet
+builder. With the pull request known, the analyser links the pull request to
+every changed symbol and test file (\texttt{IMPLEMENTS}), and those links are
+what bring symbol cards and tests into a packet; without them only the diff
+hunks arrive. The worker suite passes 76 of 76.
 
 \subsubsection{Limitations}
 \begin{itemize}
@@ -247,8 +251,9 @@ suite passes 74 of 74.
   \item The packet builder originally walked two hops from a criterion, which
         did not reach the \texttt{CodeSymbol} and \texttt{TestCase} nodes the
         analyser writes. Abdullah raised the bound to three hops on 11 October,
-        so they are now reached; the analyser output has not yet been fed into a
-        live packet.
+        so they are now reached. The hand-off is tested end to end on the
+        production provider and packet builder, but not yet in a live run
+        against Supabase.
 \end{itemize}
 
 \section{Completed Features / Module}

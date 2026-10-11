@@ -3,7 +3,7 @@
 > **Generated file — do not edit by hand.**
 > Source: [`traceability_matrix.csv`](traceability_matrix.csv)  
 > Generator: `python3 docs/traceability/build_matrix.py`  
-> CSV SHA-256 (first 12): `9ca6fcd2311b` · rows: **43** (29 FR + 14 NFR)
+> CSV SHA-256 (first 12): `48d4ff1b431d` · rows: **43** (29 FR + 14 NFR)
 
 Regenerate and commit at every gate (proposal §18.1 delivery gates and the
 evaluation tag freeze, TODO §7). See [`README.md`](README.md) for column
@@ -12,8 +12,8 @@ definitions, the worksheet §5 mapping and the discrepancy register.
 ## Coverage
 
 - Requirements: **43** = 29 functional (FR-01..FR-29) + 14 non-functional (NFR-01..NFR-14); no gaps, no duplicates (asserted by `build_matrix.py`).
-- Status: `designed` 38, `partially_implemented` 5
-- Empty cells (`--`): design_figure 4, module 6, code_artifact 38, test_case 26, demo_step 36, evidence_link 0
+- Status: `designed` 35, `partially_implemented` 8
+- Empty cells (`--`): design_figure 4, module 6, code_artifact 35, test_case 26, demo_step 36, evidence_link 0
 
 ## Functional requirements (FR-01..FR-29)
 
@@ -22,9 +22,9 @@ definitions, the worksheet §5 mapping and the discrepancy register.
 | FR-01 | Receive and normalise vendor events into the common envelope | Normalised event envelope (ch5 Interfaces); DFD webhook -> normalisation path | fig:dfd | ingestion/ | -- | T7, T8 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/dfd.tex | Haaniah Ismail |
 | FR-02 | Discard duplicate events and reconcile checkpoint gaps | DFD no-op duplicate path; ingestion sequence for duplicate/out-of-order delivery | fig:dfd; diagrams/05_ingestion_sequence.tex (unwired) | ingestion/ | -- | T7, T8 | demo-failure | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/dfd.tex | Haaniah Ismail |
 | FR-03 | Store each artifact version as an immutable snapshot | artifact_snapshots table; append-only/immutable rule (ch5 Data Design) | fig:erd | store/ | -- | -- | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/erd.tex | Haaniah Ismail |
-| FR-04 | Link artifacts across tools and record resolver provenance | Typed edges carrying provenance; link eligibility (ch5 Domain Model) | fig:domain-model | resolution/ | apps/web/src/components/links/link-wizard.tsx | T1 | demo-normal | partially_implemented | apps/web/src/components/links/link-wizard.tsx @ 7b411b1 | Mishal Fatima |
+| FR-04 | Link artifacts across tools and record resolver provenance | Typed edges carrying provenance; link eligibility (ch5 Domain Model) | fig:domain-model | apps/worker/src/linking/; supabase/migrations/00015 | apps/worker/src/linking/link-pull-request.ts; apps/worker/src/linking/extract-keys.ts; apps/web/src/components/links/link-wizard.tsx | T1 | demo-normal | partially_implemented | apps/worker/src/linking/link-pull-request.ts @ 6a7998e | Mishal Fatima |
 | FR-05 | Prevent unconfirmed inferred links from producing decisive findings | Link eligibility gate; only deterministic or confirmed edges may fire (ch5 Domain Model) | fig:domain-model | resolution/ | -- | T1 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/domain-model.tex | Mishal Fatima |
-| FR-06 | Extract base/head diff, changed symbols, neighbourhood and test evidence | CodeSymbol entity; analyser responsibilities (ch1 Project Modules) | fig:domain-model | analyser/ (planned) | -- | -- | demo-normal | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/domain-model.tex | Mishal Fatima |
+| FR-06 | Extract base/head diff, changed symbols, neighbourhood and test evidence | CodeSymbol entity; analyser responsibilities (ch1 Project Modules) | fig:domain-model | apps/worker/src/analyser/ | apps/worker/src/analyser/analyse.ts; apps/worker/src/analyser/parse.ts; apps/worker/src/analyser/parse-python.ts | -- | demo-normal | partially_implemented | apps/worker/src/analyser/analyse.ts @ 1808fe9 | Mishal Fatima |
 | FR-07 | Treat atomic criteria and approved design constraints as the verification unit | Criterion decomposition; use case UC-01 (ch4 Detailed Use Cases) | fig:usecase | verify/ (planned) | -- | T10 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/chapters/chapter4_requirements.tex | Abdullah Amin, Mishal Fatima |
 | FR-08 | Build a deterministic, size-bounded context packet with a truncation manifest | context_packets table and per-slot budgets (ch5 Data Design) | fig:erd | verify/ (planned) | -- | T10 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/erd.tex | Abdullah Amin |
 | FR-09 | Run the bounded verification loop with per-pass logging | Bounded verifier loop, pass 1-2-3 with stop reasons (ch5 Process/Behavior Design) | fig:verifier-loop | verify/ (planned) | -- | T10 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/verifier-loop.tex | Abdullah Amin |
@@ -43,10 +43,10 @@ definitions, the worksheet §5 mapping and the discrepancy register.
 | FR-22 | Store versioned requirement entities with commit-pinned SATISFIES anchors | Requirement entity + CodeAnchor association class on SATISFIES (ch5 Domain Model) | fig:domain-model; fig:anchor | graph/ | -- | -- | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/domain-model.tex | Mishal Fatima |
 | FR-23 | Re-anchor after each commit and mark failed anchors broken | Re-anchoring order: symbol name -> content hash -> diff hunk -> broken (ch5 Process/Behavior Design) | fig:anchor | graph/ | -- | -- | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/anchor-reanchoring.tex | Mishal Fatima |
 | FR-24 | Evaluate policy P4 and raise requirement-code divergence findings | Policy P4 rule record; UC-04 divergence review (ch4 Detailed Use Cases) | fig:usecase | conflicts/ | -- | -- | -- | designed | docs/F26 FYP1 Mid Report LaTeX/chapters/chapter4_requirements.tex | Mishal Fatima |
-| FR-25 | Build a symbol card for every indexed function or class | CodeSymbol / symbol card (ch4 traceability; proposal §26.1) | fig:domain-model | analyser/ (planned) | -- | -- | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/domain-model.tex | Mishal Fatima |
+| FR-25 | Build a symbol card for every indexed function or class | CodeSymbol / symbol card (ch4 traceability; proposal §26.1) | fig:domain-model | apps/worker/src/analyser/ | apps/worker/src/analyser/payloads.ts (symbolCard) | -- | -- | partially_implemented | apps/worker/src/analyser/payloads.ts @ 1808fe9 | Mishal Fatima |
 | FR-26 | Raise a finding when a comment contradicts the code | Comment-code consistency check rendered by templates (proposal §26.1; TODO §1.6) | -- | analyser/ (planned) | -- | -- | -- | designed | docs/F26 FYP1 Mid Report LaTeX/chapters/chapter4_requirements.tex | Mishal Fatima |
 | FR-27 | Score repository documentation quality at connection time | UC-06 connect repository and view eligibility score (ch4 Detailed Use Cases) | fig:usecase | analyser/ (planned) | -- | -- | -- | designed | docs/F26 FYP1 Mid Report LaTeX/chapters/chapter4_requirements.tex | Mishal Fatima |
-| FR-28 | Auto-confirm, route or hold links by confidence band | Confirmation loop; UC-02 two-threshold link policy (ch4 User Interactions) | fig:usecase | resolution/ | -- | -- | -- | designed | docs/F26 FYP1 Mid Report LaTeX/chapters/chapter4_requirements.tex | Mishal Fatima |
+| FR-28 | Auto-confirm, route or hold links by confidence band | Confirmation loop; UC-02 two-threshold link policy (ch4 User Interactions) | fig:usecase | resolution/ | packages/contracts/src/gate.ts; apps/worker/src/graph/nodes.ts (loadLinkPolicy) | -- | -- | partially_implemented | packages/contracts/src/gate.ts @ a037d16 | Mishal Fatima |
 | FR-29 | Propose the workflow state map and default grace period for PM approval | Configuration loop; UC-05 approve a pre-filled workflow configuration | fig:usecase | conflicts/ | -- | -- | -- | designed | docs/F26 FYP1 Mid Report LaTeX/chapters/chapter4_requirements.tex | Mishal Fatima |
 
 ## Non-functional requirements (NFR-01..NFR-14)
@@ -126,9 +126,9 @@ The six columns of `FYP1 Mid Pre-Evaluation Student Worksheet.docx` §5
 | FR-01 | Normalised event envelope (ch5 Interfaces); DFD webhook -> normalisation path · fig:dfd | ingestion/ | T7, T8 · designed | -- | Haaniah Ismail |
 | FR-02 | DFD no-op duplicate path; ingestion sequence for duplicate/out-of-order delivery · fig:dfd; diagrams/05_ingestion_sequence.tex (unwired) | ingestion/ | T7, T8 · designed | demo-failure | Haaniah Ismail |
 | FR-03 | artifact_snapshots table; append-only/immutable rule (ch5 Data Design) · fig:erd | store/ | designed | -- | Haaniah Ismail |
-| FR-04 | Typed edges carrying provenance; link eligibility (ch5 Domain Model) · fig:domain-model | resolution/ · apps/web/src/components/links/link-wizard.tsx | T1 · partially_implemented | demo-normal | Mishal Fatima |
+| FR-04 | Typed edges carrying provenance; link eligibility (ch5 Domain Model) · fig:domain-model | apps/worker/src/linking/; supabase/migrations/00015 · apps/worker/src/linking/link-pull-request.ts; apps/worker/src/linking/extract-keys.ts; apps/web/src/components/links/link-wizard.tsx | T1 · partially_implemented | demo-normal | Mishal Fatima |
 | FR-05 | Link eligibility gate; only deterministic or confirmed edges may fire (ch5 Domain Model) · fig:domain-model | resolution/ | T1 · designed | -- | Mishal Fatima |
-| FR-06 | CodeSymbol entity; analyser responsibilities (ch1 Project Modules) · fig:domain-model | analyser/ (planned) | designed | demo-normal | Mishal Fatima |
+| FR-06 | CodeSymbol entity; analyser responsibilities (ch1 Project Modules) · fig:domain-model | apps/worker/src/analyser/ · apps/worker/src/analyser/analyse.ts; apps/worker/src/analyser/parse.ts; apps/worker/src/analyser/parse-python.ts | partially_implemented | demo-normal | Mishal Fatima |
 | FR-07 | Criterion decomposition; use case UC-01 (ch4 Detailed Use Cases) · fig:usecase | verify/ (planned) | T10 · designed | -- | Abdullah Amin, Mishal Fatima |
 | FR-08 | context_packets table and per-slot budgets (ch5 Data Design) · fig:erd | verify/ (planned) | T10 · designed | -- | Abdullah Amin |
 | FR-09 | Bounded verifier loop, pass 1-2-3 with stop reasons (ch5 Process/Behavior Design) · fig:verifier-loop | verify/ (planned) | T10 · designed | -- | Abdullah Amin |
@@ -147,10 +147,10 @@ The six columns of `FYP1 Mid Pre-Evaluation Student Worksheet.docx` §5
 | FR-22 | Requirement entity + CodeAnchor association class on SATISFIES (ch5 Domain Model) · fig:domain-model; fig:anchor | graph/ | designed | -- | Mishal Fatima |
 | FR-23 | Re-anchoring order: symbol name -> content hash -> diff hunk -> broken (ch5 Process/Behavior Design) · fig:anchor | graph/ | designed | -- | Mishal Fatima |
 | FR-24 | Policy P4 rule record; UC-04 divergence review (ch4 Detailed Use Cases) · fig:usecase | conflicts/ | designed | -- | Mishal Fatima |
-| FR-25 | CodeSymbol / symbol card (ch4 traceability; proposal §26.1) · fig:domain-model | analyser/ (planned) | designed | -- | Mishal Fatima |
+| FR-25 | CodeSymbol / symbol card (ch4 traceability; proposal §26.1) · fig:domain-model | apps/worker/src/analyser/ · apps/worker/src/analyser/payloads.ts (symbolCard) | partially_implemented | -- | Mishal Fatima |
 | FR-26 | Comment-code consistency check rendered by templates (proposal §26.1; TODO §1.6) | analyser/ (planned) | designed | -- | Mishal Fatima |
 | FR-27 | UC-06 connect repository and view eligibility score (ch4 Detailed Use Cases) · fig:usecase | analyser/ (planned) | designed | -- | Mishal Fatima |
-| FR-28 | Confirmation loop; UC-02 two-threshold link policy (ch4 User Interactions) · fig:usecase | resolution/ | designed | -- | Mishal Fatima |
+| FR-28 | Confirmation loop; UC-02 two-threshold link policy (ch4 User Interactions) · fig:usecase | resolution/ · packages/contracts/src/gate.ts; apps/worker/src/graph/nodes.ts (loadLinkPolicy) | partially_implemented | -- | Mishal Fatima |
 | FR-29 | Configuration loop; UC-05 approve a pre-filled workflow configuration · fig:usecase | conflicts/ | designed | -- | Mishal Fatima |
 | NFR-01 | Reliability state machine; unique constraints on event id and finding key (ch5 Data Design) · fig:erd | ingestion/ | T7 · designed | -- | Haaniah Ismail |
 | NFR-02 | Queue plus checkpoint reconciliation (ch5 Interfaces and Dependencies) · diagrams/05_ingestion_sequence.tex (unwired) | ingestion/ | T8 · designed | -- | Haaniah Ismail |
@@ -172,9 +172,9 @@ The six columns of `FYP1 Mid Pre-Evaluation Student Worksheet.docx` §5
 - **FR-01** — ch4 traceability maps FR-01/02 to T7+T8. No ingestion code exists (`ls apps` returns only web). Stale POC fragment unify_poc/src/unify/ingestion/figma_api.py imports unify.ingestion.adapter and unify.ingestion.normalizer, which are absent from the repo; `python3 -m pytest unify_poc` fails at collection.
 - **FR-02** — T8 is the SOURCE_STALE/reconciliation leg (also tracked under FR-16). The duplicate leg (duplicate event -> no duplicate finding) is one of the two demo failure cases offered in TODO §7.
 - **FR-03** — ch4 traceability also leaves this test cell as -- (checked by a component test, not an end-to-end scenario). No database or store code exists yet.
-- **FR-04** — Reviewer-UI side only: manual-link wizard, provenance modal and suggestion stack render typed mock data (apps/web/src/lib/mock/). No linking engine, no resolver persistence, no oracle-precision result, so the ch4 acceptance check is not met.
+- **FR-04** — Explicit Jira keys in PR title/branch/commits -> TRACKS edge with resolver explicit-reference (16 tests; live demo on Supabase 11 Oct). Design URLs and manual-link persistence not done; oracle precision not measured.
 - **FR-05** — Eligibility gate exists only in the design; there is no rule engine or graph code to enforce it yet.
-- **FR-06** — ch4 leaves the FR-06/FR-25 test cell as -- (component test to be named in ch8). Listed as a normal demo case because the demo's normal run shows an analysed change chain.
+- **FR-06** — Diff, changed symbols, bounded callers and test evidence for TS/JS and Python. Pilot evaluation: files 29/29, changed symbols 11/11, unchanged not flagged 21/21 (npm run analyse:evaluate). Python tested on synthetic repos only.
 - **FR-07** — Inherited from ch4, which groups FR-07..FR-11 against T10. A tighter mapping would test FR-07 only through its acceptance check (three criteria -> three units); flagged for human adjudication rather than silently changed.
 - **FR-08** — T10 inherited from ch4's FR-07..11 grouping; no packet builder code exists.
 - **FR-09** — T10 inherited from ch4's FR-07..11 grouping; no verifier code exists (TODO §3.3 open).
@@ -193,10 +193,10 @@ The six columns of `FYP1 Mid Pre-Evaluation Student Worksheet.docx` §5
 - **FR-22** — New since the defence (ch4 marks FR-22..29 as new). ch4 traceability leaves the test cell as --; no graph schema or anchor code exists.
 - **FR-23** — ch4 leaves the test cell as --; anchor_survival_rate (TODO §1.3) is not implemented. TODO §5 follow-up: the figure still carries an invented illustrative FR-07 label that collides with the real FR-07.
 - **FR-24** — P4 itself is not drawn in any diagram (fig:anchor shows anchoring, not divergence); the fig:usecase entry is UC-04. ch4 leaves the test cell as --.
-- **FR-25** — ch4 groups FR-06/FR-25 with test cell -- (component test). No analyser code exists.
+- **FR-25** — Card with every listed field for each changed symbol; whole-repository indexing (every indexed symbol) not built.
 - **FR-26** — No diagram covers comment semantics, hence --. FR-26 is one of five FRs missing from ch4's traceability table; the module cell is derived here from the code-semantics group.
 - **FR-27** — FR-27 is one of five FRs missing from ch4's traceability table; the module cell is derived here from the code-semantics group.
-- **FR-28** — Link suggestion confirm/reject UI exists (apps/web/src/components/links/suggestion-stack.tsx, mock); the threshold policy, auto-confirm provenance and precision metric are not implemented. ch4 test cell is --.
+- **FR-28** — Gate reads the workspace two-threshold band and holds verdicts resting on below-band links (worker e2e-gate test). Auto-confirmation above the band and routing to the code owner not implemented.
 - **FR-29** — A static workflow-state-map screen exists (apps/web/src/components/settings/workflow-state-map.tsx) with no derivation from history and no approval flow. ch4 test cell is --.
 - **NFR-01** — NFR numbering is ch4's: proposal §15.2 lists quality attributes without IDs. Convergence is measured by T7 (duplicate/out-of-order) at 100% on the controlled suite.
 - **NFR-02** — NFR numbering is ch4's. The sequence diagram is built but not wired into a chapter (TODO §5), so it carries no fig: label.

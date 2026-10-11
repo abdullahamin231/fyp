@@ -171,12 +171,18 @@ describe("analyse", () => {
     expect(unit!.tests.map((t) => `${t.name}:${t.mentions.join(",")}`)).toEqual(["sums:total", "other:"]);
     expect(e2e).toMatchObject({ file: "e2e/flow.spec.ts", reasons: ["references"], importsChangedFiles: [] });
 
-    // Only the importing test gets a COVERS edge; the name-only e2e test is evidence without an edge.
+    // The PR implements the changed symbol and the changed test file; only the
+    // importing test gets a COVERS edge; the name-only e2e test is evidence
+    // without any edge.
     const g = toGraph(a, { pullRequestExternalId: "acme#1" });
     expect(g.edges.map((e) => `${e.from} -${e.type}-> ${e.to}`)).toEqual([
       `commit:${a.head.slice(0, 12)} -PART_OF-> acme#1`,
+      `acme#1 -IMPLEMENTS-> ${a.repo}:src/total.ts#total`,
+      `acme#1 -IMPLEMENTS-> ${a.repo}:src/total.test.ts`,
       `${a.repo}:src/total.test.ts -COVERS-> ${a.repo}:src/total.ts#total`,
     ]);
+    // Without a known PR there is nothing to hang the PR edges on.
+    expect(toGraph(a).edges.map((e) => e.type)).toEqual(["COVERS"]);
   });
 
   it("is deterministic and produces payload items the packet builder accepts", () => {

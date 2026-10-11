@@ -154,7 +154,7 @@ same output.
 | `git.ts` | Changed files (`--name-status -M`), diff hunks with exact line ranges (`-U0`), file content at a commit, `git grep` for names. |
 | `parse.ts` | TypeScript compiler parser (syntax only): every function, method, class and function-valued variable at any depth (nested ones get dotted names, e.g. `createFormControl.clearErrors`), with signature, JSDoc, leading comments; imports; `it`/`test` blocks; dynamic sites (`import(x)`, `require(x)`, `obj[x]()`). |
 | `analyse.ts` | Each changed line → the innermost symbol around it (head for added lines, base for removed ones) → added / modified / deleted. Bounded callers (same file, or files whose relative import resolves to the symbol's file; name-only matches are counted, not trusted). Test evidence: changed test blocks, and test blocks that mention a changed symbol. Dynamic sites inside changed symbols are reported as unresolved, never as edges. |
-| `payloads.ts` | Graph nodes with `payload.slotItems` in the contracts' `EvidenceItem` shape: `Commit` (diff hunks), `CodeSymbol` (one symbol card, FR-25 fields in fixed order), `TestCase` (test blocks). Edges only for established relations: `Commit PART_OF PullRequest`, `TestCase COVERS CodeSymbol` when the test imports the symbol's file. |
+| `payloads.ts` | Graph nodes with `payload.slotItems` in the contracts' `EvidenceItem` shape: `Commit` (diff hunks), `CodeSymbol` (one symbol card, FR-25 fields in fixed order), `TestCase` (test blocks). Edges only for established relations: with a known PR (`--pr`), `Commit PART_OF PullRequest`, `PullRequest IMPLEMENTS CodeSymbol` for every changed symbol and `PullRequest IMPLEMENTS TestCase` for every changed test file; always `TestCase COVERS CodeSymbol` when the test imports the symbol's file. |
 
 ```bash
 npm run analyse -- --repo <git repo> --base <rev> --head <rev> [--name owner/repo] [--pr <id>] [--json out.json]
@@ -202,10 +202,12 @@ upserted, so re-running updates rather than duplicates; an edge whose endpoint
 is not in the graph (e.g. a PR not ingested yet) is reported as skipped, never
 invented. Needs 00016 applied and the worker's `.env`.
 
-Note for the packet builder: its two-hop walk from a criterion reaches a
-`PullRequest` and its `Commit`, but not `CodeSymbol`/`TestCase` nodes, which
-sit one hop further. Reaching them needs either a third hop or a direct
-PR–symbol edge type.
+Reaching the packet: the graph provider walks outward from a criterion
+(criterion → PR → …). The `IMPLEMENTS` edges from the PR are what put symbol
+cards and test blocks within reach; without them only the commit's diff hunks
+arrive. `test/analyser-packet.test.ts` checks this end to end: real analyser
+output → `GraphEvidenceProvider` → `buildPacket`, with all three code slots
+filled, and a control with the `IMPLEMENTS` edges removed.
 
 ## Known simplifications
 
