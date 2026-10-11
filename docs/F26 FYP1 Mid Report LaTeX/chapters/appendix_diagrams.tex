@@ -1,2 +1,28 @@
 \chapter{Additional Design Diagrams}
-Include large or supplementary diagrams referenced in the main report.
+
+\begin{longtable}{p{0.28\textwidth}p{0.26\textwidth}p{0.32\textwidth}}
+\caption{Supplementary diagrams and their implementation links.}\label{tab:appendix-diagrams}\\
+\toprule
+\textbf{Diagram} & \textbf{Purpose} & \textbf{Implementation connection}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Diagram} & \textbf{Purpose} & \textbf{Implementation connection}\\
+\midrule
+\endhead
+\texttt{layered-arch.tex} & System layers and trust boundaries & Web, worker, contracts, Supabase and provider-adapter separation.\\
+\texttt{components.tex} & Component responsibilities and interfaces & Adapter, ingestion, graph, packet, verifier and reviewer components.\\
+\texttt{dfd.tex} & Evidence and event flow & Provider delivery through normalization, persistence and downstream verification.\\
+\texttt{verifier-loop.tex} & Bounded scope/verify/critic loop & \texttt{apps/worker/src/verifier/loop.ts}.\\
+\texttt{autonomy-ladder.tex} & Human involvement by decision level & Reviewer findings, abstention and verdict gate.\\
+\texttt{06\_state\_machines.tex} & Event, freshness and finding lifecycle & Duplicate handling, stale sources and review state transitions.\\
+\texttt{05\_ingestion\_sequence.tex} & Source delivery sequence & Authentication, normalization, idempotency and reconciliation boundary.\\
+\texttt{erd.tex} & Relational evidence graph schema & Supabase nodes, edges, events, packets, verdicts and findings.\\
+\texttt{anchor-reanchoring.tex} & Requirement-to-code anchoring & FR-22--FR-24 design and future commit-pinned anchors.\\
+\bottomrule
+\end{longtable}
+
+\noindent Diagram sources are stored under
+\texttt{docs/F26 FYP1 Mid Report LaTeX/diagrams/}. Abdullah's five diagrams
+were consolidated by commit \texttt{7abdfc7}; Haaniah's state-machine and
+ingestion diagrams are retained as supplementary evidence.

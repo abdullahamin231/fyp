@@ -1,2 +1,34 @@
 \chapter{Detailed Test Cases}
-Include detailed test cases and results that would interrupt the flow of the main report.
+
+\section{Recorded test and validation cases}
+
+\begin{longtable}{p{0.10\textwidth}p{0.27\textwidth}p{0.28\textwidth}p{0.22\textwidth}}
+\caption{Detailed selected test cases and recorded outcomes.}\label{tab:appendix-tests}\\
+\toprule
+\textbf{ID} & \textbf{Input / method} & \textbf{Expected result} & \textbf{Recorded outcome}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Input / method} & \textbf{Expected result} & \textbf{Recorded outcome}\\
+\midrule
+\endhead
+TC-05 & Dataset integrity over 15 pilot cases & Required fields, hashes, spans and referenced logs pass & 138 checks, 0 failures.\\
+TC-06 & Two blind annotation sheets and agreement script & Agreement is measured and disagreements are retained & Verdict $\kappa=0.90$; seven disagreements adjudicated.\\
+TC-10 & Key extraction with valid keys and lookalikes & Valid keys are located; \texttt{UTF-8}, \texttt{SHA-256} and similar strings are rejected under the allow-list & 6/6 pass.\\
+TC-11 & PR title, branch and commit reference the same ticket & One observed \texttt{TRACKS} edge with provenance & Expected result; all three locations recorded.\\
+TC-12 & PR contains no ticket key & Event and PR node persist without an edge & Expected \texttt{no\_key}.\\
+TC-13 & PR references an unknown ticket & No invented ticket node or edge is created & Expected \texttt{unknown\_key}.\\
+TC-14 & Duplicate delivery and repeated link reference & No duplicate event/edge; dismissed/revoked states are respected & Expected deduplication outcomes.\\
+TC-15 & Injected database failure and unauthorized roles & Atomic rollback; unauthorized writes are refused & Both behaviors observed.\\
+TC-17 & Analyser on 15 pilot cases & Changed files/tests/symbols found; unchanged symbols not flagged & 29/29 files, 14/14 tests, 11/11 symbols, 21/21 hard negatives.\\
+TC-18 & Analyser on throwaway TypeScript/Python repositories & Nested, deleted, dynamic, caller, coverage and publish behavior works & 18/18 tests pass.\\
+TC-20 & Fabricated citations through verifier and gate & Fake citations are removed; verdict is downgraded or rejected & Gate rejects unsupported decisive evidence.\\
+TC-21 & Mock ingestion redelivery, ordering, missed delivery and outage & Final state converges; stale checkpoints are visible and reconciliation is explicit & 4/4 replay scenarios pass.\\
+TC-22 & Real analyser output through graph provider and packet builder & Diff, symbol and test slots fill; control without edges loses derived evidence & Both production/control runs behave as expected.\\
+INT-01 & GitHub/Jira/Figma adapter and webhook-path review & Authenticated supported payloads normalize to the shared envelope & Implementation and route branches recorded; provider rehearsal is separate.\\
+INT-02 & Invalid authenticity, duplicate, ignored Figma event, missing Jira changelog and oversized body & Reject, deduplicate, ignore or preserve safely according to provider semantics & Guards and constraints implemented; fixture execution is the next validation step.\\
+\bottomrule
+\end{longtable}
+
+\noindent Full test descriptions and commands are in Chapter~8 and
+\texttt{docs/INTEGRATION\_WEBHOOK\_TESTING.md}.
