@@ -510,17 +510,187 @@ is claimed until that suite is run and recorded.
 
 % ---------------------------------------------------------------------------
 % Abdullah Amin: context packet, bounded verifier loop, verdict/provenance
-% gate, reviewer surface. To be written by Abdullah against real files,
-% commands and measured numbers, in the same form as the two subsections
-% above: design reasoning, then demonstration evidence, then limitations.
+% gate, reviewer surface and architecture diagrams. The evidence below is
+% limited to committed artefacts and the completed mid-evaluation worksheet.
 % ---------------------------------------------------------------------------
-% \subsection{Verification Pipeline and Reviewer Surface (Abdullah Amin)}
-% \label{sec:impl-verification}
+\subsection{Verification Pipeline and Reviewer Surface (Abdullah Amin)}
+\label{sec:impl-verification}
 
-\section{Completed Features / Module}
-\section{Technical Implementation Details}
-Describe important files, classes, functions, algorithms, configurations, and technical decisions.
-\section{Algorithms and Technical Decisions}
-\section{Tools, Frameworks and Technologies}
-\section{Demonstration Evidence}
-\section{Iteration Outcome}
+The verification module addresses the central iteration question: how can a
+finding be checked against bounded evidence without allowing an ungrounded
+model response to become a system fact? Abdullah's implementation separates
+evidence assembly, model interaction and verdict admission. The worker builds
+an immutable context packet, runs a bounded verifier loop, passes the result
+through a pure provenance gate, and persists both the result and the evidence
+needed for a reviewer to reconstruct it. This is the implemented verification
+slice, rather than a claim of general program correctness.
+
+\subsubsection{Completed features and module boundary}
+
+The completed module contains four connected parts:
+
+\begin{enumerate}
+  \item deterministic context-packet construction from graph evidence, diffs,
+        symbol cards and test evidence;
+  \item a bounded verifier loop with scope, verification and conditional critic
+        passes;
+  \item a verdict/provenance gate that can reject or downgrade model output but
+        cannot promote an unsupported status; and
+  \item persistence and reviewer-facing finding creation for verdicts that need
+        human attention.
+\end{enumerate}
+
+The implementation is integrated into the worker and shared contracts rather
+than being an isolated demonstration. The principal artefacts are
+\texttt{apps/worker/src/packet/assemble.ts},
+\texttt{apps/worker/src/packet/builder.ts},
+\texttt{apps/worker/src/verifier/loop.ts},
+\texttt{apps/worker/src/verifier/gateInputs.ts},
+\texttt{apps/worker/src/verifier/persist.ts}, and
+\texttt{packages/contracts/src/gate.ts}. The corresponding database boundary
+is represented by migrations \texttt{00013\_verification\_queue.sql} and
+\texttt{00014\_verification\_vocab.sql}. The reviewer surface is connected to
+the conflict-detail components in the web application; a decisive,
+well-cited supported verdict is retained as evidence without creating an
+unnecessary queue item, while contradictions, partial results, abstentions
+and gate failures create review findings.
+
+\subsubsection{Technical implementation details}
+
+\paragraph{Deterministic packet builder.}
+\texttt{assemble} fills the packet slots in a fixed order and admits evidence
+in provider order. Each slot has an explicit token budget. The first item that
+would exceed a slot budget causes the remaining items in that slot to be
+recorded as \texttt{BUDGET\_EXCEEDED}; if the total budget is still exceeded,
+whole slots are evicted in a fixed eviction order. No item disappears silently:
+the manifest records every omitted item and its reason. Duplicate citation
+handles throw an error because they would make a later citation ambiguous.
+
+\texttt{buildPacket} then hashes the canonical manifest as \texttt{packetHash},
+hashes the packet template contract as \texttt{promptHash}, and renders a
+byte-stable packet body. The content hash map is retained so the gate can
+check that a cited span is both present in the packet and identical to the
+content shown to the verifier.
+
+\paragraph{Bounded verifier loop.}
+\texttt{runVerifierLoop} records a pass record for every model interaction,
+including the prompt hash, packet references, parse result, stop reason,
+model metadata and duration. Pass one checks whether the packet contains
+applicable evidence. If it does not, the loop abstains with
+\texttt{NO\_APPLICABLE\_EVIDENCE}. Pass two requests the evidence-backed
+verdict. Pass three is conditional: it is used for a disputed finding, a
+\texttt{PARTIAL} answer, or a decisive answer with weak citation support.
+The critic is downgrade-only, so it cannot turn a weaker answer into a
+\texttt{SUPPORTED} answer. The loop is bounded at three passes.
+
+Malformed model output is not repaired into a success-shaped response. It is
+recorded and handed to the gate for rejection. If the model is unavailable,
+the loop returns an explicit \texttt{MODEL\_UNAVAILABLE} abstention. These
+branches preserve the distinction between ``not verified'' and ``verified
+as correct''.
+
+\paragraph{Verdict and provenance gate.}
+The pure \texttt{gate} function in
+\texttt{packages/contracts/src/gate.ts} applies ordered checks: strict schema
+validation, citation resolution, rule applicability, link eligibility,
+freshness, confidence thresholds, hard gate 1, and provenance. A decisive
+status with no evidence is rejected as an abstention. A citation that is not
+in the packet, or whose content hash differs from the packet manifest, is
+removed from the decisive evidence and causes a downgrade or rejection.
+Freshness and link-policy failures likewise prevent an unsupported decisive
+result. The gate records every check and its reason code so the reviewer sees
+why a result passed, was downgraded, or was rejected.
+
+\paragraph{Persistence and reviewer findings.}
+The persistence layer inserts the packet, pass records and gated verdict as
+append-only records. Re-verification creates a new packet/verdict pair rather
+than overwriting the evidence behind an earlier decision. The finding helper
+creates a review item when the verdict is not a clean supported result or
+when the verdict explicitly requires review. A newer live finding supersedes
+an older live finding for the same criterion, while a human-closed finding is
+not silently reopened.
+
+\subsubsection{Algorithms and technical decisions}
+
+The main design decision was to make evidence admission and verdict admission
+separate deterministic boundaries. The packet builder answers ``what was the
+verifier shown?''; the gate answers ``what is allowed to become a stored
+verdict?''. This prevents the model from selecting evidence outside the
+immutable packet and makes a run reproducible from the packet manifest,
+content hashes, pass records and model metadata.
+
+The critic pass is conditional rather than unconditional to keep the verifier
+bounded and to avoid presenting a second model call as independent proof. Its
+role is to challenge weak or disputed evidence, and its only permitted effect
+is to preserve or lower the pass-2 status. The system therefore treats a
+missing model, malformed output, stale source or unresolved citation as an
+explicit failure mode rather than silently substituting a positive answer.
+
+The module also uses a type-system analyser to produce symbol-level evidence:
+changed symbols, their qualified names and signatures, imports, callers,
+documentation context and relevant tests. This makes the context packet
+specific to the change under review instead of relying on a raw diff alone.
+The worksheet records the analyser pilot as matching the labelled cases except
+for one known miss, which remains a limitation rather than being hidden by a
+fallback.
+
+\subsubsection{Tools, frameworks and architecture evidence}
+
+The implementation uses TypeScript in the worker and shared contract
+packages, Vitest for worker and contract tests, Zod-backed contract schemas,
+and Supabase tables/RPCs for the verification queue and append-only evidence
+records. The model boundary is represented by a typed client interface, which
+allows deterministic fixture and stub clients to exercise the loop without
+claiming that a live hosted model is part of this iteration.
+
+Abdullah also produced five architecture diagrams covering the layered
+architecture, component relationships, data flow, verifier loop and autonomy
+ladder. They are stored under
+\texttt{docs/FYP1 Mid Report LaTeX/diagrams/} and were wired into Chapter~5.
+The consolidated diagram build system renders the project diagrams from one
+directory, making the architecture artefacts reproducible alongside the
+implementation.
+
+\subsubsection{Demonstration evidence}
+
+The completed worksheet records the verification worker and contract suites as
+passing for the evaluation slice, with 76 worker tests and 115 contract tests
+at the time of preparation. The focused end-to-end gate scenarios in
+\texttt{apps/worker/test/e2e-gate.test.ts} exercise:
+
+\begin{itemize}
+  \item a well-cited supported change, which passes without a reviewer finding;
+  \item fabricated citations, which are removed and downgraded;
+  \item a decisive answer with no citations, which hard gate 1 rejects;
+  \item stale and unknown freshness states;
+  \item ineligible links and below-threshold links;
+  \item model unavailability and malformed model output; and
+  \item citation hash matching and repeated-run reproducibility.
+\end{itemize}
+
+\texttt{apps/worker/test/loop.test.ts} separately demonstrates the normal
+two-pass path, first-pass abstention, conditional critic path, disputed
+findings, critic unavailability, downgrade-only critic behaviour, per-pass
+prompt hashes and deterministic run metadata. The worksheet identifies commit
+\texttt{a037d16} as the verifier/gate and reviewer-data implementation, and
+records the packet-builder integration as the resolution of the Supabase queue
+packet-format problem. The resulting evidence is observable in the test
+assertions and in the packet, pass, verdict and finding persistence code.
+
+\subsubsection{Iteration outcome and limitations}
+
+This contribution completes the deterministic verification slice for Iteration
+1: a change can be converted into bounded evidence, checked through a
+multi-pass verifier, admitted or downgraded by a pure gate, and exposed as a
+review finding with provenance. The module is therefore ready for a live
+evaluation using fixture-backed evidence and the configured Supabase queue.
+
+The result does not establish general correctness or eliminate human review.
+The type-system analyser has a known miss in the pilot cases, and unresolved
+type ambiguity can require fixture-backed or manual handling. The committed
+evidence does not claim a production local-model latency or memory benchmark,
+nor does it claim that every provider-backed dataset edge case has been
+exercised live. Additional verifier edge cases and final evaluation
+rehearsal remain planned work. These boundaries are consistent with the
+worksheet's recorded next action: complete the final report, add verifier edge
+case tests, and prepare the evaluation demonstration.
