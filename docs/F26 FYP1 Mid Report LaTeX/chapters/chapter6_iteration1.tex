@@ -3,6 +3,254 @@
 \section{Selected Use Cases / Features}
 \section{Design}
 \section{Implementation}
+% ---------------------------------------------------------------------------
+% Mishal Fatima: evidence-graph linking (FR-04) and change analysis (FR-06,
+% FR-25). All code lives in apps/worker/src/linking, apps/worker/src/analyser
+% and supabase/migrations/00015-00016. Every number below was produced by the
+% commands shown, on 11 October 2026.
+% ---------------------------------------------------------------------------
+\subsection{Evidence Graph Linking and Change Analysis (Mishal Fatima)}
+\label{sec:impl-linking-analyser}
+
+This part of the iteration fills the evidence graph from two directions. The
+\emph{linker} connects a pull request to the Jira issues it explicitly names
+(FR-04). The \emph{change analyser} works out what a pull request changed at
+the level of functions and tests, and turns that into evidence the verifier
+can cite (FR-06, FR-25). Both write into the tables of the ERD in
+Figure~\ref{fig:erd} (\texttt{events}, \texttt{nodes}, \texttt{edges}), which
+Abdullah implemented as Supabase migrations; both live in the worker
+(\texttt{apps/\allowbreak{}worker}) beside his verification pipeline.
+
+\subsubsection{Deterministic pull-request to issue linking}
+
+\paragraph{Rule.} A link is created only from an explicit reference: a Jira key
+such as \texttt{UNI-123} written in the pull request's title, branch name or a
+commit message. Nothing is inferred from similar wording. A link created this
+way is stored as \texttt{TRACKS}, \texttt{source\_class = observed},
+confidence 1.0, resolver \texttt{explicit-reference}, which makes it eligible
+to support a decisive finding under FR-05.
+
+\paragraph{Finding the keys.} \texttt{extract-keys.ts} is a pure function with
+no database access. Its pattern is:
+{\small
+\begin{verbatim}
+(?<![A-Za-z0-9])([A-Z][A-Z0-9]+)-([1-9][0-9]*)(?![A-Za-z0-9])
+\end{verbatim}
+}
+\noindent The two look-arounds stop a key being read out of a longer word
+(\texttt{XUNI-1}, \texttt{UNI-12abc}); the project part must start with an
+upper-case letter, as Jira requires; and the number cannot start with zero,
+because Jira never issues one. Matching is case-sensitive on purpose:
+accepting \texttt{uni-123} would also accept ordinary text such as
+\texttt{covid-19}. Strings like \texttt{UTF-8}, \texttt{SHA-256} and
+\texttt{ISO-8601} still match the pattern, so the workspace's list of Jira
+project keys (here \texttt{UNI}) is applied as a second filter. Each key is
+reported once, together with every place it appeared, and that list is kept
+on the link as provenance.
+
+\paragraph{Writing to the database.} The database steps run in one Postgres
+function, \texttt{link\_\allowbreak{}pull\_\allowbreak{}request\_\allowbreak{}event} (migration 00015):
+\begin{enumerate}
+  \item insert the event; if this GitHub delivery id was seen before, the
+        unique constraint on \texttt{events(source\_tool, vendor\_delivery\_id)}
+        makes the insert a no-op and the function stops (``same event twice'');
+  \item create or update the \texttt{PullRequest} node;
+  \item if no key was found, stop: the event is still recorded, because
+        \texttt{events} is a log;
+  \item for each key, look up the \texttt{Ticket} node. If there is none, report
+        \texttt{unknown\_key} and do not invent a node; the key stays in
+        \texttt{events.references} so it can be resolved later. Otherwise
+        insert the \texttt{TRACKS} edge.
+\end{enumerate}
+These steps are in SQL rather than TypeScript for one reason: they must
+succeed or fail together, and the Supabase client sends every call as its own
+transaction. A function always runs as one transaction, so an event can never
+be recorded without its links. The function is callable only with the
+worker's service-role key, because it bypasses row-level security.
+
+\paragraph{Duplicate links.} Migration 00010 (Abdullah's) allows one current
+edge per \texttt{(from, to, type)} through a partial unique index with the
+condition \texttt{link\_\allowbreak{}state <> 'revoked'}. The insert names the same
+condition in its \texttt{ON CONFLICT} clause. Postgres only accepts that clause
+when the condition matches the index exactly, and my first version used a
+different one, \texttt{valid\_\allowbreak{}to is null}, and the tests failed against the real
+migration with ``no unique or exclusion constraint matching the ON CONFLICT
+specification''. With the matching condition, a second mention of an existing
+link adds nothing, a link a reviewer dismissed stays dismissed, and a revoked
+link can be created again.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.24\textwidth} >{\raggedright\arraybackslash}p{0.33\textwidth} >{\raggedright\arraybackslash}p{0.33\textwidth}}
+\caption{Linker outcomes and what decides each.}\label{tab:linker-outcomes}\\
+\hline\textbf{Case} & \textbf{Outcome} & \textbf{Decided by} \\
+\hline\endfirsthead
+\hline\textbf{Case} & \textbf{Outcome} & \textbf{Decided by} \\
+\hline\endhead
+Key found, ticket exists & \texttt{linked}: new \texttt{TRACKS} edge & edge insert (step 4) \\
+No key & \texttt{no\_key}: event kept, no edge & step 3 \\
+Key found, no ticket & \texttt{unknown\_key}: no edge, no invented node & ticket lookup (step 4) \\
+Same delivery twice & \texttt{duplicate\_event}: nothing written & unique constraint on \texttt{events} (step 1) \\
+New event, link exists & \texttt{already\_linked}, with its state & partial unique index, 00010 \\
+\hline\end{longtable}
+
+\subsubsection{Change analyser}
+
+\paragraph{Input and output.} The analyser takes a git repository and two
+commits, base and head. It reads only git's stored objects
+(\texttt{git diff}, \texttt{git show}, \texttt{git grep} at a commit), never a
+checked-out folder, and never runs the repository's code unless asked to
+(below). The same two commits therefore always give the same output. It
+reports the changed files and hunks, the changed symbols, a bounded caller
+neighbourhood, the related tests, and dynamic code it cannot follow.
+
+\paragraph{From changed lines to changed symbols.} \texttt{git diff -U0} gives
+each hunk's exact line ranges on both sides. Every file involved is parsed with
+the TypeScript compiler's own parser (syntax only), which lists every function,
+method, class and function-valued variable at any depth. Nested definitions
+matter: in react-hook-form, \texttt{clearErrors} is an arrow function declared
+inside \texttt{createFormControl}, and that inner function is what a fix
+changes, so it is named \texttt{createFormControl.clearErrors}. Each changed
+line is then mapped to the \emph{innermost} symbol around it: the one with the
+smallest range that still contains the line. Added and modified lines are
+looked up in the head version, removed lines in the base version. A symbol
+found at head but not at base is \emph{added}; one found at base but not at
+head is \emph{deleted}; one found in both is \emph{modified}. Lines outside any
+symbol, such as imports or re-exports, are reported as module-level changes
+rather than forced onto a symbol.
+
+\paragraph{Neighbourhood and tests.} For each changed symbol the analyser
+searches the head commit for call sites, keeping at most 40 files and 10
+callers. A call counts as a caller only when it is in the same file, or in a
+file whose relative import resolves to the symbol's file. Calls that only
+share the name are counted but not trusted. Test evidence is collected the
+same way: test blocks (\texttt{it}/\texttt{test}) that the diff touches, and
+test blocks elsewhere that mention a changed symbol. A \texttt{COVERS} edge
+from a test to a symbol is created only when the test file imports the
+symbol's file; a test that merely mentions the name is kept as evidence
+without an edge. Calls whose target cannot be known statically (a dynamic
+\texttt{import(x)}, \texttt{require(x)}, \texttt{obj[x]()}) are listed as
+\emph{unresolved} and never turned into edges.
+
+\paragraph{Symbol cards (FR-25).} Each changed symbol becomes a card with
+fixed fields in a fixed order, so the same symbol always gives the same bytes
+and the verifier's citation check can compare hashes. Abridged real card from
+pilot case P01 (imports shortened; the commit subject's emoji removed):
+{\small
+\begin{verbatim}
+symbol: createFormControl.clearErrors (function, modified)
+file: src/logic/createFormControl.ts lines 1562-1582
+path tokens: src logic create form control ts
+signature: const clearErrors: UseFormClearErrors<TFieldValues> = (name) =>
+doc: (none)
+comments: (none)
+imports: ../constants, ../types, ../utils/cloneObject, ... (51 in total)
+callers: createFormControl.validateForm (same-file, lines 768, 791);
+         useForm (src/useForm.ts:144, import)
+unresolved: (none)
+coverage: 8/11 lines run by tests; changed lines 1/1
+commit: fix #13790: setError and clearErrors produce a new errors reference
+---
+const clearErrors: UseFormClearErrors<TFieldValues> = (name) => { ...
+\end{verbatim}
+}
+\noindent The card, the diff hunks and the test blocks are written to the
+graph as \texttt{CodeSymbol}, \texttt{Commit} and \texttt{TestCase} nodes
+carrying \texttt{payload.slotItems}, the exact shape Abdullah's packet builder
+already reads, so no change was needed on his side to consume them.
+
+\paragraph{Python.} Python files go through a second parser that uses
+Python's own block rule: a definition ends before the next line indented at or
+left of its \texttt{def} or \texttt{class}. Lines inside triple-quoted strings
+or open brackets are skipped when looking for that line, so a docstring or a
+multi-line call does not end a function early. This is simpler than a full
+grammar and easy to check by hand. The trade-off is stated: functions created
+with \texttt{exec} or classes built with \texttt{type(...)} are not seen.
+
+\paragraph{Test runs and coverage (opt-in).} Running a repository's tests
+means executing its code, so it happens only when a command is given. The
+command runs in a temporary copy of the head commit, with a time limit, and
+the copy is deleted afterwards. If the command writes an LCOV coverage report
+(Jest, Vitest and coverage.py all can), each symbol card records how many of
+its lines, and how many of its \emph{changed} lines, the tests ran.
+
+\paragraph{Publishing.} The nodes and edges are written by a second database
+function, \texttt{publish\_\allowbreak{}analysis} (migration 00016), in one transaction.
+Nodes are updated in place when the same change is analysed again, and an edge
+whose other end is not yet in the graph (for example, a pull request not yet
+ingested) is reported as skipped, never invented.
+
+\subsubsection{Demonstration evidence}
+
+\paragraph{Linking, live.} With migration 00015 applied to the hosted Supabase
+project, \texttt{npm run demo:\allowbreak{}linking -- -{}-live} plays five
+pull-request events through the real function. Output on 11 October:
+{\small
+\begin{verbatim}
+1. Key in title, branch and commit -> UNI-123: linked
+2. No key                          -> no_key
+3. Unknown key + lookalike (UTF-8) -> UNI-999: unknown_key
+4. Case 1's delivery sent again    -> duplicate_event
+5. New event naming UNI-123 again  -> UNI-123: already_linked (active)
+edges: 1 row (TRACKS, observed, 1.0, explicit-reference)
+events: 4 rows (5 deliveries sent, 1 was a duplicate)
+\end{verbatim}
+}
+
+\paragraph{Analyser on the pilot cases (FR-06 acceptance).}
+The command \texttt{npm run analyse:\allowbreak{}evaluate} fetches the base and head commit
+of each of the 15 pilot cases, applies a case's controlled patch where it has
+one, runs the analyser, and compares the result with the case file. Only the
+committed case files are used, never the constructor's answer key. A candidate
+span that overlaps one of the case's changed hunks must be reported as
+changed; one that does not overlap must not be.
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.50\textwidth} >{\raggedright\arraybackslash}p{0.20\textwidth}}
+\caption{Analyser results on the 15 pilot cases.}\label{tab:analyser-pilot}\\
+\hline\textbf{Check} & \textbf{Result} \\
+\hline\endfirsthead
+\hline\textbf{Check} & \textbf{Result} \\
+\hline\endhead
+Changed files reported & 29 / 29 \\
+Changed test files reported & 14 / 14 \\
+Changed named symbols found & 11 / 11 \\
+Unchanged named symbols not flagged (incl.\ hard negatives) & 21 / 21 \\
+Changed regions inside a symbol found & 2 / 3 \\
+Changed non-symbol spans (config, re-exports, JSX) found & 3 / 3 \\
+Analysis time per case & median 0.3\,s, max 4\,s \\
+\hline\end{longtable}
+
+\noindent The one miss is P06-S3, a key inside \texttt{package.json}: the
+analyser lists the file as changed but does not parse JSON into symbols. With
+the repository's own regression test run for P01, both changed lines (one in
+\texttt{clearErrors}, one in \texttt{setError}) were executed by the test,
+which is the coverage line on the card above.
+
+\paragraph{Tests.} 16 tests cover the linker against an in-process Postgres
+loaded with the real migrations, including a failure injected after the event
+insert (nothing is kept) and a check that the anonymous and authenticated
+roles cannot call the function. 18 tests cover the analyser on small
+throwaway git repositories (nested symbols, added and deleted symbols,
+callers, tests, dynamic sites, Python, coverage, publishing). The worker
+suite passes 74 of 74.
+
+\subsubsection{Limitations}
+\begin{itemize}
+  \item No GitHub webhook endpoint yet: the linker has run on the hosted
+        database only with scripted demo events.
+  \item JSON and other configuration files are not parsed into symbols (the
+        P06-S3 miss).
+  \item Only relative imports are resolved when deciding callers and
+        \texttt{COVERS} edges; imports through package names (common in
+        monorepos such as Mantine) fall back to name-only matches, which are
+        counted but not trusted.
+  \item The Python parser has been tested on synthetic repositories only; all
+        pilot cases are TypeScript.
+  \item The packet builder originally walked two hops from a criterion, which
+        did not reach the \texttt{CodeSymbol} and \texttt{TestCase} nodes the
+        analyser writes. Abdullah raised the bound to three hops on 11 October,
+        so they are now reached; the analyser output has not yet been fed into a
+        live packet.
+\end{itemize}
+
 \section{Completed Features / Module}
 \section{Technical Implementation Details}
 Describe important files, classes, functions, algorithms, configurations, and technical decisions.
