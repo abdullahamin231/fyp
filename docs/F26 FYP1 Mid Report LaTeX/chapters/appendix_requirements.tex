@@ -1,2 +1,32 @@
 \chapter{Detailed Requirements}
-Include extended requirement tables, detailed use cases, or traceability material.
+
+\section{Requirement and evidence summary}
+
+The canonical traceability source contains 43 rows: 29 functional requirements
+and 14 non-functional requirements. The generated matrix reports 35 designed
+requirements and 8 partially implemented requirements, with no missing
+requirement rows and no duplicate identifiers. It is generated from
+\texttt{docs/traceability/traceability\_matrix.csv} by
+\texttt{docs/traceability/build\_matrix.py}; the generated Markdown records the
+CSV hash and coverage summary.
+
+\begin{longtable}{p{0.12\textwidth}p{0.29\textwidth}p{0.23\textwidth}p{0.25\textwidth}}
+\caption{Selected requirement-to-implementation evidence.}\label{tab:appendix-requirements}\\
+\toprule
+\textbf{Requirement} & \textbf{Capability} & \textbf{Implementation} & \textbf{Validation / evidence}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Requirement} & \textbf{Capability} & \textbf{Implementation} & \textbf{Validation / evidence}\\
+\midrule
+\endhead
+FR-01--FR-02 & Receive, normalize, deduplicate and reconcile source events & \texttt{apps/web/src/lib/integrations/}; ingestion contracts; event/delivery persistence & Adapter and replay cases; live provider rehearsal remains a separate gate.\\
+FR-04--FR-05 & Link source artifacts with resolver provenance and prevent unsupported decisive links & \texttt{apps/worker/src/linking/}; migration \texttt{00015} & TC-10--TC-15; live Supabase linking demo.\\
+FR-06, FR-25 & Extract changed files, symbols, callers and tests; produce symbol cards & \texttt{apps/worker/src/analyser/} & TC-17--TC-19; pilot results and analyser tests.\\
+FR-08--FR-10 & Build bounded context packets, run verifier passes and validate citations & \texttt{apps/worker/src/packet/}; \texttt{packages/contracts/src/gate.ts} & TC-20 and TC-22; packet hash, content hashes and gate checks.\\
+FR-16, FR-18 & Represent source freshness and finding lifecycle & State-machine diagrams; reviewer/finding persistence & Stale-source and finding-state cases in worker tests and design evidence.\\
+FR-22--FR-24 & Version requirements and re-anchor them to code & Traceability and anchor design artefacts & Designed; implementation and final validation remain FYP-II work.\\
+NFR-01 & Converge under duplicate delivery & Delivery uniqueness constraints and idempotent linking & TC-14; integration replay case INT-02.\\
+NFR-07 & Bound analysis time per change & Analyser evaluation harness & TC-17 reports median 0.3 seconds per pilot case.\\
+\bottomrule
+\end{longtable}

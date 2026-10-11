@@ -1,2 +1,26 @@
 \chapter{Proposal Action Register}
-Include the complete proposal-feedback/action register and supporting evidence.
+
+\begin{longtable}{p{0.24\textwidth}p{0.26\textwidth}p{0.10\textwidth}p{0.12\textwidth}p{0.20\textwidth}}
+\caption{Proposal-panel actions and evidence.}\label{tab:appendix-actions}\\
+\toprule
+\textbf{Panel action} & \textbf{Response} & \textbf{Owner} & \textbf{Status} & \textbf{Evidence / next step}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Panel action} & \textbf{Response} & \textbf{Owner} & \textbf{Status} & \textbf{Evidence / next step}\\
+\midrule
+\endhead
+Reduce PM involvement in the loop & Automate evidence collection and bounded verification; retain human review for conflicts, abstentions and policy decisions. & Abdullah / All & Addressed & \texttt{apps/worker/src/verifier/}; verdict gate and reviewer findings.\\
+Research LLM choice and resources & Keep the model behind a typed local client seam, record model/run metadata, and evaluate local resource requirements before deployment. & Abdullah & In progress & \texttt{apps/worker/src/model/}; benchmark latency, memory and quantisation.\\
+Add traceability & Link requirements to design, graph edges, packets, citations, verdicts and tests. & Mishal / Abdullah & Partial & \texttt{docs/traceability/}; complete FR-22--FR-24 anchors.\\
+Document LLM use and capacity & Classify GenAI assistance per artefact and distinguish development assistance from the product verifier model. & All / Haaniah & Addressed & \texttt{docs/genai\_register.md}; worksheet Section 10.\\
+Validate the dataset & Use blind annotation, adjudication and agreement metrics before relying on labels. & Mishal / Annotators & Pilot complete & $\kappa=0.90$ pilot; supervisor audit and evaluation freeze remain.\\
+Treat comments as semantics & Restrict analysis claims to codebases with meaningful names, comments, filenames and directory structure; disclose failures outside that scope. & Haaniah / Mishal & Addressed as scope & Analyser documentation and limitations in Chapters 4, 6 and 8.\\
+Robust context management and large-code design & Use deterministic, size-bounded packets with slot budgets, omission manifests, content hashes and bounded verifier passes. & Abdullah & Addressed & \texttt{packet/assemble.ts}, \texttt{packet/builder.ts}, \texttt{verifier/loop.ts}.\\
+Overall work and presentation were good & Preserve the approved direction and make validation, ownership and limitations explicit. & All & Addressed & Chapters 3, 6, 8, 9 and the evaluation worksheet.\\
+\bottomrule
+\end{longtable}
+
+\noindent The register is consolidated from the panel comments supplied in the
+mid-evaluation worksheet. Open items are recorded as planned validation rather
+than presented as completed results.

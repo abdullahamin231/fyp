@@ -1,2 +1,45 @@
 \chapter{Repository and Contribution Evidence}
-Include selected repository screenshots, milestone/tag evidence, task logs, and contribution evidence.
+
+\section{Evaluation commit and repository}
+
+\begin{tabular}{p{0.28\textwidth}p{0.62\textwidth}}
+\toprule
+Repository & \texttt{https://github.com/abdullahamin231/fyp}\\
+Evaluation baseline & \texttt{ce0ae2cc3c7bac61ecded081eba52670453673da}\\
+Branch evidence & Shared worksheet branch history with pull-request merges and direct feature commits\\
+Task evidence & \texttt{TODO.md}, worksheet ownership tables, pull requests and commit history\\
+\bottomrule
+\end{tabular}
+
+\section{Selected milestones}
+
+\begin{longtable}{p{0.16\textwidth}p{0.25\textwidth}p{0.43\textwidth}}
+\caption{Selected implementation milestones.}\label{tab:appendix-milestones}\\
+\toprule
+\textbf{Commit} & \textbf{Owner / stream} & \textbf{Evidence}\\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Commit} & \textbf{Owner / stream} & \textbf{Evidence}\\
+\midrule
+\endhead
+\texttt{9933a71} & Shared contracts & Normalized event, packet, verdict and gate vocabulary.\\
+\texttt{cb29692} & Shared persistence & Supabase schema, authentication and RLS foundation.\\
+\texttt{6a7998e}, \texttt{9a376c7} & Mishal / linking & Deterministic source-reference extraction and graph linking.\\
+\texttt{1808fe9}, \texttt{fcaaf76} & Mishal / analysis & TypeScript/Python analysis, coverage, publishing and worker evidence.\\
+\texttt{a037d16} & Abdullah / verification & Verification worker, verdict gate and reviewer data layer.\\
+\texttt{d2d7d0c}, \texttt{7abdfc7} & Abdullah / architecture & Five diagrams and consolidated diagram build system.\\
+\texttt{c95df34} & Haaniah / integrations & GitHub, Jira and Figma OAuth/webhook integration implementation.\\
+\texttt{de5c1ff}, \texttt{45e5ed7} & Report evidence & Chapter 3, Chapter 6 and Chapter 9 evidence updates.\\
+\bottomrule
+\end{longtable}
+
+\section{Contribution boundary}
+
+Abdullah owns the verifier loop, context packet, verdict/provenance gate and
+architecture diagrams. Mishal owns graph linking, code analysis, rules,
+dataset validation and requirements traceability. Haaniah owns source
+adapters, normalized events, OAuth/webhook reliability, replay documentation
+and the corresponding report evidence. The integration commit is reported as
+a cross-cutting feature milestone rather than as evidence based only on line
+count.
