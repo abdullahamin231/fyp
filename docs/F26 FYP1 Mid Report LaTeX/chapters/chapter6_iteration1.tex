@@ -244,10 +244,11 @@ suite passes 74 of 74.
         counted but not trusted.
   \item The Python parser has been tested on synthetic repositories only; all
         pilot cases are TypeScript.
-  \item The packet builder walks two hops from a criterion, which reaches a
-        pull request and its commit but not the \texttt{CodeSymbol} and
-        \texttt{TestCase} nodes one hop further. Either a third hop or a direct
-        pull-request-to-symbol edge type is needed; this is open with Abdullah.
+  \item The packet builder originally walked two hops from a criterion, which
+        did not reach the \texttt{CodeSymbol} and \texttt{TestCase} nodes the
+        analyser writes. Abdullah raised the bound to three hops on 11 October,
+        so they are now reached; the analyser output has not yet been fed into a
+        live packet.
 \end{itemize}
 
 \section{Completed Features / Module}
