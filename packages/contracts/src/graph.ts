@@ -59,7 +59,7 @@ export const edgeSchema = z.strictObject({
 
   /**
    * Who or what resolved the link. Conventions used across the system:
-   * `explicit-reference` (deterministic), `manual:<actor>`,
+   * `explicit-reference` (deterministic), `user:<id>` (a reviewer confirmed it, 00013),
    * `system:threshold` (FR-28 auto-confirmation), `model:<run-id>` (candidate).
    */
   resolver: nonEmpty,
@@ -88,20 +88,58 @@ export function edgeIdentityKey(edge: Pick<Edge, "fromId" | "toId" | "type">): s
 }
 
 /**
+ * A link's eligibility — the four-way classification the reviewer surface shows
+ * and the gate's decisive boundary is derived from (FR-05 / §9.2).
+ *
+ * `confirmed` / `system-confirmed` are decisive; `inferred` / `unconfirmed` are
+ * not. The distinction between the two decisive values is *who* established the
+ * link — a human (`user:<id>`) or the system (`system:threshold`, an `observed`
+ * or `derived` source) — which the UI surfaces but the gate does not care about.
+ */
+export const LINK_ELIGIBILITIES = ["confirmed", "system-confirmed", "inferred", "unconfirmed"] as const;
+export const linkEligibilitySchema = z.enum(LINK_ELIGIBILITIES);
+export type LinkEligibility = z.infer<typeof linkEligibilitySchema>;
+
+/**
+ * Classify an active edge. The decisive boundary is the single source of truth
+ * for both the gate and the reviewer surface:
+ *
+ *   · a human-confirmed link (`user:<id>`) is `confirmed`
+ *   · a system-confirmed link (`system:threshold`, or an `observed`/`derived`
+ *     source) is `system-confirmed`
+ *   · a raw model candidate is `inferred` — listable, never decisive
+ *   · an unresolved link is `unconfirmed`
+ *
+ * A human or threshold confirmation overrides the source class: a reviewer
+ * signing off on an `unresolved` or `model_candidate` link makes it decisive,
+ * which is the whole point of the confirm action (00013).
+ */
+export function eligibilityFor(edge: Pick<Edge, "sourceClass" | "resolver">): LinkEligibility {
+  if (edge.resolver.startsWith("user:")) return "confirmed";
+  if (edge.resolver.startsWith("system:")) return "system-confirmed";
+  if (edge.sourceClass === "observed") return "system-confirmed";
+  if (edge.sourceClass === "derived") return "system-confirmed";
+  if (edge.sourceClass === "model_candidate") return "inferred";
+  return "unconfirmed";
+}
+
+/** Is a classified eligibility decisive? The boundary the gate and UI share. */
+export function isDecisiveEligibility(eligibility: LinkEligibility): boolean {
+  return eligibility === "confirmed" || eligibility === "system-confirmed";
+}
+
+/**
  * May this edge contribute to a decisive finding? (FR-05 / §9.2.)
  *
- * Unconfirmed or inferred edges may exist — they simply can never be decisive
- * on their own. Auto-confirmed links (FR-28) become decisive by recording
- * `system:threshold` as the resolver, which keeps the decision auditable and
- * reversible rather than implicit.
+ * Derived from `eligibilityFor` so the gate and the reviewer surface can never
+ * disagree about the same edge. Unconfirmed or inferred edges may exist — they
+ * simply can never be decisive on their own. Auto-confirmed links (FR-28)
+ * become decisive by recording `system:threshold` as the resolver, which keeps
+ * the decision auditable and reversible rather than implicit.
  */
 export function isDecisiveEligibleEdge(edge: Pick<Edge, "sourceClass" | "linkState" | "resolver">): boolean {
   if (edge.linkState !== "active") return false;
-  if (edge.sourceClass === "unresolved") return false;
-  if (edge.sourceClass === "model_candidate") {
-    return edge.resolver === "system:threshold" || edge.resolver.startsWith("manual:");
-  }
-  return true;
+  return isDecisiveEligibility(eligibilityFor(edge));
 }
 
 /** Association class on `SATISFIES`: one commit-pinned code location (§22.1). */

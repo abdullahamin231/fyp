@@ -1,4 +1,4 @@
-import type { Finding, PolicyId, Severity } from "@/lib/types";
+import type { Finding, Severity } from "@/lib/types";
 
 /**
  * Conflict-alerts screen types and predicates.
@@ -22,9 +22,9 @@ export function alertsForTab(findings: Finding[], id: AlertTabId): Finding[] {
     case "critical":
       return findings.filter((f) => f.severity === "critical");
     case "drift":
-      return findings.filter((f) => f.policy === "P1" || f.policy === "P3");
+      return findings.filter((f) => f.policy === "RULE_1" || f.policy === "RULE_3");
     case "mismatch":
-      return findings.filter((f) => f.policy === "P2" || f.policy === "P4");
+      return findings.filter((f) => f.policy === "RULE_2" || f.policy === null);
     case "all":
     default:
       return findings;
@@ -48,12 +48,12 @@ export function sortAlerts(list: Finding[], mode: SortMode): Finding[] {
   return copy.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 }
 
-/** Human category label per policy — drives the "Design Drift" style filters. */
-export const policyCategory: Record<PolicyId, string> = {
-  P1: "Design Drift",
-  P2: "Ghost Ticket",
-  P3: "Token Drift",
-  P4: "Status Mismatch",
+/** Human category label per rule id — drives the "Design Drift" style filters. */
+export const policyCategory: Record<string, string> = {
+  RULE_1: "Design Drift",
+  RULE_2: "Workflow State",
+  RULE_3: "Overlapping Scope",
+  criterion_verification: "Criterion Verification",
 };
 
 /** Right-rail: integration connection row. */

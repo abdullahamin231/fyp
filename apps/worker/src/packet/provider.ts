@@ -1,4 +1,5 @@
 import {
+  NODE_TYPE_META,
   SLOT_ITEMS_KEY,
   evidenceItemSchema,
   type Edge,
@@ -57,21 +58,20 @@ export interface EvidenceProvider {
 /**
  * Which packet slot a node type's evidence belongs in (§1.7).
  *
+ * Derived from `NODE_TYPE_META` in `@unify/contracts` — the single table that
+ * also carries each node type's display tool, so the worker and the reviewer
+ * surface can never disagree about the node-type vocabulary.
+ *
  * This is the whole contract between "a node in the graph" and "a section of
  * the packet": publish `payload.slotItems` on a node of one of these types and
  * it lands in the matching slot. Node types without an entry contribute to the
  * graph-neighbourhood slot through their edges, not through payload items.
  */
-export const TYPE_TO_SLOT: Partial<Record<NodeType, PacketSlot>> = {
-  Requirement: "REQUIREMENT_TEXT",
-  DesignConstraint: "DESIGN_CONSTRAINTS",
-  TestCase: "TEST_EVIDENCE",
-  CodeSymbol: "SYMBOL_CARDS",
-  Commit: "DIFF_HUNKS",
-  PullRequest: "DIFF_HUNKS",
-  Ticket: "GRAPH_NEIGHBOURHOOD",
-  Message: "GRAPH_NEIGHBOURHOOD",
-};
+export const TYPE_TO_SLOT: Partial<Record<NodeType, PacketSlot>> = Object.fromEntries(
+  Object.entries(NODE_TYPE_META).flatMap(([type, meta]) =>
+    meta.slot ? [[type, meta.slot]] : [],
+  ),
+) as Partial<Record<NodeType, PacketSlot>>;
 
 /**
  * Citation handles are namespaced by the owning node's external id, so two

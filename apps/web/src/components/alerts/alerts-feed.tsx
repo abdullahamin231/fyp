@@ -57,7 +57,7 @@ function AlertCard({ finding }: { finding: Finding }) {
   const [queued, setQueued] = useState(false);
   const title = finding.title;
   const isCritical = finding.severity === "critical";
-  const category = policyCategory[finding.policy];
+  const category = policyCategory[finding.policy ?? "criterion_verification"];
 
   return (
     <article className="bg-surface-container border border-outline-variant rounded-xl overflow-hidden hover:border-tertiary hover:bg-surface-container-high transition-all group">
@@ -73,7 +73,7 @@ function AlertCard({ finding }: { finding: Finding }) {
             {isCritical ? "Critical" : category}
           </span>
           <span className="font-mono-code text-micro-label text-on-surface-variant px-2 py-0.5 rounded bg-surface-container-lowest">
-            {finding.policy}
+            {finding.policy ?? "verdict"}
           </span>
           <span className="text-on-surface-variant text-body-sm">Detected {finding.ageLabel} ago</span>
         </div>
