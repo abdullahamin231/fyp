@@ -99,20 +99,20 @@ Include every required modification from the proposal decision. Do not list only
 
 | **Planned milestone or work package** | **Owner** | **Planned date** | **Current state** | **Evidence** | **Variance and recovery action** |
 |---|---|---|---|---|---|
-| _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
-| _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
-| _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
+| Live provider source adapters and event reliability | Haaniah | 11 Oct 2026 | Partial: implementation complete, live validation pending | `c95df34`; adapters, OAuth/webhook routes, migration `00010` | Configure provider apps/secrets and run the documented live rehearsal before final evaluation |
+| OAuth onboarding and encrypted connection persistence | Haaniah | 11 Oct 2026 | Complete in code; deployment/configuration rehearsal pending | Signed state, callbacks, AES-256-GCM storage; `c95df34` | Verify all three callbacks with real provider apps and rotate test credentials |
+| Webhook normalization, replay and duplicate safety | Haaniah | 11 Oct 2026 | Partial: route guards and uniqueness implemented; fixture/live execution pending | Raw-body verification, 10 MiB limit, delivery receipts, `docs/INTEGRATION_WEBHOOK_TESTING.md` | Run positive, invalid-auth, duplicate, ignored-event and oversized-payload cases |
 | _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
 | _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
 | _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
 | _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
 
-| **Iteration objective** | _State the objective that was due by the mid evaluation_ |
+| **Iteration objective** | Deliver a replayable source-ingestion boundary and production-shaped read-only integrations for GitHub, Jira and Figma, while preserving raw-payload authenticity, normalized events and duplicate safety. |
 |---|---|
-| **Objective status** | _Met, partially met or not met, with reason_ |
-| **Critical blocker** | _State none or describe impact and owner_ |
-| **Recovery plan** | _Specific tasks, owners and dates; do not write work harder_ |
-| **Next iteration outcome** | _State the demonstrable FYP 1 final outcome_ |
+| **Objective status** | Partially met: implementation and documentation are committed; live OAuth/webhook execution, provider rate-limit checks and concrete reconciliation polling remain outstanding. |
+| **Critical blocker** | No code blocker. External provider credentials, HTTPS tunnel, Supabase migration application and dependency installation are required for live validation. |
+| **Recovery plan** | Haaniah: configure provider apps and environment variables, apply migration `00010`, run the three-provider guide and add recorded results. Team: review report claims and freeze an evaluation commit after the live rehearsal. |
+| **Next iteration outcome** | A demonstrable provider-to-event persistence path for GitHub, Jira and Figma, with replay fixtures for failure cases, verified delivery idempotency, and documented reconciliation behavior for missed vendor deliveries. |
 
 ## **4 Live prototype and core module** 
 
@@ -132,18 +132,18 @@ Include every required modification from the proposal decision. Do not list only
 | _Client or interface_ | Web review UI (apps/web/src/components/conflict-detail/) | None | Commit d2d7d0c; rendered diagrams | Not applicable — interface is the implemented frontend |
 | _Backend or service_ | Supabase verification queue (migrations 00013, 00014) + worker service | None | Commit a037d16; Supabase migrations | Not applicable — backend is fully implemented |
 | _Core algorithm or model_ | Type-system analyser (packages/contracts/src/gate.ts, apps/worker/src/model/) | None | Commit a037d16; 68 files changed including verdict gate and model seam | Not applicable — core algorithm is fully implemented |
-| _Data or external dependency_ | Supabase verification queue, fixture demo cases | Fixture data for edge cases | Commit bfb3201 (Abdullah annotation sheet); commit a037d16 | Plan to replace fixture data with live Supabase data when production dataset available |
+| _Data or external dependency_ | GitHub, Jira Cloud and Figma read-only OAuth/webhook connections; normalized events persisted to Supabase | Fixture/replay payloads remain the fallback until live provider credentials and tunnels are configured | Commit `c95df34`; `docs/INTEGRATIONS.md`; `docs/INTEGRATION_WEBHOOK_TESTING.md`; migration `00010_integrations.sql` | Configure provider OAuth apps and webhook secrets, run the documented live rehearsal, then add reconciliation/polling coverage for delivery gaps |
 
 #### **Live demonstration plan** 
 
 | **Step** | **Action** | **Expected result** | **Evidence visible** | **Presenter** |
 |---|---|---|---|---|
-| 1 | _Enter action_ | _Enter observable result_ | _UI, log, test, metric or repository_ | _Enter_ |
+| 1 | Start OAuth from onboarding for GitHub, Jira and Figma | Provider authorization opens with a signed, workspace-bound state; callback stores encrypted access/refresh tokens without returning them to the browser | Browser redirect; `apps/web/src/app/api/integrations/[provider]/authorize/route.ts` and `callback/route.ts`; `integration_connections` | Haaniah |
 | 2 | In `apps/worker`, run `npm run demo:linking -- --live`: five pull-request events through the real linker on the hosted Supabase project | Outcomes printed in order: `linked`, `no_key`, `unknown_key`, `duplicate_event`, `already_linked`; afterwards `edges` holds one `TRACKS` edge (observed, confidence 1.0, resolver `explicit-reference`) and `events` holds four rows | Terminal log; `edges` and `events` tables in the Supabase dashboard | Mishal |
 | 3 | Run `npm run analyse:evaluate` on the 15 pilot cases, then open the symbol card for pilot P01 (react-hook-form, `createFormControl.clearErrors`) | Scores printed: files 29/29, changed tests 14/14, changed named symbols 11/11, unchanged not flagged 21/21, one known miss (P06-S3); card shows name, signature, JSDoc, imports, callers and commit message | Terminal output; card text; `test/analyser-packet.test.ts` showing the card admitted to a packet (TC-22) | Mishal |
-| 4 | _Enter action_ | _Enter observable result_ | _UI, log, test, metric or repository_ | _Enter_ |
-| 5 | _Enter action_ | _Enter observable result_ | _UI, log, test, metric or repository_ | _Enter_ |
-| 6 | _Enter action_ | _Enter observable result_ | _UI, log, test, metric or repository_ | _Enter_ |
+| 4 | Send a signed GitHub `pull_request` or `push` delivery to the workspace webhook | Raw-body HMAC verification succeeds; one immutable delivery receipt and one normalized event are persisted, including repository and base/head SHA data for PRs | Tunnel/provider delivery log; `integration_deliveries`; `events`; `apps/web/src/app/api/webhooks/[provider]/[workspaceId]/route.ts` | Haaniah |
+| 5 | Send a signed Jira issue update containing `changelog.items[]` | The normalized event records the issue reference and the status transition from the changelog without a second issue read | Provider delivery log; `integration_deliveries`; `events`; Jira adapter in `apps/web/src/lib/integrations/adapters.ts` | Haaniah |
+| 6 | Send Figma `FILE_VERSION_UPDATE` and `DEV_MODE_STATUS_UPDATE` payloads, then replay one delivery | Named-version/dev-mode events are normalized; duplicate delivery is a no-op; `FILE_UPDATE` is ignored | Provider delivery log; `events`; Figma adapter and uniqueness constraints | Haaniah |
 
 #### **Normal edge and failure cases** 
 
@@ -152,12 +152,15 @@ Include every required modification from the proposal decision. Do not list only
 | Normal | PR titled, branched and committed with `UNI-123`, an ingested Jira ticket | One `TRACKS` edge PR → ticket, `observed`, confidence 1.0, resolver `explicit-reference`; all three places the key appeared stored as provenance | Pass (local test and live run on Supabase, 11 Oct) | TC-11; `apps/worker/test/link-pull-request.test.ts`; demo step 2 |
 | Edge | (a) PR that names no key; (b) the same webhook delivery sent twice | (a) Event and PR node stored, no edge; (b) second delivery writes nothing, because the unique `(source_tool, vendor_delivery_id)` insert returns no row | Pass: `no_key`, `duplicate_event`; one event row and one edge | TC-12, TC-14; demo step 2 |
 | Failure | PR naming `UNI-999`, a key with no ticket (title also contains `UTF-8`) | No edge and no placeholder ticket node; key kept on the event for later re-resolution; `UTF-8` rejected by the project allow-list | Pass: `unknown_key`; node count rises by one (the PR only). Atomicity also tested: a failure injected on the edge insert rolls back the event and PR node (TC-15) | TC-13, TC-15; demo step 2 |
+| Normal | Valid GitHub, Jira or Figma webhook with the configured secret/passcode | Provider authenticity is checked against the raw body or payload passcode, then the event is normalized and persisted | Implemented in the route and adapters; live provider execution remains pending | `c95df34`; `docs/INTEGRATION_WEBHOOK_TESTING.md` |
+| Edge | Duplicate delivery, ignored Figma `FILE_UPDATE`, or Jira update without a status changelog item | Duplicate receipt is acknowledged without a second event; ignored Figma event produces no normalized version event; Jira event remains valid without inventing a transition | Implemented by delivery uniqueness and provider event filters; live replay remains pending | `00010_integrations.sql`; `apps/web/src/lib/integrations/adapters.ts` |
+| Failure | Invalid signature/passcode or request body over 10 MiB | Request is rejected before JSON normalization or persistence | Implemented route guards; numeric live response not yet recorded | Webhook route; `docs/INTEGRATION_WEBHOOK_TESTING.md` |
 
 ## **5 Requirements scope and acceptance evidence** 
 
 | **Problem and primary users** | A reviewer deciding whether one pull request still matches the intent it claims to implement has to check the tracker, the design tool, the diff and the tests by hand, from memory, and no record of the evidence survives the merge, so mismatches surface late (Ch. 1 §1.2). Primary users: code reviewers and developers; secondary: product managers and designers who own the criteria and designs (Ch. 4 Table 4.1). |
 |---|---|
-| **Current scope** | Committed system (Ch. 1 §1.6): read-only ingestion from one design, one work-item and one change source; deterministic and manually confirmed linking; immutable versioned artifact store; typed evidence graph with provenance; Rules 1–3 and P4; code and test analysis for Python and TypeScript/JavaScript; criterion decomposition and deterministic context packets; bounded local verifier; verdict and provenance gate; reviewer interface. **Iteration 1 boundary:** verification pipeline and gate with a stub model, deterministic PR→ticket linker (live on Supabase), change analyser, ingestion engine with a mock vendor, reviewer UI reading from the database. Not yet in this iteration: live GitHub/Jira/Figma adapters, a real local model, Rules 1–3 evaluation, requirement anchors (FR-22 to FR-24). |
+| **Current scope** | Committed system (Ch. 1 §1.6): read-only ingestion from GitHub, Jira Cloud and Figma through OAuth/webhooks; deterministic and manually confirmed linking; immutable versioned artifact store; typed evidence graph with provenance; Rules 1–3 and P4; code and test analysis for Python and TypeScript/JavaScript; criterion decomposition and deterministic context packets; bounded local verifier; verdict and provenance gate; reviewer interface. **Iteration 1 boundary:** verification pipeline and gate with a stub model, deterministic PR→ticket linker, change analyser, replayable ingestion engine, reviewer UI, and the live provider adapter/webhook implementation. Live provider credentials, tunnel execution, reconciliation polling and final end-to-end provider-to-graph rehearsal remain release-gate validation tasks. |
 | **Explicit exclusions** | Autonomous code generation or repair; any claim of general program correctness; languages beyond Python and TypeScript/JavaScript; open-ended chat with the system; write-back to source tools; hosted model APIs in the committed system; pixel-level design certification; integrations beyond GitHub, Jira and Figma (Ch. 1 §1.6). Repository code quality is out of scope beyond the documentation-quality warning of FR-27 (Ch. 4). |
 | **Success criteria** | Project targets (Ch. 1 §1.9): explicit-reference link precision ≥ 0.95; evidence recall@5 ≥ 0.90; contradiction precision ≥ 0.90; unsupported confident assertions ≤ 2%; provenance completeness 100%; correct abstention ≥ 80%; convergence under duplicate/out-of-order delivery 100%; incremental = full evaluation ≥ 99%; annotator agreement above the stated threshold. **This iteration:** each built component covered by automated tests (worker 76/76, contracts 115/115); dataset pilot κ ≥ 0.70 (achieved 0.90); analyser matches the pilot cases (TC-17); linker runs live on the hosted database. |
 
@@ -169,7 +172,7 @@ Include every required modification from the proposal decision. Do not list only
 | R4 | Analyser output reaches the verifier's input (FR-06 → FR-08 hand-off) | FR | Analyser nodes placed in the graph fill the diff-hunk, symbol-card and test-evidence slots of a packet | Met for the hand-off (test, not live) | TC-22 |
 | R5 | NFR-01 (linking slice): duplicate delivery creates no duplicate event or edge | NFR | Same delivery twice → one event row, one edge; repeated mention of a linked key → no new edge | Partial: met for the linker; findings and out-of-order delivery belong to the ingestion engine (TC-21) | TC-14 |
 | R6 | NFR-07: p95 analysis time per PR under 60 s (provisional) | NFR | Timed over the pilot cases on the declared hardware | Partial: analyser median 0.3 s, max 4 s; model inference not measured | TC-17 |
-| R7 | NFR-09/NFR-10 (linking and publishing): graph writes only through the service-role key; repository code executed only on explicit request | NFR | `anon` and `authenticated` roles refused; test runs only with `--run-tests`, in a throwaway worktree | Partial: met for linker and analyser; OAuth scopes and token encryption belong to adapters not yet built | TC-15; `run-tests.ts` |
+| R7 | NFR-09/NFR-10 (linking and publishing): graph writes only through the service-role key; repository code executed only on explicit request | NFR | `anon` and `authenticated` roles refused; test runs only with `--run-tests`, in a throwaway worktree; integration credentials remain server-only and encrypted | Partial: met for linker/analyser and implemented for integration credential/webhook boundaries; provider scope and live egress review remain pending | TC-15; `run-tests.ts`; `c95df34` |
 | R8 | FR-22/FR-23: requirement entities with commit-pinned anchors, re-anchored after each commit | FR | Anchor stores every field; scripted moves/renames/deletion re-anchored or marked broken; survival rate reported | Deferred to FYP-II: designed only (domain model, anchor diagram) | Ch. 5 Fig. anchor; Ch. 4 status paragraph |
 
 #### **Requirement traceability** 
@@ -191,7 +194,7 @@ Include every required modification from the proposal decision. Do not list only
 | _Architecture_ | _Enter_ | _Enter_ | _Components, paths or interfaces_ | _Enter_ | _Enter_ |
 | Data/schema/ERD | Relational schema for the evidence graph, events, snapshots, packets and findings | `diagrams/erd.tex`, 7 Oct; migrations up to 00016 (11 Oct) | `supabase/migrations/`: one `nodes` table with a type discriminator, one `edges` table with source class, confidence, resolver and validity; append-only `events` with unique delivery id; 00015 (linking RPC) and 00016 (publish RPC) write to these tables | Requirement entity and anchor added; storage frozen as relational (Ch. 5 §5.5) | Type-agnostic traversal needs one node table; uniqueness constraints make duplicate processing a database no-op instead of relying on worker logic |
 | _Process/data flow_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
-| _Behavior/state/sequence_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
+| _Behavior/state/sequence_ | Event lifecycle, source freshness and finding lifecycle state machines; sequence from provider delivery through verification persistence | `diagrams/06_state_machines.tex`; Chapter 5 behavior/process material | Event received → authenticated → normalized → deduplicated → persisted; stale/missing deliveries remain reviewable and reconciliation is the recovery path | Haaniah | Partially wired; final diagram compilation and live sequence rehearsal pending |
 | Project-specific: requirement-to-code anchor and re-anchoring | Shows how a requirement stays linked to the code that satisfies it as the code moves (FR-22 to FR-24) | `diagrams/anchor-reanchoring.tex`, 7 Oct | Designed only; the analyser already produces the per-symbol fields an anchor needs (qualified name, line range, content, commit) | New since the proposal defence | Panel asked for requirement-to-code traceability; anchors are pinned to a commit so a verdict can be re-read against the code it cited. The example in the figure is invented and says so |
 
 #### **Architecture and interface decisions** 
@@ -215,9 +218,9 @@ Commit count alone is not enough. Show what each member designed, implemented, t
 | Analyser → packet hand-off | Mishal (with Abdullah's packet builder) | D-11 | `3171080`; PR #25 | `payloads.ts`; `test/analyser-packet.test.ts` | TC-22 | Merged |
 | Dataset pilot, adjudication, external review analysis | Mishal | Panel action: dataset validation | `66e85c7`, `aaeb6f1`; PRs #5, #10 | `docs/dataset/`; `tools/agreement_multi.py` | 138 integrity checks; κ 0.90; external α 0.48 (pilot) | Pilot done; re-run open (D-08) |
 | Report: Ch. 4, Ch. 6 §6.4.1, Ch. 7, four diagrams | Mishal | Report chapters | `33b00e7`, `8fe18d6`, `b6f71c7`, `6c8aca3` | `docs/F26 FYP1 Mid Report LaTeX/` | Report compiles; numbers re-run 11 Oct | Drafted; own-words review pending |
-| _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
+| Live provider integrations and source reliability | Haaniah | FR-01, FR-02, FR-16; source-adapter and webhook checklist | `c95df34` | `apps/web/src/lib/integrations/`; `apps/web/src/app/api/integrations/`; `apps/web/src/app/api/webhooks/`; migration `00010_integrations.sql` | OAuth state signing, encrypted token storage, raw-body verification, delivery idempotency and normalization are implemented; live provider run remains pending | Implemented; live validation pending |
+| Report evidence and integration documentation | Haaniah | Chapters 3, 6 and 9; integration setup/test evidence | `de5c1ff`, `45e5ed7`, `c95df34` | `docs/F26 FYP1 Mid Report LaTeX/chapters/`; `docs/INTEGRATIONS.md`; `docs/INTEGRATION_WEBHOOK_TESTING.md` | Evidence checked against git history and implementation; provider test guide records required environment and tunnel setup | Drafted; final review and live rehearsal pending |
+| Evaluation tag | All | Final evaluation freeze | `45e5ed7` (current evidence baseline) | Repository history and report chapters | No release tag has been created yet | Pending final review |
 | **Evaluation tag** | **or commit** | | _Full identifier and date_ | | | |
 
 | **Task tracking method** | _Board, issues, milestone, log or other method_ |
@@ -239,6 +242,8 @@ Commit count alone is not enough. Show what each member designed, implemented, t
 | TC-22 | Analyser → packet | Real analyser output → production `GraphEvidenceProvider` → `buildPacket`; control without `IMPLEMENTS` edges | All three slots filled; control only diff hunks | Pass, both runs | `test/analyser-packet.test.ts` | Mishal |
 | TC-06 | Evaluation data | `agreement.py` on two blind annotation sheets, 15 cases | κ ≥ 0.70 gate | Pass: verdict κ 0.90; 7 disagreements adjudicated | §7.5; adjudication log | Mishal (adjudicator) |
 | TC-16 | Evaluation data | `agreement_multi.py` on 10 external reviewers' sheets, 2 per case | Krippendorff α per field and agreement with reference | 19/22 decisive judgements match; α 0.48 (95% CI 0.08–0.80): inconclusive pilot | §7.6 | Mishal |
+| INT-01 | FR-01, FR-02, FR-16 | Provider adapter normalization and webhook route review for GitHub, Jira and Figma; raw-body/signature or passcode path, delivery receipt and event upsert | Authenticated supported events normalize to the shared event shape and persist once; unsupported events are ignored | Implementation complete; live provider execution not yet run | `apps/web/src/lib/integrations/adapters.ts`; webhook route; `c95df34` | Haaniah |
+| INT-02 | NFR-01, NFR-03 | Replay fixtures for invalid authenticity, duplicate delivery, ignored Figma `FILE_UPDATE`, Jira changelog omission and >10 MiB payload | Invalid/oversized requests reject; duplicates converge; ignored events do not create version events | Route branches and database uniqueness implemented; fixture execution pending dependency installation | `docs/INTEGRATION_WEBHOOK_TESTING.md`; migration `00010_integrations.sql` | Haaniah |
 
 #### **Required failure or edge case discussion** 
 
@@ -253,34 +258,34 @@ Commit count alone is not enough. Show what each member designed, implemented, t
 
 | **Area** | **Current evidence** | **Limitation** | **Next validation action** |
 |---|---|---|---|
-| Functional correctness | Worker 76/76 (pipeline, linking, analyser); contracts 115/115; web typecheck, lint and build pass; analyser matches the pilot (TC-17); linker live on Supabase | No front-end tests; no live GitHub/Jira/Figma source; Rules 1–3 not evaluated | Front-end tests (D-04); webhook and adapters (D-09); scenario matrix T1–T11 on live sources |
+| Functional correctness | Worker 76/76 (pipeline, linking, analyser); contracts 115/115; analyser matches the pilot (TC-17); linker live on Supabase; provider adapters, OAuth routes and webhook persistence implemented | No front-end tests; live GitHub/Jira/Figma source run and fresh web/contract rerun are not recorded here; Rules 1–3 not evaluated | Install dependencies; run web/contract checks; execute `docs/INTEGRATION_WEBHOOK_TESTING.md`; complete provider-to-graph scenario matrix |
 | Performance/resource use | Analyser median 0.3 s, max 4 s per pilot case against the 60 s target (NFR-07) | Model inference not measured | Local-inference spike: latency, memory, quantisation |
 | Model/algorithm quality | Gate and verifier loop behave as specified with a stub model, incl. T10; analyser scored on 15 cases | No real model evaluated; 15 cases is a pilot, not an oracle | Model selection protocol, then per-class verdict metrics on the frozen gold set |
 | User/field validation | Interface checked against its exported design; internal κ 0.90; external review piloted with 10 engineers | No task-based user session; external α inconclusive at two reviewers per case | Re-run external review with the revised page and ≥ 3 reviewers per case (D-08); crossover study against the manual baseline |
-| Security/privacy/safety | No runtime external requests from the web app; linking and publishing callable only with the service-role key (TC-15); repository code run only on request, in a throwaway checkout | Read-only scopes, encrypted tokens and egress inspection belong to adapters not yet built | Egress-inspection test and credential review when adapters are written |
+| Security/privacy/safety | Integration routes use signed OAuth state, workspace authorization, AES-256-GCM token/secret storage, raw-body authenticity checks, a 10 MiB body limit and service-role server boundaries | Live egress inspection, provider scope review and credential-rotation rehearsal remain outstanding | Review provider scopes and encrypted storage; run invalid-auth, oversized-payload and secret-rotation cases from the integration guide |
 
 ## **9 Mid report preparation record** 
 
 | **Official report criterion** | **What the report contains** | **Section/page** | **Primary artefact or evidence** | **Owner** | **Ready** |
 |---|---|---|---|---|---|
-| Report format and required artefacts present | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
-| Problem formulation, R&D and existing solution analysis | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
+| Report format and required artefacts present | Chapters 3, 6 and 9 updated with implementation evidence, ownership disclosures and limitations; front matter and final compilation remain a team check | Ch. 3, Ch. 6, Ch. 9 | `docs/F26 FYP1 Mid Report LaTeX/chapters/` | Haaniah for owned chapters; all for final format review | Partial |
+| Problem formulation, R&D and existing solution analysis | Problem, stakeholders, related solutions and the evidence-preserving integration gap are documented; Haaniah owns the Ch. 1/2 evidence feed and source-adapter rationale | Ch. 1–2 | Proposal, architecture documentation and integration specification | Haaniah | Partial pending final citation/own-words review |
 | Project vision, scope, modules and success criteria | Vision, objectives, included and excluded scope, ten modules, measurable success criteria | Ch. 1 §1.4–§1.9 | Ch. 1 success-criteria table; Ch. 4 scope limit on repository quality | Mishal | Yes |
 | Requirements and acceptance criteria | Roles, use-case diagram, 6 detailed use cases, FR-01–FR-29 with owners, NFR-01–NFR-14 with targets, one acceptance check per FR, status of new FRs, full traceability table | Ch. 4 §4.1–§4.7 | `docs/traceability/traceability_matrix.csv` and generator | Mishal (traceability with Abdullah) | Yes |
-| Architecture and component/interface design | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
-| Data/process/behavior design | Domain model, ERD with the three schema rules, process and behaviour diagrams, anchor diagram | Ch. 5 §5.6–§5.8 | `diagrams/erd.tex`, `domain-model.tex`, `anchor-reanchoring.tex`; `supabase/migrations/` | Mishal (ERD, domain model, anchor); others per Ch. 5 | Yes |
-| Implementation documentation of completed module | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
+| Architecture and component/interface design | Provider adapters, OAuth routes, webhook ingress, normalized event envelope and Supabase persistence boundaries are documented alongside the verifier architecture | Ch. 5; Ch. 6 Haaniah subsection; `docs/INTEGRATIONS.md` | `apps/web/src/lib/integrations/`; API routes; migration `00010_integrations.sql` | Abdullah owns architecture; Haaniah supplies integration interfaces and evidence | Partial pending final review |
+| Data/process/behavior design | Domain model, ERD with the three schema rules, process and behaviour diagrams, anchor diagram, plus source-event reliability and lifecycle behavior | Ch. 5 §5.6–§5.8; Ch. 6 | `diagrams/06_state_machines.tex`; `supabase/migrations/`; integration adapters | Haaniah for ingestion/state behavior; Mishal for ERD; team review | Partial; diagram wiring and compilation remain to be checked |
+| Implementation documentation of completed module | Read-only GitHub/Jira/Figma OAuth and webhook implementation, normalized events, encrypted credentials, raw-body verification, delivery receipts and replay/testing procedure are documented | Ch. 6 Haaniah subsection; `docs/INTEGRATIONS.md`; `docs/INTEGRATION_WEBHOOK_TESTING.md` | `apps/web/src/lib/integrations/`; OAuth/webhook routes; `00010_integrations.sql` | Haaniah | Partial pending live provider rehearsal |
 | Testing/validation plan and tool/risk disclosure | Strategy, TC-01–TC-22 with real results, internal and external agreement, edge/failure cases, defects D-01–D-11, validation status; GenAI register | Ch. 7 §7.1–§7.10; `docs/genai_register.md` | Test files in `apps/worker/test/`; `docs/dataset/` | Mishal (Ch. 7); each member for own register rows | Yes |
 
 #### **Problem formulation R and D and existing solutions** 
 
-| **Problem evidence** | _Stakeholder, literature, dataset, operational or observed evidence_ |
+| **Problem evidence** | Reviewers currently compare tracker intent, design decisions, code changes and tests manually; the project addresses the loss of traceable evidence across those tools. Haaniah's integration work supplies the source-ingestion evidence needed to connect that problem to real vendor events. |
 |---|---|
-| **Existing solutions reviewed** | _Name relevant products, systems, methods or prior FYPs_ |
-| **Remaining gap** | _Specific capability or limitation not adequately addressed_ |
-| **Complex computing challenge** | _State the difficult computing problem and why a routine solution is insufficient_ |
-| **Investigative work completed** | _Experiments, comparisons, prototypes or findings to date_ |
-| **Claims not yet proven** | _State uncertainties and the planned evaluation_ |
+| **Existing solutions reviewed** | Existing issue/design/code tools and webhook/OAuth APIs were treated as source systems rather than verification systems. Provider documentation for GitHub, Jira Cloud and Figma was reviewed for read-only access, authenticity, event semantics and delivery limitations. |
+| **Remaining gap** | Existing tools do not preserve a shared, provenance-bearing normalized event and evidence record across source versions; vendor webhooks are also best-effort and require idempotency and reconciliation handling. |
+| **Complex computing challenge** | The system must accept heterogeneous, differently authenticated payloads without losing raw-body verification, normalize them into one contract, prevent duplicate deliveries, and preserve enough provider identity/version data for deterministic downstream linking. A simple JSON endpoint would not provide those guarantees. |
+| **Investigative work completed** | Implemented pure GitHub, Jira and Figma adapters, signed OAuth state, encrypted connection storage, raw-body webhook verification, delivery receipts, event upserts, provider filters and replay fixtures; documented the environment and live test procedure. |
+| **Claims not yet proven** | Live provider OAuth/webhook execution, vendor rate-limit behavior, reconciliation polling and provider-to-graph end-to-end delivery remain unproven in committed evidence. These are final evaluation validation tasks. |
 
 #### **Implementation documentation checklist** 
 
@@ -312,8 +317,8 @@ Classify the effect of GenAI on each materially assisted artefact. Classificatio
 | Change analyser (`apps/worker/src/analyser/`, migration 00016) | Claude (Opus 5.5), L3 | Analyser, Python parser, coverage, publish RPC, evaluation script and tests written with Claude | Asked for Python, coverage and publishing in one pass; chose to connect it to the packet with `IMPLEMENTS` edges. | 18 tests + pilot evaluation; first scorer was too literal and was corrected; coverage path bug for react-hook-form found and fixed | Mishal |
 | Ch. 6 §6.4.1, Ch. 7 refresh, Ch. 4 status paragraph, worksheet draft | Claude (Opus 5.5), L3 (draft) | Draft text from the code, test output and live run | Wrote the external-review paragraph herself; decided how the pilot is reported. Checked every number in the drafts against the test output and the live run before keeping them | Every number re-run from the repository on 11 Oct; stale values from an earlier draft (TC-01–TC-04, FR-22–FR-29 status) replaced with current results | Mishal |
 | SE diagrams, Ch. 4 draft, dataset pilot | Claude (Opus 5.5), L3 | See `docs/genai_register.md`, rows of 7–9 Oct | As recorded in the register | As recorded in the register | Mishal |
-| _Enter_ | _Tool/model and L1-L4_ | _What was requested and retained_ | _Reasoning, design, edits or integration_ | _Tests, review, errors found, corrections and link_ | _Enter_ |
-| _Enter_ | _Tool/model and L1-L4_ | _What was requested and retained_ | _Reasoning, design, edits or integration_ | _Tests, review, errors found, corrections and link_ | _Enter_ |
+| GitHub/Jira/Figma integration layer | Copilot/Claude-assisted development, L3 Core assist | Adapter types, provider normalizers, OAuth routes, webhook route, encryption and Supabase migration were drafted and retained after integration work | Adapted the proposed `apps/api` shape to the actual Next.js `apps/web` route handlers; preserved existing contracts, RLS and onboarding behavior; intentionally kept read-only scopes | Reviewed provider-specific headers/event filters, raw-body ordering, workspace authorization, idempotency and 10 MiB guard; removed unsupported claims about live runs and polling; `c95df34`, `docs/INTEGRATIONS.md` | Haaniah |
+| Integration testing/setup documentation | Copilot/Claude-assisted documentation, L2 Assisted | `docs/INTEGRATION_WEBHOOK_TESTING.md` with environment variables, OAuth registration, tunnel setup, fixtures and verification queries | Converted implementation requirements into repeatable positive, negative, duplicate and ignored-event checks | Checked commands and database table names against the implementation; live commands intentionally left for the team to run | Haaniah |
 
 #### **Prompt journal for significant use** 
 
@@ -324,13 +329,14 @@ Record significant interactions that materially affected the project. Routine sp
 | 11 Oct | Linking implementation | Session transcript: PR → Jira linking with normal/edge/failure demo | Linker, RPC, tests, demo | Required the unknown-key case to create no placeholder; moved logic into one SQL function after finding supabase-js has no multi-call transaction | PR #21 |
 | 11 Oct | External review reporting | Session transcript: how to report α 0.48 | Inconclusive-pilot framing; numbers kept | Asked to drop the four badly-labelled cases; this was not done because it would misreport the data. Wrote her own paragraph reporting the pilot as inconclusive with the CI | Ch. 7 §7.6; D-08 |
 | 11 Oct | Analyser → packet | Session transcript: does analyser output reach the packet builder | `IMPLEMENTS` edges and end-to-end test | Chose `IMPLEMENTS` after the gap was shown by a control run | PR #25; TC-22 |
-| _Enter_ | _Enter_ | _Prompt summary or saved transcript_ | _Enter_ | _Explain what changed and why_ | _Link_ |
+| 12 Oct | Live integrations and report evidence | Session transcript: implement real GitHub/Jira/Figma OAuth/webhooks and complete Chapters 3, 6 and 9 | Provider adapters, OAuth/webhook routes, integration migration, testing guide and report evidence | Reconciled the specification with the actual `apps/web` layout; stated live-provider and polling work as pending rather than claiming it was run | `c95df34`; `docs/INTEGRATIONS.md`; report chapters |
 
 #### **Research and citation verification** 
 
 | **Claim or research task** | **Original source** | **How GenAI assisted** | **Verification against source** | **Correction rejection or outcome** | **Owner** |
 |---|---|---|---|---|---|
 | Krippendorff's alpha for the external review | Krippendorff (2018), *Content Analysis*, 4th ed. (`krippendorff2018`) | Explained the coefficient and bootstrap interval | Values from `agreement_multi.py` matched the `krippendorff` Python package to three decimals | Retained; CI reported with α | Mishal |
+| Source-adapter and webhook behavior | GitHub webhook signature documentation; Jira Cloud webhook documentation; Figma webhook documentation | Summarized provider payload, OAuth, signature/passcode and delivery requirements | Cross-checked the implementation against the provider-specific headers, event names and raw-body/passcode constraints recorded in `docs/INTEGRATIONS.md` and the testing guide | Retained read-only scopes and explicit unsupported-event behavior; live provider execution remains an open validation task | Haaniah |
 | _Enter_ | _Citation DOI URL or document_ | _Search, summary or synthesis_ | _What was checked in the original_ | _Enter_ | _Enter_ |
 | _Enter_ | _Citation DOI URL or document_ | _Search, summary or synthesis_ | _What was checked in the original_ | _Enter_ | _Enter_ |
 
@@ -341,12 +347,13 @@ Record significant interactions that materially affected the project. Routine sp
 | Supabase (Postgres, PostgREST, `supabase-js`) | Graph storage; linking and publish RPCs | Same migrations tested locally on PGlite; live demo on the hosted project | Availability of the hosted service; service-role key must stay in the gitignored `.env` | Local PGlite / self-hosted Postgres with the same migrations | Mishal (linking), Abdullah (project) |
 | TypeScript compiler API (`typescript` npm) | Syntax-only parsing in the analyser | TC-17, TC-18 | No type information, so dynamic calls are unresolved (reported, never linked) | Tree-sitter if type-aware resolution is needed | Mishal |
 | PGlite (`@electric-sql/pglite`) | In-process Postgres for tests with the real migrations | Same outcomes as the hosted run | Not identical to hosted Postgres (stub `auth` schema and roles) | Run tests against a local Supabase instance | Mishal |
+| GitHub, Jira Cloud and Figma OAuth/webhook services | Read-only source integrations and event delivery | Adapter normalization, raw-body authentication branches and persistence paths implemented; live provider setup is documented but not yet run | Vendor availability, rate limits, best-effort delivery and credential configuration | Replay fixtures; reconciliation/polling when implemented; provider-specific retry behavior | Haaniah |
 
-| **Sensitive data handling** | _State none or explain collection, access, storage, and consent. A (trust boundary): no sensitive data collected. H: outlines security controls_ |
+| **Sensitive data handling** | Provider access/refresh tokens and webhook secrets are credentials: they are server-only, encrypted with AES-256-GCM before storage, and never returned to the browser. Webhook payloads retain vendor metadata needed for evidence, not provider secrets. |
 |---|---|
-| **Security controls** | _Authentication, authorization, secrets, dependency, and deployment controls. A (trust boundary): implements auth flows in apps/worker; H: Supabase RLS policies_ |
-| **Licensing and attribution** | _State applicable licenses, permissions, and acknowledgements. A: open-source components (MIT/Apache); H: Supabase licensing_ |
-| **External availability risk** | _What happens if an API, service, device, model or dataset is unavailable. A (trust boundary): worker falls back to fixture data; H: Supabase queue downtime_ |
+| **Security controls** | OAuth state is signed and short-lived, callbacks verify workspace authorization, webhook routes verify raw-body signatures or Figma passcodes, payloads are capped at 10 MiB, and Supabase RLS/service-role boundaries constrain access. Provider secrets are configured through server-only environment variables. |
+| **Licensing and attribution** | Provider APIs and SDK/runtime dependencies remain subject to their vendor terms; the integration uses read-only access and stores no copied provider assets beyond normalized evidence metadata. Supabase and open-source package notices remain part of the project dependency review. |
+| **External availability risk** | OAuth providers, webhook delivery, Supabase or a tunnel can be unavailable. The system rejects unauthenticated deliveries, preserves already recorded delivery receipts/events, and uses replay fixtures for development; reconciliation is required for vendor delivery gaps. Live rate-limit and outage measurements remain pending. |
 
 _Summarize the highest assistance level, verification_ **Responsible GenAI use** _performed, mistakes found and material rejected or corrected_[cite: 1]
 
@@ -403,24 +410,24 @@ Record three technical questions you cannot yet answer confidently. These questi
 
 Complete this section individually. The supervisor may ask the member to locate, explain, test or modify any claimed contribution during the meeting.[cite: 1]
 
-| **Name and registration number** | _Enter_ |
+| **Name and registration number** | Haaniah Ismail; registration number to be entered |
 |---|---|
-| **Repository identity** | _Enter_ |
-| **Primary technical ownership** | _Enter_ |
-| **Most substantial contribution** | _Describe the contribution and why it matters_ |
-| **Problem personally resolved** | Getting the linker to run on our real Supabase project. Abdullah asked why the linker needed a database connection string, since the rest of the worker only uses the Supabase client. I worked out that the linker has four steps (save the event, save the PR node, look up the ticket, write the edge) that must all succeed or all fail, and separate `supabase-js` calls can't guarantee that because each call is its own transaction. So we put the four steps in one database function (`link_pull_request_event`, migration 00015), called through `supabase-js` with the service-role key, so no connection string is needed. I applied the migration on Supabase myself and ran `npm run demo:linking -- --live`: all five cases gave the expected outcomes, with one edge and four events in the tables |
-| **Highest GenAI assistance level** | _State L1, L2, L3 or L4 and identify the affected artefact_ |
-| **AI-generated output reviewed** | _Identify one material output and explain how you evaluated it_ |
-| **Error or limitation identified** | _Describe one error, unsupported claim or limitation you detected and how it was handled_ |
-| **Substantive modification made** | Two. First, when the analyser was finished, its symbols and tests were in the graph but the packet builder couldn't reach them from a criterion. I decided to connect them by having the PR point to every changed symbol and test with `IMPLEMENTS` edges, rather than a bigger change to Abdullah's builder, and the end-to-end test (TC-22) now shows the symbol cards and tests reaching the packet. Second, I wrote the external-review paragraph in Ch. 7 §7.6 myself: it reports α = 0.48 with its interval as an inconclusive pilot of the review instrument, with no cases dropped, and states the re-run planned before the final evaluation (D-08) |
-| **Task demonstrable without GenAI** | _State one technical task you can perform and explain independently during the evaluation_ |
-| **Live modification readiness** | _State a feature, function, test or design element you are prepared to change and explain_ |
-| **Next committed work** | _Specific task and date before the FYP 1 final evaluation_ |
+| **Repository identity** | GitHub identity and commits for Haaniah Ismail; exact username/email should be confirmed before submission |
+| **Primary technical ownership** | GitHub/Jira/Figma adapters, normalized event envelope, OAuth callbacks, raw-body webhook verification, delivery idempotency/replay, encrypted integration credentials, and source-reliability documentation |
+| **Most substantial contribution** | Implemented the real read-only provider integration layer for GitHub, Jira Cloud and Figma. It converts authenticated vendor deliveries into the shared event shape, preserves provider references and version identifiers, and persists delivery receipts/events without duplicate processing. |
+| **Problem personally resolved** | The repository had a mock ingestion path but no production-shaped boundary for provider authenticity and raw payload handling. I placed the adapters and webhook routes inside the existing Next.js application, read the raw request bytes before parsing, added provider-specific verification, signed OAuth state, encrypted server-side credentials, and workspace-scoped persistence instead of inventing a separate API application. |
+| **Highest GenAI assistance level** | L3 Core assist for the integration implementation and documentation; the retained code was reviewed, adapted to the existing Next.js/Supabase layout, and documented with explicit unrun/live-validation boundaries. |
+| **AI-generated output reviewed** | Provider adapter, OAuth/webhook route and documentation drafts were checked against the existing event contracts, Supabase schema/RLS conventions, provider header/event requirements and the integration testing guide. Unsupported claims about live execution, polling and numeric test results were removed. |
+| **Error or limitation identified** | The implementation does not yet provide a concrete polling/reconciliation adapter method, and live OAuth/webhook runs were not available in the repository evidence. This is recorded as a release-gate limitation; replay fixtures and the documented environment/tunnel procedure are the fallback until live validation. |
+| **Substantive modification made** | Adapted the integration design to the actual repository layout (`apps/web` route handlers rather than the specification's absent `apps/api`), added `00010_integrations.sql`, connected onboarding buttons to OAuth, allowed webhook routes through the proxy, and added the setup/replay guide with invalid-auth, duplicate, ignored-event and oversized-payload cases. |
+| **Task demonstrable without GenAI** | Explain and modify the GitHub HMAC, Jira HMAC/changelog and Figma passcode/version-event paths; trace a normalized event from raw request through delivery idempotency into `events`; and update a provider fixture without changing the shared contract. |
+| **Live modification readiness** | Add or remove a supported provider event, change a reference extractor, alter a webhook failure guard, or add a delivery-replay case while preserving raw-body verification and event idempotency. |
+| **Next committed work** | Install dependencies, apply migration `00010_integrations.sql`, configure OAuth/webhook environment variables, execute the GitHub/Jira/Figma live testing guide, and add reconciliation/polling behavior before the FYP 1 final evaluation. |
 
 | **Contribution** | **Repository or artefact** | **Commit PR issue or version** | **Test or result** | **Role** |
 |---|---|---|---|---|
-| _Enter_ | _Path or link_ | _Enter_ | _Enter_ | _Designed, implemented, tested, reviewed or integrated_ |
-| _Enter_ | _Path or link_ | _Enter_ | _Enter_ | _Designed, implemented, tested, reviewed or integrated_ |
+| GitHub/Jira/Figma adapters and normalized event contracts | `apps/web/src/lib/integrations/adapters.ts`; `types.ts`; `common.ts` | `c95df34` | Provider-specific verification and normalization implemented; live payload execution pending | Designed, implemented, reviewed, integrated |
+| OAuth, webhook ingress, encrypted credentials and delivery receipts | `apps/web/src/app/api/integrations/`; `apps/web/src/app/api/webhooks/`; `supabase/migrations/00010_integrations.sql` | `c95df34` | Signed state, AES-256-GCM storage, raw-body verification, 10 MiB guard and idempotency implemented | Designed, implemented, reviewed, integrated |
 
 #### **Member declaration** 
 
