@@ -94,6 +94,24 @@
       "confidence": 1.0,
       "resolver": "explicit-reference",
       "linkState": "active"
+    },
+    {
+      "from": "PR-142",
+      "to": "SYM-01",
+      "type": "IMPLEMENTS",
+      "sourceClass": "observed",
+      "confidence": 0.95,
+      "resolver": "explicit-reference",
+      "linkState": "active"
+    },
+    {
+      "from": "C-01",
+      "to": "TC-01",
+      "type": "SATISFIES",
+      "sourceClass": "observed",
+      "confidence": 1.0,
+      "resolver": "explicit-reference",
+      "linkState": "active"
     }
   ],
   "policy": {
