@@ -21,26 +21,26 @@ _Complete as a group and submit with the FYP 1 mid report at least 48 hours befo
 
 ## **Project identification** 
 
-| **Project ID** | _Enter registered FYP ID_ |
+| **Project ID** | FYP1 project identifier not present in the repository; registration-record entry required |
 |---|---|
-| **Project title** | _Enter the approved title_ |
-| **Panel number** | _Enter if assigned_ |
-| **Supervisor** | _Enter supervisor name_ |
-| **Evaluation date** | _Enter scheduled date and time_ |
-| **Repository** | _Paste the primary repository URL_ |
-| **Evaluation version** | _Full commit SHA, tag or release identifier_ |
+| **Project title** | UNIFY — Cross-Tool Change Assurance for Product Teams |
+| **Panel number** | Not assigned in the repository |
+| **Supervisor** | Dr. Ali Zeeshan Ijaz |
+| **Evaluation date** | 12 October 2026; exact scheduled time is not present in the repository |
+| **Repository** | https://github.com/abdullahamin231/fyp |
+| **Evaluation version** | `ce0ae2cc3c7bac61ecded081eba52670453673da` (`ce0ae2c`, 12 Oct 2026); final tag pending |
 
 **Runnable artifact** 
 
-_URL, APK, executable, container, notebook or other build_[cite: 1]
+Runnable artifact: Next.js web application in `apps/web`; worker service in `apps/worker`; local setup and demo commands are documented in the repository READMEs and integration testing guide.
 
 #### **Group members** 
 
 | **Member** | **Registration number** | **Repository identity** | **Current technical ownership** |
 |---|---|---|---|
-| Member 1 | _Enter_ | GitHub/GitLab username | _Enter_ |
-| Member 2 | _Enter_ | _Enter_ | _Enter_ |
-| Member 3 | _Enter_ | _Enter_ | _Enter_ |
+| Abdullah Amin | 23i-0691 | `abdullahamin231` | Verifier loop, packet builder, verdict/provenance gate, analyser support and architecture diagrams |
+| Haaniah Ismail | Registration number not present in repository | Repository username/email not present in repository | GitHub/Jira/Figma integrations, normalized events, OAuth/webhooks, reliability and report evidence |
+| Mishal Fatima | i230776 | `mishalfatima09` | Evidence graph, linking, change analyser, rules, dataset validation and requirements/traceability |
 
 ## **1 Official evaluation map** 
 
@@ -80,20 +80,21 @@ Include every required modification from the proposal decision. Do not list only
 
 | **Panel comment or required change** | **Decision and rationale** | **Owner** | **Status** | **Evidence link** | **Next action and date** |
 |---|---|---|---|---|---|
-| _Enter exact comment_ | _Accepted, adapted or not adopted with reason_ | _Enter_ | _Open, in progress, complete or blocked_ | _Enter_ | _Enter_ |
-| _Enter exact comment_ | _Accepted, adapted or not adopted with reason_ | _Enter_ | _Open, in progress, complete or blocked_ | _Enter_ | _Enter_ |
-| _Enter exact comment_ | _Accepted, adapted or not adopted with reason_ | _Enter_ | _Open, in progress, complete or blocked_ | _Enter_ | _Enter_ |
-| _Enter exact comment_ | _Accepted, adapted or not adopted with reason_ | _Enter_ | _Open, in progress, complete or blocked_ | _Enter_ | _Enter_ |
-| _Enter exact comment_ | _Accepted, adapted or not adopted with reason_ | _Enter_ | _Open, in progress, complete or blocked_ | _Enter_ | _Enter_ |
-| _Enter exact comment_ | _Accepted, adapted or not adopted with reason_ | _Enter_ | _Open, in progress, complete or blocked_ | _Enter_ | _Enter_ |
+| Reduce PM involvement in the verification loop | Accepted: automate evidence gathering and bounded verification while retaining human review for conflicts, abstentions and policy decisions | Abdullah, with all members | Complete for the Iteration 1 design; final live rehearsal remains | Verifier loop, verdict gate, reviewer findings; `apps/worker/src/verifier/`; Ch. 6 | Demonstrate normal, critic, abstention and failure paths; final rehearsal by evaluation |
+| Research which LLM and resources to use | Accepted: keep the model behind a typed local client seam and record model/run metadata; do not claim hosted-model use in the committed slice | Abdullah | In progress | `apps/worker/src/model/`; Ch. 6 and Ch. 9 limitations | Benchmark local candidates for latency, memory and quantisation before final evaluation |
+| Add traceability to the project | Accepted: trace criteria through graph edges, packets, citations, verdicts and report matrix entries | Mishal, with Abdullah | Partially complete; requirement anchors remain planned | `docs/traceability/`; `packages/contracts/src/gate.ts`; `apps/worker/src/packet/` | Complete FR-22–FR-24 anchors and regenerate the matrix |
+| Document LLM use, capacity and required models | Accepted: classify GenAI assistance by artefact and separate model assistance from the product's local verifier model | All; Haaniah coordinates register | Complete for current artefacts; final model benchmark open | `docs/genai_register.md`; worksheet Section 10; model seam | Add measured resource results and freeze the model configuration |
+| Validate the dataset and annotation process | Accepted: use blind annotation, adjudication and agreement metrics before relying on the dataset | Mishal, with Abdullah and Haaniah annotators | Pilot complete; supervisor/final validation remains | `docs/dataset/`; κ 0.90 pilot; adjudication log | Finish audit and freeze the evaluation set before final evaluation |
+| Treat comments as semantics and restrict scope to explainable code | Accepted: analyze projects with meaningful names, comments, filenames and directory structure; disclose failure outside that scope | Haaniah and Mishal | Implemented as a documented scope assumption; broader validation remains | `apps/worker/src/analyser/`; Ch. 4/6 scope and limitations | Add representative fixtures and measure analyser failures on unsuitable code |
+| Positive panel assessment and use of LLMs for large-code design | Accepted: preserve the approved direction while making context management, model boundaries and validation explicit | All | Addressed in architecture, verifier, dataset, GenAI and report sections | Ch. 5/6/8/9; `docs/genai_register.md`; packet builder and analyser | Demonstrate the bounded context pipeline and record final model/resource evidence |
 
 #### **Proposal response summary** 
 
-| **Actions completed** | _Summarize with references to rows above_ |
+| **Actions completed** | The team implemented a bounded verifier and reviewer gate, added traceability artefacts, established the GenAI register and model seam, ran a dataset agreement pilot, documented semantic-code scope assumptions, and added real GitHub/Jira/Figma integration code with replay guidance. |
 |---|---|
-| **Actions still open** | _Explain why and state the committed completion date_ |
-| **Scope consequence** | _State whether the approved scope is unchanged, clarified or reduced_ |
-| **Supervisor-approved exceptions** | _State none or identify the exception and approval evidence_ |
+| **Actions still open** | Final model resource benchmark, requirement-anchor implementation, supervisor audit of the dataset, live provider rehearsal, and final report/tag review remain before the FYP 1 final evaluation. |
+| **Scope consequence** | Approved scope is clarified, not expanded: the system remains read-only and evidence-preserving, while its analysis scope is limited to codebases with sufficiently semantic names, comments, filenames and directory structures. |
+| **Supervisor-approved exceptions** | None recorded in the repository; outstanding items are tracked as planned validation rather than silently treated as complete. |
 
 ## **3 Iteration plan and work breakdown progress** 
 
@@ -102,10 +103,10 @@ Include every required modification from the proposal decision. Do not list only
 | Live provider source adapters and event reliability | Haaniah | 11 Oct 2026 | Partial: implementation complete, live validation pending | `c95df34`; adapters, OAuth/webhook routes, migration `00010` | Configure provider apps/secrets and run the documented live rehearsal before final evaluation |
 | OAuth onboarding and encrypted connection persistence | Haaniah | 11 Oct 2026 | Complete in code; deployment/configuration rehearsal pending | Signed state, callbacks, AES-256-GCM storage; `c95df34` | Verify all three callbacks with real provider apps and rotate test credentials |
 | Webhook normalization, replay and duplicate safety | Haaniah | 11 Oct 2026 | Partial: route guards and uniqueness implemented; fixture/live execution pending | Raw-body verification, 10 MiB limit, delivery receipts, `docs/INTEGRATION_WEBHOOK_TESTING.md` | Run positive, invalid-auth, duplicate, ignored-event and oversized-payload cases |
-| _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
-| _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
-| _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
-| _Enter_ | _Enter_ | _Enter_ | _Complete, partial, delayed or blocked_ | _Task, issue, commit, build or result_ | _Explain any delay and revised date_ |
+| Verification loop, packet builder and verdict gate | Abdullah | 9 Oct 2026 | Complete in code; final edge-case rehearsal pending | `a037d16`; worker/contract tests; Ch. 6 Abdullah section | Run the targeted worker and contracts suites and record final output |
+| Evidence graph, linking and change analyser | Mishal | 11 Oct 2026 | Complete for pilot scope; anchors and external-review rerun remain | `9a376c7`, `1808fe9`, `fcaaf76`, `3171080`; TC-10–TC-22 | Finish FR-22–FR-24 anchors and final validation set |
+| Dataset validation, GenAI disclosure and report evidence | Mishal/Haaniah | 11 Oct 2026 | Pilot and report evidence drafted; audit/final review pending | `docs/dataset/`; `docs/genai_register.md`; Chapters 3, 6, 9 | Complete supervisor audit, own-words review and report compilation |
+| Architecture and design artefacts | Abdullah/Haaniah/Mishal | 11 Oct 2026 | Core diagrams and schema exist; final wiring review pending | `docs/F26 FYP1 Mid Report LaTeX/diagrams/`; traceability matrix | Compile diagrams/report and resolve remaining cross-reference issues |
 
 | **Iteration objective** | Deliver a replayable source-ingestion boundary and production-shaped read-only integrations for GitHub, Jira and Figma, while preserving raw-payload authenticity, normalized events and duplicate safety. |
 |---|---|
@@ -191,9 +192,9 @@ Include every required modification from the proposal decision. Do not list only
 
 | **Artefact** | **Purpose** | **Version or date** | **Implementation connection** | **Change since proposal** | **Rationale** |
 |---|---|---|---|---|---|
-| _Architecture_ | _Enter_ | _Enter_ | _Components, paths or interfaces_ | _Enter_ | _Enter_ |
+| _Architecture_ | Layered architecture separating web client, Supabase persistence, worker analysis/verifier and provider adapters | Commit `d2d7d0c`; architecture diagrams | `apps/web/`, `apps/worker/`, `packages/contracts/`, `supabase/`, `apps/web/src/lib/integrations/` | Live integrations and evidence graph were added after the initial mock boundary | Clear boundaries keep provider authentication, deterministic analysis and verdict admission independently testable |
 | Data/schema/ERD | Relational schema for the evidence graph, events, snapshots, packets and findings | `diagrams/erd.tex`, 7 Oct; migrations up to 00016 (11 Oct) | `supabase/migrations/`: one `nodes` table with a type discriminator, one `edges` table with source class, confidence, resolver and validity; append-only `events` with unique delivery id; 00015 (linking RPC) and 00016 (publish RPC) write to these tables | Requirement entity and anchor added; storage frozen as relational (Ch. 5 §5.5) | Type-agnostic traversal needs one node table; uniqueness constraints make duplicate processing a database no-op instead of relying on worker logic |
-| _Process/data flow_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
+| _Process/data flow_ | Shows provider delivery through authentication, normalization, idempotent persistence, graph linking, packet construction and verdict review | `diagrams/dfd.tex`; Ch. 5; integration guide | Webhook route, adapters, `events`, graph/linking RPC, packet builder and verifier gate | Extended the original mock ingestion flow to real OAuth/webhook provider boundaries | Raw-body verification and immutable receipts preserve provenance before downstream processing |
 | _Behavior/state/sequence_ | Event lifecycle, source freshness and finding lifecycle state machines; sequence from provider delivery through verification persistence | `diagrams/06_state_machines.tex`; Chapter 5 behavior/process material | Event received → authenticated → normalized → deduplicated → persisted; stale/missing deliveries remain reviewable and reconciliation is the recovery path | Haaniah | Partially wired; final diagram compilation and live sequence rehearsal pending |
 | Project-specific: requirement-to-code anchor and re-anchoring | Shows how a requirement stays linked to the code that satisfies it as the code moves (FR-22 to FR-24) | `diagrams/anchor-reanchoring.tex`, 7 Oct | Designed only; the analyser already produces the per-symbol fields an anchor needs (qualified name, line range, content, commit) | New since the proposal defence | Panel asked for requirement-to-code traceability; anchors are pinned to a commit so a verdict can be re-read against the code it cited. The example in the figure is invented and says so |
 
@@ -221,14 +222,14 @@ Commit count alone is not enough. Show what each member designed, implemented, t
 | Live provider integrations and source reliability | Haaniah | FR-01, FR-02, FR-16; source-adapter and webhook checklist | `c95df34` | `apps/web/src/lib/integrations/`; `apps/web/src/app/api/integrations/`; `apps/web/src/app/api/webhooks/`; migration `00010_integrations.sql` | OAuth state signing, encrypted token storage, raw-body verification, delivery idempotency and normalization are implemented; live provider run remains pending | Implemented; live validation pending |
 | Report evidence and integration documentation | Haaniah | Chapters 3, 6 and 9; integration setup/test evidence | `de5c1ff`, `45e5ed7`, `c95df34` | `docs/F26 FYP1 Mid Report LaTeX/chapters/`; `docs/INTEGRATIONS.md`; `docs/INTEGRATION_WEBHOOK_TESTING.md` | Evidence checked against git history and implementation; provider test guide records required environment and tunnel setup | Drafted; final review and live rehearsal pending |
 | Evaluation tag | All | Final evaluation freeze | `45e5ed7` (current evidence baseline) | Repository history and report chapters | No release tag has been created yet | Pending final review |
-| **Evaluation tag** | **or commit** | | _Full identifier and date_ | | | |
+| **Evaluation tag** | **or commit** | | `ce0ae2cc3c7bac61ecded081eba52670453673da`, 12 Oct 2026 | | | Final release tag to be created after report review |
 
-| **Task tracking method** | _Board, issues, milestone, log or other method_ |
+| **Task tracking method** | Shared `TODO.md`, worksheet action register, pull requests, commit history and report evidence tables; ownership is tracked by artefact and technical responsibility, not commit count alone. |
 |---|---|
-| **Review practice** | _Who reviews what and how corrections are recorded_ |
-| **Large or late commits** | _Explain any unusual history honestly_ |
-| **Integration responsibility** | _Identify who integrated components and how conflicts were resolved_ |
-| **Team coordination evidence** | _Meeting log, decisions, task changes or other traceable evidence_ |
+| **Review practice** | Each member reviews the artefacts they own and the other members challenge integration boundaries, report claims and test evidence. Corrections are recorded in commits, test changes, the GenAI register, report limitations and the worksheet. |
+| **Large or late commits** | The integrations work was consolidated in `c95df34` because it crossed adapters, OAuth routes, webhook ingress, persistence and onboarding. The verifier work was also broad in `a037d16`; the worksheet reports these as multi-file feature milestones rather than presenting commit size as individual proof. |
+| **Integration responsibility** | Haaniah integrated provider adapters and web routes with the existing Next.js/Supabase codebase; Abdullah integrated the verifier, packet and gate path; Mishal integrated graph linking, analysis and packet evidence. Conflicts were resolved by preserving shared contracts and recording boundary decisions in documentation and commits. |
+| **Team coordination evidence** | Ownership tables in the README/TODO, pull requests, commit history, the worksheet, `docs/genai_register.md`, traceability matrix and report chapter evidence provide the retained coordination record. |
 
 ## **8 Testing and early validation** 
 
@@ -337,8 +338,8 @@ Record significant interactions that materially affected the project. Routine sp
 |---|---|---|---|---|---|
 | Krippendorff's alpha for the external review | Krippendorff (2018), *Content Analysis*, 4th ed. (`krippendorff2018`) | Explained the coefficient and bootstrap interval | Values from `agreement_multi.py` matched the `krippendorff` Python package to three decimals | Retained; CI reported with α | Mishal |
 | Source-adapter and webhook behavior | GitHub webhook signature documentation; Jira Cloud webhook documentation; Figma webhook documentation | Summarized provider payload, OAuth, signature/passcode and delivery requirements | Cross-checked the implementation against the provider-specific headers, event names and raw-body/passcode constraints recorded in `docs/INTEGRATIONS.md` and the testing guide | Retained read-only scopes and explicit unsupported-event behavior; live provider execution remains an open validation task | Haaniah |
-| _Enter_ | _Citation DOI URL or document_ | _Search, summary or synthesis_ | _What was checked in the original_ | _Enter_ | _Enter_ |
-| _Enter_ | _Citation DOI URL or document_ | _Search, summary or synthesis_ | _What was checked in the original_ | _Enter_ | _Enter_ |
+| Provider webhook and OAuth behavior | GitHub Webhooks, Jira Cloud Webhooks and Figma Webhooks documentation; provider OAuth documentation | Compared required headers, event names, callback behavior and delivery limitations | Confirmed the implementation's raw-body verification, Jira changelog handling, Figma event filtering and signed callback state against the provider requirements recorded in `docs/INTEGRATIONS.md` | Read-only scopes and unsupported-event behavior retained; live provider evidence remains a separate validation step | Haaniah |
+| Traceability and dataset validation | Project proposal, requirements traceability matrix, annotation manual and agreement scripts | Used the project artefacts to connect requirements to design, code, tests and demo steps; reviewed the validation workflow | Confirmed matrix ownership, blind annotation, adjudication and κ calculation procedure; retained limitations where evidence is incomplete | Claims are limited to the pilot and current repository evidence | Haaniah/Mishal |
 
 #### **External tool and dependency record** 
 
@@ -399,11 +400,11 @@ Record three technical questions you cannot yet answer confidently. These questi
 
 | **Technical question** | **Why it matters to my work** | **Learning and evidence plan** | **Target date** |
 |---|---|---|---|
-| _Question 1_ | _Enter_ | _Reading, experiment, implementation or test_ | _Enter_ |
-| _Question 2_ | _Enter_ | _Reading, experiment, implementation or test_ | _Enter_ |
-| _Question 3_ | _Enter_ | _Reading, experiment, implementation or test_ | _Enter_ |
+| How should model uncertainty be calibrated when evidence slots are truncated? | Incorrect calibration could turn weak evidence into an overconfident verdict | Compare gate outcomes across controlled packet truncation fixtures and document the chosen threshold policy | Before final evaluation |
+| What local model/resource profile gives acceptable verifier latency without weakening provenance controls? | Model choice affects the bounded loop's usability and deployment feasibility | Benchmark candidate local models for latency, memory and quantisation with identical packets | Before final evaluation |
+| How should the reviewer surface expose superseded verdicts without confusing the current finding? | Re-verification must preserve history while presenting an actionable current state | Add a fixture with two verdicts for one criterion and verify the UI/state transition | Before final evaluation |
 
-| **Member confirmation** | _Sign or type name_ | **Date** | _Enter_ |
+| **Member confirmation** | Abdullah Amin — signature/confirmation pending | **Date** | 12 October 2026 |
 |---|---|---|---|
 
 ## **11 Individual evidence Member 2** 
@@ -447,11 +448,11 @@ Record three technical questions you cannot yet answer confidently. These questi
 
 | **Technical question** | **Why it matters to my work** | **Learning and evidence plan** | **Target date** |
 |---|---|---|---|
-| _Question 1_ | _Enter_ | _Reading, experiment, implementation or test_ | _Enter_ |
-| _Question 2_ | _Enter_ | _Reading, experiment, implementation or test_ | _Enter_ |
-| _Question 3_ | _Enter_ | _Reading, experiment, implementation or test_ | _Enter_ |
+| How can reconciliation recover a missed vendor delivery without creating a duplicate event? | Webhooks are best-effort and duplicate safety is part of FR-02/NFR-01 | Implement provider checkpoint/poll fixtures and compare delivery IDs and event versions | Before final evaluation |
+| Which provider-specific payload changes are most likely to break normalization? | GitHub, Jira and Figma payloads evolve independently | Pin representative fixtures, validate adapter schemas and add one changed-field regression case per provider | Before final evaluation |
+| How should rate limits and provider outages be represented to the reviewer? | A missing source must not look like a clean verification result | Define retry/backoff and stale-source states, then exercise them with replay fixtures | Before final evaluation |
 
-| **Member confirmation** | _Sign or type name_ | **Date** | _Enter_ |
+| **Member confirmation** | Haaniah Ismail — signature/confirmation pending | **Date** | 12 October 2026 |
 |---|---|---|---|
 
 ## **11 Individual evidence Member 3** 
@@ -499,7 +500,7 @@ Record three technical questions you cannot yet answer confidently. These questi
 | How should the two confidence thresholds for link confirmation be set and checked (FR-28)? | Auto-confirmation must be at least as precise as manual confirmation | Label link candidates from the pilot repositories and plot precision against threshold | Before the FYP-I final evaluation |
 | How many reviewers per case are needed for a usable interval on Krippendorff's alpha? | Decides the external review re-run (D-08) | Simulate α intervals with 2–5 raters on 15 cases using `agreement_multi.py` | Before the external review re-run (D-08) |
 
-| **Member confirmation** | _[Mishal Fatima, sign after review]_ | **Date** | _[date of signing]_ |
+| **Member confirmation** | Mishal Fatima — signature/confirmation pending | **Date** | 12 October 2026 |
 |---|---|---|---|
 
 ## **12 Evidence index and final check** 
