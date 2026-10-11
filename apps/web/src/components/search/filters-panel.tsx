@@ -40,6 +40,8 @@ const stateLabels: Record<FindingStatus, string> = {
   acknowledged: "Acknowledged",
   resolved: "Resolved",
   suppressed: "Suppressed",
+  disputed: "Disputed",
+  superseded: "Superseded",
 };
 
 const horizons: { id: "24h" | "7d" | "30d"; label: string }[] = [

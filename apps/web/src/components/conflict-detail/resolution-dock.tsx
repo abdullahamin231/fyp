@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Icon } from "@/components/ui/icon";
+import { canTransitionFinding, type FindingState } from "@unify/contracts";
+import { useEffect, useState, useTransition } from "react";
 import { disputeReasons, suppressionReasons } from "@/lib/domain/conflict-detail";
+import { transitionFindingAction, type ReviewerAction } from "@/lib/actions/findings";
 import type { Finding } from "@/lib/types";
 
 type Dialog = "suppress" | "dispute" | null;
@@ -12,6 +14,8 @@ const statusCopy: Record<Finding["status"], { dot: string; label: string }> = {
   acknowledged: { dot: "bg-tertiary", label: "Acknowledged — awaiting resolution" },
   resolved: { dot: "bg-secondary", label: "Resolution recorded" },
   suppressed: { dot: "bg-outline", label: "Suppressed — alerts muted" },
+  disputed: { dot: "bg-tertiary animate-pulse", label: "Disputed — awaiting adjudication" },
+  superseded: { dot: "bg-outline", label: "Superseded by a later verification" },
 };
 
 const actionButton =
@@ -20,18 +24,26 @@ const actionButton =
 interface Toast {
   title: string;
   message: string;
+  tone: "success" | "error";
 }
 
 /**
  * Sticky resolution dock from the reference: acknowledge / resolve / dispute /
  * suppress-with-reason / reopen, plus the suppression & dispute dialogs and the
  * transient confirmation toast.
+ *
+ * Every button here is a server action call (FR-18), and the action itself
+ * re-checks `canTransitionFinding` — the same function the contracts export —
+ * so a stale dock cannot force an illegal transition; it gets a refusal back
+ * and shows it. A reason is required by the same contract, which is why the
+ * two consequential buttons open a dialog instead of firing on one click.
  */
 export function ResolutionDock({ finding }: { finding: Finding }) {
   const [dialog, setDialog] = useState<Dialog>(null);
   const [reason, setReason] = useState(suppressionReasons[0]);
   const [note, setNote] = useState("");
   const [toast, setToast] = useState<Toast | null>(null);
+  const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     if (!toast) return;
@@ -39,7 +51,30 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  const fire = (title: string, message: string) => setToast({ title, message });
+  const fire = (title: string, message: string, tone: Toast["tone"] = "success") =>
+    setToast({ title, message, tone });
+
+  /** Call the lifecycle action; a refusal is shown, never swallowed. */
+  const run = (action: ReviewerAction, why: string) => {
+    const title: Record<ReviewerAction, string> = {
+      acknowledge: "Conflict acknowledged",
+      resolve: "Conflict resolved",
+      dispute: "Dispute filed",
+      suppress: "Conflict suppressed",
+      reopen: "Conflict reopened",
+    };
+    startTransition(async () => {
+      const result = await transitionFindingAction(finding.id, action, why);
+      if (result.ok) {
+        fire(
+          title[action],
+          `Recorded with a reason in the audit ledger — now "${result.state}".`,
+        );
+      } else {
+        fire("Action refused", result.error ?? "Unknown error.", "error");
+      }
+    });
+  };
 
   const openDialog = (next: Exclude<Dialog, null>) => {
     setReason(next === "suppress" ? suppressionReasons[0] : disputeReasons[0]);
@@ -48,13 +83,12 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
   };
 
   const confirmDialog = () => {
-    if (dialog === "suppress") {
-      fire("Conflict suppressed", `Exemption logged in the audit ledger — reason: ${reason}`);
-    } else {
-      fire("Dispute filed", `Evidence case reopened — reason: ${reason}`);
-    }
+    const why = note.trim() ? `${reason} — ${note.trim()}` : reason;
+    run(dialog === "suppress" ? "suppress" : "dispute", why);
     setDialog(null);
   };
+
+  const can = (to: FindingState) => canTransitionFinding(finding.status, to);
 
   const copy = statusCopy[finding.status];
 
@@ -75,7 +109,7 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
           <button
             type="button"
             className={actionButton}
-            disabled={finding.status === "suppressed"}
+            disabled={pending || !can("suppressed")}
             onClick={() => openDialog("suppress")}
           >
             Suppress…
@@ -83,27 +117,23 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
           <button
             type="button"
             className={actionButton}
-            disabled={finding.status !== "open"}
-            onClick={() =>
-              fire("Conflict acknowledged", `Logged as non-impact for ${finding.id}`)
-            }
+            disabled={pending || !can("acknowledged")}
+            onClick={() => run("acknowledge", "Acknowledged from the conflict inbox")}
           >
             Acknowledge
           </button>
           <button
             type="button"
             className={actionButton}
-            disabled={finding.status !== "open" && finding.status !== "acknowledged"}
-            onClick={() =>
-              fire("Conflict resolved", `${finding.id} closed with a cited resolution vector.`)
-            }
+            disabled={pending || !can("resolved")}
+            onClick={() => run("resolve", "Resolved after reading the cited evidence")}
           >
             Resolve
           </button>
           <button
             type="button"
             className={actionButton}
-            disabled={finding.status === "resolved"}
+            disabled={pending || !can("disputed")}
             onClick={() => openDialog("dispute")}
           >
             Dispute verdict
@@ -111,8 +141,8 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
           <button
             type="button"
             className={actionButton}
-            disabled={finding.status === "open"}
-            onClick={() => fire("Conflict reopened", `${finding.id} returned to the open queue.`)}
+            disabled={pending || !can("open")}
+            onClick={() => run("reopen", "Reopened for another look")}
           >
             Reopen
           </button>
@@ -197,7 +227,8 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
               </button>
               <button
                 type="button"
-                className="px-4 py-2 rounded bg-error-container text-error text-body-sm font-semibold hover:brightness-110 transition"
+                disabled={pending}
+                className="px-4 py-2 rounded bg-error-container text-error text-body-sm font-semibold hover:brightness-110 transition disabled:opacity-50"
                 onClick={confirmDialog}
               >
                 {dialog === "suppress" ? "Confirm suppression" : "File dispute"}
@@ -210,7 +241,10 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
       {/* Toast */}
       {toast ? (
         <div className="fixed top-20 right-8 z-50 rounded-lg bg-surface-container-high p-stack-comfortable shadow-2xl flex items-center gap-3 border border-outline-variant/60">
-          <Icon name="check_circle" className="text-secondary text-[22px]" />
+          <Icon
+            name={toast.tone === "error" ? "error" : "check_circle"}
+            className={`${toast.tone === "error" ? "text-error" : "text-secondary"} text-[22px]`}
+          />
           <div className="flex flex-col">
             <span className="text-on-surface font-semibold text-body-sm">{toast.title}</span>
             <span className="text-on-surface-variant font-mono-code text-micro-label">

@@ -1,0 +1,30 @@
+{
+  "name": "@unify/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "UNIFY verification worker — deterministic context-packet builder, bounded verifier loop, verdict/provenance gate (TODO §3.3)",
+  "scripts": {
+    "prebuild": "npm run build --workspace @unify/contracts",
+    "build": "tsc -p tsconfig.json",
+    "pretest": "npm run build --workspace @unify/contracts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "predev": "npm run build --workspace @unify/contracts",
+    "dev": "tsx src/index.ts",
+    "once": "tsx src/scripts/run-once.ts",
+    "seed": "tsx src/scripts/seed-demo.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
+    "@unify/contracts": "^0.1.0",
+    "zod": "^4.3.11"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

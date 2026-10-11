@@ -1,0 +1,14 @@
+{
+  "name": "unify",
+  "private": true,
+  "description": "UNIFY — shared contracts, verification worker, reviewer web app",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "postinstall": "npm run build --workspace @unify/contracts",
+    "build:contracts": "npm run build --workspace @unify/contracts",
+    "test:contracts": "npm run test --workspace @unify/contracts"
+  }
+}

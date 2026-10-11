@@ -7,38 +7,29 @@ import { CopyLinkButton } from "@/components/conflict-detail/copy-link-button";
 import { CriterionResults } from "@/components/conflict-detail/criterion-results";
 import { ExplanationBox } from "@/components/conflict-detail/explanation-box";
 import { ResolutionDock } from "@/components/conflict-detail/resolution-dock";
+import { VerificationLog } from "@/components/conflict-detail/verification-log";
 import {
   AffectedArtifactsSection,
   AuditTrailSection,
   EvidenceCaseSection,
   EvidenceChainSection,
   StakeholdersSection,
-  VerificationPassesSection,
 } from "@/components/conflict-detail/sections";
-import { formatUtcFull, packetHash } from "@/lib/domain/conflict-detail";
-import type { ActivityEvent, Finding, FindingStatus, Policy, Severity, Verdict } from "@/lib/types";
+import { policyForFinding } from "@/lib/domain/policy-for-finding";
+import { formatUtcFull } from "@/lib/domain/conflict-detail";
+import { getFindingDetail } from "@/lib/data/queries";
+import type { ActivityEvent, FindingStatus, Severity, Verdict } from "@/lib/types";
 
 /**
- * DATA HOLE — replace with API lookups.
+ * Conflict detail — a server component over the RLS client.
  *
- * The findings + policies endpoints do not exist yet, so both stores are empty
- * and every route renders the "not found" state. Swap these two consts for real
- * fetches and the rest of this screen works unchanged: the detail body below is
- * already driven entirely by the `Finding` / `Policy` shapes.
+ * One `findings` row plus its verdict, packet manifest and pass log is the
+ * evidence case: the screen below is driven entirely by those rows, so what a
+ * reviewer reads here is what the worker actually stored, hash included.
  */
-const findings: Finding[] = [];
-const policiesById: Record<string, Policy> = {};
 
-/** Activity events for a finding — supplied by the activity API. */
+/** Activity events for a finding — supplied by the activity feed. */
 const activity: ActivityEvent[] = [];
-
-function getFinding(id: string): Finding | undefined {
-  return findings.find((f) => f.id === id);
-}
-
-function getPolicy(finding: Finding): Policy {
-  return policiesById[finding.policy];
-}
 
 const severityMeta: Record<Severity, { chip: string; tone: Tone; bar: string }> = {
   critical: { chip: "CRITICAL SEV-1", tone: "critical", bar: "bg-error" },
@@ -51,11 +42,9 @@ const statusLabel: Record<FindingStatus, string> = {
   acknowledged: "STATUS: ACKNOWLEDGED",
   resolved: "STATUS: RESOLVED",
   suppressed: "STATUS: SUPPRESSED",
+  disputed: "STATUS: DISPUTED",
+  superseded: "STATUS: SUPERSEDED",
 };
-
-export function generateStaticParams() {
-  return findings.map((finding) => ({ id: finding.id }));
-}
 
 export async function generateMetadata({
   params,
@@ -63,8 +52,8 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const finding = getFinding(id);
-  return { title: finding ? `Conflict ${id}` : "Conflict not found" };
+  const detail = await getFindingDetail(id);
+  return { title: detail ? `Conflict ${id}` : "Conflict not found" };
 }
 
 function FindingNotFound({ id }: { id: string }) {
@@ -101,9 +90,9 @@ export default async function ConflictDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const finding = getFinding(id);
+  const detail = await getFindingDetail(id);
 
-  if (!finding) {
+  if (!detail) {
     return (
       <AppShell action={<CopyLinkButton path={`/conflicts/${id}`} />}>
         <FindingNotFound id={id} />
@@ -111,7 +100,8 @@ export default async function ConflictDetailPage({
     );
   }
 
-  const policy = getPolicy(finding);
+  const { finding, passes } = detail;
+  const policy = policyForFinding(finding);
   const severity = severityMeta[finding.severity];
   const verdict: Verdict = finding.verdict ?? "INSUFFICIENT_EVIDENCE";
   const contradicted = finding.criteria.filter((c) => c.verdict === "CONTRADICTED").length;
@@ -181,6 +171,17 @@ export default async function ConflictDetailPage({
                   reason: {finding.reasonCode}
                 </span>
               ) : null}
+              {finding.gateOutcome ? (
+                <span
+                  className={`px-2 py-0.5 rounded font-mono-code text-micro-label ${
+                    finding.gateOutcome === "PASSED"
+                      ? "bg-secondary/15 text-secondary"
+                      : "bg-tertiary-container/40 text-on-tertiary-container"
+                  }`}
+                >
+                  gate: {finding.gateOutcome}
+                </span>
+              ) : null}
               <span className="px-2 py-0.5 rounded bg-surface-container-high text-muted font-label-caps text-label-caps uppercase">
                 {statusLabel[finding.status]}
               </span>
@@ -200,9 +201,28 @@ export default async function ConflictDetailPage({
               <div className="flex items-center gap-1.5">
                 <Icon name="verified_user" className="text-[16px] text-muted" />
                 <span>
-                  Packet hash: <span className="text-muted">{packetHash(finding.id)}</span>
+                  Packet hash:{" "}
+                  <span className="text-muted">
+                    {finding.packetHash ? `${finding.packetHash.slice(0, 16)}…` : "not recorded"}
+                  </span>
                 </span>
               </div>
+              {finding.headCommit ? (
+                <div className="flex items-center gap-1.5">
+                  <Icon name="commit" className="text-[16px] text-muted" />
+                  <span>
+                    Head commit: <span className="text-on-surface">{finding.headCommit.slice(0, 8)}</span>
+                  </span>
+                </div>
+              ) : null}
+              {finding.modelId ? (
+                <div className="flex items-center gap-1.5">
+                  <Icon name="smart_toy" className="text-[16px] text-muted" />
+                  <span>
+                    Model: <span className="text-on-surface">{finding.modelId}</span>
+                  </span>
+                </div>
+              ) : null}
               <div className="flex items-center gap-1.5">
                 <Icon name="group" className="text-[16px] text-muted" />
                 <span>
@@ -270,8 +290,8 @@ export default async function ConflictDetailPage({
       {/* Criterion-by-criterion results */}
       <CriterionResults finding={finding} />
 
-      {/* Bounded verification passes */}
-      <VerificationPassesSection finding={finding} />
+      {/* Bounded verification passes — the stored pass log, not a summary */}
+      <VerificationLog passes={passes} stopReason={finding.stopReason} modelId={finding.modelId} />
 
       {/* Evidence case */}
       <EvidenceCaseSection finding={finding} />

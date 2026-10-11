@@ -3,16 +3,16 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { LinkManager } from "@/components/links/link-manager";
 import { isDecisive } from "@/components/links/present";
-import type { LinkSuggestion } from "@/lib/domain/link-suggestions";
-import type { RelationLink } from "@/lib/types";
+import { listLinks } from "@/lib/data/queries";
 
 /**
- * DATA HOLE — replace with the links API.
- * Both stores are empty until their endpoints exist, so the telemetry cards
- * read zero and the manager renders its empty state.
+ * Link management — a server component over the RLS-scoped `edges` table.
+ *
+ * Confirmed and system-confirmed links render in the directory; everything
+ * still awaiting a human (derived, model-candidate, unresolved) sits in the
+ * verification queue, where confirm/reject write back through the server
+ * actions with the reviewer's resolver string and an audit row.
  */
-const links: RelationLink[] = [];
-const linkSuggestions: LinkSuggestion[] = [];
 
 export const metadata: Metadata = {
   title: "Link Management",
@@ -20,47 +20,47 @@ export const metadata: Metadata = {
     "Manage explicit cross-tool graph bindings, verify heuristic link suggestions and inspect cryptographic provenance across Figma, GitHub and Jira.",
 };
 
-const advisoryLinks = links.filter((link) => !isDecisive(link.eligibility));
-const decisiveLinks = links.filter((link) => isDecisive(link.eligibility));
-const pendingSuggestions = linkSuggestions.length + advisoryLinks.length;
-const avgConfidence =
-  pendingSuggestions === 0
-    ? 0
-    : Math.round(
-        ((advisoryLinks.reduce((sum, link) => sum + link.confidence, 0) +
-          linkSuggestions.reduce((sum, link) => sum + link.confidence, 0)) /
-          pendingSuggestions) *
-          1000,
-      ) / 10;
+export default async function LinksPage() {
+  const { links, suggestions } = await listLinks();
 
-/* Counts and averages below are derived from `links` / `linkSuggestions`. */
-const telemetry: {
-  label: string;
-  value: string;
-  meta?: string;
-  metaClass?: string;
-  icon: string;
-  iconClass: string;
-  valueClass?: string;
-}[] = [
-  {
-    label: "Explicit Edges",
-    value: String(decisiveLinks.length),
-    icon: "hub",
-    iconClass: "text-secondary",
-  },
-  {
-    label: "Inferred Pending",
-    value: String(pendingSuggestions),
-    meta: `Avg conf: ${avgConfidence}%`,
-    metaClass: "text-on-surface-variant",
-    icon: "auto_awesome",
-    iconClass: "text-tertiary",
-    valueClass: "text-tertiary",
-  },
-];
+  const advisoryLinks = links.filter((link) => !isDecisive(link.eligibility));
+  const decisiveLinks = links.filter((link) => isDecisive(link.eligibility));
+  const pendingSuggestions = suggestions.length + advisoryLinks.length;
+  const avgConfidence =
+    pendingSuggestions === 0
+      ? 0
+      : Math.round(
+          ((advisoryLinks.reduce((sum, link) => sum + link.confidence, 0) +
+            suggestions.reduce((sum, link) => sum + link.confidence, 0)) /
+            pendingSuggestions) *
+            1000,
+        ) / 10;
 
-export default function LinksPage() {
+  const telemetry: {
+    label: string;
+    value: string;
+    meta?: string;
+    metaClass?: string;
+    icon: string;
+    iconClass: string;
+    valueClass?: string;
+  }[] = [
+    {
+      label: "Explicit Edges",
+      value: String(decisiveLinks.length),
+      icon: "hub",
+      iconClass: "text-secondary",
+    },
+    {
+      label: "Inferred Pending",
+      value: String(pendingSuggestions),
+      meta: `Avg conf: ${avgConfidence}%`,
+      metaClass: "text-on-surface-variant",
+      icon: "auto_awesome",
+      iconClass: "text-tertiary",
+      valueClass: "text-tertiary",
+    },
+  ];
   return (
     <AppShell
       action={
@@ -122,7 +122,7 @@ export default function LinksPage() {
         ))}
       </section>
 
-      <LinkManager />
+      <LinkManager initialLinks={links} initialSuggestions={suggestions} />
     </AppShell>
   );
 }
