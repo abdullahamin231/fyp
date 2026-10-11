@@ -1,12 +1,419 @@
 \chapter{Project Management and Development Evidence}
+
+% ---------------------------------------------------------------------------
+% BEFORE SUBMISSION. Placeholders use these conventions:
+%     [sha]      real short commit hash
+%     [n]        real count or measurement
+%     [dd Mmm]   real date
+%     [...]      a judgement or disclosure only the named member can make
+%
+% Section 9.7 is a disclosure. Each member writes their own rows. Do not fill
+% another member's row for them, and do not state a level you cannot defend
+% when the supervisor asks you to explain or modify the artefact.
+% ---------------------------------------------------------------------------
+
 \section{Work Completed}
+
+Work is reported by technical stream rather than by calendar week, because the
+three streams proceed in parallel and a chronological list would obscure which
+member is accountable for which evidence. Status as of \textbf{[dd Mmm 2026]}.
+
+\begin{longtable}{p{0.30\textwidth}p{0.14\textwidth}p{0.11\textwidth}p{0.37\textwidth}}
+\toprule
+Work item & Owner & Status & Evidence \\
+\midrule
+\endhead
+Repository scaffold, continuous integration, container composition
+  & Abdullah & Complete & Monorepo, CI pipeline, \texttt{docker-compose.yml} [sha] \\
+Shared contracts: event envelope, node and edge types, verdict schema
+  & Abdullah & Complete & \texttt{packages/contracts} with unit tests [sha] \\
+Database schema realised from the entity-relationship diagram
+  & Abdullah & Complete & Migrations matching the ERD [sha] \\
+Source adapters for three systems, read-only authenticated access
+  & Haaniah & Complete & Adapter implementations and recorded fixtures [sha] \\
+Event reliability: idempotency, checkpointing, reconciliation, stale-source
+  handling
+  & Haaniah & Complete & Replay harness and convergence suite [sha] \\
+Deterministic rules 1--3 as versioned records
+  & Haaniah & Complete & Versioned rule records with triggers, guards and grace
+    periods [sha] \\
+Evidence graph tables and deterministic linking
+  & Mishal & Complete & Linking function and migration; 16 tests against the
+    real migrations [sha] \\
+Change analyser: changed files, symbols, test evidence, symbol cards
+  & Mishal & Complete & Analyser evaluated against the 15 pilot cases;
+    20 tests [sha] \\
+Context packet, bounded verifier loop, verdict and provenance gate
+  & Abdullah & Complete & Packet builder with manifest; citation gate [sha] \\
+Reviewer interface: evidence case, link confirmation
+  & Abdullah & Complete & Reviewer surface serving live data [sha] \\
+Diagram set (thirteen diagrams)
+  & All & Complete & Committed source plus rendered output, one build script \\
+Pilot evaluation set, blind annotation, agreement measurement
+  & All & Partial & Pilot cases across three repositories; two independent
+    annotation files; measured agreement. Adjudication and supervisor audit
+    outstanding \\
+Mid report
+  & All & Partial & Chapters~1--5, 8 and 10 drafted; Chapters~6 and 9 in
+    progress at the reporting date \\
+\bottomrule
+\end{longtable}
+
 \section{Work Remaining}
+
+The items below are outstanding at the reporting date. Each names the owner and
+the condition that closes it, so that an incomplete item is distinguishable
+from an unplanned one.
+
+\begin{longtable}{p{0.32\textwidth}p{0.13\textwidth}p{0.45\textwidth}}
+\toprule
+Outstanding item & Owner & Closing condition \\
+\midrule
+\endhead
+Adjudication of outstanding annotation disagreements
+  & [Mishal] & Each disagreement resolved with a recorded rationale; annotation
+    manual frozen at version~1 \\
+Supervisor audit of the evaluation set
+  & All & A sample of cases, all rare classes and all demonstration cases
+    reviewed by the supervisor \\
+Remaining report chapters and review pass
+  & All & Each chapter reviewed by the two members who did not write it \\
+Clean report compilation
+  & [owner] & The front-matter class commands resolved; build completes with no
+    errors \\
+End-to-end demonstration rehearsal
+  & All & Normal, edge and failure steps run in sequence against the
+    evaluation tag \\
+Evaluation tag frozen and repository access granted
+  & [owner] & Tag recorded in the worksheet; supervisor access confirmed at
+    least 48 hours before the evaluation \\
+\bottomrule
+\end{longtable}
+
+\noindent Work deliberately not undertaken is recorded in Chapter~3 as a scope
+decision rather than listed here as outstanding, so that the two are not
+confused.
+
 \section{Individual Responsibilities}
+
+Responsibility is divided by technical stream, so that each member owns a
+coherent problem together with the evidence that demonstrates it works. The
+division is the same one recorded in the proposal and in Chapter~3; it has not
+been revised during the iteration.
+
+\begin{longtable}{p{0.16\textwidth}p{0.40\textwidth}p{0.36\textwidth}}
+\toprule
+Member & Primary ownership & Independent evaluation owned \\
+\midrule
+\endhead
+Haaniah Ismail
+  & Source adapters and authenticated read-only access; the normalised event
+    envelope; idempotency, checkpointing, reconciliation and stale-source
+    handling; the immutable artifact and version store; deterministic rules.
+  & Duplicate and out-of-order convergence; recovery after a simulated outage;
+    ingestion latency; permission and failure behaviour. \\
+Mishal Fatima
+  & The code and test analyser; the evidence graph and its provenance model;
+    deterministic linking; criterion invalidation and incremental dispatch.
+  & Link precision and recall; graph correctness; equivalence between
+    incremental and full evaluation. \\
+Abdullah Amin
+  & The context-packet builder; local model serving and selection; the bounded
+    verifier loop; the verdict and provenance gate; the reviewer evidence
+    report.
+  & Retrieval, verdict and grounding metrics; local latency and memory; the
+    task-based user evaluation. \\
+\bottomrule
+\end{longtable}
+
+Four responsibilities are shared because they cross every stream: maintaining
+one consistent terminology across the proposal, the report and the
+implementation; constructing and adjudicating the labelled evaluation set;
+end-to-end integration testing; and the documentation of ethical, privacy and
+tool-use disclosures. Within the evaluation set specifically, the member who
+constructs a case does not label it, and no member validates data belonging to
+their own subsystem.
+
 \section{Contribution of Each Team Member}
+
+% ===========================================================================
+% Commit count alone is not acceptable evidence. Each row must name what was
+% designed, implemented, tested, reviewed or integrated, and point at an
+% artefact a reviewer can open. Fill from the repository, not from memory.
+% ===========================================================================
+
+\begin{longtable}{p{0.13\textwidth}p{0.30\textwidth}p{0.13\textwidth}p{0.36\textwidth}}
+\toprule
+Member & Contribution & Commit or PR & Review or test evidence \\
+\midrule
+\endhead
+Haaniah & Source adapters, three systems & [sha] & [test suite and result] \\
+Haaniah & Event reliability layer & [sha] & [convergence suite and result] \\
+Haaniah & Deterministic rules 1--3 & [sha] & [rule tests and result] \\
+Haaniah & Sequence, state-machine and deployment diagrams & [sha] & Reviewed by [name] \\
+Haaniah & Chapters~1, 2, 3, 5, 9 & [sha] & Reviewed by [names] \\
+Mishal & Deterministic linking and migration & [sha] & 16 tests against real migrations \\
+Mishal & Change analyser and symbol cards & [sha] & 20 tests; 15 pilot cases \\
+Mishal & ERD, domain model, use-case and anchor diagrams & [sha] & Reviewed by [name] \\
+Mishal & Chapters~4, 6 (own subsection), 8 & [sha] & Reviewed by [names] \\
+Abdullah & Scaffold, CI, contracts, schema & [sha] & [test suite and result] \\
+Abdullah & Verification pipeline and gate & [sha] & [test suite and result] \\
+Abdullah & Reviewer interface & [sha] & [test or manual check] \\
+Abdullah & Architecture, component, data-flow, verifier-loop and autonomy
+  diagrams & [sha] & Reviewed by [name] \\
+Abdullah & Chapters~6 (own subsection), 10; traceability matrix & [sha] & Reviewed by [names] \\
+\bottomrule
+\end{longtable}
+
 \section{Repository and Version Control Evidence}
+
+\paragraph{Repository.} [URL]. The evaluation version is
+\textbf{[tag or full commit SHA]}, dated [dd Mmm].
+
+\paragraph{Branching and review.} [State the branching model actually used ---
+feature branches merged by pull request, or direct commits to a shared branch
+--- and the review rule: who reviews whom, and whether review is enforced by
+branch protection or by agreement. State it as it is, not as it was intended.]
+
+\paragraph{Task tracking.} [Name the board, issue tracker or log actually used,
+and how a work item is linked to the commit that closes it.]
+
+\paragraph{Unusual history.} [The worksheet asks for large or late commits to
+be explained. Two are known: the commit reverting the generated teammate
+chapters, discussed in Section~\ref{sec:ch9-genai}, and [any bulk commit such
+as the initial scaffold or a dependency update]. Explain each briefly rather
+than leaving a reviewer to infer.]
+
+\paragraph{Integration responsibility.} [Name who integrated the three streams
+and how conflicts were resolved. The hand-off between the analyser and the
+packet builder is a concrete example and is described in Chapter~6.]
+
 \section{Milestones and Commit Evidence}
+
+\begin{longtable}{p{0.34\textwidth}p{0.13\textwidth}p{0.14\textwidth}p{0.29\textwidth}}
+\toprule
+Milestone & Owner & Date & Commit or artefact \\
+\midrule
+\endhead
+Shared contracts frozen & Abdullah & [dd Mmm] & [sha] \\
+Database schema applied & Abdullah & [dd Mmm] & [sha] \\
+Ingestion reliability demonstrated & Haaniah & [dd Mmm] & [sha] \\
+Deterministic linking live & Mishal & [dd Mmm] & [sha] \\
+Analyser evaluated on pilot cases & Mishal & [dd Mmm] & [sha] \\
+Verification pipeline and gate complete & Abdullah & [dd Mmm] & [sha] \\
+Live source adapters connected & Haaniah & [dd Mmm] & [sha] \\
+Diagram set complete & All & [dd Mmm] & [sha] \\
+Pilot annotation round and agreement measured & All & [dd Mmm] & [sha] \\
+Evaluation tag & All & [dd Mmm] & [tag] \\
+\bottomrule
+\end{longtable}
+
 \section{Tools and Tool-Assisted Development}
+\label{sec:ch9-genai}
+
+\subsection*{Classification approach}
+
+Generative tools were used during this project. Assistance is classified per
+artefact rather than per member, because the same member used different levels
+of assistance on different work. The four levels are those defined by the
+evaluation instrument: \textbf{L1} supportive, covering formatting, phrasing
+and minor debugging hints; \textbf{L2} assisted, where significant code, tests,
+diagrams or report text were generated and then reviewed, modified and
+integrated by the member; \textbf{L3} core assist, where a major module or
+central feature was produced with substantial generative help; and \textbf{L4}
+substituted, where generated work could not be independently explained or
+modified by the member it is attributed to.
+
+The project's position on L4 is that such work is not presented as
+independently completed. This was applied in practice rather than stated in
+principle, and the next subsection records the one occasion on which it was.
+
+\subsection*{A correction made during the iteration}
+
+Draft text for several report chapters was generated rather than written by the
+members those chapters were assigned to. The drafts were reverted in commit
+[sha] and each chapter returned to its section skeleton for its owner to write.
+
+The reasoning was that a generated chapter cannot satisfy two separate
+requirements at once: the anti-plagiarism declaration, and the requirement that
+each member be able to locate, explain and modify the work attributed to them
+under questioning. A chapter that reads well but that its named author cannot
+defend is an L4 artefact presented as independent work, which the classification
+above prohibits. Reverting cost the team [n] pages of apparent progress and
+several days of rewriting, and it is recorded here rather than omitted because
+the commit is visible in the repository and an unexplained reversion is worse
+than a declared one.
+
+\subsection*{GenAI artefact register}
+
+% ===========================================================================
+% EACH MEMBER FILLS THEIR OWN ROWS. Do not complete another member's row.
+% The supervisor may ask the named owner to explain or modify any artefact
+% listed here, so do not state a level you cannot defend.
+%
+% Rows that must appear, because each is a materially assisted artefact:
+%   - every report chapter drafted or edited with assistance, including this one
+%   - every code module where generated code was retained
+%   - every diagram whose source was generated
+%   - the annotation guide, if assistance was used in drafting it
+% ===========================================================================
+
+\begin{longtable}{p{0.17\textwidth}p{0.11\textwidth}p{0.22\textwidth}p{0.22\textwidth}p{0.17\textwidth}}
+\toprule
+Artefact & Level & Assistance used & Member contribution & Verification \\
+\midrule
+\endhead
+[Artefact] & [L1--L4] & [What was requested and what was retained] &
+  [Reasoning, design, edits, integration] & [Tests, review, errors found,
+  corrections] \\
+\bottomrule
+\end{longtable}
+
+\noindent \textbf{This chapter is itself a registered artefact.} The structure
+and prose of Chapter~9 were drafted with generative assistance; the
+contribution evidence, commit references, assistance levels and disclosures
+were supplied, verified and corrected by the members they describe. It appears
+in the register above with its own level and owner, on the principle that a
+disclosure chapter that omits itself is not a disclosure.
+
+\subsection*{Prompt journal}
+
+Significant interactions that materially affected the project are recorded in
+[location]. Routine formatting and lookup are not logged. [Each member
+maintains their own entries; state here how many are recorded and where.]
+
 \section{External Components and Dependencies}
+
+\begin{longtable}{p{0.22\textwidth}p{0.22\textwidth}p{0.24\textwidth}p{0.26\textwidth}}
+\toprule
+Component & Purpose & Risk or limitation & Fallback \\
+\midrule
+\endhead
+Change-source API (GitHub) & Pull requests, commits, diffs & Rate limits;
+  availability outside our control & Replay harness; reconciliation polling \\
+Work-item API (Jira) & Issues, acceptance criteria, workflow transitions &
+  Best-effort delivery with no dead-letter queue; large payloads & Checkpoint
+  and reconciliation; body-size limit \\
+Design API (Figma) & Versioned design artifacts and constraints & Coarse event
+  coverage; named-version granularity only & Reconciliation polling \\
+PostgreSQL & Events, snapshots, evidence graph, findings, audit & Single
+  storage dependency & Schema is portable; no vendor-specific features relied
+  on \\
+Redis & Job queue and locks & Loss of queued work on failure & Work is
+  reconstructable from the event log \\
+Open-weight language model and serving runtime & Criterion verification &
+  Hardware-bound; licence terms must be observed & Deterministic rules and
+  unresolved-evidence reporting continue without it \\
+TypeScript compiler and parser & Symbol extraction & Language-specific; does
+  not parse configuration formats & Unparsed files reported as changed without
+  symbols \\
+Schema validation library & Contract definitions & Low & [state] \\
+Test framework & Unit and integration tests & Low & [state] \\
+\LaTeX{} and Ti\emph{k}Z & Report and diagram production & Build environment
+  differences & Committed source plus rendered output \\
+\bottomrule
+\end{longtable}
+
+\noindent No hosted language-model interface is a dependency of the committed
+system. Where a hosted model is used it is as an offline comparison on
+non-sensitive data, labelled as such, and the system does not call it at
+runtime.
+
 \section{Risks and Mitigation}
+
+\begin{longtable}{p{0.26\textwidth}p{0.12\textwidth}p{0.12\textwidth}p{0.42\textwidth}}
+\toprule
+Risk & Likelihood & Impact & Mitigation \\
+\midrule
+\endhead
+Criterion-to-code retrieval recall is too low for useful verification
+  & Medium & High & Retrieval measured separately from verdict quality, so the
+    error is not misattributed to the model; declared repository class narrowed
+    and decisive states restricted until measured recall supports them \\
+Local inference latency or memory exceeds available hardware
+  & Medium & Medium & Smaller or more aggressively quantised checkpoint;
+    asynchronous batch analysis instead of an in-review check; hardware and
+    repository class declared rather than generalised \\
+Evaluation set too small to support a confident claim
+  & High & Medium & Counts and intervals reported rather than bare
+    percentages; the set is positioned as a diagnostic instrument, not a
+    benchmark; training data drawn from public corpora so the gold set is never
+    used for tuning \\
+Verifier produces fluent but ungrounded verdicts
+  & Medium & High & Citations resolved against the immutable packet; an
+    uncited decisive verdict is rejected by construction and counted as an
+    abstention \\
+Vendor interface access or rate limits
+  & Low & Medium & Closed for all three sources during this iteration; the
+    replay harness remains as a fallback and as the only way to test outage
+    behaviour \\
+Report and implementation diverge
+  & Medium & Medium & Contracts defined once in code; diagrams generated from
+    committed source; traceability matrix regenerated at each gate \\
+\bottomrule
+\end{longtable}
+
 \section{Security and Privacy Considerations}
+
+\paragraph{Access is read-only throughout.} All three source integrations use
+read-only, least-privilege scopes. The system never writes to a connected tool.
+This is a design commitment rather than an unimplemented feature: there is no
+write path to remove later.
+
+\paragraph{Credentials.} Tokens are held by one component, encrypted at rest,
+and supplied through environment configuration rather than committed. A
+revocation path is documented. Webhook payloads are authenticated before they
+are parsed, using the signature scheme each vendor specifies.
+
+\paragraph{Artifact content does not leave the deployment.} All model inference
+runs on team-operated infrastructure. Repository content, work-item text and
+design metadata are not transmitted to a third-party model interface. This is
+what makes the system usable by a team whose policy prevents sending source
+code to an external service, and it is the reason the hosted-model option was
+removed from the committed design.
+
+\paragraph{Retained data.} Raw payloads are stored alongside their normalised
+form because a finding cites evidence that must remain readable after the
+source record changes. [State what the retained payloads contain, and confirm
+that credentials and secrets are not among them --- the evaluation set has an
+automated secret scan; say whether the same check runs over retained payloads.]
+
+\paragraph{Untrusted input.} Work-item text, commit messages and design
+metadata are treated as data, never as instructions. The verifier does not act
+on instructions embedded in artifact content, and its output is constrained to
+a schema and validated against the evidence packet before it can influence
+anything.
+
+\paragraph{No individual performance measurement.} The system records who
+resolved a finding and when, because a finding must be auditable. It does not
+derive productivity measures about individuals, and the audit record exists to
+make findings re-readable rather than to attribute performance.
+
 \section{Current Limitations}
+
+Stated as limitations of the project at the mid stage, not as future work.
+
+\begin{itemize}
+  \item \textbf{The evaluation set is small by construction.} No public dataset
+        links a design artifact, a work item and a code change for the same
+        unit of work, so the gold set is built by hand and is bounded by the
+        labelling effort three people can sustain. Results are therefore
+        reported as counts with intervals, and the set is positioned as a
+        diagnostic instrument rather than a benchmark.
+  \item \textbf{Code analysis is language-specific.} Extracting symbols,
+        resolving imports and mapping tests requires a parser per language.
+        Two language families are declared; configuration formats are not
+        parsed into symbols at all.
+  \item \textbf{Design intent is only as fine-grained as the source reports
+        it.} A design change made without creating a named version is not
+        visible until a version is cut or reconciliation polls the file.
+  \item \textbf{Several claims are designed but not yet measured.} The
+        human-intervention metrics, the comments-stripped ablation, the
+        scalability benchmark and four of the five validation layers are
+        specified and not yet run. Chapter~8 states which results exist and
+        which do not.
+  \item \textbf{[Any component demonstrated only against replayed data rather
+        than live traffic.]}
+  \item \textbf{[Any measurement the team cannot yet produce because the
+        hardware question is unresolved.]}
+\end{itemize}
