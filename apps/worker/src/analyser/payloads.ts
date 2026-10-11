@@ -10,10 +10,21 @@
  *   TestCase    → TEST_EVIDENCE   one `test_source` item per test block
  *
  * Edges are only emitted for relations the analyser established, never for
- * guesses: `Commit PART_OF PullRequest` when the PR is known, and
- * `TestCase COVERS CodeSymbol` only when the test file imports the symbol's
- * file. A test that merely mentions the name is still listed as evidence,
- * but gets no edge.
+ * guesses. When the pull request is known (`pullRequestExternalId`):
+ *   Commit      PART_OF     PullRequest
+ *   PullRequest IMPLEMENTS  CodeSymbol   every symbol the diff touches
+ *   PullRequest IMPLEMENTS  TestCase     every test file the diff touches
+ * and always:
+ *   TestCase    COVERS      CodeSymbol   only when the test imports the
+ *                                        symbol's file
+ * A test that merely mentions a symbol's name is still listed as evidence but
+ * gets no COVERS edge.
+ *
+ * Why IMPLEMENTS from the PR: the packet builder walks the graph outward from
+ * a criterion (criterion -> PR -> ...). Without an edge from the PR, symbol
+ * cards and tests would sit in the graph unreachable, and only the diff hunks
+ * (on the Commit) would reach a packet. IMPLEMENTS is the type the worker's
+ * demo fixture already uses for PR -> symbol.
  */
 import type { EdgeType, EvidenceItem, NodeType } from "@unify/contracts";
 import { makeItem } from "../packet/provider.js";
@@ -118,7 +129,9 @@ export function toGraph(
   }
 
   // CodeSymbol: one card per changed symbol.
+  const pr = options.pullRequestExternalId;
   for (const sym of analysis.changedSymbols) {
+    if (pr) edges.push(edge(pr, "PullRequest", symbolExternalId(analysis.repo, sym), "CodeSymbol", "IMPLEMENTS"));
     nodes.push({
       externalId: symbolExternalId(analysis.repo, sym),
       type: "CodeSymbol",
@@ -149,6 +162,7 @@ export function toGraph(
   // TestCase: one node per test file, one item per relevant test block.
   for (const ev of analysis.tests) {
     const id = `${analysis.repo}:${ev.file}`;
+    if (pr && ev.reasons.includes("changed")) edges.push(edge(pr, "PullRequest", id, "TestCase", "IMPLEMENTS"));
     nodes.push({
       externalId: id,
       type: "TestCase",

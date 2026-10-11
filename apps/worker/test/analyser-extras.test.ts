@@ -152,6 +152,7 @@ describe("publish_analysis", () => {
     expect(first).toMatchObject({ nodesInserted: 3, nodesUpdated: 0, edgesInserted: 1, edgesExisting: 0 });
     expect(first.edgesSkipped).toEqual([
       { from: expect.stringMatching(/^commit:/), to: "acme/shop#7", type: "PART_OF", reason: "to node not in graph" },
+      { from: "acme/shop#7", to: "acme/shop:src/total.ts#total", type: "IMPLEMENTS", reason: "from node not in graph" },
     ]);
     const types = await db.query<{ type: string }>("select type::text from public.nodes order by type");
     expect(types.rows.map((r) => r.type)).toEqual(["CodeSymbol", "Commit", "TestCase"]);
@@ -169,11 +170,11 @@ describe("publish_analysis", () => {
       [WORKSPACE_ID],
     );
     const first = await publishGraph(publish, WORKSPACE_ID, graph);
-    expect(first).toMatchObject({ nodesInserted: 3, edgesInserted: 2, edgesSkipped: [] });
+    expect(first).toMatchObject({ nodesInserted: 3, edgesInserted: 3, edgesSkipped: [] });
     const second = await publishGraph(publish, WORKSPACE_ID, graph);
-    expect(second).toMatchObject({ nodesInserted: 0, nodesUpdated: 3, edgesInserted: 0, edgesExisting: 2 });
+    expect(second).toMatchObject({ nodesInserted: 0, nodesUpdated: 3, edgesInserted: 0, edgesExisting: 3 });
     expect(await count("nodes")).toBe(4);
-    expect(await count("edges")).toBe(2);
+    expect(await count("edges")).toBe(3);
   });
 
   it("only service_role may call it", async () => {
