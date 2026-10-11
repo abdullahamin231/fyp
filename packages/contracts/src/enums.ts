@@ -26,6 +26,17 @@ export const SOURCE_TOOLS = ["github", "jira", "figma", "system"] as const;
 export const sourceToolSchema = z.enum(SOURCE_TOOLS);
 export type SourceTool = z.infer<typeof sourceToolSchema>;
 
+/**
+ * Display tool vocabulary — the icon/identity a reviewer sees, distinct from
+ * `SOURCE_TOOLS` (where evidence originates). `git` and `test` are display
+ * identities for commits and test cases (which originate from github/jira);
+ * `slack` is delivery-only and never a source; `system` is a source but never
+ * a display icon.
+ */
+export const TOOL_KINDS = ["github", "jira", "figma", "git", "test", "slack"] as const;
+export const toolKindSchema = z.enum(TOOL_KINDS);
+export type ToolKind = z.infer<typeof toolKindSchema>;
+
 /** Type discriminator for rows of `nodes` (ERD legend). */
 export const NODE_TYPES = [
   "DesignArtifact",

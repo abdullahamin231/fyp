@@ -10,6 +10,8 @@ import { ruleSchema, type Rule } from "./rule.js";
 export const RULE_1_DESIGN_VERSION_DRIFT = {
   id: "RULE_1",
   version: 1,
+  title: "Design drift after PR merge",
+  description: "A merged change left the linked design artefact behind past the grace window.",
   edgeType: "IMPLEMENTS",
   trigger: { on: "edge.updated", entityType: "PullRequest" },
   guards: [
@@ -50,6 +52,8 @@ export const RULE_1_DESIGN_VERSION_DRIFT = {
 export const RULE_2_WORKFLOW_STATE_INCONSISTENCY = {
   id: "RULE_2",
   version: 1,
+  title: "Workflow state inconsistency",
+  description: "Ticket and change disagree about whether the work exists.",
   edgeType: "IMPLEMENTS",
   trigger: { on: "node.updated", entityType: "PullRequest" },
   guards: [
@@ -90,6 +94,8 @@ export const RULE_2_WORKFLOW_STATE_INCONSISTENCY = {
 export const RULE_3_OVERLAPPING_CHANGE_SCOPE = {
   id: "RULE_3",
   version: 1,
+  title: "Overlapping change scope",
+  description: "Two changes touch the same components without a shared ticket.",
   edgeType: "TOUCHES_COMPONENT",
   trigger: { on: "edge.created", entityType: "PullRequest" },
   guards: [

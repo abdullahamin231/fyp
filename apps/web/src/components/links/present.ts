@@ -1,3 +1,4 @@
+import { isDecisiveEligibility } from "@unify/contracts";
 import type { LinkEligibility, RelationLink, ToolKind } from "@/lib/types";
 import type { Tone } from "@/components/ui/badge";
 import type { LinkSuggestion } from "@/lib/domain/link-suggestions";
@@ -55,34 +56,30 @@ export const relationMeta: Record<
 
 export const eligibilityMeta: Record<
   LinkEligibility,
-  { label: string; tone: Tone; icon: string; decisive: boolean; hint: string }
+  { label: string; tone: Tone; icon: string; hint: string }
 > = {
   confirmed: {
     label: "Confirmed",
     tone: "success",
     icon: "check_circle",
-    decisive: true,
     hint: "Human-asserted edge — eligible for decisive findings and notifications.",
   },
   "system-confirmed": {
     label: "System-confirmed",
     tone: "info",
     icon: "verified",
-    decisive: true,
     hint: "Reconciled from adapter evidence — eligible for decisive findings and notifications.",
   },
   inferred: {
     label: "Inferred",
     tone: "warning",
     icon: "auto_awesome",
-    decisive: false,
     hint: "Advisory only — cannot raise a decisive finding or notification until confirmed.",
   },
   unconfirmed: {
     label: "Unconfirmed",
     tone: "neutral",
     icon: "help",
-    decisive: false,
     hint: "Advisory only — cannot raise a decisive finding or notification until confirmed.",
   },
 };
@@ -94,9 +91,8 @@ export const ELIGIBILITIES: LinkEligibility[] = [
   "unconfirmed",
 ];
 
-export function isDecisive(eligibility: LinkEligibility): boolean {
-  return eligibilityMeta[eligibility].decisive;
-}
+/** Is a classified eligibility decisive? Delegates to the contracts boundary. */
+export const isDecisive = isDecisiveEligibility;
 
 /** The product rule, surfaced verbatim wherever advisory links appear. */
 export const ADVISORY_RULE =

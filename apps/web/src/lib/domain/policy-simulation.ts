@@ -24,7 +24,14 @@ export const graceSteps: Record<PolicyId, number[]> = {
   P4: [15, 30, 60, 120, 240, 480],
 };
 
-/** Step that equals `Policy.graceMinutes` (the value deployed in production). */
+/**
+ * Default "what-if" step per policy for the Test Lab.
+ *
+ * These are candidate windows to *replay against*, not the deployed grace
+ * period — the deployed value lives in `RULE_META[ruleId].gracePeriodHours`
+ * (`@unify/contracts`). The lab is a sandbox; it must never read as the value
+ * running in production.
+ */
 export const defaultStep: Record<PolicyId, number> = { P1: 2, P2: 2, P3: 3, P4: 2 };
 
 export interface SimScenario {

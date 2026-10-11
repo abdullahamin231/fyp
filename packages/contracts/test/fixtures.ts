@@ -146,6 +146,8 @@ export function baseRule(overrides: Partial<Rule> = {}): Rule {
   return {
     id: "RULE_1",
     version: 3,
+    title: "Design drift after PR merge",
+    description: "A merged change left the linked design artefact behind.",
     edgeType: "IMPLEMENTS",
     trigger: { on: "edge.created", entityType: "PullRequest" },
     guards: [

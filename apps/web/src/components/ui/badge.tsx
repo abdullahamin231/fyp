@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { ToolKind } from "@/lib/types";
 
 export type Tone = "critical" | "warning" | "info" | "success" | "neutral" | "accent";
 
@@ -44,8 +45,6 @@ export function Badge({
     </span>
   );
 }
-
-export type ToolKind = "figma" | "github" | "jira" | "slack" | "git" | "test";
 
 const toolMeta: Record<ToolKind, { color: string; icon?: string; label: string }> = {
   figma: { color: "#f24e1e", icon: "draw", label: "Figma" },

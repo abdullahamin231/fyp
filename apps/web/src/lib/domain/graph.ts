@@ -1,3 +1,4 @@
+import { isDecisiveEligibility } from "@unify/contracts";
 import type {
   GraphEdge,
   GraphModel,
@@ -78,9 +79,8 @@ export interface ExplorerGraph extends GraphModel {
   edges: ExplorerEdge[];
 }
 
-export function isDecisive(eligibility: LinkEligibility): boolean {
-  return eligibility === "confirmed" || eligibility === "system-confirmed";
-}
+/** Is a classified eligibility decisive? Delegates to the contracts boundary. */
+export const isDecisive = isDecisiveEligibility;
 
 export interface GraphStats {
   nodes: number;

@@ -99,6 +99,11 @@ export const ruleSchema = z.strictObject({
   /** Monotonic version. A finding pins both `id` and `version`. */
   version: z.number().int().positive(),
 
+  /** Human title, e.g. "Design drift after PR merge" — the reviewer surface reads it. */
+  title: nonEmpty,
+  /** One-sentence description of what the rule catches. */
+  description: nonEmpty,
+
   /** Subscribed edge type; `null` when the rule subscribes by entity only. */
   edgeType: edgeTypeSchema.nullable(),
   trigger: ruleTriggerSchema,
