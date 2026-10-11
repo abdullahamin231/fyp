@@ -1,12 +1,452 @@
 \chapter{Project Management and Development Evidence}
+
+% Dates, commit identifiers and quantitative values below are included only
+% where they are supported by repository history or the GenAI register.
+
 \section{Work Completed}
+
+Work is reported by technical stream rather than by calendar week, because the
+three streams proceed in parallel and a chronological list would obscure which
+member is accountable for which evidence. Status as of \textbf{12 Oct 2026}.
+
+\begin{longtable}{p{0.30\textwidth}p{0.14\textwidth}p{0.11\textwidth}p{0.37\textwidth}}
+\toprule
+Work item & Owner & Status & Evidence \\
+\midrule
+\endhead
+Repository scaffold, continuous integration, container composition
+  & Abdullah & Complete & Monorepo and CI scaffold, \texttt{b09e05a} \\
+Shared contracts: event envelope, node and edge types, verdict schema
+  & Abdullah & Complete & \texttt{packages/contracts} with unit tests, \texttt{9933a71} \\
+Database schema realised from the entity-relationship diagram
+  & Abdullah & Complete & Migrations matching the ERD and RLS/auth wiring, \texttt{cb29692} \\
+Source adapters for three systems, read-only authenticated access
+  & Haaniah & Complete & Adapter implementations and webhook testing guide, \texttt{c95df34} \\
+Event reliability: idempotency, checkpointing, reconciliation, stale-source
+  handling
+  & Haaniah & Complete & Replay harness and reliability implementation, \texttt{46d04f6} \\
+Deterministic rules 1--3 as versioned records
+  & Haaniah & Complete & Versioned rule records with triggers, guards and grace
+    periods, \texttt{048ceaa} \\
+Evidence graph tables and deterministic linking
+  & Mishal & Complete & Linking function and migration; 16 tests against the
+    real migrations, \texttt{6a7998e} \\
+Change analyser: changed files, symbols, test evidence, symbol cards
+  & Mishal & Complete & Analyser evaluated against the 15 pilot cases;
+    20 tests, \texttt{1808fe9}; Python/test-run extensions, \texttt{fcaaf76} \\
+Context packet, bounded verifier loop, verdict and provenance gate
+  & Abdullah & Complete & Packet builder with manifest and citation gate,
+    \texttt{a037d16}; three-hop hand-off, \texttt{9f9c78c} \\
+Reviewer interface: evidence case, link confirmation
+  & Abdullah & Complete & Reviewer surface and empty-state wiring, \texttt{8c061fe} \\
+Diagram set (thirteen diagrams)
+  & All & Complete & Committed source plus rendered output, one build script \\
+Pilot evaluation set, blind annotation, agreement measurement
+  & All & Partial & Pilot cases across three repositories; two independent
+    annotation files; measured agreement. Adjudication and supervisor audit
+    outstanding \\
+Mid report
+  & All & Partial & Chapters~1--10 drafted; final owner review, compilation and
+    supervisor-facing cleanup remain \\
+\bottomrule
+\end{longtable}
+
 \section{Work Remaining}
+
+The items below are outstanding at the reporting date. Each names the owner and
+the condition that closes it, so that an incomplete item is distinguishable
+from an unplanned one.
+
+\begin{longtable}{p{0.32\textwidth}p{0.13\textwidth}p{0.45\textwidth}}
+\toprule
+Outstanding item & Owner & Closing condition \\
+\midrule
+\endhead
+Adjudication of outstanding annotation disagreements
+  & [Mishal] & Each disagreement resolved with a recorded rationale; annotation
+    manual frozen at version~1 \\
+Supervisor audit of the evaluation set
+  & All & A sample of cases, all rare classes and all demonstration cases
+    reviewed by the supervisor \\
+Remaining report chapters and review pass
+  & All & Each chapter reviewed by the two members who did not write it \\
+Clean report compilation
+  & Abdullah & The front-matter class commands resolved; build completes with no
+    errors \\
+End-to-end demonstration rehearsal
+  & All & Normal, edge and failure steps run in sequence against the
+    evaluation tag \\
+Evaluation tag frozen and repository access granted
+  & All & Tag recorded in the worksheet; supervisor access confirmed at
+    least 48 hours before the evaluation \\
+\bottomrule
+\end{longtable}
+
+\noindent Work deliberately not undertaken is recorded in Chapter~3 as a scope
+decision rather than listed here as outstanding, so that the two are not
+confused.
+
 \section{Individual Responsibilities}
+
+Responsibility is divided by technical stream, so that each member owns a
+coherent problem together with the evidence that demonstrates it works. The
+division is the same one recorded in the proposal and in Chapter~3; it has not
+been revised during the iteration.
+
+\begin{longtable}{p{0.16\textwidth}p{0.40\textwidth}p{0.36\textwidth}}
+\toprule
+Member & Primary ownership & Independent evaluation owned \\
+\midrule
+\endhead
+Haaniah Ismail
+  & Source adapters and authenticated read-only access; the normalised event
+    envelope; idempotency, checkpointing, reconciliation and stale-source
+    handling; the immutable artifact and version store; deterministic rules.
+  & Duplicate and out-of-order convergence; recovery after a simulated outage;
+    ingestion latency; permission and failure behaviour. \\
+Mishal Fatima
+  & The code and test analyser; the evidence graph and its provenance model;
+    deterministic linking; criterion invalidation and incremental dispatch.
+  & Link precision and recall; graph correctness; equivalence between
+    incremental and full evaluation. \\
+Abdullah Amin
+  & The context-packet builder; local model serving and selection; the bounded
+    verifier loop; the verdict and provenance gate; the reviewer evidence
+    report.
+  & Retrieval, verdict and grounding metrics; local latency and memory; the
+    task-based user evaluation. \\
+\bottomrule
+\end{longtable}
+
+Four responsibilities are shared because they cross every stream: maintaining
+one consistent terminology across the proposal, the report and the
+implementation; constructing and adjudicating the labelled evaluation set;
+end-to-end integration testing; and the documentation of ethical, privacy and
+tool-use disclosures. Within the evaluation set specifically, the member who
+constructs a case does not label it, and no member validates data belonging to
+their own subsystem.
+
 \section{Contribution of Each Team Member}
+
+% ===========================================================================
+% Commit count alone is not acceptable evidence. Each row must name what was
+% designed, implemented, tested, reviewed or integrated, and point at an
+% artefact a reviewer can open. Fill from the repository, not from memory.
+% ===========================================================================
+
+\begin{longtable}{p{0.13\textwidth}p{0.30\textwidth}p{0.13\textwidth}p{0.36\textwidth}}
+\toprule
+Member & Contribution & Commit or PR & Review or test evidence \\
+\midrule
+\endhead
+Haaniah & Source adapters, three systems & \texttt{c95df34} & Implementation and webhook setup documentation; live provider test evidence remains to be run \\
+Haaniah & Event reliability layer & \texttt{46d04f6} & Replay/convergence implementation; final local suite result to be recorded after dependencies are installed \\
+Haaniah & Deterministic rules 1--3 & \texttt{048ceaa} & Versioned rule records and contract tests in the commit \\
+Haaniah & Sequence, state-machine and deployment diagrams & \texttt{c95df34} & Source and rendered diagrams retained in the repository \\
+Haaniah & Chapters~1, 2, 3, 5, 9 & \texttt{de5c1ff}, \texttt{45e5ed7} & Chapter revisions are in repository history; peer review is a remaining submission check \\
+Mishal & Deterministic linking and migration & \texttt{6a7998e}, \texttt{9a376c7} & 16 tests against real migrations \\
+Mishal & Change analyser and symbol cards & \texttt{1808fe9}, \texttt{fcaaf76} & 20 tests; 15 pilot cases; commit records 66/66 then 74/74 worker suites \\
+Mishal & ERD, domain model, use-case and anchor diagrams & \texttt{da0bbf1} & Diagram sources and rendered output retained; peer review remains a submission check \\
+Mishal & Chapters~4, 6 (own subsection), 8 & \texttt{8fe18d6}, \texttt{b6f71c7} & Chapter sections and live-linking evidence are committed \\
+Abdullah & Scaffold, CI, contracts, schema & \texttt{b09e05a}, \texttt{9933a71}, \texttt{cb29692} & Shared contracts and schema artefacts are committed; final suite output to be attached at the evaluation gate \\
+Abdullah & Verification pipeline and gate & \texttt{a037d16}, \texttt{1f2c208} & Worker, verdict gate and reviewer data layer are committed \\
+Abdullah & Reviewer interface & \texttt{8c061fe} & Mock data removed and empty states wired; manual end-to-end check remains \\
+Abdullah & Architecture, component, data-flow, verifier-loop and autonomy
+  diagrams & \texttt{a037d16} & Source and rendered diagrams retained; peer review remains a submission check \\
+Abdullah & Chapters~6 (own subsection), 10; traceability matrix & \texttt{3555bc9} & Three-hop packet hand-off and the remaining report artefacts are committed \\
+\bottomrule
+\end{longtable}
+
 \section{Repository and Version Control Evidence}
+
+\paragraph{Repository.} The repository is
+\url{https://github.com/abdullahamin231/fyp.git}. The current evaluation
+candidate is \textbf{\texttt{45e5ed7}}, dated 12 Oct 2026; a final tag is
+still to be created after the clean-report gate.
+
+\paragraph{Branching and review.} The history contains feature branches merged
+through pull requests as well as direct commits on the shared working branch.
+The final report edits were committed directly on the worksheet branch.
+Review was therefore by team agreement rather than an enforced
+branch-protection rule; the final pass must record the two non-authors who
+reviewed each chapter.
+
+\paragraph{Task tracking.} The team used the repository TODO and worksheet
+checklists rather than a separate issue tracker. Work items are linked to
+commits by the feature or chapter named in the commit subject; for example,
+the analyser is traceable through \texttt{1808fe9} and \texttt{fcaaf76}, and
+the live integrations through \texttt{c95df34}.
+
+\paragraph{Unusual history.} The generated teammate chapter drafts were
+reverted in \texttt{7766cbc}; the reason and resulting author-rewrite process
+are disclosed in Section~\ref{sec:ch9-genai}. The live-integration commit
+\texttt{c95df34} is large because it contains the three provider adapters,
+OAuth routes, webhook route, migration, documentation and onboarding handoff
+as one coherent feature. The analyser work is split between the TypeScript
+implementation (\texttt{1808fe9}) and the Python, coverage, test-run and
+publish extensions (\texttt{fcaaf76}).
+
+\paragraph{Integration responsibility.} Abdullah integrated the shared
+contracts, database, verification pipeline and reviewer data layer; Haaniah
+integrated source ingestion, reliability, rules and the three live adapters;
+Mishal integrated linking and analysis. Conflicts were resolved at the
+contracts-and-migrations boundary. The analyser-to-packet handoff was corrected
+when the packet builder increased its graph walk from two hops to three in
+\texttt{9f9c78c}, then recorded in \texttt{3555bc9}.
+
 \section{Milestones and Commit Evidence}
+
+\begin{longtable}{p{0.34\textwidth}p{0.13\textwidth}p{0.14\textwidth}p{0.29\textwidth}}
+\toprule
+Milestone & Owner & Date & Commit or artefact \\
+\midrule
+\endhead
+Shared contracts frozen & Abdullah & 09 Oct & \texttt{9933a71} \\
+Database schema applied & Abdullah & 10 Oct & \texttt{cb29692} \\
+Ingestion reliability demonstrated & Haaniah & 11 Oct & \texttt{46d04f6} \\
+Deterministic linking live & Mishal & 11 Oct & \texttt{6a7998e}, \texttt{9a376c7} \\
+Analyser evaluated on pilot cases & Mishal & 11 Oct & \texttt{1808fe9} \\
+Verification pipeline and gate complete & Abdullah & 11 Oct & \texttt{a037d16} \\
+Live source adapters connected & Haaniah & 11 Oct & \texttt{c95df34} \\
+Diagram set complete & All & 11 Oct & committed \texttt{diagrams/} sources and renders \\
+Pilot annotation round and agreement measured & All & 09 Oct & \texttt{bfb3201} and annotation sheets \\
+Evaluation tag & All & pending & no final tag exists at this reporting point \\
+\bottomrule
+\end{longtable}
+
 \section{Tools and Tool-Assisted Development}
+\label{sec:ch9-genai}
+
+\subsection*{Classification approach}
+
+Generative tools were used during this project. Assistance is classified per
+artefact rather than per member, because the same member used different levels
+of assistance on different work. The four levels are those defined by the
+evaluation instrument: \textbf{L1} supportive, covering formatting, phrasing
+and minor debugging hints; \textbf{L2} assisted, where significant code, tests,
+diagrams or report text were generated and then reviewed, modified and
+integrated by the member; \textbf{L3} core assist, where a major module or
+central feature was produced with substantial generative help; and \textbf{L4}
+substituted, where generated work could not be independently explained or
+modified by the member it is attributed to.
+
+The project's position on L4 is that such work is not presented as
+independently completed. This was applied in practice rather than stated in
+principle, and the next subsection records the one occasion on which it was.
+
+\subsection*{A correction made during the iteration}
+
+Draft text for several report chapters was generated rather than written by the
+members those chapters were assigned to. The drafts were reverted in commit
+\texttt{7766cbc} and each chapter returned to its section skeleton for its
+owner to write.
+
+The reasoning was that a generated chapter cannot satisfy two separate
+requirements at once: the anti-plagiarism declaration, and the requirement that
+each member be able to locate, explain and modify the work attributed to them
+under questioning. A chapter that reads well but that its named author cannot
+defend is an L4 artefact presented as independent work, which the classification
+above prohibits. Reverting cost the team approximately 1,560 lines of apparent
+progress and several days of rewriting,
+and it is recorded here rather than omitted because
+the commit is visible in the repository and an unexplained reversion is worse
+than a declared one.
+
+\subsection*{GenAI artefact register}
+
+% ===========================================================================
+% EACH MEMBER FILLS THEIR OWN ROWS. Do not complete another member's row.
+% The supervisor may ask the named owner to explain or modify any artefact
+% listed here, so do not state a level you cannot defend.
+%
+% Rows that must appear, because each is a materially assisted artefact:
+%   - every report chapter drafted or edited with assistance, including this one
+%   - every code module where generated code was retained
+%   - every diagram whose source was generated
+%   - the annotation guide, if assistance was used in drafting it
+% ===========================================================================
+
+\begin{longtable}{p{0.17\textwidth}p{0.11\textwidth}p{0.22\textwidth}p{0.22\textwidth}p{0.17\textwidth}}
+\toprule
+Artefact & Level & Assistance used & Member contribution & Verification \\
+\midrule
+\endhead
+Chapter~3 and source-adapter documentation & L2/L3 draft assistance &
+  Structure and wording suggestions from the drafting workflow &
+  Haaniah supplied repository evidence, corrected unsupported claims and
+  rewrote the technical account in the owner's voice &
+  Cross-checked against \texttt{de5c1ff}, \texttt{c95df34} and the provider
+  testing guide; unverified live measurements remain open \\
+Chapter~9 development evidence & L2/L3 draft assistance &
+  Report structure and evidence-table drafting &
+  Haaniah replaced placeholders with git-log evidence and retained only claims
+  traceable to the repository or GenAI register &
+  Checked against \texttt{45e5ed7}, \texttt{genai\_register.md} and repository
+  history \\
+Haaniah's source-adapter implementation & L2 assisted implementation &
+  OAuth, webhook, normalization and persistence code was generated and refined
+  with assistance &
+  Haaniah selected the provider boundary, reviewed security behavior, corrected
+  provider-specific handling and integrated the migration and UI handoff &
+  Diff review and whitespace validation completed; npm typecheck/lint were
+  attempted but dependencies were not installed in the working environment \\
+\bottomrule
+\end{longtable}
+
+\noindent \textbf{This chapter is itself a registered artefact.} The structure
+and prose of Chapter~9 were drafted with generative assistance; the
+contribution evidence, commit references, assistance levels and disclosures
+were supplied, verified and corrected by the members they describe. It appears
+in the register above with its own level and owner, on the principle that a
+disclosure chapter that omits itself is not a disclosure.
+
+\subsection*{Prompt journal}
+
+Significant interactions that materially affected the project are recorded in
+\texttt{docs/genai\_register.md}; routine formatting and lookup are not logged.
+The register records team entries by member and artefact, including the
+reversion of generated teammate chapters and independently made annotation
+decisions.
+
 \section{External Components and Dependencies}
+
+\begin{longtable}{p{0.22\textwidth}p{0.22\textwidth}p{0.24\textwidth}p{0.26\textwidth}}
+\toprule
+Component & Purpose & Risk or limitation & Fallback \\
+\midrule
+\endhead
+Change-source API (GitHub) & Pull requests, commits, diffs & Rate limits;
+  availability outside our control & Replay harness; reconciliation polling \\
+Work-item API (Jira) & Issues, acceptance criteria, workflow transitions &
+  Best-effort delivery with no dead-letter queue; large payloads & Checkpoint
+  and reconciliation; body-size limit \\
+Design API (Figma) & Versioned design artifacts and constraints & Coarse event
+  coverage; named-version granularity only & Reconciliation polling \\
+PostgreSQL & Events, snapshots, evidence graph, findings, audit & Single
+  storage dependency & Schema is portable; no vendor-specific features relied
+  on \\
+Redis & Job queue and locks & Loss of queued work on failure & Work is
+  reconstructable from the event log \\
+Open-weight language model and serving runtime & Criterion verification &
+  Hardware-bound; licence terms must be observed & Deterministic rules and
+  unresolved-evidence reporting continue without it \\
+TypeScript compiler and parser & Symbol extraction & Language-specific; does
+  not parse configuration formats & Unparsed files reported as changed without
+  symbols \\
+Schema validation library & Contract definitions & Low & Zod contract tests;
+  schemas remain the source of truth \\
+Test framework & Unit and integration tests & Low & Vitest and worker test
+  suites; final environment-dependent run remains an evaluation checklist item \\
+\LaTeX{} and Ti\emph{k}Z & Report and diagram production & Build environment
+  differences & Committed source plus rendered output \\
+\bottomrule
+\end{longtable}
+
+\noindent No hosted language-model interface is a dependency of the committed
+system. Where a hosted model is used it is as an offline comparison on
+non-sensitive data, labelled as such, and the system does not call it at
+runtime.
+
 \section{Risks and Mitigation}
+
+\begin{longtable}{p{0.26\textwidth}p{0.12\textwidth}p{0.12\textwidth}p{0.42\textwidth}}
+\toprule
+Risk & Likelihood & Impact & Mitigation \\
+\midrule
+\endhead
+Criterion-to-code retrieval recall is too low for useful verification
+  & Medium & High & Retrieval measured separately from verdict quality, so the
+    error is not misattributed to the model; declared repository class narrowed
+    and decisive states restricted until measured recall supports them \\
+Local inference latency or memory exceeds available hardware
+  & Medium & Medium & Smaller or more aggressively quantised checkpoint;
+    asynchronous batch analysis instead of an in-review check; hardware and
+    repository class declared rather than generalised \\
+Evaluation set too small to support a confident claim
+  & High & Medium & Counts and intervals reported rather than bare
+    percentages; the set is positioned as a diagnostic instrument, not a
+    benchmark; training data drawn from public corpora so the gold set is never
+    used for tuning \\
+Verifier produces fluent but ungrounded verdicts
+  & Medium & High & Citations resolved against the immutable packet; an
+    uncited decisive verdict is rejected by construction and counted as an
+    abstention \\
+Vendor interface access or rate limits
+  & Low & Medium & Closed for all three sources during this iteration; the
+    replay harness remains as a fallback and as the only way to test outage
+    behaviour \\
+Report and implementation diverge
+  & Medium & Medium & Contracts defined once in code; diagrams generated from
+    committed source; traceability matrix regenerated at each gate \\
+\bottomrule
+\end{longtable}
+
 \section{Security and Privacy Considerations}
+
+\paragraph{Access is read-only throughout.} All three source integrations use
+read-only, least-privilege scopes. The system never writes to a connected tool.
+This is a design commitment rather than an unimplemented feature: there is no
+write path to remove later.
+
+\paragraph{Credentials.} Tokens are held by one component, encrypted at rest,
+and supplied through environment configuration rather than committed. A
+revocation path is documented. Webhook payloads are authenticated before they
+are parsed, using the signature scheme each vendor specifies.
+
+\paragraph{Artifact content does not leave the deployment.} All model inference
+runs on team-operated infrastructure. Repository content, work-item text and
+design metadata are not transmitted to a third-party model interface. This is
+what makes the system usable by a team whose policy prevents sending source
+code to an external service, and it is the reason the hosted-model option was
+removed from the committed design.
+
+\paragraph{Retained data.} Raw payloads are stored alongside their normalised
+form because a finding cites evidence that must remain readable after the
+source record changes. They contain vendor event data, issue/design/PR
+metadata, references and hashes, but not OAuth access tokens, refresh tokens,
+webhook secrets or encryption keys. The connection table stores secret-bearing
+values only as encrypted ciphertext. A retained-payload secret scan remains a
+release check and has not been reported as a measured result here.
+
+\paragraph{Untrusted input.} Work-item text, commit messages and design
+metadata are treated as data, never as instructions. The verifier does not act
+on instructions embedded in artifact content, and its output is constrained to
+a schema and validated against the evidence packet before it can influence
+anything.
+
+\paragraph{No individual performance measurement.} The system records who
+resolved a finding and when, because a finding must be auditable. It does not
+derive productivity measures about individuals, and the audit record exists to
+make findings re-readable rather than to attribute performance.
+
 \section{Current Limitations}
+
+Stated as limitations of the project at the mid stage, not as future work.
+
+\begin{itemize}
+  \item \textbf{The evaluation set is small by construction.} No public dataset
+        links a design artifact, a work item and a code change for the same
+        unit of work, so the gold set is built by hand and is bounded by the
+        labelling effort three people can sustain. Results are therefore
+        reported as counts with intervals, and the set is positioned as a
+        diagnostic instrument rather than a benchmark.
+  \item \textbf{Code analysis is language-specific.} Extracting symbols,
+        resolving imports and mapping tests requires a parser per language.
+        Two language families are declared; configuration formats are not
+        parsed into symbols at all.
+  \item \textbf{Design intent is only as fine-grained as the source reports
+        it.} A design change made without creating a named version is not
+        visible until a version is cut or reconciliation polls the file.
+  \item \textbf{Several claims are designed but not yet measured.} The
+        human-intervention metrics, the comments-stripped ablation, the
+        scalability benchmark and four of the five validation layers are
+        specified and not yet run. Chapter~8 states which results exist and
+        which do not.
+  \item \textbf{Live provider behavior remains an integration-test
+        dependency.} The adapter and webhook paths are implemented and
+        documented, but the repository history does not yet contain a
+        reproducible run against all three external provider accounts.
+  \item \textbf{The local-inference hardware question remains unresolved.}
+        No reproducible latency and memory measurement is committed yet, so
+        the final model choice and any interactive-latency claim are deferred.
+\end{itemize}

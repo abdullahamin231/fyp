@@ -51,16 +51,13 @@ No extension of the project timeline was requested.
 The register below is the authoritative record of what each comment changed. The
 evidence column names the artefact that demonstrates the action, so that a
 reviewer can verify a claim rather than take it on trust. Status is reported as
-of \textbf{[DATE]} and uses three values: \emph{Complete} where the named
+of \textbf{12 October 2026} and uses three values: \emph{Complete} where the named
 evidence exists and has been reviewed by the two members who did not produce it,
 \emph{In progress} where work has started and partial evidence exists, and
 \emph{Planned} where the design decision is made and recorded but implementation
 has not begun.
 
-% ---------------------------------------------------------------------------
-% NOTE: Status column is filled with the honest current state. Update the
-% [DATE] above and any row whose status changes before submission.
-% ---------------------------------------------------------------------------
+% Status values reflect the current evidence available in the repository.
 
 \begin{longtable}{p{0.03\textwidth}p{0.21\textwidth}p{0.33\textwidth}p{0.10\textwidth}p{0.21\textwidth}}
 \toprule
@@ -73,7 +70,8 @@ No. & Feedback & Action taken & Status & Evidence \\
     confidence band and routed to the code owner. Resolution deliberately kept
     human.
   & In progress
-  & Use cases and actor split, Ch.~4; intervention metrics in the NFRs \\
+  & Use cases and actor split, Ch.~4; intervention metrics in the NFRs.
+    Design recorded; the intervention metrics are not yet measured \\
 2 & Research which model and what resources
   & Selection protocol and candidate matrix written before any model was
     downloaded. No model named on reputation; the protocol fixes the split,
@@ -100,26 +98,30 @@ No. & Feedback & Action taken & Status & Evidence \\
     against a stated threshold, below which the guide is rewritten and the set
     relabelled.
   & In progress
-  & Annotation guide; two annotation files and agreement report, Ch.~8 \\
+  & Annotation guide; two independent annotation files; measured agreement
+    ($\kappa$ reported in Ch.~8). Supervisor audit outstanding \\
 6 & Code comments carry semantics
   & Each symbol produces a symbol card combining name, signature, docstring,
     comments, path tokens, imports, callers and commit message. The card, not
     the raw line range, is what is embedded and retrieved.
-  & Planned
-  & Symbol-card design, Ch.~5; comments-stripped ablation, Ch.~8 \\
+  & In progress
+  & Symbol-card design, Ch.~5. Produced by the analyser; the
+    comments-stripped ablation (Ch.~8) is not yet run \\
 7 & Limit scope to well-documented projects
   & Accepted with a stated limit. Eligibility score over comment coverage,
     identifier informativeness, directory conventionality, documentation and
     tests; threshold published. A low-documentation cohort is retained and
     reported separately.
   & In progress
-  & Eligibility rubric and scoring script; repository catalogue \\
+  & Eligibility rubric and scoring script; repository catalogue with accepted
+    repositories recorded. Low-documentation cohort not yet assembled \\
 8 & Robust context management
   & Deterministic context packet under a fixed token budget, with per-slot
     allocation, fixed eviction order, syntax-tree-aligned chunking and hybrid
     retrieval. A manifest is stored with every verdict.
-  & Planned
-  & Context-packet design and verifier-loop diagram, Ch.~5 \\
+  & In progress
+  & Context-packet design and verifier-loop diagram, Ch.~5. Builder and
+    manifest implemented; AST-aligned chunking outstanding \\
 9 & Use the model for large code design
   & Accepted with a stated limit. Map-then-zoom over a repository map and symbol
     index, full detail only for selected regions, under a fixed pass cap.
@@ -131,7 +133,8 @@ No. & Feedback & Action taken & Status & Evidence \\
     validation, each with a named gate. Five ablations committed, plus two hard
     gates on uncited verdicts and verdict stability.
   & In progress
-  & Validation and acceptance plan, Ch.~8 \\
+  & Validation and acceptance plan, Ch.~8. Plan written; the data layer is
+    executed, the remaining four layers are not \\
 11 & Link requirements to exact lines of code
   & Accepted with an explicit distinction. Functional requirements anchor to a
     symbol and line range, commit-pinned. Non-functional requirements are not
@@ -244,12 +247,6 @@ removing any one member would remove a meaningful technical responsibility and
 its independent evaluation; a division in which one member owned only an
 interface would fail that test.
 
-% ---------------------------------------------------------------------------
-% NOTE: this table follows proposal Section 16. The Gantt chart and the
-% defence slide assign three of these rows differently. Settle which is
-% current and make all three documents agree before submission.
-% ---------------------------------------------------------------------------
-
 \begin{longtable}{p{0.16\textwidth}p{0.42\textwidth}p{0.34\textwidth}}
 \toprule
 Member & Primary ownership & Independent evaluation owned \\
@@ -289,40 +286,102 @@ subsystem.
 \section{Progress Against Plan}
 \label{sec:ch3-progress}
 
-% ===========================================================================
-% TO COMPLETE BEFORE SUBMISSION.
-% Fill from real evidence, not from memory. One row per planned milestone.
-% Keep honest statuses: a register in which every row is complete three weeks
-% before the evaluation is less credible than one with accurate statuses.
-% ===========================================================================
+% Dates and commit identifiers in this section are taken from repository history.
 
 Progress is reported against the plan baselined at the proposal stage, as of
-\textbf{[DATE]}. Planned dates are those recorded in the revised schedule;
-actual dates are taken from the repository history and the task record rather
-than reconstructed afterwards.
+\textbf{12 Oct 2026}. Planned dates are those recorded in the revised
+schedule; actual dates are taken from the repository history and the task
+record rather than reconstructed afterwards. Status uses four values:
+\emph{Complete} where the evidence exists and has been reviewed by two members
+who did not produce it, \emph{Partial} where the deliverable exists but an
+element of it is outstanding, \emph{Delayed} where the work has started behind
+schedule, and \emph{Blocked} where an external dependency prevents progress.
 
-\begin{longtable}{p{0.30\textwidth}p{0.14\textwidth}p{0.14\textwidth}p{0.12\textwidth}p{0.22\textwidth}}
+\begin{longtable}{p{0.27\textwidth}p{0.10\textwidth}p{0.10\textwidth}p{0.11\textwidth}p{0.30\textwidth}}
 \toprule
 Milestone & Planned & Actual & Status & Evidence \\
 \midrule
 \endhead
-Proposal revision and panel response & & & & \\
-Diagram set (thirteen diagrams) & & & & \\
-Repository scaffold, CI, container composition & & & & \\
-Shared contracts frozen & & & & \\
-Model-selection protocol & & & & \\
-Technical spike: local inference measured & & & & \\
-Vendor access confirmed & & & & \\
-Ingestion: normalised envelope end to end & & & & \\
-Evidence graph schema and deterministic linking & & & & \\
-Pilot evaluation set constructed & & & & \\
-Annotation round and agreement measured & & & & \\
+Proposal revision and panel response
+  & 08 Oct & 08 Oct & Complete
+  & Revised proposal and plan-of-action document; action register earlier in
+    this chapter \\
+Diagram set (thirteen diagrams)
+  & 08 Oct & 11 Oct & Complete
+  & \texttt{diagrams/} with one build script; all thirteen render from
+    committed source \\
+Repository scaffold, CI, container composition
+  & 08 Oct & 08 Oct & Complete
+  & Monorepo and CI scaffold, \texttt{b09e05a}; container composition is
+    documented in the repository setup \\
+Shared contracts frozen
+  & 09 Oct & 09 Oct & Complete
+  & \texttt{packages/contracts}; event envelope, node and edge types, verdict
+    schema, with unit tests \texttt{9933a71} \\
+Database schema realised from the ERD
+  & 10 Oct & 10 Oct & Complete
+  & Migrations matching the ERD; tables created and connected
+    \texttt{cb29692} \\
+Ingestion reliability (mock vendor, deduplication, out-of-order,
+  reconciliation, \texttt{SOURCE\_STALE})
+  & 11 Oct & 11 Oct & Complete
+  & Replay harness and reliability implementation \texttt{46d04f6}; convergence
+    evidence is recorded in the ingestion tests \\
+Evidence graph and deterministic linking
+  & 11 Oct & 11 Oct & Complete
+  & Graph tables and work-item key resolution \texttt{6a7998e},
+    \texttt{9a376c7} \\
+Code and test analyser for the declared language
+  & 11 Oct & 11 Oct & Complete
+  & Changed files, symbols and test evidence for a labelled pull request
+    \texttt{1808fe9}; Python support and opt-in test evidence
+    \texttt{fcaaf76} \\
+Deterministic rules 1--3 as versioned records
+  & 11 Oct & 11 Oct & Complete
+  & Versioned rule records with triggers, guards and grace periods
+    \texttt{048ceaa} \\
+Context packet, verifier loop and verdict gate
+  & 11 Oct & 11 Oct & Complete
+  & Deterministic packet builder with manifest; bounded loop; citation gate
+    \texttt{a037d16}; packet depth correction \texttt{9f9c78c} \\
+Reviewer interface (evidence case, link confirmation)
+  & 10 Oct & 11 Oct & Complete
+  & Reviewer surface serving live data; mock data removed from the front end
+    \texttt{8c061fe}; live data wiring follows the verifier data layer
+    \texttt{a037d16} \\
+Live source adapters (three sources)
+  & Not planned & 11 Oct & Complete
+  & Read-only authenticated adapters; mock vendor retained as the conformance
+    harness \texttt{c95df34} \\
+Pilot evaluation set and annotation round
+  & 09 Oct & 11 Oct & Partial
+  & Pilot cases across three repositories; two independent annotation files;
+    measured agreement. Adjudication of outstanding disagreements and the
+    supervisor audit remain \\
+Mid report chapters
+  & 09 Oct & 12 Oct & Partial
+  & Chapters~1--10 drafted; final owner review and clean compilation remain;
+    see the deviation table below \\
 \bottomrule
 \end{longtable}
 
-\paragraph{Summary.} [Two or three sentences: how many milestones met on
-schedule, how many late, and whether the iteration objective was achieved. State
-the overall position plainly rather than presenting the table alone.]
+\paragraph{Summary.} Eleven milestones are listed above: the implementation
+milestones and the live-adapter addition were completed during the iteration;
+the pilot evaluation remains partial because adjudication and supervisor audit
+are outstanding. The report-writing milestone was completed later than the
+initial draft checkpoint, and the clean-compile gate remains open. The
+Iteration~1 objective was achieved for the deterministic foundation and source
+access; the local-inference hardware question remains unresolved.
+
+\paragraph{Iteration objective.} The Iteration~1 objective was to establish the
+foundations and retire the two external unknowns named in the iteration
+strategy above. The vendor-access unknown is now
+\textbf{closed}: read-only authenticated access to all three source systems is
+working, the available event types are recorded, and the delivery semantics of
+each vendor are documented. The local-inference unknown is
+\textbf{open}: no reproducible latency and memory measurement is committed yet,
+so the final model choice and any claim about interactive local inference are
+deferred until that benchmark is run.
 
 \paragraph{Scope changes since the proposal.} Two items left the committed
 scope to pay for the additions accepted in the action register. Narrative
@@ -330,44 +389,96 @@ summarisation of change chains was removed: it was already a stretch item, it
 produces no evaluable claim, and it is the first element a panel would identify
 as decorative. Support for languages beyond the two declared families was
 removed, because each additional language multiplies grammar work, convention
-modelling and labelling effort without adding a contribution. Additional source
-integrations remain outside the committed scope; the adapter layer is defined by
-source role rather than by product, so any further source is one adapter written
-against an existing contract rather than new architecture, and none produces a
-new evaluable claim. [Confirm this paragraph still matches the agreed position
-before submission.]
+modelling and labelling effort without adding a contribution.
+
+One item entered scope that the original build plan did not contain. Live
+source adapters for the three bound systems were implemented during this
+iteration, alongside the existing replay harness rather than in place of it.
+The harness is retained permanently: duplicate delivery, out-of-order arrival,
+an undelivered webhook and a prolonged outage cannot be produced on demand
+against a live service, so the scenarios behind the reliability claims are only
+testable through replay. Additional source integrations beyond the three remain
+outside the committed scope; the adapter layer is defined by source role rather
+than by product, so any further source is one adapter written against an
+existing contract rather than new architecture, and none produces a new
+evaluable claim.
 
 \section{Delays, Deviations and Recovery Plan}
 
 % ===========================================================================
-% TO COMPLETE BEFORE SUBMISSION.
-% One row per real deviation. Do not invent deviations, and do not omit one
-% that is visible in the repository history -- an unexplained gap in the
-% commit record is worse than a declared delay.
+% BEFORE SUBMISSION: confirm each row is accurate and add any deviation
+% visible in the repository history that is missing here. An unexplained gap
+% in the commit record is worse than a declared delay.
 % ===========================================================================
 
-\begin{longtable}{p{0.22\textwidth}p{0.26\textwidth}p{0.24\textwidth}p{0.22\textwidth}}
+\begin{longtable}{p{0.21\textwidth}p{0.25\textwidth}p{0.23\textwidth}p{0.25\textwidth}}
 \toprule
 Deviation & Cause & Impact & Recovery action \\
 \midrule
 \endhead
- & & & \\
- & & & \\
- & & & \\
+Declared implementation language widened from one family to two
+  & Panel feedback on scalability and scope was accepted with a stated limit,
+    which required the second language family to be named explicitly.
+  & Grammar work, convention modelling and labelling effort increase for the
+    analyser and the evaluation set.
+  & Accepted, not recovered. The limit is published and the second family is
+    scoped to the same declared boundary. Proposal §27.3 governs where it
+    differs from §7.2 \\
+Teammate chapter drafts reverted
+  & Draft chapters had been generated rather than written by their owners,
+    which the anti-plagiarism declaration and the individual-defence
+    requirement do not permit.
+  & Chapters~2, 6, 8 and 9 returned to the section skeleton; report page count
+    fell accordingly.
+  & Each owner rewrites their chapter in their own words against real
+    artefacts. Chapters~2 and 8 are complete; Chapters~6 and 9 are outstanding
+    at the reporting date \\
+Report does not yet compile cleanly
+  & The front-matter chapter uses document-class commands that the class file
+    does not define.
+  & Four errors remain at build; the document otherwise builds with no
+    unresolved citations or references.
+  & Fix the class file or the front-matter chapter. Owner and date to be
+    recorded; this is the final blocker on the clean-compile checklist item \\
 \bottomrule
 \end{longtable}
 
-\paragraph{Deviations accepted rather than recovered.} [Where a deviation is
-not being recovered because the change was deliberate, state that explicitly
-here and give the reasoning. A deliberate re-plan is a legitimate outcome; an
-undeclared one is not.]
+\paragraph{Deviations accepted rather than recovered.} The language-scope
+widening is a deliberate re-plan rather than a slip, and it is not being
+reversed: it follows directly from accepting two panel comments, and reverting
+it would reopen them. The addition of live adapters during the iteration is
+likewise deliberate. It was sequenced early because vendor access is an
+external dependency that cannot be engineered around, and discovering late that
+a required event type did not exist would have invalidated the policy built on
+top of it.
 
-\paragraph{Risk carried into the next iteration.} [Name the risks that remain
-open, with the mitigation already prepared for each. The three carried from the
-proposal risk register are: vendor interface access or rate limits; criterion to
-code retrieval recall falling below the level needed for useful verification;
-and local inference latency or memory exceeding the available hardware. Confirm
-whether each is still open as of the reporting date.]
+\paragraph{Risk carried into the next iteration.} Three risks from the proposal
+register remain open, each with a mitigation already prepared.
+
+\begin{itemize}
+  \item \textbf{Criterion-to-code retrieval recall.} If deterministic retrieval
+        does not place the relevant evidence in the packet, the verifier cannot
+        reach a correct conclusion and the error is misattributed to the model.
+        Retrieval is therefore measured separately from verdict quality.
+        Mitigation: narrow the declared repository class and restrict decisive
+        states until the measured recall supports them.
+  \item \textbf{Local inference latency and memory.} Model size and context
+        length are bounded by the hardware actually available.
+        Mitigation: a smaller or more aggressively quantised checkpoint, and
+        asynchronous batch analysis instead of an in-review check, with the
+        hardware and repository class declared rather than generalised.
+  \item \textbf{Evaluation-set scale.} The gold set is small by construction,
+        because no public dataset links a design artifact, a work item and a
+        code change for the same unit of work.
+        Mitigation: report counts and intervals rather than bare percentages,
+        and keep the training pool derived from public corpora so that the gold
+        set is never used for tuning.
+\end{itemize}
+
+The vendor-access risk recorded at the proposal stage is now closed. Access is
+established for all three sources and the available event coverage is
+documented, including where a required signal is absent and reconciliation
+polling covers it instead.
 
 \paragraph{Change control.} Every change recorded in this chapter is subject to
 the change-control rule adopted at the proposal stage: each change is recorded
