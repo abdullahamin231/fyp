@@ -238,6 +238,20 @@ names the team member accountable for each requirement (A~=~Abdullah,
 H~=~Haaniah, M~=~Mishal). FR-01 to FR-21 carry over from the proposal;
 FR-22 to FR-29 are new since the defence.
 
+\paragraph{Implementation status of the new requirements (11 October).}
+FR-25 is built in part: the change analyser (Chapter~6,
+Section~\ref{sec:impl-linking-analyser}) produces a symbol card with every
+listed field for each function or class a change touches, checked on the 15
+pilot cases. Its acceptance check speaks of every \emph{indexed} symbol, and
+indexing a whole repository is not built yet. FR-28 is built in part: the
+verdict gate reads the workspace's two-threshold band and will not let a
+verdict rest on a link below it, but automatic confirmation above the band and
+routing of uncertain links to the code owner are not implemented. FR-22,
+FR-23 and FR-24 (requirement anchors, re-anchoring, policy P4), FR-26
+(comment--code contradictions), FR-27 (documentation score) and FR-29
+(proposed state map) are designed but not implemented; their acceptance checks
+in Table~\ref{tab:acceptance} are planned for FYP-II.
+
 \newcommand{\frhead}{%
   \hline \textbf{ID} & \textbf{The system shall\ldots} & \textbf{Actor} & \textbf{Owner} \\ \hline}
 
