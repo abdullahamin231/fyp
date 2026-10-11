@@ -123,6 +123,71 @@ npm run demo:linking -- --live    # hosted project: needs SUPABASE_URL and
 demo repo name per run. Not yet: a webhook endpoint that builds the
 `PullRequestEvent` from a real GitHub payload.
 
+## TypeScript change analyser (FR-06, FR-25)
+
+`src/analyser/` reads a repository at two commits (base, head) and reports
+what changed, at symbol level. It reads git objects only (never a working
+tree) and never runs repository code, so the same base/head always give the
+same output.
+
+| File | What it does |
+|---|---|
+| `git.ts` | Changed files (`--name-status -M`), diff hunks with exact line ranges (`-U0`), file content at a commit, `git grep` for names. |
+| `parse.ts` | TypeScript compiler parser (syntax only): every function, method, class and function-valued variable at any depth (nested ones get dotted names, e.g. `createFormControl.clearErrors`), with signature, JSDoc, leading comments; imports; `it`/`test` blocks; dynamic sites (`import(x)`, `require(x)`, `obj[x]()`). |
+| `analyse.ts` | Each changed line → the innermost symbol around it (head for added lines, base for removed ones) → added / modified / deleted. Bounded callers (same file, or files whose relative import resolves to the symbol's file; name-only matches are counted, not trusted). Test evidence: changed test blocks, and test blocks that mention a changed symbol. Dynamic sites inside changed symbols are reported as unresolved, never as edges. |
+| `payloads.ts` | Graph nodes with `payload.slotItems` in the contracts' `EvidenceItem` shape: `Commit` (diff hunks), `CodeSymbol` (one symbol card, FR-25 fields in fixed order), `TestCase` (test blocks). Edges only for established relations: `Commit PART_OF PullRequest`, `TestCase COVERS CodeSymbol` when the test imports the symbol's file. |
+
+```bash
+npm run analyse -- --repo <git repo> --base <rev> --head <rev> [--name owner/repo] [--pr <id>] [--json out.json]
+npm run analyse:evaluate -- --clones <empty folder outside the repo> --fetch    # FR-06 check on the 15 pilot cases
+```
+
+`analyse:evaluate` fetches only the base/head commits each pilot case needs,
+applies the case's `head_patch` where it has one, and scores the analyser
+against the case files (never the constructor's answer key). On 11 Oct:
+29/29 changed files, 14/14 changed tests; named-symbol spans 11/11 changed
+found and 21/21 unchanged not flagged; one miss (P06-S3, a key inside
+`package.json`: JSON is listed as a changed file but not parsed into symbols).
+Median 0.3 s per case, max 4 s.
+
+**Python** (`parse-python.ts`): `.py` files go through an indentation-based
+parser (functions, methods, classes with dotted nesting, decorators,
+docstrings, `import`/`from` imports, `test_*` functions, `importlib` /
+`getattr` dynamic sites). Not a full grammar: functions made with `exec` or
+`type(...)` are not seen. Tested on synthetic repos only; the pilot cases are
+all TypeScript.
+
+**Test runs and coverage** (`run-tests.ts`, `coverage.ts`), opt-in because
+this is the only part that executes repository code. `--run-tests "<cmd>"`
+runs the command in a throwaway worktree at head (removed afterwards, `npm_*`
+variables not inherited), records pass/fail and the log tail as a `test_run`
+item, and if `--coverage-file` names the LCOV file it writes, adds per-symbol
+line coverage (all lines and changed lines) to the symbol cards. Where the
+LCOV file lands depends on the repo's own test config. Pilot P01
+(react-hook-form), 11 Oct:
+
+```bash
+npm run analyse -- --repo <RHF clone> --base 3413809 --head 0d24669 \
+  --coverage-file scripts/jest/coverage/lcov.info \
+  --run-tests "pnpm install --frozen-lockfile --ignore-scripts; pnpm exec jest --config ./scripts/jest/jest.config.js --coverage --coverageReporters=lcov --collectCoverageFrom=../../src/logic/createFormControl.ts src/__tests__/useForm/formState.test.tsx -t 'new errors reference'"
+# createFormControl.clearErrors  coverage 8/11 lines run; changed lines 1/1
+# createFormControl.setError     coverage 9/9 lines run; changed lines 1/1
+```
+
+`--lcov <file> [--lcov-root <dir>]` reads a report produced elsewhere instead.
+
+**Publishing** (`publish.ts`, migration `00016_publish_analysis.sql`):
+`--publish [--workspace <slug>]` writes the nodes and edges through the
+`publish_analysis` RPC (service_role only, one transaction). Nodes are
+upserted, so re-running updates rather than duplicates; an edge whose endpoint
+is not in the graph (e.g. a PR not ingested yet) is reported as skipped, never
+invented. Needs 00016 applied and the worker's `.env`.
+
+Note for the packet builder: its two-hop walk from a criterion reaches a
+`PullRequest` and its `Commit`, but not `CodeSymbol`/`TestCase` nodes, which
+sit one hop further. Reaching them needs either a third hop or a direct
+PR–symbol edge type.
+
 ## Known simplifications
 
 - The OpenCode wrapper runs one process per model call (warm sessions would be
