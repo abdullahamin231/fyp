@@ -14,7 +14,8 @@
     "predev": "npm run build --workspace @unify/contracts",
     "dev": "tsx src/index.ts",
     "once": "tsx src/scripts/run-once.ts",
-    "seed": "tsx src/scripts/seed-demo.ts"
+    "seed": "tsx src/scripts/seed-demo.ts",
+    "demo:linking": "tsx src/scripts/linking-demo.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.3",
@@ -22,6 +23,7 @@
     "zod": "^4.3.11"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@types/node": "^26.6.4",
     "tsx": "^4.19.2",
     "typescript": "^5.9.3",
