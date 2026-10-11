@@ -1,17 +1,25 @@
 #!/usr/bin/env node
 /**
- * Run the TypeScript change analyser on one pull request's base..head.
+ * Run the change analyser (TypeScript/JavaScript and Python) on one pull
+ * request's base..head.
  *
- *   npm run analyse -- --repo <path-to-git-repo> --base <rev> --head <rev>
- *                      [--name owner/repo] [--pr <PR external id>] [--json <out.json>]
+ *   npm run analyse -- --repo <git repo> --base <rev> --head <rev>
+ *       [--name owner/repo]            repo name used in node ids
+ *       [--pr <PR external id>]        e.g. owner/repo#123 → Commit PART_OF that PR
+ *       [--json <out.json>]            write the analysis + graph nodes/edges
+ *       [--run-tests "<command>"]      OPT-IN: run this in a throwaway checkout of head
+ *       [--coverage-file <path>]       LCOV file that command writes (relative to the repo root)
+ *       [--timeout <seconds>]          for --run-tests (default 600)
+ *       [--lcov <file> [--lcov-root <dir>]]  an LCOV report produced elsewhere
+ *       [--publish [--workspace <slug>]]     write nodes/edges to Supabase (needs .env and
+ *                                            migration 00016); default workspace: linking-demo
  *
- * Prints a readable summary. With --json, also writes the full analysis plus
- * the graph nodes/edges (the `payload.slotItems` the packet builder reads).
- * Read-only: it reads git objects and never runs the repository's code.
+ * Without --run-tests the analyser only reads git objects and never runs code.
  */
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { analyse } from "../analyser/analyse.js";
 import { toGraph } from "../analyser/payloads.js";
+import { publishGraph, publishViaSupabase } from "../analyser/publish.js";
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -26,8 +34,16 @@ if (!repoDir || !base || !head) {
   process.exit(2);
 }
 
+const command = arg("run-tests");
+const lcovFile = arg("lcov");
 const started = Date.now();
-const analysis = analyse(repoDir, base, head, { repo: arg("name") });
+const analysis = analyse(repoDir, base, head, {
+  repo: arg("name"),
+  runTests: command
+    ? { command, coverageFile: arg("coverage-file"), timeoutMs: Number(arg("timeout") ?? 600) * 1000 }
+    : undefined,
+  lcov: lcovFile ? { text: readFileSync(lcovFile, "utf8"), root: arg("lcov-root") } : undefined,
+});
 const graph = toGraph(analysis, { pullRequestExternalId: arg("pr") });
 const ms = Date.now() - started;
 
@@ -47,6 +63,11 @@ for (const s of analysis.changedSymbols) {
   if (s.callers.length) console.log(`           callers: ${s.callers.map((c) => `${c.symbol} (${c.resolution})`).join(", ")}`);
   if (s.nameOnlyMatches) console.log(`           + ${s.nameOnlyMatches} name-only call site(s) in files that don't import it (not trusted)`);
   for (const u of s.unresolved) console.log(`           unresolved ${u.kind} at line ${u.line}: ${u.text}`);
+  if (s.coverage) {
+    console.log(`           coverage: ${s.coverage.covered}/${s.coverage.instrumented} lines run; changed lines ${s.coverage.changedCovered}/${s.coverage.changedInstrumented}`);
+  } else if (s.coverage === null) {
+    console.log("           coverage: file not in the coverage report");
+  }
 }
 for (const m of analysis.moduleLevelChanges) {
   console.log(`  module-level change in ${m.file} (${m.side} lines ${m.lines[0]}-${m.lines[m.lines.length - 1]}, ${m.hunkId})`);
@@ -60,8 +81,25 @@ for (const t of analysis.tests) {
   if (t.tests.length > 8) console.log(`    … ${t.tests.length - 8} more`);
 }
 for (const s of analysis.skipped) console.log(`  skipped ${s.file}: ${s.reason}`);
+if (analysis.testRun) {
+  const r = analysis.testRun;
+  console.log(`\nTest run: ${r.timedOut ? "TIMEOUT" : r.passed ? "PASS" : "FAIL"} (exit ${r.exitCode}, ${r.durationMs} ms)  $ ${r.command}`);
+}
 
 console.log(`\nGraph: ${graph.nodes.length} nodes (${graph.nodes.map((n) => n.type).join(", ")}), ${graph.edges.length} edges`);
+
+if (process.argv.includes("--publish")) {
+  const { loadConfig } = await import("../config.js");
+  const { createServiceClient } = await import("../db.js");
+  const client = createServiceClient(loadConfig());
+  const slug = arg("workspace") ?? "linking-demo";
+  const ws = await client.from("workspaces").select("id").eq("slug", slug).maybeSingle();
+  if (ws.error) throw new Error(`find workspace: ${ws.error.message}`);
+  if (!ws.data) throw new Error(`no workspace with slug "${slug}" (run the linking demo once, or pass --workspace)`);
+  const result = await publishGraph(publishViaSupabase(client), (ws.data as { id: string }).id, graph);
+  console.log(`\nPublished to workspace "${slug}": nodes +${result.nodesInserted} new / ${result.nodesUpdated} updated; edges +${result.edgesInserted} new / ${result.edgesExisting} existing`);
+  for (const e of result.edgesSkipped) console.log(`  skipped edge ${e.from} -${e.type}-> ${e.to}: ${e.reason}`);
+}
 
 const out = arg("json");
 if (out) {

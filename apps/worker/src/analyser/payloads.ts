@@ -22,12 +22,16 @@ import { ANALYSER, type Analysis, type ChangedSymbol } from "./analyse.js";
 export interface AnalyserNode {
   externalId: string;
   type: NodeType;
+  /** The commit this node's evidence describes (nodes.version). */
+  version: string;
   payload: Record<string, unknown> & { slotItems: EvidenceItem[] };
 }
 
 export interface AnalyserEdge {
   from: string; // externalId
+  fromType: NodeType;
   to: string;
+  toType: NodeType;
   type: EdgeType;
   sourceClass: "derived";
   confidence: number;
@@ -59,6 +63,11 @@ export function symbolCard(sym: ChangedSymbol, commitMessage: string): string {
     `imports: ${sym.imports.length ? sym.imports.join(", ") : "(none)"}`,
     `callers: ${sym.callers.length ? sym.callers.map((c) => `${c.symbol} (${c.file}:${c.line}, ${c.resolution})`).join("; ") : "(none found)"}`,
     `unresolved: ${sym.unresolved.length ? sym.unresolved.map((u) => `${u.kind} line ${u.line}`).join("; ") : "(none)"}`,
+    `coverage: ${
+      sym.coverage === undefined ? "(not measured)"
+      : sym.coverage === null ? "(file not in coverage report)"
+      : `${sym.coverage.covered}/${sym.coverage.instrumented} lines run by tests; changed lines ${sym.coverage.changedCovered}/${sym.coverage.changedInstrumented}`
+    }`,
     `commit: ${subject}`,
     "---",
     sym.text,
@@ -76,15 +85,17 @@ export function toGraph(
 ): { nodes: AnalyserNode[]; edges: AnalyserEdge[] } {
   const nodes: AnalyserNode[] = [];
   const edges: AnalyserEdge[] = [];
-  const edge = (from: string, to: string, type: EdgeType): AnalyserEdge => ({
-    from, to, type, sourceClass: "derived", confidence: 1, resolver: RESOLVER,
+  const edge = (from: string, fromType: NodeType, to: string, toType: NodeType, type: EdgeType): AnalyserEdge => ({
+    from, fromType, to, toType, type, sourceClass: "derived", confidence: 1, resolver: RESOLVER,
   });
+  const version = analysis.head;
 
   // Commit: the diff hunks.
   const commitId = `commit:${analysis.head.slice(0, 12)}`;
   nodes.push({
     externalId: commitId,
     type: "Commit",
+    version,
     payload: {
       sha: analysis.head,
       base: analysis.base,
@@ -102,13 +113,16 @@ export function toGraph(
       }),
     },
   });
-  if (options.pullRequestExternalId) edges.push(edge(commitId, options.pullRequestExternalId, "PART_OF"));
+  if (options.pullRequestExternalId) {
+    edges.push(edge(commitId, "Commit", options.pullRequestExternalId, "PullRequest", "PART_OF"));
+  }
 
   // CodeSymbol: one card per changed symbol.
   for (const sym of analysis.changedSymbols) {
     nodes.push({
       externalId: symbolExternalId(analysis.repo, sym),
       type: "CodeSymbol",
+      version,
       payload: {
         file: sym.file,
         symbol: sym.fqName,
@@ -117,6 +131,7 @@ export function toGraph(
         startLine: sym.startLine,
         endLine: sym.endLine,
         signature: sym.signature,
+        coverage: sym.coverage ?? null,
         commit: analysis.head,
         analyser: RESOLVER,
         slotItems: [
@@ -137,6 +152,7 @@ export function toGraph(
     nodes.push({
       externalId: id,
       type: "TestCase",
+      version,
       payload: {
         file: ev.file,
         reasons: ev.reasons,
@@ -156,8 +172,31 @@ export function toGraph(
     for (const sym of analysis.changedSymbols) {
       if (!mentioned.has(sym.fqName)) continue;
       if (!ev.importsChangedFiles.includes(sym.file)) continue;
-      edges.push(edge(id, symbolExternalId(analysis.repo, sym), "COVERS"));
+      edges.push(edge(id, "TestCase", symbolExternalId(analysis.repo, sym), "CodeSymbol", "COVERS"));
     }
+  }
+
+  // TestCase for the test run, if one was requested: same `test_run` item shape as the fixtures.
+  if (analysis.testRun) {
+    const run = analysis.testRun;
+    const verdict = run.timedOut ? "TIMEOUT" : run.passed ? "PASS" : "FAIL";
+    nodes.push({
+      externalId: `${analysis.repo}:test-run:${analysis.head.slice(0, 12)}`,
+      type: "TestCase",
+      version,
+      payload: {
+        command: run.command,
+        passed: run.passed,
+        exitCode: run.exitCode,
+        durationMs: run.durationMs,
+        analyser: RESOLVER,
+        slotItems: [
+          makeItem("run", "test_run", `$ ${run.command}\n${verdict} (exit ${run.exitCode ?? "none"}, ${run.durationMs} ms)\n${run.logTail}`, {
+            file: "(test run)",
+          }),
+        ],
+      },
+    });
   }
 
   return { nodes, edges };

@@ -18,13 +18,22 @@
 import { posix } from "node:path";
 import { Git, type ChangedFile, type Hunk } from "./git.js";
 import { callSites, innermostSymbol, parseSource, type DynamicSite, type ParsedFile, type ParsedSymbol } from "./parse.js";
+import { parsePython, pythonCallSites, pythonImportResolvesTo } from "./parse-python.js";
+import { applyCoverage, parseLcov, type SymbolCoverage } from "./coverage.js";
+import { runTestsAtHead, type TestRun } from "./run-tests.js";
 
 export const ANALYSER = { name: "unify-ts-analyser", version: "0.1.0" } as const;
 
-const CODE_EXT = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
-const CODE_GLOBS = ["*.ts", "*.tsx", "*.mts", "*.cts", "*.js", "*.jsx", "*.mjs", "*.cjs"] as const;
-/** `*.test.ts`, `*.spec.tsx`, anything under `__tests__/`, `test/` or `tests/`. */
-const TEST_PATH = /(^|\/)(__tests__|tests?)\/|\.(test|spec)\.[cm]?[jt]sx?$/;
+const CODE_EXT = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs|py)$/;
+const CODE_GLOBS = ["*.ts", "*.tsx", "*.mts", "*.cts", "*.js", "*.jsx", "*.mjs", "*.cjs", "*.py"] as const;
+const isPython = (path: string) => path.endsWith(".py");
+
+/** Parse a file with the parser for its language (TypeScript/JavaScript or Python). */
+export function parseFile(path: string, text: string): ParsedFile {
+  return isPython(path) ? parsePython(text) : parseSource(path, text);
+}
+/** JS/TS: `*.test.ts`, `*.spec.tsx`, `__tests__/`, `test/`, `tests/`. Python: `test_*.py`, `*_test.py`. */
+const TEST_PATH = /(^|\/)(__tests__|tests?)\/|\.(test|spec)\.[cm]?[jt]sx?$|(^|\/)test_[^/]*\.py$|_test\.py$/;
 
 export function isTestPath(path: string): boolean {
   return TEST_PATH.test(path);
@@ -72,6 +81,8 @@ export interface ChangedSymbol {
   /** Call sites matched by name only in files that do not import this file: counted, not trusted. */
   nameOnlyMatches: number;
   unresolved: DynamicSite[];
+  /** Line coverage from an LCOV report: undefined = no report given, null = file not in the report. */
+  coverage?: SymbolCoverage | null;
 }
 
 export interface ModuleLevelChange {
@@ -112,10 +123,22 @@ export interface Analysis {
   tests: TestEvidence[];
   /** Files that could not be parsed, with the reason. */
   skipped: { file: string; reason: string }[];
+  /** Present only when a test command was given (the analyser never runs code otherwise). */
+  testRun?: TestRun;
+}
+
+export interface AnalyseOptions {
+  repo?: string;
+  limits?: Partial<AnalyserLimits>;
+  /** Opt-in: run this command in a throwaway checkout of head. */
+  runTests?: { command: string; coverageFile?: string; timeoutMs?: number };
+  /** An LCOV report produced elsewhere, and the checkout root its paths start with. */
+  lcov?: { text: string; root?: string };
 }
 
 /** Does `specifier`, imported from `importer`, point at `target` (a repo path)? Relative imports only. */
 export function importResolvesTo(importer: string, specifier: string, target: string): boolean {
+  if (isPython(importer)) return isPython(target) && pythonImportResolvesTo(importer, specifier, target);
   if (!specifier.startsWith(".")) return false;
   const resolved = posix.normalize(posix.join(posix.dirname(importer), specifier));
   const stem = target.replace(CODE_EXT, "");
@@ -129,7 +152,7 @@ export function analyse(
   repoDir: string,
   baseRev: string,
   headRev: string,
-  options: { repo?: string; limits?: Partial<AnalyserLimits> } = {},
+  options: AnalyseOptions = {},
 ): Analysis {
   const limits = { ...DEFAULT_LIMITS, ...options.limits };
   const git = new Git(repoDir);
@@ -153,7 +176,7 @@ export function analyse(
       let result: ParsedFile | null = null;
       if (text !== null) {
         try {
-          result = parseSource(path, text);
+          result = parseFile(path, text);
         } catch (error) {
           skipped.push({ file: path, reason: `parse failed at ${rev.slice(0, 7)}: ${(error as Error).message}` });
         }
@@ -252,7 +275,8 @@ export function analyse(
         file === sym.file ? "same-file"
         : pf?.imports.some((i) => importResolvesTo(file, i.specifier, sym.file)) ? "import"
         : null;
-      for (const line of callSites(file, text, sym.name)) {
+      const sites = isPython(file) ? pythonCallSites(text, sym.name) : callSites(file, text, sym.name);
+      for (const line of sites) {
         if (file === sym.file && line >= sym.startLine && line <= sym.endLine) continue; // inside itself
         if (!resolution) {
           sym.nameOnlyMatches += 1;
@@ -325,7 +349,7 @@ export function analyse(
 
   for (const ev of tests.values()) ev.tests.sort((a, b) => a.startLine - b.startLine);
 
-  return {
+  const analysis: Analysis = {
     analyser: ANALYSER,
     repo: options.repo ?? posix.basename(repoDir),
     base,
@@ -338,4 +362,14 @@ export function analyse(
     tests: [...tests.values()].sort((a, b) => a.file.localeCompare(b.file)),
     skipped,
   };
+
+  // ---- 6. optional: test run and coverage ---------------------------------------
+  if (options.runTests) {
+    const { lcov, root, ...run } = runTestsAtHead(repoDir, head, options.runTests.command, options.runTests);
+    analysis.testRun = run;
+    if (lcov) applyCoverage(analysis, parseLcov(lcov), root);
+  }
+  if (options.lcov) applyCoverage(analysis, parseLcov(options.lcov.text), options.lcov.root);
+
+  return analysis;
 }
