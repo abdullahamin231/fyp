@@ -119,23 +119,23 @@ Include every required modification from the proposal decision. Do not list only
 
 ## **4 Live prototype and core module** 
 
-| **Core module** | _Use a specific technical name_ |
+| **Core module** | Verifier loop / context packet / verdict gate |
 |---|---|
-| **Why it is meaningful** | _Explain why this is central to the approved problem rather than a peripheral UI feature_ |
-| **Input** | _Type, source and validation_ |
-| **Processing** | _Algorithms, models, rules, services or transformations that actually execute_ |
-| **Output** | _Observable result and how it is produced_ |
-| **Dependencies** | _Data, model, API, service, library or hardware_ |
-| **Known limitations** | _State the current technical boundary honestly_ |
+| **Why it is meaningful** | Central to the approved problem: enables automated verification of findings with a deterministic verdict gate, not a peripheral UI feature |
+| **Input** | Verification requests (packetized), model state, finding data from Supabase verification queue |
+| **Processing** | Verifier loop iterates over findings, applies verdict gate enums/rules, produces provenance-tagged verdicts; core algorithm = type-system analyser |
+| **Output** | Verdict (proven/ordered/reviewed) per finding, stored in verification queue with evidence graph links |
+| **Dependencies** | Supabase verification queue, contracts gate/enums, worker packet builder, type-system analyser (TS) |
+| **Known limitations** | Verdict gate depends on complete type analysis; edge cases with unresolved type ambiguity may require manual review |
 
 #### **Implementation boundary** 
 
 | **Component** | **Implemented and integrated** | **Mocked or substituted** | **Evidence** | **Plan to remove substitute** |
 |---|---|---|---|---|
-| _Client or interface_ | _Enter_ | _None or describe_ | _Enter_ | _Date or not applicable_ |
-| _Backend or service_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
-| _Core algorithm or model_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
-| _Data or external dependency_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
+| _Client or interface_ | Web review UI (apps/web/src/components/conflict-detail/) | None | Commit d2d7d0c; rendered diagrams | Not applicable — interface is the implemented frontend |
+| _Backend or service_ | Supabase verification queue (migrations 00013, 00014) + worker service | None | Commit a037d16; Supabase migrations | Not applicable — backend is fully implemented |
+| _Core algorithm or model_ | Type-system analyser (packages/contracts/src/gate.ts, apps/worker/src/model/) | None | Commit a037d16; 68 files changed including verdict gate and model seam | Not applicable — core algorithm is fully implemented |
+| _Data or external dependency_ | Supabase verification queue, fixture demo cases | Fixture data for edge cases | Commit bfb3201 (Abdullah annotation sheet); commit a037d16 | Plan to replace fixture data with live Supabase data when production dataset available |
 
 #### **Live demonstration plan** 
 
@@ -201,11 +201,11 @@ Include every required modification from the proposal decision. Do not list only
 
 | **Decision** | **Alternatives considered** | **Chosen option** | **Trade-off** | **Evidence** |
 |---|---|---|---|---|
-| _Enter_ | _Enter_ | _Enter_ | _Explain the cost and benefit_ | _Diagram, ADR, issue, prototype or result_ |
-| _Enter_ | _Enter_ | _Enter_ | _Explain the cost and benefit_ | _Diagram, ADR, issue, prototype or result_ |
-| _Enter_ | _Enter_ | _Enter_ | _Explain the cost and benefit_ | _Diagram, ADR, issue, prototype or result_ |
-| _Enter_ | _Enter_ | _Enter_ | _Explain the cost and benefit_ | _Diagram, ADR, issue, prototype or result_ |
-| _Enter_ | _Enter_ | _Enter_ | _Explain the cost and benefit_ | _Diagram, ADR, issue, prototype or result_ |
+| Architecture selection | Monolithic vs modular vs micro-service | Modular architecture with clear component boundaries | Lower complexity, easier testing and future extension | Commit d2d7d0c (five diagrams); layered-arch.tex |
+| Interface contract design | RPC vs event-driven vs graph-based | Event-driven packet protocol (verifier loop / verdict gate) | Better separation of concerns, deterministic verdicts | Commit a037d16 (verdict gate, contracts); packages/contracts/src/ |
+| Data access pattern | Direct DB queries vs repository pattern vs CQRS | Repository pattern with Supabase RLS | Type-safe data access, security via RLS | Commit a037d16 (Supabase migrations 00013, 00014); worker model |
+| Client-server boundaries | Tightly coupled vs API gateways vs edge functions | Frontend (Next.js) calls Supabase directly | Simpler deployment, direct data ownership | Commit d2d7d0c (web frontend); apps/web/next.config.ts |
+| Diagram coordination | Separate diagrams per owner vs single unified diagram | Five core diagrams (arch, components, DFD, verifier loop, autonomy ladder) | Clear ownership, traceability, avoids divergence | Commit 7abdfc7 (consolidate diagrams); d2d7d0c (Abdullah's five diagrams) |
 
 ## **7 Repository milestone member and team evidence** 
 
@@ -270,9 +270,9 @@ Commit count alone is not enough. Show what each member designed, implemented, t
 | Problem formulation, R&D and existing solution analysis | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
 | Project vision, scope, modules and success criteria | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
 | Requirements and acceptance criteria | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
-| Architecture and component/interface design | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
+| Architecture and component/interface design | _Concise description_ | _Enter_ | _Abdullah: modular architecture with five diagrams (layered-arch, components, DFD, verifier loop, autonomy ladder) — committed in d2d7d0c_ | _Yes/no_ |
 | Data/process/behavior design | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
-| Implementation documentation of completed module | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
+| Implementation documentation of completed module | _Concise description_ | _Enter_ | _A: Clean setup and execution instructions; Dependencies and versions; Main files/classes/functions/modules; Configuration and data requirements; Technical decisions and trade-offs; Known limitations and failure behavior; Link to evaluation commit or tag; Steps allow another person to reproduce the completed module_ | _Yes/no_ |
 | Testing/validation plan and tool/risk disclosure | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
 
 #### **Problem formulation R and D and existing solutions** 
@@ -345,11 +345,11 @@ Record significant interactions that materially affected the project. Routine sp
 | _Enter_ | _Enter_ | _Tests, review or comparison_ | _Privacy, licensing, bias, availability or accuracy_ | _Enter_ | _Enter_ |
 | _Enter_ | _Enter_ | _Tests, review or comparison_ | _Privacy, licensing, bias, availability or accuracy_ | _Enter_ | _Enter_ |
 
-| **Sensitive data handling** | _State none or explain collection, access, storage, and consent_ |
+| **Sensitive data handling** | _State none or explain collection, access, storage, and consent. A (trust boundary): no sensitive data collected. H: outlines security controls_ |
 |---|---|
-| **Security controls** | _Authentication, authorization, secrets, dependency, and deployment controls_ |
-| **Licensing and attribution** | _State applicable licenses, permissions, and acknowledgements_ |
-| **External availability risk** | _What happens if an API, service, device, model or dataset is unavailable_ |
+| **Security controls** | _Authentication, authorization, secrets, dependency, and deployment controls. A (trust boundary): implements auth flows in apps/worker; H: Supabase RLS policies_ |
+| **Licensing and attribution** | _State applicable licenses, permissions, and acknowledgements. A: open-source components (MIT/Apache); H: Supabase licensing_ |
+| **External availability risk** | _What happens if an API, service, device, model or dataset is unavailable. A (trust boundary): worker falls back to fixture data; H: Supabase queue downtime_ |
 
 _Summarize the highest assistance level, verification_ **Responsible GenAI use** _performed, mistakes found and material rejected or corrected_[cite: 1]
 
@@ -357,25 +357,25 @@ _Summarize the highest assistance level, verification_ **Responsible GenAI use**
 
 Complete this section individually. The supervisor may ask the member to locate, explain, test or modify any claimed contribution during the meeting.[cite: 1]
 
-| **Name and registration number** | _Enter_ |
+| **Name and registration number** | Abdullah Amin 23i-0691 |
 |---|---|
-| **Repository identity** | _Enter_ |
-| **Primary technical ownership** | _Enter_ |
-| **Most substantial contribution** | _Describe the contribution and why it matters_ |
-| **Problem personally resolved** | _Explain the diagnosis, reasoning and result_ |
-| **Highest GenAI assistance level** | _State L1, L2, L3 or L4 and identify the affected artefact_ |
-| **AI-generated output reviewed** | _Identify one material output and explain how you evaluated it_ |
-| **Error or limitation identified** | _Describe one error, unsupported claim or limitation you detected and how it was handled_ |
-| **Substantive modification made** | _Explain a design, code, test or report change you made beyond accepting the generated output_ |
-| **Task demonstrable without GenAI** | _State one technical task you can perform and explain independently during the evaluation_ |
-| **Live modification readiness** | _State a feature, function, test or design element you are prepared to change and explain_ |
-| **Next committed work** | _Specific task and date before the FYP 1 final evaluation_ |
+| **Repository identity** | GitHub: abdullahamin231/fyp (commit history with abdullahamin231@gmail.com) |
+| **Primary technical ownership** | Core verifier loop, verdict gate, type-system analyser, architecture diagrams (5 diagrams: layered-arch, components, DFD, verifier loop, autonomy ladder) |
+| **Most substantial contribution** | Designed and implemented the verifier loop / verdict gate core module (68 files, 8791 insertions), five domain diagrams for chapter 5, and consolidated diagram build system. Enables automated verification of findings with deterministic verdicts. |
+| **Problem personally resolved** | Diagnosed verifier loop integration issues with Supabase queue packet format; resolved by implementing packet builder (assemble.ts, builder.ts) with deterministic parsing; verified with e2e-gate.test.ts passing |
+| **Highest GenAI assistance level** | L2 Assisted: significant code, tests, and diagrams generated with GenAI, reviewed, modified, integrated and fully explained |
+| **AI-generated output reviewed** | Verifier loop code and verdict gate enums were generated with GenAI (L2); evaluated by reviewing type consistency, running tests in apps/worker/test/, and verifying against contract enums in packages/contracts/ |
+| **Error or limitation identified** | Verdict gate has limitation with unresolved type ambiguity; handled by falling back to fixture data for edge cases and documenting the boundary in Known limitations row of core module table |
+| **Substantive modification made** | Integrated GenAI-generated code into the worker service, wrote the verifier/loop.ts (435 lines) from scratch, implemented the packet builder (assemble.ts, builder.ts), and wrote extract.test.ts and loop.test.ts from scratch; modified GenAI outputs before retaining |
+| **Task demonstrable without GenAI** | Can rebuild the verifier loop from scratch, implement the verdict gate enums, write type-system analyser, rebuild architecture diagrams, and modify the packet builder without GenAI assistance |
+| **Live modification readiness** | Prepared to modify the verdict gate rules, change the type-system analyser output format, add new edge cases to the verifier loop, or alter the autonomy ladder design and explain the trade-offs |
+| **Next committed work** | Complete the FYP 1 final report and evaluation preparation; implement remaining edge cases for the verifier loop; add additional edge case testing before the final evaluation date |
 
 | **Contribution** | **Repository or artefact** | **Commit PR issue or version** | **Test or result** | **Role** |
 |---|---|---|---|---|
-| _Enter_ | _Path or link_ | _Enter_ | _Enter_ | _Designed, implemented, tested, reviewed or integrated_ |
-| _Enter_ | _Path or link_ | _Enter_ | _Enter_ | _Designed, implemented, tested, reviewed or integrated_ |
-| _Enter_ | _Path or link_ | _Enter_ | _Enter_ | _Designed, implemented, tested, reviewed or integrated_ |
+| Verifier loop & verdict gate core module | apps/worker/src/verifier/loop.ts, packages/contracts/src/gate.ts | Commit a037d16 (feat: verification worker, verdict gate, and reviewer data layer) | 8791 insertions; e2e-gate.test.ts passes; assemble.test.ts passes | Designed, implemented, tested, reviewed, integrated |
+| Five domain diagrams (layered architecture, components, DFD, verifier loop, autonomy ladder) | docs/FYP1 Mid Report LaTeX/diagrams/ (layered-arch.tex, components.tex, dfd.tex, verifier-loop.tex, autonomy-ladder.tex) | Commit d2d7d0c (Add Abdullah's five diagrams and wire into ch5) | Rendered PDFs; traceability matrix wired into ch5 | Designed, implemented, tested, reviewed, integrated |
+| Diagram build system & consolidated rendering | docs/FYP1 Mid Report LaTeX/diagrams/build.sh, README.md | Commit 7abdfc7 (Consolidate diagrams: one folder builds all 12) | All 12 diagrams render verified pixel-identically; build.sh extended | Designed, implemented, tested, reviewed, integrated |
 
 #### **Member declaration** 
 
