@@ -4,9 +4,9 @@
  *
  * It loads Abdullah's actual migrations, so the linker is tested against the
  * same tables, enums and constraints as Supabase, not a mock. What is skipped
- * is Supabase-only: the `auth` schema is stubbed, and RLS (00004) and the
- * role/RPC/queue migrations (00006–00008, 00009, 00011+) are not loaded, because they need
- * Supabase's built-in roles and have nothing to do with linking.
+ * is Supabase-only: the `auth` schema and the three API roles are stubbed, and
+ * RLS (00004) and the unrelated role/RPC/queue migrations (00006–00009,
+ * 00011–00014) are not loaded. 00015 is the linking function itself.
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -21,6 +21,7 @@ const LOADED = [
   "00003_schema.sql",
   "00005_immutability.sql",
   "00010_edge_dedupe.sql",
+  "00015_link_pull_request_event.sql",
 ];
 
 export const WORKSPACE_ID = "11111111-1111-4111-8111-111111111111";
@@ -29,6 +30,8 @@ export async function createTestDb(): Promise<PGlite> {
   const db = new PGlite();
   // Stand-in for Supabase's auth schema: 00002 references auth.users.
   await db.exec("create schema auth; create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb);");
+  // Stand-ins for Supabase's API roles: 00015 revokes/grants on them.
+  await db.exec("create role anon; create role authenticated; create role service_role;");
   for (const file of LOADED) {
     await db.exec(readFileSync(join(MIGRATIONS, file), "utf8"));
   }

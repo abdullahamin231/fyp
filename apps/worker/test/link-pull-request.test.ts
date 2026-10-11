@@ -5,6 +5,8 @@
 import type { PGlite } from "@electric-sql/pglite";
 import { beforeEach, describe, expect, it } from "vitest";
 import { linkPullRequestEvent, type PullRequestEvent } from "../src/linking/link-pull-request.js";
+import { viaSql } from "../src/linking/callers.js";
+import type { LinkFunction } from "../src/linking/link-pull-request.js";
 import { WORKSPACE_ID, createTestDb, seedTickets } from "../src/linking/local-db.js";
 
 const OPTIONS = { projectKeys: ["UNI"] };
@@ -37,13 +39,15 @@ async function count(db: PGlite, table: string): Promise<number> {
 
 describe("linkPullRequestEvent", () => {
   let db: PGlite;
+  let link: LinkFunction;
   beforeEach(async () => {
     db = await createTestDb();
+    link = viaSql(db);
     await seedTickets(db, ["UNI-123", "UNI-124"]);
   });
 
   it("normal: links the PR to the ticket it names", async () => {
-    const result = await linkPullRequestEvent(db, prEvent(), OPTIONS);
+    const result = await linkPullRequestEvent(link, prEvent(), OPTIONS);
 
     expect(result.status).toBe("processed");
     if (result.status !== "processed") return;
@@ -72,7 +76,7 @@ describe("linkPullRequestEvent", () => {
 
   it("edge: no key → event and PR node are stored, no edge", async () => {
     const result = await linkPullRequestEvent(
-      db,
+      link,
       prEvent({ title: "Refactor button styles", branch: "chore/buttons", commits: [] }),
       OPTIONS,
     );
@@ -84,7 +88,7 @@ describe("linkPullRequestEvent", () => {
   it("failure: unknown key → reported, no edge, nothing invented", async () => {
     const nodesBefore = await count(db, "nodes");
     const result = await linkPullRequestEvent(
-      db,
+      link,
       prEvent({ title: "UNI-999 Ghost ticket", branch: "feature/ghost", commits: [] }),
       OPTIONS,
     );
@@ -98,8 +102,8 @@ describe("linkPullRequestEvent", () => {
   });
 
   it("dedupe: the same delivery twice is a no-op the second time", async () => {
-    const first = await linkPullRequestEvent(db, prEvent(), OPTIONS);
-    const second = await linkPullRequestEvent(db, prEvent(), OPTIONS);
+    const first = await linkPullRequestEvent(link, prEvent(), OPTIONS);
+    const second = await linkPullRequestEvent(link, prEvent(), OPTIONS);
 
     expect(first.status).toBe("processed");
     expect(second).toEqual({ status: "duplicate_event", eventId: "github:delivery-1" });
@@ -108,9 +112,9 @@ describe("linkPullRequestEvent", () => {
   });
 
   it("dedupe: a new event naming an already-linked key adds no second edge", async () => {
-    await linkPullRequestEvent(db, prEvent(), OPTIONS);
+    await linkPullRequestEvent(link, prEvent(), OPTIONS);
     const edited = await linkPullRequestEvent(
-      db,
+      link,
       { ...prEvent({ title: "UNI-123 Add login form (v2)" }, "delivery-2"), action: "edited" },
       OPTIONS,
     );
@@ -120,10 +124,10 @@ describe("linkPullRequestEvent", () => {
   });
 
   it("dedupe: a link a reviewer dismissed is not revived by a new mention", async () => {
-    await linkPullRequestEvent(db, prEvent(), OPTIONS);
+    await linkPullRequestEvent(link, prEvent(), OPTIONS);
     await db.query(`update public.edges set link_state = 'dismissed'`);
 
-    const again = await linkPullRequestEvent(db, prEvent({}, "delivery-3"), OPTIONS);
+    const again = await linkPullRequestEvent(link, prEvent({}, "delivery-3"), OPTIONS);
     expect(again).toMatchObject({
       status: "processed",
       keys: [{ key: "UNI-123", status: "already_linked", linkState: "dismissed" }],
@@ -132,10 +136,10 @@ describe("linkPullRequestEvent", () => {
   });
 
   it("dedupe: a revoked link frees the slot, so a new mention links again", async () => {
-    await linkPullRequestEvent(db, prEvent(), OPTIONS);
+    await linkPullRequestEvent(link, prEvent(), OPTIONS);
     await db.query(`update public.edges set link_state = 'revoked', valid_to = now()`);
 
-    const again = await linkPullRequestEvent(db, prEvent({}, "delivery-4"), OPTIONS);
+    const again = await linkPullRequestEvent(link, prEvent({}, "delivery-4"), OPTIONS);
     expect(again).toMatchObject({ status: "processed", keys: [{ key: "UNI-123", status: "linked" }] });
     const states = await db.query<{ link_state: string }>(`select link_state from public.edges order by created_at`);
     expect(states.rows.map((r) => r.link_state).sort()).toEqual(["active", "revoked"]);
@@ -143,7 +147,7 @@ describe("linkPullRequestEvent", () => {
 
   it("mixed: one known and one unknown key in the same PR", async () => {
     const result = await linkPullRequestEvent(
-      db,
+      link,
       prEvent({ title: "UNI-124 and UNI-999", branch: "x", commits: [] }),
       OPTIONS,
     );
@@ -156,17 +160,25 @@ describe("linkPullRequestEvent", () => {
     });
   });
 
+  it("security: only service_role may call the function (it bypasses RLS)", async () => {
+    for (const role of ["anon", "authenticated"]) {
+      await db.exec(`set role ${role}`);
+      await expect(linkPullRequestEvent(link, prEvent(), OPTIONS)).rejects.toThrow(/permission denied/);
+      await db.exec("reset role");
+    }
+  });
+
   it("is atomic: if a write fails, the event is not recorded either", async () => {
     // Simulate the database failing on the edge insert, i.e. AFTER the event
-    // row and the PR node have already been written inside the transaction.
-    const failingDb = {
-      query: (sql: string, params?: unknown[]) => {
-        if (sql.includes("insert into public.edges")) throw new Error("simulated outage");
-        return db.query(sql, params);
-      },
-    } as typeof db;
-    await expect(linkPullRequestEvent(failingDb, prEvent(), OPTIONS)).rejects.toThrow("simulated outage");
+    // row and the PR node have already been written inside the function.
+    await db.exec(`
+      create function public.test_fail() returns trigger language plpgsql
+        as $$ begin raise exception 'simulated outage'; end $$;
+      create trigger test_fail before insert on public.edges
+        for each row execute function public.test_fail();`);
+    await expect(linkPullRequestEvent(link, prEvent(), OPTIONS)).rejects.toThrow("simulated outage");
     expect(await count(db, "events")).toBe(0);
+    expect(await count(db, "nodes")).toBe(2); // the two seeded tickets, no PR node
     expect(await count(db, "edges")).toBe(0);
   });
 });
