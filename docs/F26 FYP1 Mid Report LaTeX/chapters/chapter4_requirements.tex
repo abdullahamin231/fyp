@@ -526,11 +526,12 @@ renumbered or left with an empty cell. It is regenerated at each gate, so this
 table cannot drift from the file it comes from. The generator's run also reports
 which cells are still gaps.
 
-Three cautions apply to every row. First, the module paths are the packages
-\emph{planned} for the mid-evaluation build --- none of them exists yet; the only
-code in the repository is the reviewer-surface frontend, which is why the status
-column reads \emph{designed} for almost every requirement and
-\emph{partially implemented} for the five whose UI screens exist over mock data.
+Three cautions apply to every row. First, a status of \emph{partially
+implemented} means code for the requirement exists in the repository, but its acceptance check below does not yet pass in full; eight rows
+carry it on 11 October (FR-04, FR-06, FR-25 and FR-28 from the linker,
+analyser and gate; FR-11, FR-17, FR-18 and FR-19 from the reviewer
+interface), no row is marked \emph{implemented}, and every other row is
+\emph{designed}, with module paths that are plans.
 Second, a dash in the test column means no T1--T11 scenario applies, not that the
 requirement is verified: those scenarios are specified but no harness runs them
 yet. Third, the demo-step column is provisional and must be renumbered once the

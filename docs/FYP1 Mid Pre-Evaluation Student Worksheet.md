@@ -1,6 +1,3 @@
-Here is the cleaned and fixed Markdown file. All pagination markers (`Page X`) have been removed, broken table columns and split headers (such as in Section 2 and Section 10) have been repaired, and the malformed signature blocks at the end have been properly formatted into a clean table structure.
-
-```markdown
 # **FYP 1 Mid Student Evidence Worksheet** 
 
 ### **Preparation for the supervisory presentation demo and report evaluations** 
@@ -142,8 +139,8 @@ Include every required modification from the proposal decision. Do not list only
 | **Step** | **Action** | **Expected result** | **Evidence visible** | **Presenter** |
 |---|---|---|---|---|
 | 1 | _Enter action_ | _Enter observable result_ | _UI, log, test, metric or repository_ | _Enter_ |
-| 2 | _Enter action_ | _Enter observable result_ | _UI, log, test, metric or repository_ | _Enter_ |
-| 3 | _Enter action_ | _Enter observable result_ | _UI, log, test, metric or repository_ | _Enter_ |
+| 2 | In `apps/worker`, run `npm run demo:linking -- --live`: five pull-request events through the real linker on the hosted Supabase project | Outcomes printed in order: `linked`, `no_key`, `unknown_key`, `duplicate_event`, `already_linked`; afterwards `edges` holds one `TRACKS` edge (observed, confidence 1.0, resolver `explicit-reference`) and `events` holds four rows | Terminal log; `edges` and `events` tables in the Supabase dashboard | Mishal |
+| 3 | Run `npm run analyse:evaluate` on the 15 pilot cases, then open the symbol card for pilot P01 (react-hook-form, `createFormControl.clearErrors`) | Scores printed: files 29/29, changed tests 14/14, changed named symbols 11/11, unchanged not flagged 21/21, one known miss (P06-S3); card shows name, signature, JSDoc, imports, callers and commit message | Terminal output; card text; `test/analyser-packet.test.ts` showing the card admitted to a packet (TC-22) | Mishal |
 | 4 | _Enter action_ | _Enter observable result_ | _UI, log, test, metric or repository_ | _Enter_ |
 | 5 | _Enter action_ | _Enter observable result_ | _UI, log, test, metric or repository_ | _Enter_ |
 | 6 | _Enter action_ | _Enter observable result_ | _UI, log, test, metric or repository_ | _Enter_ |
@@ -152,50 +149,50 @@ Include every required modification from the proposal decision. Do not list only
 
 | **Case** | **Input or condition** | **Expected behavior** | **Latest result** | **Evidence** |
 |---|---|---|---|---|
-| Normal | _Enter_ | _Enter_ | _Pass/fail and result_ | _Enter_ |
-| Edge | _Enter_ | _Enter_ | _Pass/fail and result_ | _Enter_ |
-| Failure | _Enter_ | _Safe error, rejection or recovery_ | _Pass/fail and result_ | _Enter_ |
+| Normal | PR titled, branched and committed with `UNI-123`, an ingested Jira ticket | One `TRACKS` edge PR → ticket, `observed`, confidence 1.0, resolver `explicit-reference`; all three places the key appeared stored as provenance | Pass (local test and live run on Supabase, 11 Oct) | TC-11; `apps/worker/test/link-pull-request.test.ts`; demo step 2 |
+| Edge | (a) PR that names no key; (b) the same webhook delivery sent twice | (a) Event and PR node stored, no edge; (b) second delivery writes nothing, because the unique `(source_tool, vendor_delivery_id)` insert returns no row | Pass: `no_key`, `duplicate_event`; one event row and one edge | TC-12, TC-14; demo step 2 |
+| Failure | PR naming `UNI-999`, a key with no ticket (title also contains `UTF-8`) | No edge and no placeholder ticket node; key kept on the event for later re-resolution; `UTF-8` rejected by the project allow-list | Pass: `unknown_key`; node count rises by one (the PR only). Atomicity also tested: a failure injected on the edge insert rolls back the event and PR node (TC-15) | TC-13, TC-15; demo step 2 |
 
 ## **5 Requirements scope and acceptance evidence** 
 
-| **Problem and primary users** | _Concise statement aligned with the approved proposal_ |
+| **Problem and primary users** | A reviewer deciding whether one pull request still matches the intent it claims to implement has to check the tracker, the design tool, the diff and the tests by hand, from memory, and no record of the evidence survives the merge, so mismatches surface late (Ch. 1 §1.2). Primary users: code reviewers and developers; secondary: product managers and designers who own the criteria and designs (Ch. 4 Table 4.1). |
 |---|---|
-| **Current scope** | _Committed modules and the boundary of this iteration_ |
-| **Explicit exclusions** | _Features, domains, platforms or claims outside the commitment_ |
-| **Success criteria** | _Measurable indicators used to judge the project and this iteration_ |
+| **Current scope** | Committed system (Ch. 1 §1.6): read-only ingestion from one design, one work-item and one change source; deterministic and manually confirmed linking; immutable versioned artifact store; typed evidence graph with provenance; Rules 1–3 and P4; code and test analysis for Python and TypeScript/JavaScript; criterion decomposition and deterministic context packets; bounded local verifier; verdict and provenance gate; reviewer interface. **Iteration 1 boundary:** verification pipeline and gate with a stub model, deterministic PR→ticket linker (live on Supabase), change analyser, ingestion engine with a mock vendor, reviewer UI reading from the database. Not yet in this iteration: live GitHub/Jira/Figma adapters, a real local model, Rules 1–3 evaluation, requirement anchors (FR-22 to FR-24). |
+| **Explicit exclusions** | Autonomous code generation or repair; any claim of general program correctness; languages beyond Python and TypeScript/JavaScript; open-ended chat with the system; write-back to source tools; hosted model APIs in the committed system; pixel-level design certification; integrations beyond GitHub, Jira and Figma (Ch. 1 §1.6). Repository code quality is out of scope beyond the documentation-quality warning of FR-27 (Ch. 4). |
+| **Success criteria** | Project targets (Ch. 1 §1.9): explicit-reference link precision ≥ 0.95; evidence recall@5 ≥ 0.90; contradiction precision ≥ 0.90; unsupported confident assertions ≤ 2%; provenance completeness 100%; correct abstention ≥ 80%; convergence under duplicate/out-of-order delivery 100%; incremental = full evaluation ≥ 99%; annotator agreement above the stated threshold. **This iteration:** each built component covered by automated tests (worker 76/76, contracts 115/115); dataset pilot κ ≥ 0.70 (achieved 0.90); analyser matches the pilot cases (TC-17); linker runs live on the hosted database. |
 
 | **ID** | **User interaction or requirement** | **Type** | **Acceptance criterion** | **Status** | **Evidence** |
 |---|---|---|---|---|---|
-| R1 | _Enter precise requirement_ | _FR or NFR_ | _Measurable check_ | _Met, partial, not met or deferred_ | _Test, demo step or result_ |
-| R2 | _Enter precise requirement_ | _FR or NFR_ | _Measurable check_ | _Met, partial, not met or deferred_ | _Test, demo step or result_ |
-| R3 | _Enter precise requirement_ | _FR or NFR_ | _Measurable check_ | _Met, partial, not met or deferred_ | _Test, demo step or result_ |
-| R4 | _Enter precise requirement_ | _FR or NFR_ | _Measurable check_ | _Met, partial, not met or deferred_ | _Test, demo step or result_ |
-| R5 | _Enter precise requirement_ | _FR or NFR_ | _Measurable check_ | _Met, partial, not met or deferred_ | _Test, demo step or result_ |
-| R6 | _Enter precise requirement_ | _FR or NFR_ | _Measurable check_ | _Met, partial, not met or deferred_ | _Test, demo step or result_ |
-| R7 | _Enter precise requirement_ | _FR or NFR_ | _Measurable check_ | _Met, partial, not met or deferred_ | _Test, demo step or result_ |
-| R8 | _Enter precise requirement_ | _FR or NFR_ | _Measurable check_ | _Met, partial, not met or deferred_ | _Test, demo step or result_ |
+| R1 | FR-04: link a PR to a ticket from explicit keys in its title, branch and commits, recording the resolver | FR | Normal, no-key, unknown-key and duplicate cases give the specified outcome; precision ≥ 0.95 on the labelled oracle sample | Partial: deterministic linking built and live; manual links, design-URL links and oracle precision not done | TC-10 to TC-15; live run 11 Oct; demo step 2 |
+| R2 | FR-06: extract the base/head diff, changed symbols, bounded callers and candidate test evidence for Python and TypeScript/JavaScript | FR | For a labelled PR, extracted files, symbols and tests match the gold expectation | Partial: matches 14 of 15 pilot cases fully (one miss in `package.json`); Python on synthetic repositories only | TC-17, TC-18; demo step 3 |
+| R3 | FR-25: symbol card with qualified name, signature, docstring, leading comments, path tokens, imports, callers and introducing commit message | FR | Each indexed symbol has a card with every listed field | Partial: cards for every changed symbol; whole-repository indexing not built | TC-18; P01 card (Ch. 6 §6.4.1) |
+| R4 | Analyser output reaches the verifier's input (FR-06 → FR-08 hand-off) | FR | Analyser nodes placed in the graph fill the diff-hunk, symbol-card and test-evidence slots of a packet | Met for the hand-off (test, not live) | TC-22 |
+| R5 | NFR-01 (linking slice): duplicate delivery creates no duplicate event or edge | NFR | Same delivery twice → one event row, one edge; repeated mention of a linked key → no new edge | Partial: met for the linker; findings and out-of-order delivery belong to the ingestion engine (TC-21) | TC-14 |
+| R6 | NFR-07: p95 analysis time per PR under 60 s (provisional) | NFR | Timed over the pilot cases on the declared hardware | Partial: analyser median 0.3 s, max 4 s; model inference not measured | TC-17 |
+| R7 | NFR-09/NFR-10 (linking and publishing): graph writes only through the service-role key; repository code executed only on explicit request | NFR | `anon` and `authenticated` roles refused; test runs only with `--run-tests`, in a throwaway worktree | Partial: met for linker and analyser; OAuth scopes and token encryption belong to adapters not yet built | TC-15; `run-tests.ts` |
+| R8 | FR-22/FR-23: requirement entities with commit-pinned anchors, re-anchored after each commit | FR | Anchor stores every field; scripted moves/renames/deletion re-anchored or marked broken; survival rate reported | Deferred to FYP-II: designed only (domain model, anchor diagram) | Ch. 5 Fig. anchor; Ch. 4 status paragraph |
 
 #### **Requirement traceability** 
 
 | **Requirement** | **Design element** | **Implementation** | **Test or validation** | **Demo step** | **Owner** |
 |---|---|---|---|---|---|
-| _ID_ | _Diagram/component_ | _Path/function/module_ | _Test/result_ | _Step_ | _Enter_ |
-| _ID_ | _Diagram/component_ | _Path/function/module_ | _Test/result_ | _Step_ | _Enter_ |
-| _ID_ | _Diagram/component_ | _Path/function/module_ | _Test/result_ | _Step_ | _Enter_ |
-| _ID_ | _Diagram/component_ | _Path/function/module_ | _Test/result_ | _Step_ | _Enter_ |
-| _ID_ | _Diagram/component_ | _Path/function/module_ | _Test/result_ | _Step_ | _Enter_ |
-| _ID_ | _Diagram/component_ | _Path/function/module_ | _Test/result_ | _Step_ | _Enter_ |
-| _ID_ | _Diagram/component_ | _Path/function/module_ | _Test/result_ | _Step_ | _Enter_ |
+| FR-04 | Domain model: typed edges with provenance; ERD `nodes`/`edges`/`events` | `apps/worker/src/linking/extract-keys.ts`, `link-pull-request.ts`; `supabase/migrations/00015_link_pull_request_event.sql` | TC-10 to TC-15: 16/16 pass; live run 11 Oct | Step 2 | Mishal |
+| FR-06 | `CodeSymbol`, `TestCase` entities; analyser component (Ch. 5 Architectural Components) | `apps/worker/src/analyser/analyse.ts`, `parse.ts`, `parse-python.ts`, `git.ts` | TC-17: files 29/29, symbols 11/11, unchanged 21/21 | Step 3 | Mishal |
+| FR-25 | Symbol card (proposal §26.1) | `apps/worker/src/analyser/payloads.ts` (`symbolCard`) | TC-18; P01 card | Step 3 | Mishal |
+| FR-06 → FR-08 | `IMPLEMENTS`, `COVERS`, `PART_OF` edges; packet slots | `payloads.ts` edges; `publish.ts` + `00016_publish_analysis.sql`; `packet/providers/graph.ts` (Abdullah) | TC-22: both runs as expected | Step 3 → Abdullah's packet step | Mishal, Abdullah |
+| FR-28 | UC-02 two-threshold link policy | `packages/contracts/src/gate.ts`; `apps/worker/src/graph/nodes.ts` (`loadLinkPolicy`) | Worker e2e gate test: below-band link holds the verdict | Abdullah's gate step | Mishal (req.), Abdullah (gate) |
+| NFR-01 (linking) | Unique `(source_tool, vendor_delivery_id)`; partial unique index on current edges (00010) | `00015_link_pull_request_event.sql` steps 1 and 4 | TC-14 | Step 2 | Mishal |
+| FR-22 / FR-23 | Requirement entity; `CodeAnchor` on `SATISFIES`; anchor and re-anchoring diagram | Not implemented | — (FYP-II) | — | Mishal |
 
 ## **6 Design artefacts and design evolution** 
 
 | **Artefact** | **Purpose** | **Version or date** | **Implementation connection** | **Change since proposal** | **Rationale** |
 |---|---|---|---|---|---|
 | _Architecture_ | _Enter_ | _Enter_ | _Components, paths or interfaces_ | _Enter_ | _Enter_ |
-| _Data/schema/ERD_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
+| Data/schema/ERD | Relational schema for the evidence graph, events, snapshots, packets and findings | `diagrams/erd.tex`, 7 Oct; migrations up to 00016 (11 Oct) | `supabase/migrations/`: one `nodes` table with a type discriminator, one `edges` table with source class, confidence, resolver and validity; append-only `events` with unique delivery id; 00015 (linking RPC) and 00016 (publish RPC) write to these tables | Requirement entity and anchor added; storage frozen as relational (Ch. 5 §5.5) | Type-agnostic traversal needs one node table; uniqueness constraints make duplicate processing a database no-op instead of relying on worker logic |
 | _Process/data flow_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
 | _Behavior/state/sequence_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
-| _Project-specific artefact_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
+| Project-specific: requirement-to-code anchor and re-anchoring | Shows how a requirement stays linked to the code that satisfies it as the code moves (FR-22 to FR-24) | `diagrams/anchor-reanchoring.tex`, 7 Oct | Designed only; the analyser already produces the per-symbol fields an anchor needs (qualified name, line range, content, commit) | New since the proposal defence | Panel asked for requirement-to-code traceability; anchors are pinned to a commit so a verdict can be re-read against the code it cited. The example in the figure is invented and says so |
 
 #### **Architecture and interface decisions** 
 
@@ -213,11 +210,11 @@ Commit count alone is not enough. Show what each member designed, implemented, t
 
 | **Work item** | **Owner** | **Task or issue** | **Commit PR or tag** | **Files or artefact** | **Review/test evidence** | **State** |
 |---|---|---|---|---|---|---|
-| _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
+| Deterministic PR → ticket linker | Mishal | FR-04; checklist "Graph tables + deterministic linking" | `9a376c7`, `6a7998e`; PR #21 | `apps/worker/src/linking/`; migration 00015 | 16 tests (TC-10 to TC-15); live run on Supabase | Merged; webhook pending (D-09) |
+| Change analyser (TS, Python, coverage, publish) | Mishal | FR-06, FR-25 | `1808fe9`, `fcaaf76`; PR #22 | `apps/worker/src/analyser/`; migration 00016 | 18 tests (TC-18); pilot evaluation (TC-17); P01 coverage (TC-19) | Merged |
+| Analyser → packet hand-off | Mishal (with Abdullah's packet builder) | D-11 | `3171080`; PR #25 | `payloads.ts`; `test/analyser-packet.test.ts` | TC-22 | Merged |
+| Dataset pilot, adjudication, external review analysis | Mishal | Panel action: dataset validation | `66e85c7`, `aaeb6f1`; PRs #5, #10 | `docs/dataset/`; `tools/agreement_multi.py` | 138 integrity checks; κ 0.90; external α 0.48 (pilot) | Pilot done; re-run open (D-08) |
+| Report: Ch. 4, Ch. 6 §6.4.1, Ch. 7, four diagrams | Mishal | Report chapters | `33b00e7`, `8fe18d6`, `b6f71c7`, `6c8aca3` | `docs/F26 FYP1 Mid Report LaTeX/` | Report compiles; numbers re-run 11 Oct | Drafted; own-words review pending |
 | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
 | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
 | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ | _Enter_ |
@@ -234,33 +231,33 @@ Commit count alone is not enough. Show what each member designed, implemented, t
 
 | **Test or validation ID** | **Requirement/module** | **Method and data** | **Expected result** | **Actual result** | **Evidence** | **Owner** |
 |---|---|---|---|---|---|---|
-| _Enter_ | _Enter_ | _Command, protocol, dataset or participants_ | _Enter_ | _Pass/fail and metric_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Command, protocol, dataset or participants_ | _Enter_ | _Pass/fail and metric_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Command, protocol, dataset or participants_ | _Enter_ | _Pass/fail and metric_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Command, protocol, dataset or participants_ | _Enter_ | _Pass/fail and metric_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Command, protocol, dataset or participants_ | _Enter_ | _Pass/fail and metric_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Command, protocol, dataset or participants_ | _Enter_ | _Pass/fail and metric_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Command, protocol, dataset or participants_ | _Enter_ | _Pass/fail and metric_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Command, protocol, dataset or participants_ | _Enter_ | _Pass/fail and metric_ | _Enter_ | _Enter_ |
+| TC-10 | FR-04 key extraction | Vitest, `test/extract-keys.test.ts`: titles, branches and commits incl. `[UNI-7]`, `uni-123`, `XUNI-1`, `UNI-0123`, `UTF-8`, `SHA-256` | Real keys found once with location; lookalikes rejected | Pass 6/6 | Test file | Mishal |
+| TC-11 to TC-15 | FR-04, NFR-01 linker | Vitest on PGlite with the project's real migrations: normal, no key, unknown key, duplicate, atomicity, roles | Outcomes as in §4; rollback on injected failure; `anon`/`authenticated` refused | Pass 10/10; same five outcomes live on Supabase | `test/link-pull-request.test.ts`; live log | Mishal |
+| TC-17 | FR-06 analyser | `npm run analyse:evaluate` on 15 pilot cases (3 repositories), scored against the case files | Every changed file/test/symbol found; no unchanged symbol flagged | Files 29/29, tests 14/14, symbols 11/11, unchanged 21/21; 1 miss (P06-S3); median 0.3 s | Command output | Mishal |
+| TC-18 | FR-06, FR-25 | Vitest on throwaway git repositories: nesting, added/deleted symbols, callers, dynamic code, Python, coverage, publish | Each behaviour as specified | Pass 18/18 | `analyser.test.ts`, `analyser-extras.test.ts` | Mishal |
+| TC-19 | FR-06 test evidence | react-hook-form regression test for P01 run with Jest coverage via `--run-tests` | Changed lines executed by the test | Pass: changed lines 1/1 and 1/1 | Command output | Mishal |
+| TC-22 | Analyser → packet | Real analyser output → production `GraphEvidenceProvider` → `buildPacket`; control without `IMPLEMENTS` edges | All three slots filled; control only diff hunks | Pass, both runs | `test/analyser-packet.test.ts` | Mishal |
+| TC-06 | Evaluation data | `agreement.py` on two blind annotation sheets, 15 cases | κ ≥ 0.70 gate | Pass: verdict κ 0.90; 7 disagreements adjudicated | §7.5; adjudication log | Mishal (adjudicator) |
+| TC-16 | Evaluation data | `agreement_multi.py` on 10 external reviewers' sheets, 2 per case | Krippendorff α per field and agreement with reference | 19/22 decisive judgements match; α 0.48 (95% CI 0.08–0.80): inconclusive pilot | §7.6 | Mishal |
 
 #### **Required failure or edge case discussion** 
 
-| **Case selected** | _State the input, condition or scenario_ |
+| **Case selected** | Failure case: a pull request naming `UNI-999`, a well-formed key for which no ticket exists (TC-13, demo step 2) |
 |---|---|
-| **Why it matters** | _Risk, user impact or technical boundary_ |
-| **Observed behavior** | _Result, logs, metric and reproducibility_ |
-| **Interpretation** | _What the result establishes and what it does not establish_ |
-| **Corrective action** | _State none or give owner and completion date_ |
+| **Why it matters** | An edge to an invented ticket would be evidence the system does not have, and a later verdict could cite it. The safe behaviour is to record the reference and link nothing, so a decisive finding can never rest on it (FR-05 principle) |
+| **Observed behavior** | Outcome `unknown_key`; no edge, no ticket node; node count rises by one (the PR); key kept on the event. Same result locally (PGlite, real migrations) and live on Supabase, 11 Oct; reproducible with `npm run demo:linking` |
+| **Interpretation** | Establishes that the linker never fabricates graph nodes for unresolved keys. It does not establish linking precision on real repositories (FR-04 target ≥ 0.95), because only scripted events have been run, and it does not yet re-resolve the key when the ticket arrives later |
+| **Corrective action** | Mishal: add the GitHub webhook endpoint and repeat TC-11 to TC-15 with real pull requests (D-09); add re-resolution of stored unknown keys when a ticket is ingested. Before the FYP-I final evaluation |
 
 #### **Validation quality** 
 
 | **Area** | **Current evidence** | **Limitation** | **Next validation action** |
 |---|---|---|---|
-| Functional correctness | _Enter_ | _Enter_ | _Enter_ |
-| Performance/resource use | _Enter or not applicable_ | _Enter_ | _Enter_ |
-| Model/algorithm quality | _Enter or not applicable_ | _Enter_ | _Enter_ |
-| User/field validation | _Enter or not applicable_ | _Enter_ | _Enter_ |
-| Security/privacy/safety | _Enter_ | _Enter_ | _Enter_ |
+| Functional correctness | Worker 76/76 (pipeline, linking, analyser); contracts 115/115; web typecheck, lint and build pass; analyser matches the pilot (TC-17); linker live on Supabase | No front-end tests; no live GitHub/Jira/Figma source; Rules 1–3 not evaluated | Front-end tests (D-04); webhook and adapters (D-09); scenario matrix T1–T11 on live sources |
+| Performance/resource use | Analyser median 0.3 s, max 4 s per pilot case against the 60 s target (NFR-07) | Model inference not measured | Local-inference spike: latency, memory, quantisation |
+| Model/algorithm quality | Gate and verifier loop behave as specified with a stub model, incl. T10; analyser scored on 15 cases | No real model evaluated; 15 cases is a pilot, not an oracle | Model selection protocol, then per-class verdict metrics on the frozen gold set |
+| User/field validation | Interface checked against its exported design; internal κ 0.90; external review piloted with 10 engineers | No task-based user session; external α inconclusive at two reviewers per case | Re-run external review with the revised page and ≥ 3 reviewers per case (D-08); crossover study against the manual baseline |
+| Security/privacy/safety | No runtime external requests from the web app; linking and publishing callable only with the service-role key (TC-15); repository code run only on request, in a throwaway checkout | Read-only scopes, encrypted tokens and egress inspection belong to adapters not yet built | Egress-inspection test and credential review when adapters are written |
 
 ## **9 Mid report preparation record** 
 
@@ -268,12 +265,12 @@ Commit count alone is not enough. Show what each member designed, implemented, t
 |---|---|---|---|---|---|
 | Report format and required artefacts present | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
 | Problem formulation, R&D and existing solution analysis | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
-| Project vision, scope, modules and success criteria | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
-| Requirements and acceptance criteria | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
-| Architecture and component/interface design | _Concise description_ | _Enter_ | _Abdullah: modular architecture with five diagrams (layered-arch, components, DFD, verifier loop, autonomy ladder) — committed in d2d7d0c_ | _Yes/no_ |
-| Data/process/behavior design | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
-| Implementation documentation of completed module | _Concise description_ | _Enter_ | _A: Clean setup and execution instructions; Dependencies and versions; Main files/classes/functions/modules; Configuration and data requirements; Technical decisions and trade-offs; Known limitations and failure behavior; Link to evaluation commit or tag; Steps allow another person to reproduce the completed module_ | _Yes/no_ |
-| Testing/validation plan and tool/risk disclosure | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
+| Project vision, scope, modules and success criteria | Vision, objectives, included and excluded scope, ten modules, measurable success criteria | Ch. 1 §1.4–§1.9 | Ch. 1 success-criteria table; Ch. 4 scope limit on repository quality | Mishal | Yes |
+| Requirements and acceptance criteria | Roles, use-case diagram, 6 detailed use cases, FR-01–FR-29 with owners, NFR-01–NFR-14 with targets, one acceptance check per FR, status of new FRs, full traceability table | Ch. 4 §4.1–§4.7 | `docs/traceability/traceability_matrix.csv` and generator | Mishal (traceability with Abdullah) | Yes |
+| Architecture and component/interface design | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
+| Data/process/behavior design | Domain model, ERD with the three schema rules, process and behaviour diagrams, anchor diagram | Ch. 5 §5.6–§5.8 | `diagrams/erd.tex`, `domain-model.tex`, `anchor-reanchoring.tex`; `supabase/migrations/` | Mishal (ERD, domain model, anchor); others per Ch. 5 | Yes |
+| Implementation documentation of completed module | _Concise description_ | _Enter_ | _Enter_ | _Enter_ | _Yes/no_ |
+| Testing/validation plan and tool/risk disclosure | Strategy, TC-01–TC-22 with real results, internal and external agreement, edge/failure cases, defects D-01–D-11, validation status; GenAI register | Ch. 7 §7.1–§7.10; `docs/genai_register.md` | Test files in `apps/worker/test/`; `docs/dataset/` | Mishal (Ch. 7); each member for own register rows | Yes |
 
 #### **Problem formulation R and D and existing solutions** 
 
@@ -311,10 +308,10 @@ Classify the effect of GenAI on each materially assisted artefact. Classificatio
 
 | **Artefact or module** | **Tool model and level** | **Assistance and output used** | **Student contribution** | **Verification corrections and evidence** | **Owner** |
 |---|---|---|---|---|---|
-| _Enter_ | _Tool/model and L1-L4_ | _What was requested and retained_ | _Reasoning, design, edits or integration_ | _Tests, review, errors found, corrections and link_ | _Enter_ |
-| _Enter_ | _Tool/model and L1-L4_ | _What was requested and retained_ | _Reasoning, design, edits or integration_ | _Tests, review, errors found, corrections and link_ | _Enter_ |
-| _Enter_ | _Tool/model and L1-L4_ | _What was requested and retained_ | _Reasoning, design, edits or integration_ | _Tests, review, errors found, corrections and link_ | _Enter_ |
-| _Enter_ | _Tool/model and L1-L4_ | _What was requested and retained_ | _Reasoning, design, edits or integration_ | _Tests, review, errors found, corrections and link_ | _Enter_ |
+| Deterministic linker (`apps/worker/src/linking/`, migration 00015) | Claude (Opus 5.5), L3 | Code, SQL function, tests and demo script written with Claude; retained after review | Set the rule (explicit keys only, no placeholder nodes); chose the `supabase-js` RPC route with Abdullah over a connection string; applied 00015 on Supabase and ran the live demo. | 16 tests on the real migrations; tests caught an `ON CONFLICT` predicate that did not match migration 00010; first version used separate calls with no transaction, moved into one SQL function | Mishal |
+| Change analyser (`apps/worker/src/analyser/`, migration 00016) | Claude (Opus 5.5), L3 | Analyser, Python parser, coverage, publish RPC, evaluation script and tests written with Claude | Asked for Python, coverage and publishing in one pass; chose to connect it to the packet with `IMPLEMENTS` edges. | 18 tests + pilot evaluation; first scorer was too literal and was corrected; coverage path bug for react-hook-form found and fixed | Mishal |
+| Ch. 6 §6.4.1, Ch. 7 refresh, Ch. 4 status paragraph, worksheet draft | Claude (Opus 5.5), L3 (draft) | Draft text from the code, test output and live run | Wrote the external-review paragraph herself; decided how the pilot is reported. Checked every number in the drafts against the test output and the live run before keeping them | Every number re-run from the repository on 11 Oct; stale values from an earlier draft (TC-01–TC-04, FR-22–FR-29 status) replaced with current results | Mishal |
+| SE diagrams, Ch. 4 draft, dataset pilot | Claude (Opus 5.5), L3 | See `docs/genai_register.md`, rows of 7–9 Oct | As recorded in the register | As recorded in the register | Mishal |
 | _Enter_ | _Tool/model and L1-L4_ | _What was requested and retained_ | _Reasoning, design, edits or integration_ | _Tests, review, errors found, corrections and link_ | _Enter_ |
 | _Enter_ | _Tool/model and L1-L4_ | _What was requested and retained_ | _Reasoning, design, edits or integration_ | _Tests, review, errors found, corrections and link_ | _Enter_ |
 
@@ -324,16 +321,16 @@ Record significant interactions that materially affected the project. Routine sp
 
 | **Date** | **Task** | **Prompt or interaction reference** | **Output retained** | **Student review modification or rejection** | **Evidence** |
 |---|---|---|---|---|---|
-| _Enter_ | _Enter_ | _Prompt summary or saved transcript_ | _Enter_ | _Explain what changed and why_ | _Link_ |
-| _Enter_ | _Enter_ | _Prompt summary or saved transcript_ | _Enter_ | _Explain what changed and why_ | _Link_ |
-| _Enter_ | _Enter_ | _Prompt summary or saved transcript_ | _Enter_ | _Explain what changed and why_ | _Link_ |
+| 11 Oct | Linking implementation | Session transcript: PR → Jira linking with normal/edge/failure demo | Linker, RPC, tests, demo | Required the unknown-key case to create no placeholder; moved logic into one SQL function after finding supabase-js has no multi-call transaction | PR #21 |
+| 11 Oct | External review reporting | Session transcript: how to report α 0.48 | Inconclusive-pilot framing; numbers kept | Asked to drop the four badly-labelled cases; this was not done because it would misreport the data. Wrote her own paragraph reporting the pilot as inconclusive with the CI | Ch. 7 §7.6; D-08 |
+| 11 Oct | Analyser → packet | Session transcript: does analyser output reach the packet builder | `IMPLEMENTS` edges and end-to-end test | Chose `IMPLEMENTS` after the gap was shown by a control run | PR #25; TC-22 |
 | _Enter_ | _Enter_ | _Prompt summary or saved transcript_ | _Enter_ | _Explain what changed and why_ | _Link_ |
 
 #### **Research and citation verification** 
 
 | **Claim or research task** | **Original source** | **How GenAI assisted** | **Verification against source** | **Correction rejection or outcome** | **Owner** |
 |---|---|---|---|---|---|
-| _Enter_ | _Citation DOI URL or document_ | _Search, summary or synthesis_ | _What was checked in the original_ | _Enter_ | _Enter_ |
+| Krippendorff's alpha for the external review | Krippendorff (2018), *Content Analysis*, 4th ed. (`krippendorff2018`) | Explained the coefficient and bootstrap interval | Values from `agreement_multi.py` matched the `krippendorff` Python package to three decimals | Retained; CI reported with α | Mishal |
 | _Enter_ | _Citation DOI URL or document_ | _Search, summary or synthesis_ | _What was checked in the original_ | _Enter_ | _Enter_ |
 | _Enter_ | _Citation DOI URL or document_ | _Search, summary or synthesis_ | _What was checked in the original_ | _Enter_ | _Enter_ |
 
@@ -341,9 +338,9 @@ Record significant interactions that materially affected the project. Routine sp
 
 | **Tool service library dataset model or hardware** | **Purpose** | **Validation performed** | **Risk or limitation** | **Fallback** | **Owner** |
 |---|---|---|---|---|---|
-| _Enter_ | _Enter_ | _Tests, review or comparison_ | _Privacy, licensing, bias, availability or accuracy_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Tests, review or comparison_ | _Privacy, licensing, bias, availability or accuracy_ | _Enter_ | _Enter_ |
-| _Enter_ | _Enter_ | _Tests, review or comparison_ | _Privacy, licensing, bias, availability or accuracy_ | _Enter_ | _Enter_ |
+| Supabase (Postgres, PostgREST, `supabase-js`) | Graph storage; linking and publish RPCs | Same migrations tested locally on PGlite; live demo on the hosted project | Availability of the hosted service; service-role key must stay in the gitignored `.env` | Local PGlite / self-hosted Postgres with the same migrations | Mishal (linking), Abdullah (project) |
+| TypeScript compiler API (`typescript` npm) | Syntax-only parsing in the analyser | TC-17, TC-18 | No type information, so dynamic calls are unresolved (reported, never linked) | Tree-sitter if type-aware resolution is needed | Mishal |
+| PGlite (`@electric-sql/pglite`) | In-process Postgres for tests with the real migrations | Same outcomes as the hosted run | Not identical to hosted Postgres (stub `auth` schema and roles) | Run tests against a local Supabase instance | Mishal |
 
 | **Sensitive data handling** | _State none or explain collection, access, storage, and consent. A (trust boundary): no sensitive data collected. H: outlines security controls_ |
 |---|---|
@@ -411,11 +408,11 @@ Complete this section individually. The supervisor may ask the member to locate,
 | **Repository identity** | _Enter_ |
 | **Primary technical ownership** | _Enter_ |
 | **Most substantial contribution** | _Describe the contribution and why it matters_ |
-| **Problem personally resolved** | _Explain the diagnosis, reasoning and result_ |
+| **Problem personally resolved** | Getting the linker to run on our real Supabase project. Abdullah asked why the linker needed a database connection string, since the rest of the worker only uses the Supabase client. I worked out that the linker has four steps (save the event, save the PR node, look up the ticket, write the edge) that must all succeed or all fail, and separate `supabase-js` calls can't guarantee that because each call is its own transaction. So we put the four steps in one database function (`link_pull_request_event`, migration 00015), called through `supabase-js` with the service-role key, so no connection string is needed. I applied the migration on Supabase myself and ran `npm run demo:linking -- --live`: all five cases gave the expected outcomes, with one edge and four events in the tables |
 | **Highest GenAI assistance level** | _State L1, L2, L3 or L4 and identify the affected artefact_ |
 | **AI-generated output reviewed** | _Identify one material output and explain how you evaluated it_ |
 | **Error or limitation identified** | _Describe one error, unsupported claim or limitation you detected and how it was handled_ |
-| **Substantive modification made** | _Explain a design, code, test or report change you made beyond accepting the generated output_ |
+| **Substantive modification made** | Two. First, when the analyser was finished, its symbols and tests were in the graph but the packet builder couldn't reach them from a criterion. I decided to connect them by having the PR point to every changed symbol and test with `IMPLEMENTS` edges, rather than a bigger change to Abdullah's builder, and the end-to-end test (TC-22) now shows the symbol cards and tests reaching the packet. Second, I wrote the external-review paragraph in Ch. 7 §7.6 myself: it reports α = 0.48 with its interval as an inconclusive pilot of the review instrument, with no cases dropped, and states the re-run planned before the final evaluation (D-08) |
 | **Task demonstrable without GenAI** | _State one technical task you can perform and explain independently during the evaluation_ |
 | **Live modification readiness** | _State a feature, function, test or design element you are prepared to change and explain_ |
 | **Next committed work** | _Specific task and date before the FYP 1 final evaluation_ |
@@ -454,24 +451,24 @@ Record three technical questions you cannot yet answer confidently. These questi
 
 Complete this section individually. The supervisor may ask the member to locate, explain, test or modify any claimed contribution during the meeting.[cite: 1]
 
-| **Name and registration number** | _Enter_ |
+| **Name and registration number** | Mishal Fatima, i230776 |
 |---|---|
-| **Repository identity** | _Enter_ |
-| **Primary technical ownership** | _Enter_ |
-| **Most substantial contribution** | _Describe the contribution and why it matters_ |
-| **Problem personally resolved** | _Explain the diagnosis, reasoning and result_ |
-| **Highest GenAI assistance level** | _State L1, L2, L3 or L4 and identify the affected artefact_ |
-| **AI-generated output reviewed** | _Identify one material output and explain how you evaluated it_ |
-| **Error or limitation identified** | _Describe one error, unsupported claim or limitation you detected and how it was handled_ |
-| **Substantive modification made** | _Explain a design, code, test or report change you made beyond accepting the generated output_ |
-| **Task demonstrable without GenAI** | _State one technical task you can perform and explain independently during the evaluation_ |
-| **Live modification readiness** | _State a feature, function, test or design element you are prepared to change and explain_ |
-| **Next committed work** | _Specific task and date before the FYP 1 final evaluation_ |
+| **Repository identity** | GitHub `mishalfatima09`; commits as Mishal Fatima <mishalfati9@gmail.com> |
+| **Primary technical ownership** | Evidence graph linking (FR-04, FR-05, FR-22, FR-23, FR-28), code analysis (FR-06, FR-25–FR-27), rules (FR-12, FR-13, FR-15, FR-24, FR-29); dataset pilot; Ch. 4, Ch. 7 |
+| **Most substantial contribution** | The change analyser: from a base/head pair it reports every changed symbol with a symbol card, its callers and its tests, and puts them in the graph where the packet builder finds them. It is what turns a diff into evidence the verifier can cite (TC-17, TC-22) |
+| **Problem personally resolved** | Getting the linker to run on our real Supabase project. Abdullah asked why the linker needed a database connection string, since the rest of the worker only uses the Supabase client. I worked out that the linker has four steps (save the event, save the PR node, look up the ticket, write the edge) that must all succeed or all fail, and separate `supabase-js` calls can't guarantee that because each call is its own transaction. So we put the four steps in one database function (`link_pull_request_event`, migration 00015), called through `supabase-js` with the service-role key, so no connection string is needed. I applied the migration on Supabase myself and ran `npm run demo:linking -- --live`: all five cases gave the expected outcomes, with one edge and four events in the tables |
+| **Highest GenAI assistance level** | L3: linker, change analyser, Ch. 4 draft, dataset pilot, diagrams |
+| **AI-generated output reviewed** | Linker: checked the live run on Supabase against the expected five outcomes and the `edges`/`events` row counts |
+| **Error or limitation identified** | The AI-written linker used an `ON CONFLICT` condition that did not match the partial unique index in migration 00010, so Postgres rejected it; the tests caught it and the condition was changed to match |
+| **Substantive modification made** | Two. First, when the analyser was finished, its symbols and tests were in the graph but the packet builder couldn't reach them from a criterion. I decided to connect them by having the PR point to every changed symbol and test with `IMPLEMENTS` edges, rather than a bigger change to Abdullah's builder, and the end-to-end test (TC-22) now shows the symbol cards and tests reaching the packet. Second, I wrote the external-review paragraph in Ch. 7 §7.6 myself: it reports α = 0.48 with its interval as an inconclusive pilot of the review instrument, with no cases dropped, and states the re-run planned before the final evaluation (D-08) |
+| **Task demonstrable without GenAI** | Explain the key pattern in `extract-keys.ts` and why `UTF-8` is rejected; walk through the four steps of `link_pull_request_event` and what each demo outcome means |
+| **Live modification readiness** | Add a project key to the allow-list or a new lookalike to the key tests; change which edge types the analyser emits in `payloads.ts` |
+| **Next committed work** | GitHub webhook into the linker (D-09); external review re-run with the revised page (D-08); begin FR-22 anchors. All before the FYP-I final evaluation |
 
 | **Contribution** | **Repository or artefact** | **Commit PR issue or version** | **Test or result** | **Role** |
 |---|---|---|---|---|
-| _Enter_ | _Path or link_ | _Enter_ | _Enter_ | _Designed, implemented, tested, reviewed or integrated_ |
-| _Enter_ | _Path or link_ | _Enter_ | _Enter_ | _Designed, implemented, tested, reviewed or integrated_ |
+| Deterministic linker | `apps/worker/src/linking/`; `supabase/migrations/00015_link_pull_request_event.sql` | `9a376c7`, `6a7998e`, PR #21 | TC-10–TC-15; live run 11 Oct | Designed, integrated, tested |
+| Change analyser and packet hand-off | `apps/worker/src/analyser/`; `00016_publish_analysis.sql` | `1808fe9`, `fcaaf76`, `3171080`; PRs #22, #25 | TC-17–TC-19, TC-22 | Designed, integrated, tested |
 
 #### **Member declaration** 
 
@@ -491,11 +488,11 @@ Record three technical questions you cannot yet answer confidently. These questi
 
 | **Technical question** | **Why it matters to my work** | **Learning and evidence plan** | **Target date** |
 |---|---|---|---|
-| _Question 1_ | _Enter_ | _Reading, experiment, implementation or test_ | _Enter_ |
-| _Question 2_ | _Enter_ | _Reading, experiment, implementation or test_ | _Enter_ |
-| _Question 3_ | _Enter_ | _Reading, experiment, implementation or test_ | _Enter_ |
+| How should an anchor be re-found after a rename plus edit in the same commit, when symbol name and content hash both fail (FR-23)? | Anchors are the main new requirement I own | Read on diff-based origin tracking; script moves/renames/inlining on a test repo and measure survival | Before the FYP-I final evaluation |
+| How should the two confidence thresholds for link confirmation be set and checked (FR-28)? | Auto-confirmation must be at least as precise as manual confirmation | Label link candidates from the pilot repositories and plot precision against threshold | Before the FYP-I final evaluation |
+| How many reviewers per case are needed for a usable interval on Krippendorff's alpha? | Decides the external review re-run (D-08) | Simulate α intervals with 2–5 raters on 15 cases using `agreement_multi.py` | Before the external review re-run (D-08) |
 
-| **Member confirmation** | _Sign or type name_ | **Date** | _Enter_ |
+| **Member confirmation** | _[Mishal Fatima, sign after review]_ | **Date** | _[date of signing]_ |
 |---|---|---|---|
 
 ## **12 Evidence index and final check** 
