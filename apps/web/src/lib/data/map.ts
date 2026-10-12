@@ -75,7 +75,8 @@ function toolForLocator(file: string): ToolKind {
 
 function locatorFor(span: EvidenceSpan): string {
   const symbol = span.symbol ? `#${span.symbol}` : "";
-  return `${span.file}${symbol}:${span.startLine}-${span.endLine}`;
+  const lines = span.startLine ? `:${span.startLine}-${span.endLine}` : "";
+  return `${span.file}${symbol}${lines}`;
 }
 
 /** First few lines of the cited text — what the reviewer reads to judge the span. */
