@@ -42,21 +42,25 @@ async function exchange(provider: IntegrationProvider, code: string, redirectUri
       tokenUrl: "https://api.figma.com/v1/oauth/token",
       clientId: process.env.FIGMA_CLIENT_ID,
       clientSecret: process.env.FIGMA_CLIENT_SECRET,
-      body: {},
+      // Figma requires the same redirect_uri as the authorize step.
+      body: { redirect_uri: redirectUri },
     },
   };
   const configs = allProviders[provider];
   if (!configs.clientId || !configs.clientSecret) throw new Error(`${provider.toUpperCase()} OAuth credentials are not configured`);
+  // Figma takes the client credentials as HTTP Basic auth, not in the form body.
+  const basicAuth = provider === "figma";
   const form = new URLSearchParams({
     grant_type: "authorization_code",
-    client_id: configs.clientId,
-    client_secret: configs.clientSecret,
+    ...(basicAuth ? {} : { client_id: configs.clientId, client_secret: configs.clientSecret }),
     code,
     ...configs.body,
   });
+  const headers: Record<string, string> = { "content-type": "application/x-www-form-urlencoded", accept: "application/json" };
+  if (basicAuth) headers.authorization = `Basic ${Buffer.from(`${configs.clientId}:${configs.clientSecret}`).toString("base64")}`;
   const response = await fetch(configs.tokenUrl, {
     method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+    headers,
     body: form,
   });
   if (!response.ok) throw new Error(`OAuth token exchange failed (${response.status})`);
