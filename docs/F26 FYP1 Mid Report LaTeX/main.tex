@@ -15,11 +15,71 @@
 \input{diagrams/unify-diagram-styles}
 \usepackage{titlesec}
 
+% ---------------------------------------------------------------------------
+% Citation style
+%
+% fast-nuces-bs.cls loads natbib with [sort, numbers, authoryear] -- the last
+% two options contradict each other. Left alone, the outcome depends on which
+% .bst bibtex happens to run, and plain IEEEtran emits numeric \bibitem
+% entries that natbib then rejects with "Bibliography not compatible with
+% author-year citations". Author-year is pinned here explicitly and paired
+% with IEEEtranN at \bibliographystyle, which is IEEEtran's natbib-compatible
+% variant. Citations therefore render "De Lucia et al. (2007)" -- the same
+% author-year form the submitted build used, though IEEEtranN sets the
+% delimiter to parentheses rather than the square brackets the earlier build
+% produced, which is cosmetic and does not affect the entries themselves.
+% \AtBeginDocument because IEEEtranN sets up its own author-year citations
+% when it loads, and a preamble-only call is overwritten by that.
+% ---------------------------------------------------------------------------
+\AtBeginDocument{\setcitestyle{authoryear}}
+
+% ---------------------------------------------------------------------------
+% Front-matter pagination
+%
+% fast-nuces-bs.cls emits the table of contents, list of figures and list of
+% tables from inside \maketitle, and then switches the page counter to arabic
+% and resets it to zero. That numbers the contents pages 2..10 -- so the tenth
+% front-matter page prints a bare "0" -- and places them ahead of the
+% declarations and the abstract, which are roman-numbered. Patch those five
+% statements out of \maketitle: main.tex emits the ToC/LoF/LoT itself, in
+% roman, immediately before Chapter 1.
+% ---------------------------------------------------------------------------
+\patchcmd{\maketitle}{\tableofcontents}{}{}{}
+\patchcmd{\maketitle}{\listoffigures}{}{}{}
+\patchcmd{\maketitle}{\listoftables}{}{}{}
+\patchcmd{\maketitle}{\pagenumbering{arabic}}{}{}{}
+\patchcmd{\maketitle}{\setcounter{page}{0}}{}{}{}
+
+% Every list that opens on a fresh right-hand page needs its ToC entry
+% written only after the page break has happened, or the recorded page number
+% points at the previous page. \cleardoublepage, not \clearpage: with a
+% two-sided book class \chapter* starts on an odd page and may skip a blank
+% verso, so a plain \clearpage records the page before the heading.
+\newcommand{\listintoc}[1]{%
+	\cleardoublepage
+	\phantomsection
+	\addcontentsline{toc}{chapter}{#1}%
+}
+
 % Information about the Thesis 
 % -----------------------------------------------------------------------------
 % (All are compulsory, do not delete any line other than author Information)
 % For e.g., usually there are 3 students in a group, so leave authorone, 
 % authortwo, and authorthree, and delete authorfour.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Single source of truth for the team roster. The title page (\authorone...)
+% and the Students' Submission signature page (\studentone...) both read from
+% these, so the two can never drift apart.
+\newcommand{\projecttitle}{UNIFY: Cross-Tool Change Assurance for Product Teams}
+\newcommand{\memberI}{Abdullah Amin}
+\newcommand{\rollI}{23i-0691}
+\newcommand{\memberII}{Haaniah Ismail}
+\newcommand{\rollII}{23i-0605}
+\newcommand{\memberIII}{Mishal Fatima}
+\newcommand{\rollIII}{23i-0776}
+\newcommand{\studentone}{\memberI\ (\rollI)}
+\newcommand{\studenttwo}{\memberII\ (\rollII)}
+\newcommand{\studentthree}{\memberIII\ (\rollIII)}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \department{FAST School of Computing}
 \faculty{Computer Science}
@@ -27,17 +87,19 @@
 \degreemonth{October}
 \degreename{Computer Science}
 \campuscity{Islamabad}
-\authorone{Student 1}{19I-1234}
-\authortwo{Student 2}{19I-1234}
-\authorthree{Student 3}{19I-1234}
-\supervisor{Mr./ Ms./ Dr. Supervisor Name}
+\authorone{\memberI}{\rollI}
+\authortwo{\memberII}{\rollII}
+\authorthree{\memberIII}{\rollIII}
+\supervisor{Dr. Ali Zeeshan Ijaz}
 \sessionduration{2023-2027}
-\cosupervisor{Mr./ Ms./ Dr. Supervisor Name (please remove if not applicable)}
+% No co-supervisor on this project: delete the line below to keep it off the
+% title page (the class prints a "Co-Supervised by" block whenever it is set).
+%\cosupervisor{Mr./ Ms./ Dr. Supervisor Name (please remove if not applicable)}
 \deanname{Dr. Dean Computing}
 \directorname{Dr. Director of the Campus}
 \hodname{Dr. Head of Computer Science Department}
 \fypcoordinatorname{Name of FYP Coordinator}
-\title{Title of the Project here}
+\title{\projecttitle}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -60,10 +122,16 @@
 \input{chapters/04_abstract}
 \input{chapters/05_acknowledgments}
 \input{chapters/06_executive_summary}
-\tableofcontents
-\listoffigures
-\listoftables
 \input{chapters/07_abbreviations}
+
+% Contents and the two lists, still in the roman front matter. \listintoc
+% writes each entry only once the page break has happened, so the page
+% numbers recorded in the .toc match the page the heading lands on.
+\tableofcontents
+\listintoc{\listfigurename}
+\listoffigures
+\listintoc{\listtablename}
+\listoftables
 
 \cleardoublepage
 \pagenumbering{arabic}
@@ -78,6 +146,16 @@
 \input{chapters/chapter10_fyp2_plan}
 \input{chapters/conclusion}
 
+% References sit before the appendices, as the prescribed template has them,
+% and are listed in the table of contents. IEEEtranN, not IEEEtran: the class
+% loads natbib, and plain IEEEtran emits numeric \bibitem entries that natbib
+% then rejects with "Bibliography not compatible with author-year citations".
+% IEEEtranN is IEEEtran's natbib-compatible variant and emits the author-year
+% entries natbib expects, which is also the style the submitted build used.
+\listintoc{\bibname}
+\bibliographystyle{IEEEtranN}
+\bibliography{references/references}
+
 \appendix
 \input{chapters/appendix_action_register}
 \input{chapters/appendix_requirements}
@@ -85,8 +163,5 @@
 \input{chapters/appendix_repository}
 \input{chapters/appendix_diagrams}
 \input{chapters/appendix_meetings}
-
-\bibliographystyle{IEEEtran}
-\bibliography{references/references}
 \end{document}
 

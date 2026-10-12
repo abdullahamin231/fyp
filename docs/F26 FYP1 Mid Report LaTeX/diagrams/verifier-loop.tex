@@ -65,8 +65,7 @@
 
 \node[step=5.4cm, fill=uIngest!40, align=left] (input) at (5.6,16.6)
      {Immutable context packet (\S11.5) + pinned model \& settings —
-      manifest: chunks, commit, budget, model version, prompt hash
-      (TODO \S1.7)};
+      manifest: chunks, commit, budget, model version, prompt hash};
 \node[step=5.4cm, fill=uVerify!50, align=left] (p1) at (5.6,14.6)
      {\textbf{PASS 1 — SCOPE}\\Decompose or confirm atomic criteria;
       retrieve candidate code and tests (diff summary · symbol/test index)};
@@ -121,7 +120,7 @@
 \node[note=5.6cm, anchor=center] at (17.4,12.6)
      {Hard gate 2 (measurement fitness): the same packet run 3 times at
       temperature 0 must agree at least 95\%; below that the configuration
-      is not fit to be measured (TODO \S1.8).};
+      is not fit to be measured.};
 \node[note=5.6cm, anchor=center] at (17.4,9.6)
      {Structured output (\S11.6): criterion\_id · status · evidence[] ·
       reason · missing\_evidence · divergence\_tag · model\_and\_run —

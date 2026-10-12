@@ -148,6 +148,70 @@ appear in the evaluation as an offline reference point measured on
 non-sensitive data, and that usage is labelled as a comparison rather than as
 part of the system.
 
+\subsection{Interface contracts}
+\label{sec:ch5-contracts}
+
+Figure~\ref{fig:components} names the interfaces; this table states what each
+one actually commits to. The three inbound HTTP routes are
+\url{/api/webhooks/[provider]/[workspaceId]},
+\url{/api/integrations/[provider]/authorize} and its
+\url{.../callback}. Every payload below is a Zod schema exported from
+\texttt{packages/contracts}, the single package both the web app and the worker
+import, so a change to any of these shapes breaks the build of whichever side
+did not change with it rather than failing at runtime.
+
+\begin{longtable}{p{0.16\textwidth}p{0.24\textwidth}p{0.23\textwidth}p{0.23\textwidth}}
+\toprule
+\textbf{Interface} & \textbf{Contract} & \textbf{Validation} &
+  \textbf{Behaviour on failure} \\
+\midrule
+\endhead
+Vendor webhook ingress
+  & \texttt{normalisedEventSchema}
+  & Signature or passcode checked against the raw request body before
+    normalisation; 10\,MiB body limit; unsupported event types filtered by the
+    adapter
+  & Rejected before any parse or write; one immutable delivery receipt records
+    the rejection, so a rejected delivery is still evidence \\
+OAuth onboarding
+  & Signed, workspace-bound state parameter
+  & State signature and workspace binding checked on the callback
+  & Authorisation aborts; no token is persisted \\
+Event $\rightarrow$ graph write
+  & \texttt{normalisedEventSchema} $\rightarrow$ append-only \texttt{events}
+    plus graph \texttt{nodeSchema} / \texttt{edgeSchema}
+  & Uniqueness on \texttt{(source\_tool, vendor\_delivery\_id)}; one current
+    edge per \texttt{(from\_id, to\_id, type)} via the partial unique index
+    from migration \texttt{00010}
+  & A duplicate delivery is a database no-op, not a second event; a failure on
+    the edge insert rolls back the event and its node \\
+Queue $\rightarrow$ worker
+  & \texttt{contextPacketSchema}, enqueued through the
+    \texttt{enqueue\_verification} RPC
+  & \texttt{packetManifestSchema} and \texttt{slotBudgetsSchema} bound the
+    packet; every truncation is recorded in \texttt{slotManifestSchema}
+  & An over-budget packet is truncated and the truncation logged, never
+    silently cut \\
+Worker $\rightarrow$ model server
+  & \texttt{verifierOutputSchema}
+  & Structured output parsed against the schema before it can influence
+    anything; the model is behind a typed local client seam
+  & A malformed or timed-out response makes the verdict \texttt{INSUFFICIENT\_EVIDENCE};
+    it is never treated as a pipeline failure or as a negative finding \\
+Gate $\rightarrow$ finding
+  & \texttt{gatedVerdictSchema} $\rightarrow$ \texttt{findingSchema}
+  & Citation hashes resolved against the immutable packet; threshold and
+    eligibility checks from \texttt{packages/contracts/src/gate.ts}
+  & A decisive verdict whose citations cannot be resolved is downgraded or
+    abstained, with the reason recorded on the finding \\
+\bottomrule
+\end{longtable}
+
+\noindent Two properties hold across every row. Nothing on the inbound side is
+trusted before it has been validated against one of these schemas, and no
+interface on the outbound side can introduce evidence --- the delivery channel
+is the only outbound interface, and it is one-directional by design.
+
 \section{Architecture Decisions and Rationale}
 
 Four decisions determine the shape of the system. Each is recorded with the
