@@ -40,8 +40,9 @@ export const evidenceSpanSchema = z.strictObject({
    * the dataset carries a real symbol, so strictness lives where it matters.
    */
   symbol: nonEmpty.nullable().optional(),
-  startLine: z.number().int().positive(),
-  endLine: z.number().int().positive(),
+  /** `null` for spans with no line range, such as a test-run log. */
+  startLine: z.number().int().positive().nullable(),
+  endLine: z.number().int().positive().nullable(),
   /** SHA-256 of the cited text — lets a stale citation be detected (FR-10). */
   contentSha256: sha256Hex,
 });

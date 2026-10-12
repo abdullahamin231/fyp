@@ -12,7 +12,7 @@ import type { AssembledSlot } from "./assemble.js";
  * to *what we feed* does — exactly the distinction reproducibility needs.
  */
 
-export const PACKET_TEMPLATE_VERSION = "unify-packet-v1";
+export const PACKET_TEMPLATE_VERSION = "unify-packet-v2";
 
 export interface RenderInput {
   criterion: {
@@ -49,7 +49,8 @@ function section(slot: AssembledSlot): string {
           .join("")
       : null;
     const locator = where ? ` ${where}` : "";
-    return `\n[${item.id}] (${item.kind})${locator}\n${item.content.trimEnd()}\n`;
+    const digest = item.contentSha256 ? ` sha256=${item.contentSha256}` : "";
+    return `\n[${item.id}] (${item.kind})${locator}${digest}\n${item.content.trimEnd()}\n`;
   });
   return `## ${slot.slot}\n${lines.join("")}`;
 }
