@@ -15,13 +15,6 @@ import {
 } from "@/lib/domain/alerts";
 import type { Finding, ToolKind } from "@/lib/types";
 
-/**
- * DATA HOLE — replace with the alerts API.
- * Empty until the endpoint exists: every tab reads 0, the AI health banner
- * reports no blocking conflicts and the feed renders its empty state.
- */
-const findings: Finding[] = [];
-
 /** Dismissible AI-health banner, derived from the findings list. */
 function deriveHealthSummary(list: Finding[]): HealthSummary {
   const blocking = list.filter(
@@ -34,8 +27,6 @@ function deriveHealthSummary(list: Finding[]): HealthSummary {
     tail: "blocking the release.",
   };
 }
-
-const healthSummary = deriveHealthSummary(findings);
 
 const toolIcon: Record<ToolKind, string> = {
   figma: "draw",
@@ -169,10 +160,11 @@ function AlertCard({ finding }: { finding: Finding }) {
 }
 
 /** Left pane of the alerts screen: AI banner + filter tabs + conflict feed. */
-export function AlertsFeed() {
+export function AlertsFeed({ findings }: { findings: Finding[] }) {
   const [bannerVisible, setBannerVisible] = useState(true);
   const [activeTab, setActiveTab] = useState<AlertTabId>("all");
   const [sort, setSort] = useState<SortMode>("recency");
+  const healthSummary = deriveHealthSummary(findings);
 
   const visible = sortAlerts(alertsForTab(findings, activeTab), sort);
 
