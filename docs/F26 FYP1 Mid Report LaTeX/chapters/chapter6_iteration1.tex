@@ -481,13 +481,18 @@ records in \texttt{048ceaa}. Their deterministic replay path is available, but
 the repository does not contain evidence of a rule firing against a live
 external vendor event. Live firing remains an integration-test gate.
 
-\paragraph{Tests.} Adapter and reliability test execution was not available in
-the checked-out environment at the reporting date because the relevant npm
-dependencies were not installed. The test plan remains explicit:
-normalisation for every supported event and the empty case, duplicate and
-out-of-order convergence, reconciliation after a simulated outage, and
-signature verification including a rejected payload. No numeric suite result
-is claimed until that suite is run and recorded.
+\paragraph{Tests.} The four reliability properties this design rests on are
+covered and passing, in
+\texttt{packages/contracts/test/ingestion.test.ts}, which drives the
+\texttt{IngestionEngine} against a mock vendor: a redelivered delivery
+deduplicates without changing state; out-of-order delivery converges to the
+same final state; a missed delivery is reconciled as a system event; and source
+checkpoints go stale after an outage and clear on recovery. That file is part
+of the contracts suite, which passes 115/115 on the evaluation commit
+(\S\ref{sec:ch6-repro}). What is tested there is the ingestion engine, not the
+HTTP layer: the adapters' signature verification and provider-specific payload
+handling are exercised only against fixtures, so the live-provider path remains
+as in the limitation below.
 
 \subsubsection{Limitations}
 \begin{itemize}
@@ -694,3 +699,194 @@ exercised live. Additional verifier edge cases and final evaluation
 rehearsal remain planned work. These boundaries are consistent with the
 worksheet's recorded next action: complete the final report, add verifier edge
 case tests, and prepare the evaluation demonstration.
+
+\section{Reproducing This Iteration}
+\label{sec:ch6-repro}
+
+The three modules above can be brought up and re-run from a clean machine.
+Everything below was taken from the repository at the evaluation commit
+\texttt{ce0ae2c} (12 October 2026); where a step could not be executed in the
+reporting environment it is marked as such rather than described as done.
+
+\subsection{Prerequisites}
+
+\begin{itemize}
+\item \textbf{Node.js 20 or later (LTS) with npm.} The repository is a single
+  npm workspace root: \texttt{packages/contracts}, \texttt{apps/worker} and
+  \texttt{apps/web} are the three workspaces listed in the root
+  \texttt{package.json}.
+\item \textbf{Git}, to check out the evaluation commit.
+\item \textbf{PostgreSQL 15 or later}, or a hosted Supabase project. The
+  committed database layer is plain SQL and does not depend on a Supabase-only
+  feature for the linking, analyser or verifier paths; a local PostgreSQL
+  instance is sufficient for the worker and contracts suites.
+\item \textbf{Python 3.10 or later}, needed only by the change analyser's
+  Python parser and the dataset agreement scripts. It is not needed for the
+  TypeScript build.
+\end{itemize}
+
+No global tooling is required beyond these. There is no CI pipeline in the
+repository yet (defect D-02), so the commands below are the whole procedure.
+
+\subsection{Install}
+
+\begin{verbatim}
+git clone https://github.com/abdullahamin231/fyp.git
+cd fyp
+npm install
+\end{verbatim}
+
+\texttt{npm install} at the root installs all three workspaces and then runs
+the root \texttt{postinstall} hook, which builds \texttt{@unify/contracts}.
+That build must succeed before the worker or web app can be compiled, because
+both import the generated contract types; the \texttt{prebuild} and
+\texttt{pretest} hooks in each workspace rebuild it automatically, so a
+contract change never needs a manual rebuild step.
+
+\subsection{Configuration}
+
+The worker and the web app read their configuration from \texttt{.env} files
+at the workspace root. The variable names, and what each one is for:
+
+\begin{longtable}{p{0.34\textwidth}p{0.55\textwidth}}
+\toprule
+\textbf{Variable} & \textbf{Used by / purpose} \\
+\midrule
+\endhead
+\texttt{SUPABASE\_URL} & Worker: REST endpoint of the evidence store \\
+\texttt{SUPABASE\_SERVICE\_ROLE\_KEY} & Worker: the only key permitted to
+  write to the graph, per NFR-09 \\
+\texttt{SUPABASE\_SECRET\_KEY} & Worker: server-side management operations \\
+\texttt{NEXT\_PUBLIC\_SUPABASE\_URL} & Web app: browser-side client endpoint \\
+\texttt{NEXT\_PUBLIC\_SUPABASE\_ANON\_KEY} & Web app: browser-side key; RLS,
+  not the key itself, is the boundary \\
+\bottomrule
+\end{longtable}
+
+\noindent The \texttt{NEXT\_PUBLIC\_}-prefixed variables are compiled into the
+browser bundle by Next.js and are therefore not secrets. The two worker keys
+are secrets and must never be committed; the repository carries no
+\texttt{.env} file, and the integration credentials for GitHub, Jira and
+Figma are stored encrypted at rest (AES-256-GCM) rather than in configuration
+(\S\ref{sec:ch9-security}).
+
+\subsection{Database}
+
+The schema is \texttt{supabase/migrations/} and is the source of truth: apply
+the files in numeric order, \texttt{00001} through \texttt{00016}. They are
+idempotent-by-construction (each creates or alters a named object) and are
+meant to be applied to an empty database.
+
+\begin{verbatim}
+psql "$DATABASE_URL" -f supabase/migrations/00001_enums.sql
+psql "$DATABASE_URL" -f supabase/migrations/00002_tenancy.sql
+# ... through 00016_publish_analysis.sql
+\end{verbatim}
+
+\noindent The ordering matters in three places: \texttt{00003} needs the enum
+types from \texttt{00001}; \texttt{00010} adds the partial unique index the
+linker's duplicate safety depends on; and \texttt{00015} and \texttt{00016}
+create the \texttt{link\_pull\_request\_event} and \texttt{publish\_analysis}
+functions used by the linker and the analyser respectively. Running the
+linking tests against a database missing \texttt{00010} fails on the
+\texttt{ON CONFLICT} predicate rather than silently duplicating rows, which is
+the behaviour the test suite was written to catch.
+
+\subsection{Checks and demonstration}
+
+All commands run from the repository root.
+
+\begin{longtable}{p{0.42\textwidth}p{0.47\textwidth}}
+\toprule
+\textbf{Command} & \textbf{What it establishes} \\
+\midrule
+\endhead
+\texttt{npm run build:contracts} & Contract package compiles \\
+\texttt{npm run test:contracts} & Contracts suite (115 tests) \\
+\texttt{npm run typecheck --workspace @unify/worker} & Worker types, including
+  tests \\
+\texttt{npm run typecheck --workspace @unify/web} & Web app types \\
+\texttt{npm run lint --workspace @unify/web} & Web app lint \\
+\texttt{npm test --workspace @unify/worker} & Worker suite: pipeline, linking,
+  analyser (76 tests) \\
+\texttt{npm run demo:linking --workspace @unify/worker} & Linker against a
+  local database \\
+\texttt{npm run demo:linking --workspace @unify/worker -- --live} & Same five
+  outcomes against the hosted project \\
+\texttt{npm run analyse:evaluate --workspace @unify/worker} & Analyser against
+  the 15 pilot cases \\
+\bottomrule
+\end{longtable}
+
+\noindent \texttt{demo:linking} needs no configuration for the local path: it
+creates its own throwaway worktree and database. With \texttt{--live} it reads
+\texttt{SUPABASE\_URL} and \texttt{SUPABASE\_SERVICE\_ROLE\_KEY} and writes to
+the hosted project, so it should be run last and against a disposable
+workspace.
+
+\subsection{Verified output at the evaluation commit}
+
+Every command below was run in full on Node v24.14.1 with npm 9.2.0, against a
+clean install, on the evaluation commit. The table is the observed result, not
+an expectation.
+
+\begin{longtable}{p{0.40\textwidth}p{0.14\textwidth}p{0.35\textwidth}}
+\toprule
+\textbf{Command} & \textbf{Result} & \textbf{Observed} \\
+\midrule
+\endhead
+\texttt{npm install} & Pass & Installs cleanly; see the note below on
+  \texttt{@electric-sql/pglite} \\
+\texttt{npm run build:contracts} & Pass & Compiles \\
+\texttt{npm run test:contracts} & Pass & 115/115 \\
+\texttt{npm run typecheck --workspace @unify/contracts} & \textbf{Fail} &
+  6 errors, all in \texttt{test/rule-meta.test.ts} --- defect D-10 \\
+\texttt{npm run typecheck --workspace @unify/worker} & Pass & 0 errors \\
+\texttt{npm test --workspace @unify/worker} & Pass & 76/76 --- 46 packet,
+  loop and gate, 10 linking, 20 analyser \\
+\texttt{npm run typecheck --workspace @unify/web} & Pass & 0 errors \\
+\texttt{npm run build --workspace @unify/web} & Pass & Next.js 16.4 production
+  build completes \\
+\texttt{npm run lint --workspace @unify/web} & \textbf{Fail} & 1 error
+  (\texttt{react-hooks/set-state-in-effect}) and 1 warning \\
+\texttt{python3 -m pytest} in \texttt{unify\_poc/} & \textbf{Fail} & Cannot
+  collect --- defect D-01 \\
+\bottomrule
+\end{longtable}
+
+\noindent The two test suites that gate the demonstration --- contracts
+(115/115) and the worker (76/76) --- both pass, and the two remaining failures
+are a test-file typecheck and a separate Python proof-of-concept, neither of
+which the worker or the web app depends on.
+
+\medskip\noindent\textbf{A dependency was missing from the reporting
+environment.} Before a fresh \texttt{npm install}, the worker typecheck failed
+with five \texttt{Cannot find module '@electric-sql/pglite'} errors, because
+\texttt{node\_modules} was stale relative to \texttt{package-lock.json} even
+though the package is correctly declared in
+\texttt{apps/worker/package.json}. A plain \texttt{npm install} resolved it.
+This is worth recording because it is indistinguishable, from the outside, from
+a code defect: an incomplete install looks exactly like a broken module.
+
+\subsection{What this procedure does not yet establish}
+
+Three gaps are recorded here rather than left for a reader to discover.
+
+\textbf{D-10 is still open.} The contracts typecheck reports six
+\texttt{Object is possibly 'undefined'} errors in
+\texttt{test/rule-meta.test.ts}. The tests themselves pass, which is why the
+suite is green while the typecheck is not: vitest does not typecheck. The
+fixes are local non-null assertions or guards in the test file.
+
+\textbf{D-01 is still open.} \texttt{unify\_poc/}, the earlier Python
+proof-of-concept, cannot collect its own tests --- \texttt{ModuleNotFoundError:
+No module named 'unify'} --- so the package layout and the test
+\texttt{sys.path} disagree. Nothing in the TypeScript system depends on it,
+but it is a directory in the repository that fails its own test command.
+
+\textbf{A non-author has not yet reproduced the setup.} The instructions have
+been followed by team members who already know the repository. The test a
+reproduction procedure has to pass is whether someone who does not --- with
+only this section, the evaluation commit and their own database --- can reach
+the results in the table above. That run is scheduled before the FYP-1 final
+evaluation and is listed in Chapter~9 as a remaining deliverable.

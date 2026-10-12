@@ -134,11 +134,13 @@ export function OnboardingWizard() {
     timers.current.push(
       setTimeout(() => {
         setAuth((prev) => ({ ...prev, [key]: "connected" }));
-        const label =
-          key === "workspace"
-            ? `Workspace ${workspace.slug || "created"} created (200 OK)`
-            : `${key[0].toUpperCase()}${key.slice(1)} connected — read-only scopes granted`;
-        toast(label, { icon: "cloud_done" });
+        // `key` is narrowed to "workspace" here: every other value returned
+        // above via window.location.assign. The previous ternary's provider
+        // branch was therefore unreachable, and TypeScript flagged it as
+        // `never` (which is what broke `npm run build`).
+        toast(`Workspace ${workspace.slug || "created"} created (200 OK)`, {
+          icon: "cloud_done",
+        });
       }, 1500),
     );
   }

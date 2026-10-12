@@ -17,7 +17,15 @@ function verifyState(state: string, expectedProvider: IntegrationProvider) {
 }
 
 async function exchange(provider: IntegrationProvider, code: string, redirectUri: string) {
-  const configs = {
+  type TokenConfig = {
+    tokenUrl: string;
+    clientId?: string;
+    clientSecret?: string;
+    /** Provider-specific extra form fields. Values are always strings because
+     *  the whole object is spread into a URLSearchParams below. */
+    body: Record<string, string>;
+  };
+  const allProviders: Record<IntegrationProvider, TokenConfig> = {
     github: {
       tokenUrl: "https://github.com/login/oauth/access_token",
       clientId: process.env.GITHUB_CLIENT_ID,
@@ -36,7 +44,8 @@ async function exchange(provider: IntegrationProvider, code: string, redirectUri
       clientSecret: process.env.FIGMA_CLIENT_SECRET,
       body: {},
     },
-  }[provider];
+  };
+  const configs = allProviders[provider];
   if (!configs.clientId || !configs.clientSecret) throw new Error(`${provider.toUpperCase()} OAuth credentials are not configured`);
   const form = new URLSearchParams({
     grant_type: "authorization_code",

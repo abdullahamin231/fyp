@@ -252,6 +252,52 @@ and it is recorded here rather than omitted because
 the commit is visible in the repository and an unexplained reversion is worse
 than a declared one.
 
+\subsection*{Tools and models used}
+
+Assistance came from several tools rather than one, so the toolchain is named
+here before the artefact register below.
+
+\begin{longtable}{p{0.30\textwidth}p{0.59\textwidth}}
+\toprule
+\textbf{Tool and models} & \textbf{How it was used} \\
+\midrule
+\endhead
+\textbf{OpenCode} (agent harness)\newline
+  \emph{\textbf{MiMo-V2.6-Flash-Free} --- most interactions}\newline
+  \emph{Other models, for specific tasks} &
+  The primary development environment for this project. Agents were given
+  scoped tasks against the working tree and ran commands, read and edited
+  files, and reported back. \textbf{MiMo-V2.6-Flash-Free} was the default model
+  and handled the large majority of sessions: literature and documentation
+  search, reading and reviewing committed code, refactoring, LaTeX and TikZ
+  plumbing, test triage, and the verification passes described below. Where a
+  task called for a different model it was routed to one inside the same
+  harness, so the harness is the constant and the model is the variable. Every
+  artefact that came from a model other than MiMo is named individually in the
+  register, so the exception is always visible. \\
+\textbf{OpenCode subagents}\newline
+  \emph{Claude Opus} &
+  Two delegated, background agents, run inside the same OpenCode harness but
+  on longer, independent tasks. One drafted report chapters from the proposal
+  and the repository state; the other built the traceability matrix. Both are
+  registered below, and the first is the subject of the correction recorded in
+  the next subsection. \\
+\textbf{Google Gemini}\newline
+  \emph{Gemini 3.1 Pro} &
+  Formatting and integrating the TikZ diagram sources into the Chapter~4 and
+  Chapter~5 LaTeX. \\
+\textbf{Copilot SDK} (VS Code)\newline
+  \emph{Copilot} &
+  Annotating the 15-case dataset pilot (annotator B) --- structural and
+  annotation-rule validation only. \\
+\bottomrule
+\end{longtable}
+
+\noindent The harness mattered more than the individual model. Every agent
+worked inside the repository, so every claim it produced could be checked by
+running a command, and the prompt journal below records the cases where a
+check failed and the output was corrected or refused.
+
 \subsection*{GenAI artefact register}
 
 % ===========================================================================
@@ -266,11 +312,108 @@ than a declared one.
 %   - the annotation guide, if assistance was used in drafting it
 % ===========================================================================
 
-\begin{longtable}{p{0.17\textwidth}p{0.11\textwidth}p{0.22\textwidth}p{0.22\textwidth}p{0.17\textwidth}}
+\begin{longtable}{p{0.16\textwidth}p{0.09\textwidth}p{0.23\textwidth}p{0.23\textwidth}p{0.17\textwidth}}
 \toprule
 Artefact & Level & Assistance used & Member contribution & Verification \\
 \midrule
 \endhead
+Chapter~4 (Software Requirements) & L3 (draft) &
+  Full draft produced with Claude Opus inside OpenCode: stakeholder roles, six
+  detailed use cases, FR-01--FR-29, NFR-01--NFR-14, acceptance checks &
+  Mishal owns the chapter and the FR/NFR identifiers; the draft was compiled
+  into the report and the new identifiers were agreed with the traceability
+  matrix before use &
+  Chapter compiles in place; every requirement re-checked against proposal
+  \S15 and \S22 \\
+Chapter~6 \S6.4.1, Chapter~7 refresh, Chapter~4 status
+  paragraph & L3 (draft) &
+  Draft text written from the committed code, test output and the live run &
+  Mishal wrote the external-review paragraph herself and decided how the pilot
+  is reported; every number in the drafts was re-run before it was kept &
+  Every number re-run from the repository on 11 October; stale values from an
+  earlier draft (TC-01--TC-04, FR-22--FR-29 status) replaced \\
+Chapter~2, 6, 8 and 9 drafts & L3 (draft) &
+  Chapters drafted by a Claude Opus subagent run inside OpenCode, from the
+  proposal, \texttt{TODO.md} and the repository state &
+  These chapters belong to other members. \textbf{$\approx$1,560 lines were
+  withdrawn} and reverted to their section skeletons in commit
+  \texttt{7766cbc} rather than left as unreviewed prose in someone else's
+  chapter; each owner rewrote the chapter they own &
+  The revert is visible in the history. An unexplained reversion would have
+  been worse than a declared one \\
+Chapter~10, Conclusion, Abstract, Executive
+  Summary and the bibliography & L3 (draft) &
+  Same subagent, restricted to chapters Abdullah owns &
+  Abdullah reviewed each claim, kept only what he could defend, and marked
+  anything unverifiable &
+  Report builds with 0 undefined citations and 0 unresolved cross-references;
+  every quantitative claim re-checked against the repository \\
+Deterministic PR$\rightarrow$ticket linker
+  (\texttt{apps/worker/src/linking/}, migration 00015) & L3 &
+  Code, SQL function, tests and demo script written with Claude Opus inside
+  OpenCode &
+  Mishal set the rule (explicit keys only, no placeholder nodes), chose the
+  \texttt{supabase-js} RPC route with Abdullah, applied 00015 and ran the live
+  demo &
+  16 tests against the real migrations; the tests caught an \texttt{ON
+  CONFLICT} predicate that did not match migration 00010, and the first
+  version's missing transaction was moved into one SQL function \\
+Change analyser (\texttt{apps/worker/src/analyser/},
+  migration 00016) & L3 &
+  Analyser, Python parser, coverage, publish RPC, evaluation script and tests
+  written with Claude Opus inside OpenCode &
+  Mishal asked for Python, coverage and publishing in one pass and chose to
+  connect it to the packet with \texttt{IMPLEMENTS} edges &
+  18 tests plus the pilot evaluation; the first scorer was too literal and was
+  corrected, and a coverage path bug for react-hook-form was found and fixed \\
+Traceability matrix
+  (\texttt{docs/traceability/}) & L3 &
+  Built by a Claude Opus subagent run inside OpenCode &
+  Abdullah owns the 14-column schema, the status vocabulary and the 14 open
+  discrepancies, none of which were silently resolved &
+  Generator hard-fails on wrong row count, duplicate or renumbered ID, invalid
+  status or empty cell --- tested against four induced failures, all non-zero
+  exit \\
+Four SE diagrams and the shared TikZ style
+  (\texttt{usecase}, \texttt{domain-model}, \texttt{erd},
+  \texttt{anchor-reanchoring}) & L3 &
+  TikZ source generated with Claude Opus inside OpenCode &
+  Mishal chose which diagrams to produce and the format, and had each one
+  explained until she could explain it unaided &
+  Each diagram compiled and cross-checked against proposal \S1.1, \S9.1,
+  \S9.9 and \S22; layout was fixed over several iterations; the anchor figure
+  uses an invented example, which its caption states \\
+Diagram integration into Chapter~4 and Chapter~5 & L2 &
+  LaTeX commands to embed the TikZ sources, with Gemini 3.1 Pro &
+  Mishal reviewed the syntax, verified the PDF output and directed the
+  placement; the diagram folder was moved to the correct path after the tool
+  placed it in an incorrect nested one &
+  Manual compilation and visual inspection of the resulting PDF \\
+Dataset pilot construction (\texttt{docs/dataset/}) & L3 &
+  Repository screening, 15 case packets, schema, annotation manual, integrity
+  and agreement scripts, with Claude Opus inside OpenCode &
+  Mishal chose to proceed with the screening, and acts as case constructor and
+  adjudicator; the answer key is kept out of the repository &
+  Each repository's own tests were run for every pass/fail claim; the
+  integrity script reports 138 checks, 0 failures \\
+Dataset annotation --- annotator B & L2 &
+  Case verdicts, freshness states, review flags, reason codes, spans and
+  justifications, with the Copilot SDK in VS Code &
+  Haaniah read the manual and every case packet, inspected changed spans and
+  test evidence, applied the five head patches and selected the final labels
+  herself &
+  Structural and annotation-rule validation passed; no label came from an
+  answer key; unsupported claims were marked
+  \texttt{INSUFFICIENT\_EVIDENCE} \\
+Dataset annotation --- annotator A & L2 &
+  A checkout-and-verify helper built with Claude inside OpenCode; the model was
+  refused any role in the judgements &
+  Abdullah personally made all 15 verdicts, freshness states, span selections
+  and justifications; the assistant was told it could explain the format but
+  must never offer an opinion on a verdict or span, and declined twice when
+  asked to interpret a diff &
+  \texttt{./case verify} run per case (43 span hashes, 5 patch hashes, HEAD
+  identity); agreement then measured at verdict $\kappa$ 0.90 \\
 Chapter~3 and source-adapter documentation & L2/L3 draft assistance &
   Structure and wording suggestions from the drafting workflow &
   Haaniah supplied repository evidence, corrected unsupported claims and
@@ -382,6 +525,7 @@ Report and implementation diverge
 \end{longtable}
 
 \section{Security and Privacy Considerations}
+\label{sec:ch9-security}
 
 \paragraph{Access is read-only throughout.} All three source integrations use
 read-only, least-privilege scopes. The system never writes to a connected tool.

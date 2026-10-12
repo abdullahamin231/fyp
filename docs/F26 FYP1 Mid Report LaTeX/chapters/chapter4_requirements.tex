@@ -508,6 +508,98 @@ FR-29 & On a project with recorded history, the proposed state map and grace
 \hline
 \end{longtable}
 
+\subsection{Acceptance checks for the non-functional requirements}
+\label{sec:acceptance-nfr}
+
+Table~\ref{tab:acceptance} covers the functional requirements only, which
+leaves the NFR targets stated in \S\ref{sec:nfr} without a stated way of
+checking them. Table~\ref{tab:acceptance-nfr} closes that: for each
+non-functional requirement it names the measurement, the threshold, and
+whether that measurement has actually been taken at the evaluation commit.
+The last column is deliberately not a pass/fail column --- several of these
+have not been measured yet, and saying so is the point.
+
+\begin{longtable}{p{0.09\linewidth} p{0.34\linewidth} p{0.20\linewidth}
+                  p{0.13\linewidth} p{0.14\linewidth}}
+\caption{Acceptance check, measurement and current status for each
+         non-functional requirement.}\label{tab:acceptance-nfr}\\
+\hline
+\textbf{ID} & \textbf{Acceptance check} & \textbf{How it is measured} &
+  \textbf{Threshold} & \textbf{Status at evaluation commit} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Acceptance check} & \textbf{How it is measured} &
+  \textbf{Threshold} & \textbf{Status at evaluation commit} \\
+\hline
+\endhead
+NFR-01 & Sending the same delivery twice creates no second event, edge or
+  finding; a reordered batch converges to the same final state & Controlled
+  event suite, replayed in normal, duplicate and shuffled order &
+  100\% of controlled tests & Partially measured: duplicate safety passes
+  (TC-14); out-of-order convergence belongs to the ingestion engine (TC-21),
+  not yet executed \\
+NFR-02 & Events arriving before, during and after a simulated vendor outage
+  are all present after recovery & Fault-injection harness with a paused
+  delivery stream & Zero lost events & Not yet exercised; the reconciliation
+  path is implemented but unrun \\
+NFR-03 & Incremental evaluation and a full rescan produce the same findings &
+  Benchmark run of both modes over the same inputs & $\geq$ 99\% agreement &
+  Not yet measured; Rules 1--3 have not been evaluated \\
+NFR-04 & With the model server stopped, ingestion and Rules 1--3 continue and
+  affected criteria are marked verification-unavailable & Worker suite with
+  the model client forced to fail & No criterion silently skipped & Behaviour
+  covered by the loop tests; no end-to-end run with the server stopped \\
+NFR-05 & A participant in the PM role completes the acceptance task unaided &
+  Moderated task-based session, one participant per role & Task completed
+  without developer help & Not yet run; the interface has been checked against
+  its exported design only \\
+NFR-06 & Prompts and interventions per 100 ingested events are reported
+  against the all-manual baseline & Instrumented counters over a fixed event
+  batch & Reported per role, no target & Not yet instrumented \\
+NFR-07 & p95 analysis time for one pull request & Timed over the pilot cases
+  on the declared hardware & $<$ 60\,s & Partly measured: analyser median
+  0.3\,s, max 4\,s; model inference time not measured \\
+NFR-08 & The whole system, including the local model server, comes up on one
+  host under Docker Compose & Cold start on a clean host, then the smoke suite
+  & Single host, one Compose file & Deployment view designed; not yet run as a
+  cold start \\
+NFR-09 & Each integration requests only read scopes; tokens are encrypted at
+  rest and readable only by the API service & Scope inspection per provider,
+  plus a role check against the database & Read-only, least privilege &
+  Met for the linker and analyser (service-role boundary, TC-15); provider
+  scope review still pending \\
+NFR-10 & Output that does not parse against the schema cannot influence
+  anything, and instructions inside artifacts are never executed & Injected
+  malformed model output and an artifact containing an instruction & Zero
+  schema-invalid outputs reaching the gate & Enforced by the gate; covered by
+  the malformed-output loop tests \\
+NFR-11 & No repository, ticket or design content leaves the deployment
+  boundary & Egress inspection during a full run, with the model client
+  pointed at a local address only & Zero external egress of artifact content &
+  Not yet inspected; the architecture keeps the model server local by
+  construction \\
+NFR-12 & Every \texttt{SUPPORTED} or \texttt{CONTRADICTED} finding carries
+  resolvable provenance & Gate check on each decisive verdict, over the gold
+  set & 100\% provenance; unsupported confident assertions $\leq$ 2\% &
+  Provenance enforced by the gate; the 2\% rate is not yet measured, as no
+  real model has been evaluated \\
+NFR-13 & Ambiguous cases are abstained rather than decided, and correctly &
+  Labelled ambiguous subset of the evaluation set & $\geq$ 80\% correct
+  abstention & Abstention path tested; accuracy not yet measured against the
+  gold set \\
+NFR-14 & Re-running the same packet with the same pinned model and settings
+  yields the same verdict class & Three repeated runs per packet at
+  temperature 0 & Identical verdict class; $\geq$ 95\% agreement (hard gate 2)
+  & Determinism tests exist for the gate; not yet run against a real model \\
+\hline
+\end{longtable}
+
+\noindent Four of these --- NFR-05, NFR-06, NFR-08 and NFR-11 --- need
+something the committed system does not yet have: a user session, counters, a
+cold start and an egress capture. They are listed in Chapter~9 as remaining
+validation rather than treated as satisfied by the design.
+
 % ---------------------------------------------------------------------------
 \section{Requirements Traceability}
 \label{sec:traceability}
