@@ -69,6 +69,15 @@ export function parseNdjson(text: string): NdjsonEvent[] {
   return events;
 }
 
+/** The CLI reports its own failures as `error` events on stdout, not on stderr. */
+export function cliErrorMessage(text: string): string | undefined {
+  for (const event of parseNdjson(text)) {
+    const error = (event as { error?: { message?: unknown } }).error;
+    if (event.type === "error" && typeof error?.message === "string") return error.message;
+  }
+  return undefined;
+}
+
 /** Concatenate the `text` parts of a stream, in arrival order. */
 export function textFromEvents(events: readonly NdjsonEvent[]): string {
   return events
@@ -125,9 +134,8 @@ export class OpenCodeModelClient implements ModelClient {
       const { stdout, stderr, code } = await this.spawnOnce(bin, dir, call.timeoutMs);
 
       if (code !== 0) {
-        throw new ModelUnavailableError(
-          `opencode exited ${code}${stderr ? `: ${tail(stderr, 400)}` : ""}`,
-        );
+        const detail = cliErrorMessage(stdout) ?? (stderr ? tail(stderr, 400) : undefined);
+        throw new ModelUnavailableError(`opencode exited ${code}${detail ? `: ${detail}` : ""}`);
       }
       if (!this.cliVersion) {
         this.cliVersion = await this.discoverVersion(bin);
@@ -135,8 +143,9 @@ export class OpenCodeModelClient implements ModelClient {
 
       const text = textFromEvents(parseNdjson(stdout));
       if (text.trim() === "") {
+        const detail = cliErrorMessage(stdout) ?? (stderr ? tail(stderr, 200) : undefined);
         throw new ModelUnavailableError(
-          `opencode produced no text output${stderr ? ` (stderr: ${tail(stderr, 200)})` : ""}`,
+          `opencode produced no text output${detail ? ` (${detail})` : ""}`,
         );
       }
       return { text, durationMs: Date.now() - started };
@@ -161,7 +170,7 @@ export class OpenCodeModelClient implements ModelClient {
           "--model",
           this.opts.model,
           "--file",
-          "packet.txt",
+          join(cwd, "packet.txt"),
           "Reply with only the JSON object described in the attached evidence packet.",
         ],
         { cwd, stdio: ["ignore", "pipe", "pipe"], timeout: timeoutMs, killSignal: "SIGKILL" },

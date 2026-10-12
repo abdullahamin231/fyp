@@ -18,7 +18,8 @@ export type PassKind = "scope" | "verify" | "critic";
 
 const SCOPE_INSTRUCTION = `You are the retrieval-scope stage of the UNIFY evidence verifier.
 Decide whether the evidence packet contains anything that could decide the criterion above.
-Do not evaluate the change. Reply with exactly one JSON object and nothing else:
+Changed code counts as applicable evidence even when no test covers it: a missing test is a gap to report in missingEvidence, not a reason to call the criterion inapplicable.
+Do not evaluate the change. Do not use tools. Reply with exactly one JSON object and nothing else:
 
 {"applicable": true|false, "reason": "<one sentence>", "missingEvidence": "<what is missing, or null>"}`;
 
@@ -45,11 +46,17 @@ Judge the criterion against the evidence packet only. Reply with exactly one JSO
 }
 
 Rules:
-- evidence may cite ONLY spanIds printed in the packet. An id that is not in the packet is a fabrication and invalidates the answer.
-- file, symbol, startLine, endLine and contentSha256 must repeat that span's own header and hash — the gate re-checks both against the packet.
+- Do not use any tools and do not run commands. Everything you need is in the packet.
+- Write nothing before or after the JSON object: no prose, no markdown fences, no comments.
+- Every span in the packet is printed as a header line: [spanId] (kind) file#symbol:startLine-endLine sha256=<digest>, followed by its text.
+- spanId is the text inside the square brackets, copied exactly (for example SYM-01#card). Do not invent ids such as commit hashes or hunk labels.
+- slot is the "## SLOT_NAME" heading the span appears under, copied exactly (for example SYMBOL_CARDS, DIFF_HUNKS, TEST_EVIDENCE). It is never the (kind) label.
+- file, symbol, startLine and endLine repeat that header. symbol and startLine/endLine are null when the header has no #symbol or :range.
+- contentSha256 is the digest after "sha256=" in that header, copied exactly. Never compute a hash yourself.
+- evidence may cite ONLY spans printed in the packet. Citing anything else invalidates the answer.
 - SUPPORTED or CONTRADICTED require at least one evidence span. If the packet cannot decide, answer INSUFFICIENT_EVIDENCE.
 - PARTIAL means the evidence supports only part of the criterion; say what is missing in "missingEvidence".
-- divergenceTag is "DYNAMIC_BEHAVIOUR" when the criterion is only testable at runtime, otherwise null.
+- divergenceTag is null unless the requirement and the anchored code visibly diverge: "REQUIREMENT_CHANGED_ANCHOR_UNCHANGED" or "ANCHOR_CHANGED_REQUIREMENT_UNCHANGED". Use no other value.
 - Do not emit "modelAndRun": run metadata is recorded by the verifier, not by you.`;
 
 const CRITIC_INSTRUCTION = `You are the critic stage of the UNIFY evidence verifier (pass 3 of at most 3).
