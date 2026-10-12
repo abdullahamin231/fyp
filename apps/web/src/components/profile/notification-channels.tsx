@@ -35,19 +35,16 @@ const toggles = [
   {
     id: "auto" as const,
     label: "Auto-watch authored PRs",
-    description: "Automatically subscribe to drift alerts for code you author.",
     badge: null as string | null,
   },
   {
     id: "mute" as const,
     label: "Mute on Resolved",
-    description: "Silence downstream conflict threads once a PR or token merge closes.",
     badge: null as string | null,
   },
   {
     id: "sev" as const,
     label: "SEV-1 Escalation Bridge",
-    description: "Escalate critical conflicts past the grace window immediately.",
     badge: "URGENT",
   },
 ];
@@ -83,9 +80,6 @@ export function NotificationChannels() {
         <h3 className="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">
           Notification Channels
         </h3>
-        <p className="font-body-sm text-body-sm text-on-surface-variant">
-          Global routing behavior for personal alerts.
-        </p>
       </div>
 
       <div className="rounded-xl bg-surface-container p-4 flex flex-col space-y-4 shadow-md">
@@ -104,9 +98,6 @@ export function NotificationChannels() {
                     </span>
                   ) : null}
                 </div>
-                <span className="font-body-sm text-body-sm text-on-surface-variant">
-                  {toggle.description}
-                </span>
               </div>
               <button
                 type="button"
@@ -189,10 +180,6 @@ export function NotificationChannels() {
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[18px] pointer-events-none"
             />
           </div>
-          <p className="font-body-sm text-micro-label text-on-surface-variant">
-            Watchers receive delivery only — this role selects which notification template your
-            inbox, Slack DMs and digests use.
-          </p>
         </div>
 
         {/* Notification density sparkline */}

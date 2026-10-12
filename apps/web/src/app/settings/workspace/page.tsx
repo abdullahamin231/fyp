@@ -5,8 +5,6 @@ import { WorkspaceAdmin } from "@/components/settings/workspace-admin";
 
 export const metadata: Metadata = {
   title: "Workspace Administration",
-  description:
-    "Integration connections, eligibility gates, canonical workflow state map, roles and member management for the UNIFY workspace.",
 };
 
 export default function WorkspaceAdministrationPage() {

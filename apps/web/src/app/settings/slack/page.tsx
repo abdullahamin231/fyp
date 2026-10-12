@@ -5,8 +5,6 @@ import { SlackGateway } from "@/components/settings/slack-gateway";
 
 export const metadata: Metadata = {
   title: "Slack Delivery",
-  description:
-    "Unidirectional Slack dispatch: workspace connection, channel routing rules and BlockKit test sandbox.",
 };
 
 export default function SlackConfigurationPage() {
@@ -30,10 +28,6 @@ export default function SlackConfigurationPage() {
         <h1 className="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
           Slack Outbound Gateway
         </h1>
-        <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed max-w-2xl">
-          Configure unidirectional webhook dispatches, severity routing tables, and real-time
-          interactive Slack BlockKit notifications.
-        </p>
       </div>
 
       {/* Security & isolation callout banner */}
@@ -53,13 +47,6 @@ export default function SlackConfigurationPage() {
                   Zero Ingestion
                 </span>
               </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant max-w-4xl">
-                Unify posts automated conflict alerts, weekly digests, and resolution triggers to
-                your designated Slack channels. Slack is delivery only — never an input to
-                reasoning: inbound message indexing and workspace reading are disabled by policy
-                and cryptographically restricted at token scope, so no Slack content can influence
-                a verdict.
-              </p>
             </div>
           </div>
           <div className="flex items-center gap-2 self-end lg:self-center flex-wrap">

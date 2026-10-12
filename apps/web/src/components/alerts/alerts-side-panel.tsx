@@ -61,7 +61,7 @@ export function AlertsSidePanel() {
           </>
         ) : (
           <p className="h-32 flex items-center justify-center text-body-sm text-muted text-center">
-            No frequency history yet — the trend appears once the alerts API returns data.
+            No frequency history yet
           </p>
         )}
       </div>
@@ -115,7 +115,7 @@ export function AlertsSidePanel() {
         <div className="space-y-2">
           {integrations.length === 0 ? (
             <p className="text-body-sm text-muted">
-              No tools connected yet — connect GitHub, Figma or Jira to start ingesting.
+              No tools connected yet
             </p>
           ) : (
             integrations.map((integration) => (

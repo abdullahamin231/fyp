@@ -370,9 +370,6 @@ export function AuditConsole() {
             <p className="font-body-md text-body-md text-on-surface font-medium">
               No matching audit records found
             </p>
-            <p className="font-body-sm text-body-sm text-muted mt-1.5">
-              Try relaxing actor or query constraints.
-            </p>
             <button
               type="button"
               onClick={resetFilters}

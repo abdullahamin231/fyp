@@ -12,7 +12,7 @@ type SourceCardProps = {
   iconClass: string;
   name: string;
   meta?: string;
-  desc: ReactNode;
+  desc?: ReactNode;
   lastActivity: string;
   live?: boolean;
   uptime: string;
@@ -92,7 +92,7 @@ function SourceCard({
                 </span>
               ) : null}
             </div>
-            <p className="font-body-sm text-body-sm text-muted mt-1.5">{desc}</p>
+            {desc ? <p className="font-body-sm text-body-sm text-muted mt-1.5">{desc}</p> : null}
           </div>
         </div>
         <div className="text-right flex flex-col items-end">
@@ -172,9 +172,6 @@ const eligibilityGate = (
         Repository Eligibility Gate · scored at connection
       </span>
     </div>
-    <p className="font-body-sm text-body-sm text-muted">
-      Eligibility scoring appears once the first repository scan completes.
-    </p>
     <div className="flex flex-wrap gap-1.5">
       {["read-only OAuth verified", "branch protection parsed", "CODEOWNERS resolved"].map(
         (item) => (
@@ -225,13 +222,11 @@ const securityItems: SecurityItem[] = [
     icon: "fingerprint",
     iconClass: "text-primary",
     title: "Zero Raw Tokens Policy",
-    meta: "Third-party secrets reside in a dedicated HSM vault. Only ephemeral, scoped JWTs are issued to runtime workers.",
   },
   {
     icon: "policy",
     iconClass: "text-secondary",
     title: "Signature Verification",
-    meta: "Ingress webhook signatures validated via SHA-256 HMAC before parser ingestion.",
   },
 ];
 
@@ -308,7 +303,6 @@ export function IntegrationConnections() {
           icon="palette"
           iconClass="text-secondary"
           name="Figma Organization"
-          desc="Component and design token sync bridge via REST v1"
           lastActivity="No syncs yet"
           live={false}
           uptime="Uptime not yet reported"
@@ -337,7 +331,6 @@ export function IntegrationConnections() {
           icon="task_alt"
           iconClass="text-tertiary"
           name="Jira Cloud Software"
-          desc="Requirement anchors and transition history read via Atlassian Connect"
           lastActivity="No webhooks received yet"
           uptime="Uptime not yet reported"
           scopeHeader="Active Atlassian Connect Grants (Read-only)"
@@ -364,7 +357,6 @@ export function IntegrationConnections() {
           icon="forum"
           iconClass="text-secondary"
           name="Slack Outbound & Bot"
-          desc="Delivery only — notification routing for conflict alarms; never an input to reasoning"
           lastActivity="Ready for dispatch"
           live={false}
           uptime="Channels not yet mapped"
@@ -400,7 +392,7 @@ export function IntegrationConnections() {
           </div>
           {quotaMetrics.length === 0 ? (
             <p className="text-body-sm text-muted py-2">
-              No quota telemetry yet — utilization appears once the integration API reports usage.
+              No quota telemetry yet
             </p>
           ) : (
             quotaMetrics.map((metric, index) => (
@@ -447,11 +439,6 @@ export function IntegrationConnections() {
                 <Icon name={item.icon} className={`text-[20px] mt-0.5 ${item.iconClass}`} />
                 <div className="flex flex-col min-w-0">
                   <span className="font-medium text-on-surface">{item.title}</span>
-                  {item.meta ? (
-                    <span className="text-muted font-mono-code text-[12px] break-words">
-                      {item.meta}
-                    </span>
-                  ) : null}
                   {item.note ? (
                     <span className="text-secondary text-micro-label mt-1.5">{item.note}</span>
                   ) : null}
@@ -503,11 +490,6 @@ export function IntegrationConnections() {
               </span>
             </div>
           </div>
-          <p className="text-muted font-body-sm text-[12px] leading-relaxed">
-            Sanitization automatically masks credentials, private keys, emails, and SSNs from Git
-            commits, Figma comments, and Jira transition logs before storing them in the internal
-            graph cluster.
-          </p>
         </div>
       </div>
     </div>

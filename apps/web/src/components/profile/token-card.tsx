@@ -59,10 +59,6 @@ export function TokenCard() {
           <h3 className="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">
             Personal API &amp; CLI Access Tokens
           </h3>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mt-1 max-w-2xl">
-            Authenticate programmatic local commands, CI/CD pipelines, and local Git hooks against
-            the Unified Knowledge Graph.
-          </p>
         </div>
         <button
           type="button"
@@ -82,10 +78,6 @@ export function TokenCard() {
           <Icon name="key_off" className="text-[32px] text-muted mb-2" />
           <p className="font-body-md text-body-md text-on-surface font-medium">
             No personal access tokens yet
-          </p>
-          <p className="font-body-sm text-body-sm text-muted mt-1.5 max-w-md">
-            Generate a token to authenticate the CLI, CI pipelines and Git hooks. Tokens appear
-            here once the tokens API is connected.
           </p>
         </div>
       ) : (
@@ -159,18 +151,6 @@ export function TokenCard() {
         </div>
       )}
 
-      <div className="p-4 rounded-lg bg-surface-container-lowest/60 flex items-start gap-3.5">
-        <Icon name="security" className="text-tertiary text-[20px] flex-shrink-0 mt-0.5" />
-        <div className="flex flex-col text-body-sm">
-          <span className="font-semibold text-on-surface">Security &amp; RBAC Notice:</span>
-          <p className="text-on-surface-variant mt-0.5">
-            Personal access tokens inherit your exact RBAC permissions (
-            <span className="text-primary font-mono-code text-[12px]">Code owner / assignee</span>
-            ). Never commit tokens or secrets into Git repos, Figma description fields, or CI logs.
-            Tokens left idle for &gt; 90 days are automatically decommissioned.
-          </p>
-        </div>
-      </div>
     </section>
   );
 }

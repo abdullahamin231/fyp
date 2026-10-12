@@ -357,9 +357,7 @@ export function ResultsColumn({
       {groups.length === 0 ? (
         <div className="p-4 rounded-xl bg-surface-container-low border border-dashed border-outline-variant text-center shadow-sm">
           <Icon name="search_off" className="text-muted text-[28px]" />
-          <p className="text-body-md text-on-surface-variant mt-2">
-            No matches — loosen a facet or drop a query token.
-          </p>
+          <p className="text-body-md text-on-surface-variant mt-2">No matches</p>
         </div>
       ) : (
         groups.map((group) => {

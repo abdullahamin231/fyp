@@ -15,85 +15,43 @@ const policies: Policy[] = [];
 export type ConnectKey = "workspace" | "figma" | "github" | "jira";
 export type AuthState = "idle" | "authorizing" | "connected";
 
-type Scope = { name: string; description: string; tag: string };
+type Scope = { name: string; tag: string };
 
 const scopes: Record<Exclude<ConnectKey, "workspace">, Scope[]> = {
   figma: [
-    {
-      name: "files:read",
-      description:
-        "Ingest frames, components and prototype links for design ↔ code anchoring.",
-      tag: "Non-destructive",
-    },
-    {
-      name: "dev_mode:read",
-      description: "Read inspect values (tokens, spacing, auto-layout) for drift comparison.",
-      tag: "Read-only",
-    },
-    {
-      name: "webhooks:figma",
-      description: "Stream file update events without polling overhead or rate limits.",
-      tag: "Event-driven",
-    },
+    { name: "files:read", tag: "Non-destructive" },
+    { name: "dev_mode:read", tag: "Read-only" },
+    { name: "webhooks:figma", tag: "Event-driven" },
   ],
   github: [
-    {
-      name: "repo:read",
-      description: "Ingest pull requests, diffs, checks and review threads for anchoring.",
-      tag: "Read-only",
-    },
-    {
-      name: "read:org",
-      description: "Map teams and CODEOWNERS to UNIFY identities via verified membership.",
-      tag: "Privacy safe",
-    },
-    {
-      name: "workflow",
-      description: "Re-run the reconciliation pass after a merge event lands.",
-      tag: "Event-driven",
-    },
+    { name: "repo:read", tag: "Read-only" },
+    { name: "read:org", tag: "Privacy safe" },
+    { name: "workflow", tag: "Event-driven" },
   ],
   jira: [
-    {
-      name: "read:jira-work",
-      description:
-        "Ingest issue titles, priority fields, transitions, and epics for dependency tracking.",
-      tag: "Non-destructive",
-    },
-    {
-      name: "read:jira-user",
-      description:
-        "Map assignees & reporters to UNIFY developer identities via verified email hashes.",
-      tag: "Privacy safe",
-    },
-    {
-      name: "manage:jira-webhook",
-      description: "Stream real-time status updates without polling overhead or rate limits.",
-      tag: "Event-driven",
-    },
+    { name: "read:jira-work", tag: "Non-destructive" },
+    { name: "read:jira-user", tag: "Privacy safe" },
+    { name: "manage:jira-webhook", tag: "Event-driven" },
   ],
 };
 
 const panelMeta: Record<
   Exclude<ConnectKey, "workspace">,
-  { title: string; icon: string; blurb: string; authLabel: string }
+  { title: string; icon: string; authLabel: string }
 > = {
   figma: {
     title: "Connect Figma",
     icon: "palette",
-    blurb: "Sync design files, inspect values and design tokens for drift comparison.",
     authLabel: "Authorize with Figma",
   },
   github: {
     title: "Connect GitHub Organization",
     icon: "code",
-    blurb: "Sync pull requests, review threads and CODEOWNERS for change assurance.",
     authLabel: "Authorize with GitHub",
   },
   jira: {
     title: "Connect Atlassian Jira",
     icon: "task_alt",
-    blurb: "Sync sprint backlogs, release epics, and engineering issue resolutions.",
     authLabel: "Authorize with Atlassian",
   },
 };
@@ -122,9 +80,6 @@ function ScopeMatrix({ tool }: { tool: Exclude<ConnectKey, "workspace"> }) {
               <div className="min-w-0">
                 <div className="font-mono-code text-[13px] text-on-surface font-medium">
                   {scope.name}
-                </div>
-                <div className="font-body-sm text-[12px] text-on-surface-variant">
-                  {scope.description}
                 </div>
               </div>
             </div>
@@ -233,10 +188,6 @@ function PanelFrame({
     <div className="bg-surface-container rounded-xl shadow-md flex flex-col gap-4">
       {children}
       <div className="flex items-center justify-between text-muted text-body-sm px-4 pb-5 pt-2">
-        <span className="font-mono-code text-[12px] flex items-center gap-1.5">
-          <Icon name="info" className="text-[16px]" />
-          You can modify repository access and scope permissions anytime in Settings.
-        </span>
         <button type="button" className="font-mono-code text-[12px] text-primary hover:underline">
           View OAuth Manifest
         </button>
@@ -249,12 +200,10 @@ function PanelFrame({
 function StepHeader({
   icon,
   title,
-  blurb,
   chip,
 }: {
   icon: string;
   title: string;
-  blurb: string;
   chip: string;
 }) {
   return (
@@ -270,7 +219,6 @@ function StepHeader({
               Required
             </span>
           </div>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">{blurb}</p>
         </div>
       </div>
       <span className="px-2 py-1 rounded bg-surface-container-highest text-on-surface-variant font-mono-code text-micro-label">
@@ -306,7 +254,6 @@ function WorkspacePanel({
       <StepHeader
         icon="corporate_fare"
         title="Name Your Workspace"
-        blurb="Bind your cross-functional toolchain to populate continuous synchronization graphs."
         chip="Draft"
       />
       <div className="flex flex-col gap-4 px-4 pb-2">
@@ -348,18 +295,12 @@ function WorkspacePanel({
               className="bg-transparent text-on-surface font-mono-code text-mono-code focus:outline-none flex-1 font-semibold"
             />
           </div>
-          <span className="font-body-sm text-[12px] text-on-surface-variant">
-            Slugs are immutable after the first policy run — they prefix every evidence packet.
-          </span>
         </div>
 
         <div className="flex items-start justify-between gap-3 bg-surface-container-low p-4 rounded">
           <div className="flex flex-col">
             <span className="font-body-md text-body-md font-semibold text-on-surface">
               Import existing workspace
-            </span>
-            <span className="font-body-sm text-body-sm text-on-surface-variant">
-              Pull repositories, Jira projects and Figma files from a previous UNIFY export.
             </span>
             {imported ? (
               <span className="font-mono-code text-micro-label text-secondary mt-1.5">
@@ -420,7 +361,6 @@ function ConnectPanel({
       <StepHeader
         icon={meta.icon}
         title={meta.title}
-        blurb={meta.blurb}
         chip={tool === "jira" ? "OAuth 2.0 (3LO)" : "OAuth 2.0"}
       />
 
@@ -448,13 +388,6 @@ function ConnectPanel({
               </span>
             ) : null}
           </div>
-          <span className="font-body-sm text-[12px] text-on-surface-variant">
-            {tool === "jira"
-              ? "Verify this domain has active Jira Software or Jira Work Management instances."
-              : tool === "github"
-                ? "Only repositories you select are ingested; scopes are re-checkable at any time."
-                : "UNIFY reads inspect values — design files are never modified."}
-          </span>
         </div>
 
         <ScopeMatrix tool={tool} />
@@ -490,7 +423,6 @@ function PolicyRunPanel({
       <StepHeader
         icon="gavel"
         title="First Policy Run"
-        blurb="Evaluate the imported graph against P1–P4 and stage the first findings for triage."
         chip={`${staged} staged`}
       />
       <div className="flex flex-col gap-4 px-4 pb-2">
@@ -574,7 +506,7 @@ function PolicyRunPanel({
                   : run === "running"
                     ? "Reconciling links and evaluating evidence…"
                     : // DATA HOLE — the staged-finding count comes from the policy-run API.
-                      "Run complete — no candidate findings staged for triage"}
+                      "Run complete"}
               </div>
               <div className="font-mono-code text-micro-label text-muted truncate">
                 {/* DATA HOLE — replace with the policy-run API's packet URI and resolved citation count. */}
@@ -611,11 +543,6 @@ function PolicyRunPanel({
           </button>
         </div>
 
-        <p className="font-body-sm text-[12px] text-on-surface-variant">
-          Findings only surface when both artifacts are CURRENT and the link is at least{" "}
-          <span className="font-mono-code text-micro-label text-primary">confirmed</span>. Run again
-          anytime from Policy Simulation.
-        </p>
         {run === "done" ? (
           <button
             type="button"

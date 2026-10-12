@@ -312,7 +312,7 @@ export function EvidenceCaseSection({ finding }: { finding: Finding }) {
           <div className="space-y-stack-compact">
             {evidenceCase.supports.length === 0 ? (
               <p className="font-body-sm text-body-sm text-on-surface-variant">
-                No resolved citation supports this verdict — the packet abstained.
+                No resolved citation supports this verdict
               </p>
             ) : (
               evidenceCase.supports.map((support, index) => (
@@ -347,7 +347,7 @@ export function EvidenceCaseSection({ finding }: { finding: Finding }) {
           <div className="space-y-stack-compact">
             {evidenceCase.gaps.length === 0 ? (
               <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Every cited source resolved — no missing evidence recorded.
+                Every cited source resolved
               </p>
             ) : (
               evidenceCase.gaps.map((gap, index) => (

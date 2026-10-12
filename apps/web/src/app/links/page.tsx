@@ -79,10 +79,6 @@ export default async function LinksPage() {
           <h2 className="font-headline-lg text-headline-lg font-bold tracking-tight text-on-surface">
             Link Management &amp; Relationship Provenance
           </h2>
-          <p className="font-body-md text-body-md text-on-surface-variant max-w-3xl leading-relaxed">
-            Manage explicit cross-system graph bindings, inspect heuristic AI link suggestions, and
-            verify cryptographic provenance trails across Figma, GitHub, and Jira.
-          </p>
         </div>
         <a
           href="#link-wizard"

@@ -143,9 +143,6 @@ export function WatcherTable() {
           <h3 className="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">
             Watched Artifacts &amp; Domains
           </h3>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">
-            Active watcher subscriptions triggering smart notifications and triage assignments.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <SegmentedTabs
@@ -181,9 +178,6 @@ export function WatcherTable() {
               <Icon name="notifications_off" className="text-[28px] text-muted mb-2" />
               <p className="font-body-md text-body-md font-semibold text-on-surface">
                 No watcher subscriptions
-              </p>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                Add a watcher to receive smart notifications and triage assignments.
               </p>
             </div>
           ) : null}

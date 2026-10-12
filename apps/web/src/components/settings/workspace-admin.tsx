@@ -76,11 +76,6 @@ function RetentionAudit() {
             </div>
           ))}
         </div>
-        <p className="text-muted font-body-sm text-[12px] leading-relaxed">
-          Sanitization automatically masks credentials, private keys, emails, and SSNs from Git
-          commits, Figma comments, and Jira transition logs before storing them in the internal
-          graph cluster.
-        </p>
       </section>
 
       <section className="p-stack-comfortable rounded-lg bg-surface-container shadow-md flex flex-col gap-stack-comfortable">
@@ -112,10 +107,6 @@ function RetentionAudit() {
             </button>
           ))}
         </div>
-        <p className="text-muted font-body-sm text-[12px] leading-relaxed">
-          Every export is signed with the workspace KMS key and records the requesting member,
-          timestamp, and query scope in the append-only audit trail.
-        </p>
       </section>
     </div>
   );
@@ -126,7 +117,6 @@ const dangerActions = [
     id: "revoke",
     icon: "link_off",
     title: "Revoke all integration connections",
-    body: "Disconnects GitHub, Jira, Figma and Slack OAuth grants. Findings stop resolving until providers are re-connected.",
     confirm: "revoke",
     button: "Revoke Connections",
   },
@@ -134,7 +124,6 @@ const dangerActions = [
     id: "purge",
     icon: "delete_sweep",
     title: "Purge evidence packets",
-    body: "Deletes stored citation excerpts and snapshots. Conflicts degrade to INSUFFICIENT_EVIDENCE until re-ingested.",
     confirm: "purge",
     button: "Purge Evidence",
   },
@@ -142,7 +131,6 @@ const dangerActions = [
     id: "delete",
     icon: "domain_disabled",
     title: "Delete this workspace",
-    body: "Removes the workspace, its members, policy configuration (P1–P4) and the full graph history. This cannot be undone.",
     confirm: "delete",
     button: "Delete Workspace",
   },
@@ -159,9 +147,6 @@ function DangerZone() {
           <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
             Danger Zone
           </h2>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">
-            Destructive workspace operations. Type the confirmation token to enable each action.
-          </p>
         </div>
       </div>
       <div className="flex flex-col gap-3">
@@ -179,9 +164,6 @@ function DangerZone() {
                 <div className="flex flex-col">
                   <span className="font-body-md text-body-md font-semibold text-on-surface">
                     {action.title}
-                  </span>
-                  <span className="font-body-sm text-body-sm text-on-surface-variant max-w-2xl mt-0.5">
-                    {action.body}
                   </span>
                 </div>
               </div>

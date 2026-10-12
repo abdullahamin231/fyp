@@ -327,10 +327,6 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
               );
             })}
           </div>
-          <p className="mt-2 text-micro-label leading-relaxed text-on-surface-variant">
-            Inferred and unconfirmed links are shown and confirmable — they can never produce a
-            decisive finding.
-          </p>
         </div>
 
         <button

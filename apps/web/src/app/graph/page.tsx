@@ -32,11 +32,6 @@ export default function GraphExplorerPage() {
           <h2 className="font-headline-lg text-headline-lg text-on-surface">
             Relationship Graph Explorer
           </h2>
-          <p className="text-body-md text-on-surface-variant mt-1 max-w-3xl">
-            Requirement, design, code, test and finding artefacts wired by their links — solid
-            strokes are decisive, dashed and dotted strokes are shown but can never decide a
-            finding.
-          </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <span className="px-2 py-1 rounded bg-surface-container-high border border-outline-variant text-micro-label font-mono-code">

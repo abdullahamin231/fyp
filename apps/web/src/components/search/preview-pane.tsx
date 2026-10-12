@@ -38,9 +38,6 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
         <span className="font-headline-sm text-headline-sm font-semibold text-on-surface">
           Live Preview
         </span>
-        <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">
-          Hover a result to link its preview here.
-        </p>
       </div>
     );
   }
@@ -155,7 +152,7 @@ export function PreviewPane({ match }: { match: SearchMatch | null }) {
         </span>
         {match.chain.length === 0 ? (
           <p className="font-body-sm text-body-sm text-on-surface-variant">
-            No artifact chain — this result is a workspace-level rule.
+            No artifact chain
           </p>
         ) : (
           <div className="flex flex-col gap-1 text-[12px] font-mono-code">

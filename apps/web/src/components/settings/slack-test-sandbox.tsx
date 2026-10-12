@@ -72,10 +72,6 @@ export function SlackTestSandbox() {
           Live Webhook
         </span>
       </div>
-      <p className="font-body-sm text-body-sm text-on-surface-variant">
-        Trigger a synthetic conflict payload into your destination channel to confirm block
-        formatters and permissions.
-      </p>
 
       {/* Test configuration controls */}
       <div className="p-4 rounded-xl bg-surface-container flex flex-col gap-3.5">
@@ -263,8 +259,7 @@ export function SlackTestSandbox() {
             <div className="py-8 flex flex-col items-center gap-2 text-center">
               <Icon name="forum" className="text-[28px] text-muted" />
               <p className="font-body-sm text-body-sm text-on-surface-variant">
-                No test payload yet — dispatch a test to preview how the message renders
-                in-channel.
+                No test payload yet
               </p>
             </div>
           )}
@@ -288,7 +283,7 @@ export function SlackTestSandbox() {
         <pre className="rounded-xl bg-surface-container-lowest p-3.5 font-mono-code text-micro-label text-on-surface-variant overflow-x-auto max-h-48 leading-relaxed select-all m-0 whitespace-pre">
           {hasPayload
             ? JSON.stringify(testPayload, null, 2)
-            : "No test payload yet — dispatch a test to generate the BlockKit schema."}
+            : "No test payload yet"}
         </pre>
       </div>
     </section>

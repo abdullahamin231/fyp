@@ -85,11 +85,6 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       <h1 className="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
         {isLogin ? "Sign in" : "Create your account"}
       </h1>
-      <p className="font-body-sm text-body-sm text-on-surface-variant mt-2 mb-7">
-        {isLogin
-          ? "Cross-tool change assurance — verified evidence across Jira, Figma, GitHub and tests."
-          : "One account for your workspace. You become its owner and can invite teammates after."}
-      </p>
 
       <form onSubmit={submit} className="flex flex-col gap-4">
         {!isLogin ? (

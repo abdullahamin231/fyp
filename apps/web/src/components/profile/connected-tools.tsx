@@ -67,9 +67,6 @@ export function ConnectedTools() {
           <p className="font-body-md text-body-md font-semibold text-on-surface">
             No tools connected yet
           </p>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-            Connect GitHub, Figma, Jira, or Slack to start syncing ownership context.
-          </p>
         </div>
       ) : null}
       {tools.map((tool) => {

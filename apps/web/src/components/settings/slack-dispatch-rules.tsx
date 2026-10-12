@@ -117,10 +117,6 @@ export function SlackDispatchRules() {
               Channel Dispatch Mapping
             </h2>
           </div>
-          <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
-            Direct system events and domain conflicts to target channels with calibrated broadcast
-            mentions.
-          </p>
         </div>
         <button
           onClick={addRule}
@@ -137,9 +133,6 @@ export function SlackDispatchRules() {
             <Icon name="notifications_off" className="text-[24px] text-muted" />
             <p className="font-body-md text-body-md font-semibold text-on-surface">
               No dispatch rules configured yet
-            </p>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Add a channel dispatch rule, or connect the dispatch rules API to load saved routing.
             </p>
           </div>
         ) : null}

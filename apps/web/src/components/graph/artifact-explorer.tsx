@@ -560,10 +560,6 @@ export function ArtifactGraphExplorer({
                     );
                   })}
                 </div>
-                <p className="text-micro-label leading-relaxed text-on-surface-variant">
-                  Inferred and unconfirmed links may be displayed and confirmed — they never produce
-                  a decisive finding.
-                </p>
 
                 <div className="pt-2 bg-surface-container-lowest/50 p-3.5 rounded-lg">
                   <div className="flex justify-between items-center mb-1.5">
@@ -832,7 +828,7 @@ export function ArtifactGraphExplorer({
               <div>
                 <Icon name="interesting" className="text-[32px] text-muted mb-2" />
                 <p className="font-body-sm text-body-sm text-muted">
-                  No artifact selected. The graph is empty until the artifact API returns nodes.
+                  No artifact selected.
                 </p>
               </div>
             </div>
@@ -886,7 +882,7 @@ export function ArtifactGraphExplorer({
                 <div className="bg-error-container/20 border border-error/30 rounded-lg p-3.5">
                   <div className="flex items-center gap-2 text-error font-semibold text-[12px]">
                     <Icon name="crisis_alert" className="text-[16px]" />
-                    Affected artifacts pending — awaiting the drift API.
+                    Affected artifacts pending.
                   </div>
                   <p className="font-body-sm text-micro-label text-on-surface-variant mt-1.5">
                     {/* DATA HOLE — replace with the drift API's affected field, source artifact, and conflicting revision. */}
@@ -912,8 +908,7 @@ export function ArtifactGraphExplorer({
                     </span>{" "}
                     of{" "}
                     <span className="text-on-surface font-bold">{selectedEdges.length}</span> links
-                    decisive — inferred or unconfirmed links are displayed but never decide a
-                    finding.
+                    decisive.
                   </p>
                 </div>
               </div>
@@ -933,7 +928,7 @@ export function ArtifactGraphExplorer({
               <div className="space-y-3">
                 {selectedEdges.length === 0 ? (
                   <p className="font-mono-code text-micro-label text-tertiary p-3 rounded bg-surface-container rounded-lg border border-outline-variant/20">
-                    Orphan node — no eligible anchor yet (policy P2 watches this state).
+                    Orphan node
                   </p>
                 ) : (
                   selectedEdges.map(({ edge, other }) => (

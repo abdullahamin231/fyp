@@ -47,36 +47,30 @@ const sources: {
   },
 ];
 
-const nextStepCopy: Record<number, { label: string; title: string; body: string }> = {
+const nextStepCopy: Record<number, { label: string; title: string }> = {
   1: {
     label: "Up Next: Step 1",
     title: "Name Your Workspace",
-    body: "Create the workspace slug, choose a region and import an existing UNIFY export if you have one.",
   },
   2: {
     label: "Up Next: Step 2",
     title: "Connect Figma",
-    body: "Read-only OAuth grants inspect access to frames and tokens — design files are never modified.",
   },
   3: {
     label: "Up Next: Step 3",
     title: "Connect GitHub",
-    body: "Select repositories for ingestion, map CODEOWNERS to UNIFY identities and verify the merge webhook.",
   },
   4: {
     label: "Up Next: Step 4",
     title: "Connect Jira Cloud",
-    body: "Bind your Atlassian site so sprint state, epics and issue transitions feed the dependency graph.",
   },
   5: {
     label: "Up Next: Step 5",
     title: "First Policy Run",
-    body: "Stage P1–P4 against the imported graph and run the first reconciliation pass to surface findings.",
   },
   6: {
     label: "Up Next: Finish",
     title: "Workspace Ready",
-    body: "Head to the Conflict Inbox to triage staged findings, or invite reviewers from Workspace Admin.",
   },
 };
 
@@ -221,7 +215,6 @@ export function SideRecap({
         </div>
         <div className="flex flex-col gap-2">
           <div className="font-body-sm text-on-surface font-semibold">{next.title}</div>
-          <p className="font-body-sm text-on-surface-variant text-[12px]">{next.body}</p>
         </div>
         <div className="flex items-center gap-2 mt-3 flex-wrap">
           {/* DATA HOLE — replace with the workspace API's suggested reviewers. */}

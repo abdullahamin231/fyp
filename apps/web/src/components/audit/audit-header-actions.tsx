@@ -53,7 +53,7 @@ export function AuditHeaderActions({ totalEvents }: { totalEvents: number }) {
   function startExport(format: "csv" | "json") {
     setMenuOpen(false);
     setNotice(
-      `Preparing verified cryptographic ${format.toUpperCase()} export of the filtered ledger slice, with tokens and raw vendor payloads redacted via policy…`,
+      `Preparing ${format.toUpperCase()} export…`,
     );
     timers.current.push(window.setTimeout(() => setNotice(null), 5000));
   }
@@ -102,9 +102,6 @@ export function AuditHeaderActions({ totalEvents }: { totalEvents: number }) {
                 <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider block">
                   Cryptographic Export
                 </span>
-                <p className="font-body-sm text-body-sm text-on-surface-variant text-micro-label leading-tight mt-1">
-                  Tokens &amp; raw vendor payloads automatically redacted per the active redaction policy.
-                </p>
               </div>
               <div className="flex flex-col gap-1">
                 {EXPORT_OPTIONS.map((option) => (

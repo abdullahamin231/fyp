@@ -31,10 +31,6 @@ export default function PoliciesPage() {
             <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">
               Policy Management &amp; Governance
             </h1>
-            <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-              Define cross-tool consistency rules, trigger conditions, temporal thresholds, and
-              recipient escalation policies.
-            </p>
           </div>
           <div className="flex items-center gap-3">
             <Link
