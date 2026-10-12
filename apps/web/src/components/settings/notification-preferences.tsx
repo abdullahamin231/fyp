@@ -26,41 +26,13 @@ type MatrixRow = {
   sub: string;
 };
 
-const matrixRows: MatrixRow[] = [
-  {
-    id: "sev1",
-    dot: "bg-error animate-pulse",
-    title: "Critical Conflicts (SEV-1)",
-    sub: "P1 design drift after merge, contract-breaking mutations",
-  },
-  {
-    id: "sev2",
-    dot: "bg-tertiary",
-    title: "Warning Discrepancies (SEV-2)",
-    sub: "P2 ghost tickets, component drift, deprecated token references",
-  },
-  {
-    id: "sev3",
-    dot: "bg-secondary",
-    title: "Info & Token Mismatches (SEV-3)",
-    sub: "Minor hex shift, typographic variance <2px",
-  },
-  {
-    id: "policy",
-    dot: "bg-outline",
-    title: "Policy Ingestion & Status Changes",
-    sub: "P1–P4 rule additions, reviewer reassignment logs",
-  },
-];
+/** DATA HOLE — replace with the notification stream API. */
+const matrixRows: MatrixRow[] = [];
 
 type MatrixCell = { inApp: boolean; slack: string; email: boolean; push: boolean };
 
-const initialMatrix: Record<string, MatrixCell> = {
-  sev1: { inApp: true, slack: "Immediate", email: false, push: true },
-  sev2: { inApp: true, slack: "Hourly Digest", email: false, push: false },
-  sev3: { inApp: true, slack: "Daily Standup", email: true, push: false },
-  policy: { inApp: true, slack: "Muted", email: true, push: false },
-};
+/** DATA HOLE — replace with the notification stream API. */
+const initialMatrix: Record<string, MatrixCell> = {};
 
 const frequencyOptions: {
   id: Frequency;
@@ -299,7 +271,17 @@ export function NotificationPreferences() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-container-high/40 text-on-surface">
-                  {matrixRows.map((row) => {
+                  {matrixRows.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="py-10 text-center font-body-sm text-on-surface-variant"
+                      >
+                        No event or conflict streams configured yet — routing rows appear once the
+                        notification API reports them.
+                      </td>
+                    </tr>
+                  ) : matrixRows.map((row) => {
                     const cell = matrix[row.id];
                     return (
                       <tr key={row.id} className="hover:bg-surface-container/60 transition-colors">
@@ -373,8 +355,7 @@ export function NotificationPreferences() {
                           />
                         </td>
                       </tr>
-                    );
-                  })}
+                    ) : null)}
                 </tbody>
               </table>
             </div>
