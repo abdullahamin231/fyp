@@ -18,6 +18,7 @@ for (const line of readFileSync(new URL("../.env.local", import.meta.url), "utf8
   const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line);
   if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
 }
+process.env.SUPABASE_SERVICE_ROLE_KEY ??= process.env.SUPABASE_SECRET_KEY;
 const need = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "INTEGRATION_ENCRYPTION_KEY", "FIGMA_WEBHOOK_SECRET"];
 const missing = need.filter((k) => !process.env[k]);
 if (missing.length) { console.error("Missing in apps/web/.env.local:", missing.join(", ")); process.exitCode = 1; throw new Error("__stop__"); }
