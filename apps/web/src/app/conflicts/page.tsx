@@ -215,10 +215,6 @@ export default async function ConflictInboxPage() {
       <div className="flex items-end justify-between">
         <div>
           <h2 className="font-headline-lg text-headline-lg text-on-surface">Conflict Inbox</h2>
-          <p className="text-body-md text-on-surface-variant mt-1">
-            Findings the evidence supports, contradicts or leaves unresolved — every decisive row
-            cites its source.
-          </p>
         </div>
       </div>
 
@@ -388,10 +384,6 @@ export default async function ConflictInboxPage() {
                     <Icon name="inbox" className="text-[28px] text-muted mb-2" />
                     <p className="font-body-md text-body-md font-semibold text-on-surface">
                       No findings yet
-                    </p>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                      Conflicts appear here once a verification job or a rule produces a finding
-                      for a workspace you belong to.
                     </p>
                   </td>
                 </tr>

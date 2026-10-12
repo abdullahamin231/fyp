@@ -403,10 +403,6 @@ function PolicyEditor({
 
         <div className="flex flex-wrap items-center gap-3 pt-1">
           <Badge tone="accent">L0 deterministic gate</Badge>
-          <span className="font-mono-code text-micro-label text-on-surface-variant">
-            guards evaluate before any model call · verdicts explained at L3 with citations · L4
-            autonomous write is prohibited
-          </span>
         </div>
       </div>
 
@@ -522,9 +518,6 @@ function PolicyEditor({
               ))}
             </select>
           </div>
-          <span className="font-body-sm text-[12px] text-muted">
-            Silent period evaluated before an inbox finding is emitted.
-          </span>
         </div>
         <div className="flex flex-col gap-1.5">
           <FieldLabel icon="compare_arrows" iconClass="text-secondary">
@@ -542,9 +535,6 @@ function PolicyEditor({
               </option>
             ))}
           </select>
-          <span className="font-body-sm text-[12px] text-muted">
-            Condition must evaluate to true at the end of the grace window.
-          </span>
         </div>
       </div>
 
@@ -651,13 +641,6 @@ function PolicyEditor({
                 </span>
               </label>
             ))}
-          </div>
-          <div className="flex items-start gap-2 pt-1">
-            <Icon name="chat" className="text-secondary text-[16px] mt-0.5 shrink-0" />
-            <span className="font-mono-code text-micro-label text-on-surface-variant">
-              Slack delivery is delivery-only: the notification channel is never an input to
-              reasoning or verdicts.
-            </span>
           </div>
         </div>
       </div>
@@ -875,8 +858,7 @@ export function PolicyWorkbench() {
             </>
           ) : (
             <p className="font-body-sm text-body-sm text-muted">
-              No evaluation telemetry yet — this fills in once the consistency engine API reports
-              health metrics.
+              No evaluation telemetry yet
             </p>
           )}
         </div>
@@ -905,10 +887,6 @@ export function PolicyWorkbench() {
               <span className="font-headline-sm text-body-sm font-semibold text-on-surface">
                 Offline Replay Test
               </span>
-              <p className="font-body-sm text-[12px] text-on-surface-variant">
-                Replay is read-only and fires no alerts. Results appear here once the replay API
-                has evaluated this policy against confirmed Git/Figma pairs.
-              </p>
             </div>
           </div>
           <Link
@@ -925,9 +903,6 @@ export function PolicyWorkbench() {
             <h3 className="font-headline-sm text-headline-sm text-on-surface mt-3">
               No policies configured
             </h3>
-            <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5 max-w-md mx-auto">
-              The rule builder opens here once the policies API returns your P1–P4 definitions.
-            </p>
           </div>
         )}
       </div>

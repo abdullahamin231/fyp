@@ -68,8 +68,7 @@ export function VerificationLog({
 
       {passes.length === 0 ? (
         <p className="font-body-sm text-body-sm text-on-surface-variant">
-          No pass rows recorded — either the job predates the pass log or it failed
-          before the first model call.
+          No pass rows recorded
         </p>
       ) : (
         <ol className="space-y-2">

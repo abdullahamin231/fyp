@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
 import { SegmentedTabs } from "@/components/ui/segmented-tabs";
@@ -259,10 +258,7 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
               <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
                 <h3 className="font-headline-sm text-headline-sm text-on-surface">Daily Pulse</h3>
               </div>
-              <p className="font-body-md text-body-md text-muted leading-relaxed">
-                No pulse yet — the daily summary is generated once the activity API has events to
-                summarise.
-              </p>
+              <p className="font-body-md text-body-md text-muted leading-relaxed">No pulse yet</p>
             </div>
           </div>
         </div>
@@ -324,14 +320,6 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
             <div className="flex gap-gutter py-stack-comfortable mt-gutter">
               <div className="w-12 h-12 rounded-full bg-surface-container-high border border-outline-variant flex items-center justify-center shrink-0">
                 <Icon name="more_horiz" className="text-muted" />
-              </div>
-              <div className="flex-1 pt-3">
-                <Link
-                  href="/audit"
-                  className="font-body-md text-body-md text-muted hover:text-primary transition-colors"
-                >
-                  Older events live in the Audit Trail →
-                </Link>
               </div>
             </div>
           </div>
@@ -413,7 +401,7 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
             <div className="space-y-stack-comfortable">
               {TEAM.length === 0 ? (
                 <p className="font-body-sm text-body-sm text-muted">
-                  No teammates yet — the roster appears once the workspace API returns members.
+                  No teammates yet
                 </p>
               ) : (
                 TEAM.map((member) => (

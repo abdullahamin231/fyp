@@ -3,7 +3,6 @@
 import { Icon } from "@/components/ui/icon";
 import type { LinkSuggestion } from "@/lib/domain/link-suggestions";
 import {
-  ADVISORY_RULE,
   confidenceLabel,
   relationMeta,
   suggestionToRecord,
@@ -78,20 +77,12 @@ export function SuggestionStack({
                 {suggestions.length > 0 ? `${suggestions.length} UNVERIFIED` : "0 REMAINING"}
               </span>
             </div>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Inferred from commit messages, pull request descriptions, and Figma dev-mode comments.
-            </p>
           </div>
         </div>
         <button
           type="button"
           disabled={highConfidence.length === 0}
           onClick={onConfirmAll}
-          title={
-            highConfidence.length === 0
-              ? "No suggestions above the 85% confidence threshold"
-              : `Confirm ${highConfidence.length} suggestion(s) at or above 85% confidence`
-          }
           className="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-highest disabled:opacity-40 disabled:cursor-not-allowed text-secondary text-body-sm font-medium transition-colors flex items-center gap-1.5 shrink-0"
         >
           <Icon name="done_all" className="text-[16px]" />
@@ -99,21 +90,11 @@ export function SuggestionStack({
         </button>
       </div>
 
-      <div className="flex items-start gap-2 p-3 rounded-xl border border-tertiary/30 bg-tertiary-container/10">
-        <Icon name="policy" className="text-[16px] text-tertiary mt-0.5 shrink-0" />
-        <p className="font-body-sm text-body-sm text-on-surface-variant">
-          <span className="text-tertiary font-semibold">Advisory gate:</span> {ADVISORY_RULE}
-        </p>
-      </div>
-
       {suggestions.length === 0 ? (
         <div className="p-4 rounded-xl bg-surface-container flex flex-col items-center text-center">
           <Icon name="task_alt" className="text-[36px] text-secondary mb-2" />
           <p className="font-body-md text-body-md text-on-surface font-medium">
             Every suggestion has been verified
-          </p>
-          <p className="font-body-sm text-body-sm text-muted mt-1">
-            The link engine will keep surfacing new candidates as artifacts change.
           </p>
         </div>
       ) : null}
@@ -191,8 +172,7 @@ export function SuggestionStack({
               <p className="mt-3 pt-3 border-t border-outline-variant/40 font-mono-code text-micro-label text-on-surface-variant flex items-start gap-1.5">
                 <Icon name="auto_awesome" className="text-[13px] text-tertiary mt-0.5 shrink-0" />
                 <span className="uppercase tracking-wide">
-                  {suggestion.eligibility} · provenance inferred · advisory only — no decisive
-                  finding or notification is raised from this edge
+                  {suggestion.eligibility} · provenance inferred · advisory only
                 </span>
               </p>
             </article>

@@ -78,10 +78,6 @@ export function WorkflowStateMap() {
                 Canonical Workflow State Map
               </h2>
             </div>
-            <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-              Tool-native states normalize into one canonical pipeline before any rule evaluates,
-              so P1–P4 guards read the same vocabulary across Jira, GitHub and Figma.
-            </p>
           </div>
           <span className="font-mono-code text-[12px] px-2.5 py-1 rounded bg-surface-container text-secondary font-medium self-start">
             {stateMappings.length} mappings
@@ -143,10 +139,6 @@ export function WorkflowStateMap() {
             </tbody>
           </table>
         </div>
-        <div className="px-4 py-3 border-t border-outline-variant/60 font-mono-code text-micro-label text-on-surface-variant">
-          mapping changes apply to new evaluations only — open findings keep the map they were
-          scored with
-        </div>
       </section>
 
       {/* Grace-period defaults */}
@@ -161,18 +153,11 @@ export function WorkflowStateMap() {
                 Grace-Period Defaults
               </h2>
             </div>
-            <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-              Settling time granted after a state transition before a rule is allowed to fire.
-              Workspace defaults; individual policies may override them.
-            </p>
           </div>
-          <span className="font-mono-code text-[12px] text-muted self-start">
-            applied after the reconciliation pass
-          </span>
         </div>
         {policies.length === 0 ? (
           <p className="text-body-sm text-muted py-2">
-            No policies yet — grace-period defaults appear once the policies API reports them.
+            No policies yet
           </p>
         ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">

@@ -85,7 +85,7 @@ function CriterionCard({ criterion }: { criterion: CriterionResult }) {
         <div className="border-t border-outline-variant/40 p-stack-comfortable bg-surface-container-lowest/40 space-y-stack-comfortable">
           {criterion.evidence.length === 0 ? (
             <p className="font-body-sm text-body-sm text-on-surface-variant">
-              No citation retrieved for this criterion — verdict rests on the absence of evidence.
+              No citation retrieved for this criterion
             </p>
           ) : (
             criterion.evidence.map((citation, index) => (
@@ -163,11 +163,6 @@ export function CriterionResults({ finding }: { finding: Finding }) {
           <div>
             <p className="text-body-md text-on-surface font-semibold">
               No anchored criteria in this packet
-            </p>
-            <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5">
-              The verdict was recorded at finding level: {finding.verdict ?? "INSUFFICIENT_EVIDENCE"}{" "}
-              · freshness {finding.freshness}
-              {finding.reasonCode ? ` · reason ${finding.reasonCode}` : ""}.
             </p>
           </div>
         </div>

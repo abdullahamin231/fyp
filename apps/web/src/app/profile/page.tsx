@@ -73,9 +73,6 @@ export default function ProfilePage() {
                   <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight font-bold">
                     Your profile
                   </h1>
-                  <p className="font-body-md text-body-md text-on-surface-variant font-medium leading-relaxed mt-1">
-                    Name, role and contact details appear here once the profile API is connected.
-                  </p>
                 </div>
               )}
             </div>
@@ -93,10 +90,6 @@ export default function ProfilePage() {
                 Connected Developer Tool Accounts
               </h2>
             </div>
-            <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed max-w-md">
-              OAuth tokens map code authorship, Figma layers, Jira tasks, and incident handoffs
-              directly to Unify&apos;s conflict detection pipeline.
-            </p>
           </div>
           <ConnectedTools />
         </section>

@@ -167,7 +167,7 @@ export function OnboardingWizard() {
     }
     if (current.key !== "policy" && auth[current.key] !== "connected") {
       authorize(current.key);
-      toast("Awaiting OAuth consent — the step unlocks once authorization returns", {
+      toast("Awaiting OAuth consent", {
         icon: "lock_reset",
         tone: "neutral",
       });
@@ -182,13 +182,13 @@ export function OnboardingWizard() {
 
   function skip() {
     if (step >= 5) {
-      toast("Setup finished — the first policy run stays available in Policy Simulation", {
+      toast("Setup finished", {
         icon: "skip_next",
         tone: "neutral",
       });
       return;
     }
-    toast("Step skipped — connect it later from Link Management", {
+    toast("Step skipped", {
       icon: "skip_next",
       tone: "neutral",
     });
@@ -202,7 +202,7 @@ export function OnboardingWizard() {
       setTimeout(() => {
         setRun("done");
         // DATA HOLE — the staged finding count comes from the policy-run API.
-        toast("First run complete — no candidate findings staged yet", { icon: "fact_check" });
+        toast("First run complete", { icon: "fact_check" });
       }, 1800),
     );
   }
@@ -234,10 +234,6 @@ export function OnboardingWizard() {
             <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">
               Connect Workspace Ecosystem
             </h1>
-            <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-              Bind your cross-functional toolchain to populate continuous synchronization graphs
-              across specs, code, and tickets.
-            </p>
           </div>
           <div className="flex items-center gap-3 bg-surface-container-low px-4 py-2 rounded-lg self-start md:self-auto">
             <div className="text-right">
@@ -359,12 +355,6 @@ export function OnboardingWizard() {
                   AES-256-GCM Active
                 </span>
               </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant max-w-4xl mt-1">
-                All third-party OAuth access tokens are encrypted at rest using envelope-encrypted
-                HSM keys. Raw credentials, tokens, or personal access tokens are never displayed,
-                logged, or exposed client-side. Webhook signatures are verified asynchronously on
-                dedicated egress nodes.
-              </p>
             </div>
           </div>
           <div className="flex items-center gap-2 self-end lg:self-center flex-shrink-0 bg-surface-container px-3 py-1.5 rounded">

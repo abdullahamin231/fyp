@@ -60,9 +60,6 @@ export function ProvenanceModal({
                   {decisive ? "VERIFIED" : "ADVISORY"}
                 </span>
               </div>
-              <p className="font-mono-code text-[12px] text-on-surface-variant">
-                Immutable graph binding digest &amp; cryptographic trace
-              </p>
             </div>
           </div>
           <button
@@ -143,9 +140,7 @@ export function ProvenanceModal({
           <div className="flex items-start gap-2 p-3 rounded-lg bg-tertiary-container/15 border border-tertiary/30">
             <Icon name="warning" className="text-[16px] text-tertiary mt-0.5 shrink-0" />
             <p className="font-body-sm text-body-sm text-on-surface-variant">
-              <span className="text-tertiary font-semibold">{meta.label} edge.</span> {meta.hint}{" "}
-              Confirming it makes the edge eligible for decisive findings without changing how it
-              was derived.
+              <span className="text-tertiary font-semibold">{meta.label} edge.</span>
             </p>
           </div>
         ) : null}

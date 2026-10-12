@@ -241,7 +241,7 @@ export function AlertsFeed() {
           <div className="rounded-xl border border-dashed border-outline-variant p-4 text-center">
             <Icon name="notifications_off" className="text-muted text-[28px]" />
             <p className="text-body-md text-on-surface-variant mt-2">
-              No alerts in this view — the workspace is quiet.
+              No alerts in this view
             </p>
           </div>
         ) : (

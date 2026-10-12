@@ -466,10 +466,6 @@ export function SimulationLab() {
         <h2 className="font-headline-sm text-headline-sm text-on-surface mt-3">
           No replay data yet
         </h2>
-        <p className="font-body-sm text-body-sm text-on-surface-variant mt-1.5 max-w-md mx-auto">
-          The Policy Test Lab replays historical events against a candidate grace window. It
-          appears once the policy and simulation APIs return data.
-        </p>
       </div>
     );
   }
@@ -645,7 +641,7 @@ export function SimulationLab() {
               </select>
               <span className="font-body-sm text-[12px] text-muted">
                 {scenarioId === "custom"
-                  ? "Hand-tuned window and guard state — run to re-evaluate the replay."
+                  ? null
                   : simScenarios.find((scenario) => scenario.id === scenarioId)?.description}
               </span>
             </div>
@@ -842,10 +838,6 @@ export function SimulationLab() {
                 </span>
               ))}
             </div>
-            <p className="font-mono-code text-micro-label text-muted">
-              triggered candidates per grace window — guards {params.guards ? "armed" : "bypassed"},
-              recomputed live
-            </p>
           </div>
         </div>
 
@@ -856,8 +848,7 @@ export function SimulationLab() {
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-tertiary-container/25 text-on-tertiary-container font-mono-code text-micro-label">
               <Icon name="history" className="text-[16px] shrink-0" />
               <span>
-                Parameters changed since run #{runNumber} — results below reflect the last run.
-                Press “Run Simulation” to re-evaluate.
+                Parameters changed since run #{runNumber}.
               </span>
             </div>
           ) : null}
@@ -993,8 +984,7 @@ export function SimulationLab() {
             ))}
             {visibleRows.length === 0 ? (
               <div className="p-4 rounded-xl bg-surface-container-low border border-outline-variant/40 text-center font-mono-code text-[12px] text-muted">
-                No {filter} events in run #{runNumber} — every candidate either cleared the{" "}
-                {result.grace}m window or was blocked by a guard.
+                No {filter} events in run #{runNumber}.
               </div>
             ) : null}
           </div>
@@ -1025,17 +1015,7 @@ export function SimulationLab() {
                 <span className="text-muted uppercase text-micro-label">Escalation</span>
                 <span className="text-on-surface-variant">{meta.escalation}</span>
               </div>
-              <div className="flex flex-col gap-1.5">
-                <span className="text-muted uppercase text-micro-label">Delivery Rule</span>
-                <span className="text-secondary">delivery-only — never a reasoning input</span>
-              </div>
             </div>
-            <p className="font-body-sm text-[12px] text-on-surface-variant border-t border-outline-variant/40 pt-2">
-              Nothing above is sent: this environment replays{" "}
-              {result.horizon.events.toLocaleString("en-US")} historical events from{" "}
-              {result.horizon.range} against draft parameters and only
-              reports what would have happened.
-            </p>
           </div>
         </div>
       </div>

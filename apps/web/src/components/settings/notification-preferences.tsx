@@ -39,7 +39,6 @@ const frequencyOptions: {
   icon: string;
   iconClass: string;
   title: string;
-  body: string;
   badge?: string;
 }[] = [
   {
@@ -47,14 +46,12 @@ const frequencyOptions: {
     icon: "bolt",
     iconClass: "text-primary",
     title: "Real-time Immediate",
-    body: "Dispatches notifications the moment the rule engine flags a discrepancy.",
   },
   {
     id: "hourly",
     icon: "hourglass_top",
     iconClass: "text-secondary",
     title: "Hourly Smart Batch",
-    body: "Collapses concurrent findings across the same repositories into a single summary.",
     badge: "Recommended",
   },
   {
@@ -62,7 +59,6 @@ const frequencyOptions: {
     icon: "calendar_today",
     iconClass: "text-tertiary",
     title: "Daily Standup Digest",
-    body: "Single comprehensive debrief delivered at 09:00 AM local time.",
   },
 ];
 
@@ -175,10 +171,6 @@ export function NotificationPreferences() {
             <h1 className="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
               Notification Engine &amp; Alert Routing
             </h1>
-            <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl">
-              Configure role-aware delivery channels, batch digests, and noise reduction
-              thresholds across cross-functional pipelines.
-            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -250,9 +242,6 @@ export function NotificationPreferences() {
                   <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
                     Delivery Channel Matrix &amp; Routing
                   </h2>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant">
-                    Deterministic routing targets sorted by severity classification
-                  </p>
                 </div>
               </div>
               <span className="font-mono-code text-[12px] px-2.5 py-1 rounded bg-surface-container text-secondary font-medium">
@@ -277,11 +266,11 @@ export function NotificationPreferences() {
                         colSpan={5}
                         className="py-10 text-center font-body-sm text-on-surface-variant"
                       >
-                        No event or conflict streams configured yet — routing rows appear once the
-                        notification API reports them.
+                        No event or conflict streams configured yet
                       </td>
                     </tr>
-                  ) : matrixRows.map((row) => {
+                  ) : (
+                    matrixRows.map((row) => {
                     const cell = matrix[row.id];
                     return (
                       <tr key={row.id} className="hover:bg-surface-container/60 transition-colors">
@@ -355,7 +344,9 @@ export function NotificationPreferences() {
                           />
                         </td>
                       </tr>
-                    ) : null)}
+                    );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -388,9 +379,6 @@ export function NotificationPreferences() {
                   <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
                     Frequency &amp; Quiet Hours Configuration
                   </h2>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant">
-                    Throttling algorithms to avoid alert fatigue during deep work
-                  </p>
                 </div>
               </div>
             </div>
@@ -417,7 +405,6 @@ export function NotificationPreferences() {
                       />
                     </div>
                     <span className="font-semibold text-on-surface text-body-md">{option.title}</span>
-                    <span className="text-on-surface-variant text-body-sm mt-1.5">{option.body}</span>
                     {option.badge ? (
                       <span className="mt-3 font-mono-code text-eyebrow text-secondary font-semibold uppercase">
                         {option.badge}
@@ -442,9 +429,6 @@ export function NotificationPreferences() {
                   <div>
                     <span className="font-semibold text-on-surface text-body-md block">
                       Enable Do-Not-Disturb (DND)
-                    </span>
-                    <span className="text-on-surface-variant text-body-sm">
-                      Suppress audio and desktop popups during specified schedule
                     </span>
                   </div>
                 </div>
@@ -471,9 +455,6 @@ export function NotificationPreferences() {
                     <strong className="text-error font-semibold">
                       Bypass for Critical SEV-1 Merge Blockers
                     </strong>
-                    <span className="text-muted block sm:inline">
-                      Always wake on active deploy stoppage
-                    </span>
                   </label>
                 </div>
                 <div className="flex items-center gap-2">
@@ -499,9 +480,6 @@ export function NotificationPreferences() {
                   <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
                     Escalation Engine &amp; SLA Guardrails
                   </h2>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant">
-                    Deterministic fallback logic when review tickets remain stale
-                  </p>
                 </div>
               </div>
               <span className="px-2.5 py-1 rounded bg-error-container/40 text-error font-mono-code text-eyebrow font-bold tracking-wider uppercase">
@@ -518,16 +496,10 @@ export function NotificationPreferences() {
                     Max Latency: {threshold}h 00m
                   </span>
                 </div>
-                <p className="text-body-sm text-on-surface">
-                  If an unresolved <strong className="text-error">SEV-1 conflict</strong> remains
-                  unacknowledged after <strong>{threshold} hours</strong>, automatically trigger
-                  high-priority incident escalation.
-                </p>
                 <div className="flex flex-wrap items-center gap-3 pt-1 font-mono-code text-[12px]">
                   {escalationTargets.length === 0 ? (
                     <span className="text-muted">
-                      No escalation targets configured yet — routing appears once the escalation API
-                      reports them.
+                      No escalation targets configured yet
                     </span>
                   ) : (
                     escalationTargets.map((target, index) => (
@@ -567,7 +539,7 @@ export function NotificationPreferences() {
                   className="w-full mt-3 accent-primary cursor-pointer"
                 />
                 <span className="text-micro-label text-muted mt-1.5 font-mono-code">
-                  Default: 4 hours (Core Repo Policy)
+                  Default: 4 hours
                 </span>
               </div>
             </div>
@@ -587,9 +559,6 @@ export function NotificationPreferences() {
                   <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
                     Outbound Verification
                   </h2>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant">
-                    Live feed simulation
-                  </p>
                 </div>
               </div>
               <button
@@ -637,8 +606,7 @@ export function NotificationPreferences() {
               <div className="p-4 rounded-lg bg-[#1a1d21] text-white shadow-inner space-y-3 font-sans">
                 {Object.keys(slackPreviewMessage).length === 0 ? (
                   <div className="py-8 text-center text-[13px] text-[#a0a0a0]">
-                    No test notification yet — dispatch a test to preview the outbound Slack
-                    payload.
+                    No test notification yet
                   </div>
                 ) : (
                   <div className="flex items-start gap-3">
@@ -690,7 +658,7 @@ export function NotificationPreferences() {
               <div className="p-4 rounded-lg bg-surface-container space-y-3">
                 {Object.keys(inAppPreviewMessage).length === 0 ? (
                   <div className="py-8 text-center text-body-sm text-on-surface-variant">
-                    No in-app notification yet — dispatch a test to preview the inbox card.
+                    No in-app notification yet
                   </div>
                 ) : (
                   <>
@@ -729,7 +697,7 @@ export function NotificationPreferences() {
             <div className="p-3.5 rounded bg-surface-container-lowest/70 text-body-sm text-muted flex items-center gap-2.5 font-mono-code text-[12px]">
               <Icon name="verified_user" className="text-secondary text-[18px]" />
               <span>
-                {lastVerification ?? "No verification tests yet — dispatch a test to confirm delivery."}
+                {lastVerification ?? "No verification tests yet"}
               </span>
             </div>
           </section>
@@ -777,15 +745,12 @@ export function NotificationPreferences() {
               </div>
             ) : (
               <p className="text-body-sm text-muted py-2">
-                No digest telemetry yet — noise-reduction metrics appear once notifications are
-                delivered.
+                No digest telemetry yet
               </p>
             )}
             {digestStats.prevented ? (
               <p className="text-[12px] text-muted pt-2 leading-relaxed">
-                Smart aggregation algorithm prevented{" "}
-                <strong>{digestStats.prevented}</strong> during your configured focus intervals this
-                sprint.
+                <strong>{digestStats.prevented}</strong> prevented
               </p>
             ) : null}
           </section>
@@ -793,13 +758,6 @@ export function NotificationPreferences() {
           {/* Export */}
           <div className="p-4 rounded-xl bg-surface-container-lowest text-center space-y-3">
             <Icon name="terminal" className="text-muted text-[24px]" />
-            <div className="text-body-sm font-semibold text-on-surface">
-              Syncing Rules via CLI or Terraform?
-            </div>
-            <p className="text-[12px] text-on-surface-variant">
-              Export this configuration as declarative HCL or JSON schema to commit directly into
-              code repos.
-            </p>
             <button className="mt-2 px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-primary font-mono-code text-[12px] transition-colors inline-flex items-center gap-1.5">
               <Icon name="file_download" className="text-[14px]" />
               Export alerts.hcl

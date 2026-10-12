@@ -274,8 +274,7 @@ export default function DashboardPage() {
           <div className="flex-1 relative flex items-center justify-center overflow-hidden">
             {nodes.length === 0 && edges.length === 0 ? (
               <p className="text-body-sm text-muted text-center px-6">
-                No artifacts linked yet — the evidence graph appears once the graph API returns
-                nodes.
+                No artifacts linked yet
               </p>
             ) : (
               <>

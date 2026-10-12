@@ -99,9 +99,6 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
             <h2 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
               Create / Connect New Relationship
             </h2>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Declare explicit directional links across your design systems, repos, and trackers.
-            </p>
           </div>
         </div>
         <span className="px-2.5 py-1 rounded bg-surface-container font-mono-code text-label-caps text-muted uppercase tracking-wider">
@@ -252,14 +249,6 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
         </div>
       </div>
 
-      <p className="mt-3 flex items-start gap-2 font-body-sm text-body-sm text-on-surface-variant">
-        <Icon name="info" className="text-[15px] text-muted mt-0.5" />
-        <span>
-          Links created here are <span className="text-on-surface font-semibold">manual</span>{" "}
-          provenance and <span className="text-secondary font-semibold">confirmed</span> eligibility,
-          so they may take part in decisive findings and notifications.
-        </span>
-      </p>
     </section>
   );
 }

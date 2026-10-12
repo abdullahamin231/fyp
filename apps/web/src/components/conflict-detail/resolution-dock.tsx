@@ -99,9 +99,6 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
           <span className={`w-3 h-3 rounded-full ${copy.dot}`} />
           <div className="flex flex-col">
             <span className="text-on-surface font-semibold text-body-sm">{copy.label}</span>
-            <span className="text-muted font-mono-code text-micro-label">
-              Choose a resolution vector for conflict #{finding.id}
-            </span>
           </div>
         </div>
 
@@ -182,11 +179,6 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
                 <Icon name="close" className="text-[20px]" />
               </button>
             </div>
-            <p className="text-body-md text-on-surface-variant mb-stack-comfortable">
-              {dialog === "suppress"
-                ? "Suppressing prevents recurring alerts for this pair of artifacts. An immutable audit record will log this action."
-                : "Disputing reopens the evidence case: a human re-reads the decisive citations before the verdict can stand."}
-            </p>
             <div className="space-y-stack-comfortable mb-margin-page">
               <div>
                 <label className="block font-label-caps text-label-caps text-muted uppercase mb-1">

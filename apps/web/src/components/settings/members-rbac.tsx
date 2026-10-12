@@ -12,7 +12,6 @@ type Role = {
   iconClass: string;
   /** Populated by the roles API — omitted until the endpoint exists. */
   count?: number;
-  summary: string;
   grants: string[];
 };
 
@@ -21,32 +20,24 @@ const roles: Role[] = [
     name: "Product Manager",
     icon: "analytics",
     iconClass: "bg-tertiary-container/30 text-tertiary",
-    summary:
-      "Owns policy (P1–P4) configuration, approves escalation overrides, and signs off findings that require human review.",
     grants: ["policy:approve", "escalation:override", "verdict:sign-off", "member:invite"],
   },
   {
     name: "Code Owner",
     icon: "terminal",
     iconClass: "bg-primary-container/25 text-primary",
-    summary:
-      "Anchors repository eligibility at connection time (CODEOWNERS), gates merges, and reviews code-side citations.",
     grants: ["merge:gate", "evidence:review", "link:confirm", "scope:read"],
   },
   {
     name: "Designer",
     icon: "palette",
     iconClass: "bg-secondary/15 text-secondary",
-    summary:
-      "Confirms Figma anchors, triages token drift findings, and maintains the design acceptance criteria.",
     grants: ["figma:anchor", "drift:triage", "criteria:edit", "scope:read"],
   },
   {
     name: "Reviewer",
     icon: "fact_check",
     iconClass: "bg-primary/15 text-primary",
-    summary:
-      "Reviews open findings, confirms or disputes cross-tool links, and resolves PARTIAL verdicts.",
     grants: ["finding:review", "link:confirm", "verdict:review", "scope:read"],
   },
 ];
@@ -140,9 +131,6 @@ export function MembersRbac() {
               {roles.length} roles
             </span>
           </div>
-          <span className="font-mono-code text-micro-label text-on-surface-variant">
-            least-privilege by default
-          </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
           {roles.map((role) => (
@@ -162,9 +150,6 @@ export function MembersRbac() {
                 <span className="font-headline-sm text-body-md font-semibold text-on-surface">
                   {role.name}
                 </span>
-                <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                  {role.summary}
-                </p>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-auto">
                 {role.grants.map((grant) => (
@@ -338,16 +323,13 @@ export function MembersRbac() {
                 <tr>
                   <td colSpan={5} className="py-6 text-center text-body-sm text-on-surface-variant">
                     {members.length === 0
-                      ? "No members yet — invite someone, or connect the members API to populate this table."
+                      ? "No members yet"
                       : "No members match this filter."}
                   </td>
                 </tr>
               ) : null}
             </tbody>
           </table>
-        </div>
-        <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/60 font-mono-code text-micro-label text-on-surface-variant">
-          <span>role changes are recorded in the audit trail with actor and timestamp</span>
         </div>
       </section>
     </>

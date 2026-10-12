@@ -20,24 +20,21 @@ const tokenDetails: TokenDetail[] = [];
 type WorkspaceIdentity = { name?: string; id?: string; connectedBy?: string };
 const workspace: WorkspaceIdentity = {};
 
-const protections: { icon: string; iconClass: string; title: string; body: string }[] = [
+const protections: { icon: string; iconClass: string; title: string }[] = [
   {
     icon: "auto_mode",
     iconClass: "text-secondary",
     title: "Suppress resolved alerts immediately",
-    body: "Updates the original Slack message in-place via the chat.update API to show a RESOLVED stamp and remove noisy callouts.",
   },
   {
     icon: "forum",
     iconClass: "text-primary",
     title: "Threaded replies for conflict timeline events",
-    body: "Consolidates graph reconciliation comments, re-runs, and assignee modifications directly beneath the parent card using message threads.",
   },
   {
     icon: "smart_button",
     iconClass: "text-tertiary",
     title: "Include interactive resolution buttons",
-    body: "Embeds clickable [Acknowledge] and [View in Graph] triggers into the block payload.",
   },
 ];
 
@@ -132,11 +129,7 @@ export function SlackGateway() {
                       </span>
                     ) : null}
                   </div>
-                ) : (
-                  <div className="mt-1 text-muted font-body-sm text-body-sm">
-                    Reconnect the workspace to load its details.
-                  </div>
-                )}
+                ) : null}
               </div>
             </div>
             <button
@@ -158,7 +151,7 @@ export function SlackGateway() {
                   Token Health
                 </span>
                 <span className="font-mono-code text-[12px] text-on-surface-variant mt-0.5">
-                  Not yet reported — token details appear once the gateway API responds.
+                  Not yet reported
                 </span>
               </div>
             ) : (
@@ -224,9 +217,6 @@ export function SlackGateway() {
                   <div className="flex flex-col">
                     <span className="font-body-md text-body-md font-semibold text-on-surface">
                       {item.title}
-                    </span>
-                    <span className="font-body-sm text-body-sm text-on-surface-variant max-w-lg mt-0.5">
-                      {item.body}
                     </span>
                   </div>
                 </div>

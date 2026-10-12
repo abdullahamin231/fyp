@@ -79,10 +79,10 @@ function Specimen({
           <span>Base: main</span>
         </div>
         <div className="text-secondary truncate">
-          {citation ? citation.excerpt : "— no excerpt captured in packet —"}
+          {citation ? citation.excerpt : null}
         </div>
         <div className="text-muted text-micro-label truncate">
-          {citation ? citation.locator : "Anchored via deterministic linker"}
+          {citation ? citation.locator : null}
         </div>
         <div className="text-micro-label text-muted truncate">
           {finding.criteria.reduce((n, c) => n + c.evidence.length, 0)} citations in packet
@@ -107,7 +107,7 @@ function Specimen({
           <span className="text-tertiary font-mono-code text-micro-label">{pct}%</span>
         </div>
         <div className="text-micro-label text-on-surface-variant truncate font-body-sm">
-          {gap ?? "Acceptance criteria anchored to this ticket."}
+          {gap}
         </div>
       </div>
     );

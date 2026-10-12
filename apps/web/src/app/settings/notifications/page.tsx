@@ -4,8 +4,6 @@ import { NotificationPreferences } from "@/components/settings/notification-pref
 
 export const metadata: Metadata = {
   title: "Notification Preferences",
-  description:
-    "Role-aware delivery channels, batch digests and noise reduction thresholds for UNIFY findings.",
 };
 
 export default function NotificationPreferencesPage() {

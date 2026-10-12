@@ -68,8 +68,7 @@ function FindingNotFound({ id }: { id: string }) {
             No evidence packet for #{id}
           </h2>
           <p className="font-body-md text-body-md text-on-surface-variant mt-1 max-w-2xl">
-            This conflict id is not in the workspace index — it may have been purged, or the id is
-            mistyped. Findings resolve from the evidence packet API once it is connected.
+            This conflict id is not in the workspace index.
           </p>
           <Link
             href="/conflicts"

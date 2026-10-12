@@ -241,11 +241,6 @@ export function LinkDirectory({
               type="button"
               disabled={pendingSelected.length === 0}
               onClick={() => runBulk("confirm", pendingSelected)}
-              title={
-                pendingSelected.length === 0
-                  ? "Only inferred or unconfirmed links can be confirmed"
-                  : "Confirm every selected advisory link"
-              }
               className="px-3 py-1.5 rounded bg-secondary text-on-secondary disabled:opacity-40 disabled:cursor-not-allowed font-body-sm text-body-sm font-semibold hover:bg-secondary/90 transition flex items-center gap-1.5"
             >
               <Icon name="check" className="text-[15px]" />
@@ -255,11 +250,6 @@ export function LinkDirectory({
               type="button"
               disabled={pendingSelected.length === 0}
               onClick={() => runBulk("reject", pendingSelected)}
-              title={
-                pendingSelected.length === 0
-                  ? "Only inferred or unconfirmed links can be rejected"
-                  : "Reject every selected advisory link"
-              }
               className="px-3 py-1.5 rounded bg-surface-container-highest text-on-surface-variant hover:bg-error-container hover:text-error disabled:opacity-40 disabled:cursor-not-allowed font-body-sm text-body-sm transition flex items-center gap-1.5"
             >
               <Icon name="close" className="text-[15px]" />
@@ -269,11 +259,6 @@ export function LinkDirectory({
               type="button"
               disabled={decisiveSelected.length === 0}
               onClick={() => runBulk("unlink", decisiveSelected)}
-              title={
-                decisiveSelected.length === 0
-                  ? "Only established links can be unlinked"
-                  : "Unlink every selected established link"
-              }
               className="px-3 py-1.5 rounded bg-error-container text-on-error disabled:opacity-40 disabled:cursor-not-allowed font-body-sm text-body-sm transition flex items-center gap-1.5"
             >
               <Icon name="link_off" className="text-[15px]" />
@@ -320,9 +305,6 @@ export function LinkDirectory({
                   <Icon name="find_in_page" className="text-[32px] text-muted mb-2 block mx-auto" />
                   <p className="font-body-md text-body-md text-on-surface font-medium">
                     No relationships match the current filters
-                  </p>
-                  <p className="font-body-sm text-body-sm text-muted mt-1.5">
-                    Try relaxing the tool, relationship or eligibility constraints.
                   </p>
                 </td>
               </tr>
@@ -419,7 +401,6 @@ export function LinkDirectory({
                           <button
                             type="button"
                             onClick={() => onUnlink(link.id)}
-                            title="Decouple this relationship — writes an audit record"
                             className="px-2 py-1 rounded bg-surface-container-highest hover:bg-error-container hover:text-error text-on-surface-variant text-[12px] transition-colors font-mono-code"
                           >
                             Unlink
@@ -439,7 +420,6 @@ export function LinkDirectory({
                           <button
                             type="button"
                             onClick={() => onReject(link.id)}
-                            title="Reject this suggestion — writes an audit record"
                             className="px-2 py-1 rounded bg-surface-container-highest hover:bg-error-container hover:text-error text-on-surface-variant text-[12px] transition-colors font-mono-code flex items-center gap-1"
                           >
                             <Icon name="close" className="text-[13px]" />

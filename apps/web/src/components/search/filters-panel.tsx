@@ -337,7 +337,7 @@ export function FiltersPanel({
         <div className="space-y-1.5">
           {squads.length === 0 ? (
             <p className="font-body-sm text-body-sm text-muted">
-              No squads indexed yet — scope appears once the workspace API returns teams.
+              No squads indexed yet
             </p>
           ) : (
             squads.map((squad) => (

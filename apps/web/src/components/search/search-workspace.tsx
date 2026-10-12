@@ -276,7 +276,7 @@ export function SearchWorkspace() {
               setQuery(event.target.value);
               setPage(0);
             }}
-            placeholder="Search artifacts, conflicts, links, policies or type-syntax e.g. type:pr tool:figma..."
+            placeholder="Search"
             className="w-full pl-14 pr-32 py-3.5 bg-surface-container-lowest text-on-surface font-headline-sm text-headline-sm rounded-lg focus:outline-none focus:bg-surface-container shadow-inner transition-colors placeholder:text-muted placeholder:text-body-sm"
           />
           <div className="absolute right-3 flex items-center gap-stack-compact">

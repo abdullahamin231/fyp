@@ -91,7 +91,6 @@ export default function EvaluationPage() {
         <SectionHeading
           kicker="Verdict-level metrics"
           title="Evaluation Suite Results"
-          note="Criterion-level numbers for the four-way verdict task."
         />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-gutter">
           {evalMetrics.length === 0 ? (
@@ -99,9 +98,6 @@ export default function EvaluationPage() {
               <Icon name="analytics" className="text-[28px] text-muted mb-2" />
               <p className="font-body-md text-body-md font-semibold text-on-surface">
                 No evaluation results yet
-              </p>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                Run the suite to populate verdict-level metrics.
               </p>
             </div>
           ) : null}
