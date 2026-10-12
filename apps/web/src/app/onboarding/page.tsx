@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
 export default function OnboardingPage() {
   return (
     <AppShell>
-      <OnboardingWizard />
+      <Suspense fallback={null}>
+        <OnboardingWizard />
+      </Suspense>
     </AppShell>
   );
 }
