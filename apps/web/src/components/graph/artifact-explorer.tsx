@@ -16,8 +16,8 @@ import { graphStats, isDecisive } from "@/lib/domain/graph";
 import type { GraphNodeKind, LinkEligibility } from "@/lib/types";
 
 /** Canvas stage (px) — cards centre on their node coordinates. */
-const STAGE_W = 660;
-const STAGE_H = 580;
+const STAGE_W = 1100;
+const STAGE_H = 900;
 
 type LayoutMode = "hierarchical" | "force" | "radial";
 
@@ -136,14 +136,14 @@ function ArtifactNodeCard({
     return (
       <button
         onClick={() => onSelect(node.id)}
-        className={`absolute w-44 p-3 rounded-lg bg-surface-container border-2 text-left cursor-pointer transition-all duration-150 hover:scale-105 ${
+        className={`absolute w-36 p-1.5 rounded-md bg-surface-container border-2 text-left cursor-pointer transition-all duration-150 hover:scale-105 ${
           node.conflict
             ? "border-error ring-4 ring-error/30 shadow-2xl animate-pulse"
             : `${tone.border} shadow-xl`
         } ${selected ? "ring-4 ring-primary/30 border-primary" : ""}`}
         style={{ left: node.x, top: node.y, transform: "translate(-50%, -50%)" }}
       >
-        <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-center justify-between mb-1">
           <ToolPill tool={node.tool ?? "github"}>{node.kindLabel}</ToolPill>
           <span
             className={`w-2 h-2 rounded-full ${
@@ -151,7 +151,7 @@ function ArtifactNodeCard({
             }`}
           />
         </div>
-        <div className="font-body-sm font-semibold text-on-surface truncate">{node.label}</div>
+        <div className="font-body-sm text-xs font-semibold text-on-surface truncate">{node.label}</div>
         <div className="flex items-center justify-between mt-1 text-micro-label font-mono-code text-muted gap-2">
           <span className="truncate">{node.subtitle.split(" · ")[1] ?? node.subtitle}</span>
           <span

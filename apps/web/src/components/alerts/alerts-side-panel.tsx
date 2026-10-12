@@ -1,20 +1,40 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import type { FrequencySeries, Integration, ResolutionLeader } from "@/lib/domain/alerts";
+import type { Finding } from "@/lib/types";
 
 /**
- * DATA HOLE — replace with the alerts API.
- *
- * All three rails are empty until their endpoints exist: the sparkline shows
- * its placeholder baseline, and the resolution / integrations lists render
- * their empty copy.
+ * DATA HOLE — the resolution leaders and integration status need owner and
+ * integration-state data that is not stored yet, so those two lists render
+ * their empty copy. The frequency trend is computed from real findings.
  */
-const frequency: FrequencySeries = { points: [], delta: "", axis: [] };
 const resolutionLeaders: ResolutionLeader[] = [];
 const integrations: Integration[] = [];
 
+/** Findings raised per day over the last seven days, from their creation times. */
+function frequencyFrom(findings: Finding[]): FrequencySeries {
+  const day = 24 * 60 * 60 * 1000;
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  const days = Array.from({ length: 7 }, (_, index) => new Date(today.getTime() - (6 - index) * day));
+  const points = days.map((start) => {
+    const end = start.getTime() + day;
+    return findings.filter((f) => {
+      const at = new Date(f.createdAt).getTime();
+      return at >= start.getTime() && at < end;
+    }).length;
+  });
+  const thisWeek = points.reduce((sum, value) => sum + value, 0);
+  return {
+    points,
+    delta: thisWeek === 0 ? "" : `${thisWeek} this week`,
+    axis: days.map((d) => d.toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" })),
+  };
+}
+
 /** Right rail of the alerts screen: frequency trend, active resolution, integrations. */
-export function AlertsSidePanel() {
+export function AlertsSidePanel({ findings }: { findings: Finding[] }) {
+  const frequency = frequencyFrom(findings);
   const hasSeries = frequency.points.length > 1;
   const max = hasSeries ? Math.max(...frequency.points) : 1;
   const points = frequency.points.map((value, index) => ({

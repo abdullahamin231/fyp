@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/layout/app-shell";
 import { RelationshipExplorer } from "@/components/graph/relationship-explorer";
-import { emptyExplorerGraph, graphStats } from "@/lib/domain/graph";
+import { graphStats } from "@/lib/domain/graph";
+import { loadExplorerGraph } from "@/lib/data/graph";
 
 export const metadata: Metadata = {
   title: "Graph Explorer",
@@ -9,16 +10,10 @@ export const metadata: Metadata = {
     "Relationship graph across Jira, GitHub, Figma and tests — decisive links solid, inferred and unconfirmed links dashed.",
 };
 
-/**
- * DATA HOLE — replace with the graph API.
- * Empty until the endpoint exists; the canvas renders no nodes and the stat
- * chips read zero.
- */
-const relationshipGraph = emptyExplorerGraph;
+export default async function GraphExplorerPage() {
+  const relationshipGraph = await loadExplorerGraph({ width: 1150, height: 620 });
+  const stats = graphStats(relationshipGraph);
 
-const stats = graphStats(relationshipGraph);
-
-export default function GraphExplorerPage() {
   return (
     <AppShell
       action={

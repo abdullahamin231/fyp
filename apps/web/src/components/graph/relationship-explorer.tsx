@@ -197,7 +197,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
               >
                 <div
                   className={[
-                    "w-16 h-16 rounded-2xl bg-surface-container border-2 flex items-center justify-center transition-all",
+                    "w-10 h-10 rounded-xl bg-surface-container border-2 flex items-center justify-center transition-all",
                     tone.border,
                     tone.shadow,
                     node.conflict ? "animate-pulse" : "",
@@ -207,9 +207,9 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
                     isLinkSource ? "ring-4 ring-secondary/40" : "",
                   ].join(" ")}
                 >
-                  <Icon name={kindIcon[node.kind]} className={`${tone.text} text-3xl`} />
+                  <Icon name={kindIcon[node.kind]} className={`${tone.text} text-xl`} />
                 </div>
-                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-48 text-center px-2 py-1 rounded-md bg-surface-container/85 backdrop-blur-sm">
+                <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 w-36 text-center px-1.5 py-0.5 rounded-md bg-surface-container/85 backdrop-blur-sm">
                   <p className="text-label-caps text-on-surface truncate">{node.label}</p>
                   <p
                     className={`text-micro-label uppercase font-bold truncate ${

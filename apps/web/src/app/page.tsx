@@ -3,23 +3,15 @@ import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { VERDICTS, type Finding, type Severity, type Verdict } from "@/lib/types";
+import { listFindings } from "@/lib/data/queries";
+import { loadExplorerGraph } from "@/lib/data/graph";
+import { kindIcon, kindTone, toneClasses } from "@/components/graph/graph-styles";
 
 export const metadata: Metadata = {
   title: "Dashboard",
   description:
     "Unified dashboard — decisive findings, verdict distribution and the cross-platform evidence graph.",
 };
-
-/* ------------------------------------------------------------------ *
- * DATA HOLE — replace with the findings API.
- *
- * Every widget on this screen derives from the `findings` list declared
- * below, typed to the shapes the API will return. It is empty until that
- * endpoint exists, so the critical-findings list and verdict bars render
- * at zero. No screen-local filler copy or invented widget data.
- * ------------------------------------------------------------------ */
-
-const findings: Finding[] = [];
 
 const verdictMeta: Record<
   Verdict,
@@ -107,7 +99,12 @@ function GraphNode({
   );
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const [findings, graph] = await Promise.all([
+    listFindings(),
+    loadExplorerGraph({ width: 100, height: 100, maxGap: 12 }),
+  ]);
+
   const criteria = findings.flatMap((finding) => finding.criteria);
   const verdictCounts = VERDICTS.map((verdict) => ({
     verdict,
@@ -116,24 +113,28 @@ export default function DashboardPage() {
   const reviewed = criteria.filter((criterion) => criterion.reviewRequired).length;
   const critical = findings.filter((finding) => finding.severity === "critical").slice(0, 3);
 
-  /**
-   * DATA HOLE — replace with the graph API.
-   * Empty until the endpoint exists: the canvas draws no nodes or edges.
-   */
-  const nodes: {
-    x: number;
-    y: number;
-    icon: string;
-    label: string;
-    tone: string;
-    muted?: boolean;
-  }[] = [];
+  const nodes = graph.nodes.map((node) => ({
+    x: node.x,
+    y: node.y,
+    icon: kindIcon[node.kind],
+    label: node.label,
+    tone: toneClasses[kindTone[node.kind]].border,
+    muted: node.kind === "finding",
+  }));
 
-  const edges: {
-    from: [number, number];
-    to: [number, number];
-    stroke: string;
-  }[] = [];
+  const position = new Map(graph.nodes.map((node) => [node.id, node]));
+  const edges = graph.edges.flatMap((edge) => {
+    const from = position.get(edge.from);
+    const to = position.get(edge.to);
+    if (!from || !to) return [];
+    return [
+      {
+        from: [from.x, from.y] as [number, number],
+        to: [to.x, to.y] as [number, number],
+        stroke: edge.eligible ? "#34d399" : "#64748b",
+      },
+    ];
+  });
 
   return (
     <AppShell contentClassName="w-full space-y-gutter">

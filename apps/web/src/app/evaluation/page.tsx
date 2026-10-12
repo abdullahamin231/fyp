@@ -3,13 +3,8 @@ import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { EvalActions } from "@/components/evaluation/eval-actions";
+import { loadEvalMetrics } from "@/lib/data/evaluation";
 import type { EvalMetric } from "@/lib/types";
-
-/**
- * DATA HOLE — replace with the evaluation API.
- * Empty until the endpoint exists; the metric grid renders nothing meanwhile.
- */
-const evalMetrics: EvalMetric[] = [];
 
 export const metadata: Metadata = {
   title: "Evaluation",
@@ -61,7 +56,9 @@ function SectionHeading({
 
 /* ------------------------------------------------------------------- page */
 
-export default function EvaluationPage() {
+export default async function EvaluationPage() {
+  const evalMetrics = await loadEvalMetrics();
+
   return (
     <AppShell>
       {/* Restricted banner + actions */}

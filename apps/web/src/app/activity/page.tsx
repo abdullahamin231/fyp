@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/layout/app-shell";
 import { ActivityFeed } from "@/components/activity/activity-feed";
-import type { ActivityEvent } from "@/lib/types";
-
-/**
- * DATA HOLE — replace with the activity API.
- * Empty until the endpoint exists; the feed renders its empty state.
- */
-const activity: ActivityEvent[] = [];
+import { listActivity } from "@/lib/data/activity";
 
 export const metadata: Metadata = {
   title: "Activity Feed",
@@ -15,7 +9,9 @@ export const metadata: Metadata = {
     "Everything UNIFY ingested, linked, verified and delivered — with the actor and provenance for every event.",
 };
 
-export default function ActivityFeedPage() {
+export default async function ActivityFeedPage() {
+  const activity = await listActivity();
+
   return (
     <AppShell>
       <ActivityFeed events={activity} />

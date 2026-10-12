@@ -23,6 +23,7 @@ export const intelligenceNav: NavItem[] = [
   { label: "Policy Configuration", href: "/policies", icon: "rule", path: "policy-configuration" },
   { label: "Policy Simulation", href: "/policies/simulation", icon: "labs", path: "policy-simulation", badge: { text: "TEST", tone: "tertiary" } },
   { label: "Graph Explorer", href: "/graph", icon: "account_tree", path: "graph-explorer" },
+  { label: "Artifact Graph", href: "/graph/artifacts", icon: "hub", path: "artifact-graph" },
   { label: "Link Management", href: "/links", icon: "link", path: "link-management" },
   { label: "Audit Trail", href: "/audit", icon: "history", path: "audit-trail" },
 ];
