@@ -103,14 +103,12 @@ export function OnboardingWizard() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const provider = params.get("integration");
-    if (provider === "figma" || provider === "github" || provider === "jira") {
+    if ((provider === "figma" || provider === "github" || provider === "jira") && params.get("connected") === "1") {
       setAuth((prev) => ({ ...prev, [provider]: "connected" }));
       setStep(provider === "figma" ? 2 : provider === "github" ? 3 : 4);
-      if (params.get("connected") === "1") {
-        toast(`${provider[0].toUpperCase()}${provider.slice(1)} connected — read-only scopes granted`, {
-          icon: "cloud_done",
-        });
-      }
+      toast(`${provider[0].toUpperCase()}${provider.slice(1)} connected — read-only scopes granted`, {
+        icon: "cloud_done",
+      });
       const cleanUrl = new URL(window.location.href);
       cleanUrl.search = "";
       window.history.replaceState({}, "", cleanUrl);
