@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 import {
@@ -23,6 +24,12 @@ type StepDef = {
   label: string;
   value: () => string;
 };
+
+type IntegrationProvider = Exclude<ConnectKey, "workspace">;
+
+function isIntegrationProvider(value: string | null): value is IntegrationProvider {
+  return value === "figma" || value === "github" || value === "jira";
+}
 
 /**
  * DATA HOLE — replace with each connector's live account/org handle from its
@@ -70,13 +77,18 @@ function stepValue(
  */
 export function OnboardingWizard() {
   const toast = useToast();
-  const [step, setStep] = useState(1);
-  const [maxReached, setMaxReached] = useState(1);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const integration = searchParams.get("integration");
+  const connectedProvider = isIntegrationProvider(integration) ? integration : null;
+  const initialStep = connectedProvider === "figma" ? 2 : connectedProvider === "github" ? 3 : connectedProvider === "jira" ? 4 : 1;
+  const [step, setStep] = useState(initialStep);
+  const [maxReached, setMaxReached] = useState(initialStep);
   const [auth, setAuth] = useState<Record<ConnectKey, AuthState>>({
     workspace: "idle",
-    figma: "idle",
-    github: "idle",
-    jira: "idle",
+    figma: connectedProvider === "figma" ? "connected" : "idle",
+    github: connectedProvider === "github" ? "connected" : "idle",
+    jira: connectedProvider === "jira" ? "connected" : "idle",
   });
   /**
    * DATA HOLE — replace with the workspace API's created-workspace record
@@ -101,23 +113,17 @@ export function OnboardingWizard() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const provider = params.get("integration");
-    if (provider === "figma" || provider === "github" || provider === "jira") {
-      setAuth((prev) => ({ ...prev, [provider]: "connected" }));
-      setStep(provider === "figma" ? 2 : provider === "github" ? 3 : 4);
-      if (params.get("connected") === "1") {
-        toast(`${provider[0].toUpperCase()}${provider.slice(1)} connected — read-only scopes granted`, {
+    if (connectedProvider) {
+      if (searchParams.get("connected") === "1") {
+        toast(`${connectedProvider[0].toUpperCase()}${connectedProvider.slice(1)} connected — read-only scopes granted`, {
           icon: "cloud_done",
         });
       }
-      const cleanUrl = new URL(window.location.href);
-      cleanUrl.search = "";
-      window.history.replaceState({}, "", cleanUrl);
-    } else if (params.get("error")) {
-      toast(`Integration authorization failed: ${params.get("error")}`, { icon: "error", tone: "neutral" });
+      router.replace(`${window.location.pathname}${window.location.hash}`);
+    } else if (searchParams.get("error")) {
+      toast(`Integration authorization failed: ${searchParams.get("error")}`, { icon: "error", tone: "neutral" });
     }
-  }, [toast]);
+  }, [connectedProvider, router, searchParams, toast]);
 
   const current = steps[step - 1];
   const pct = Math.round((step / steps.length) * 100);
@@ -125,7 +131,7 @@ export function OnboardingWizard() {
   function authorize(key: ConnectKey) {
     if (auth[key] !== "idle") return;
     if (key !== "workspace") {
-      window.location.assign(
+      router.push(
         `/api/integrations/${key}/authorize?workspace=${encodeURIComponent(workspace.slug)}`,
       );
       return;
@@ -134,10 +140,6 @@ export function OnboardingWizard() {
     timers.current.push(
       setTimeout(() => {
         setAuth((prev) => ({ ...prev, [key]: "connected" }));
-        // `key` is narrowed to "workspace" here: every other value returned
-        // above via window.location.assign. The previous ternary's provider
-        // branch was therefore unreachable, and TypeScript flagged it as
-        // `never` (which is what broke `npm run build`).
         toast(`Workspace ${workspace.slug || "created"} created (200 OK)`, {
           icon: "cloud_done",
         });
