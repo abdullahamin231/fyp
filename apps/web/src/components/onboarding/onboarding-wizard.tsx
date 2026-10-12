@@ -51,8 +51,8 @@ function stepValue(
   state: { auth: Record<ConnectKey, AuthState>; run: "idle" | "running" | "done"; slug: string },
 ): string {
   if (definition.key === "workspace") return state.slug || "—";
-  if (definition.key === "jira") {
-    return state.auth.jira === "connected" ? "Connected" : definition.value();
+  if (definition.key === "figma" || definition.key === "github" || definition.key === "jira") {
+    return state.auth[definition.key] === "connected" ? "Connected" : definition.value();
   }
   if (definition.key === "policy") {
     return state.run === "done"
