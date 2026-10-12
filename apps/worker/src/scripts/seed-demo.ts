@@ -108,13 +108,13 @@ async function ensureNode(workspaceId: string, node: FixtureNode): Promise<strin
 async function ensureEdges(ids: Map<string, string>): Promise<number> {
   const { data, error } = await client
     .from("edges")
-    .select("from_id, to_id, type")
+    .select("id, from_id, to_id, type")
     .in("from_id", [...ids.values()])
     .in("to_id", [...ids.values()]);
   if (error) throw new Error(error.message);
-  const existing = new Set(
-    ((data ?? []) as { from_id: string; to_id: string; type: string }[]).map(
-      (edge) => `${edge.from_id}|${edge.to_id}|${edge.type}`,
+  const existing = new Map(
+    ((data ?? []) as { id: string; from_id: string; to_id: string; type: string }[]).map(
+      (edge) => [`${edge.from_id}|${edge.to_id}|${edge.type}`, edge.id],
     ),
   );
 
@@ -127,7 +127,24 @@ async function ensureEdges(ids: Map<string, string>): Promise<number> {
       console.warn(`seed: edge ${edge.from} → ${edge.to} skipped (unknown endpoint)`);
       continue;
     }
-    if (existing.has(`${fromId}|${toId}|${edge.type}`)) continue;
+    const existingId = existing.get(`${fromId}|${toId}|${edge.type}`);
+    if (existingId) {
+      // Re-seeding brings the stored edge back to the bundle's state, so an
+      // edited bundle (confidence, source class, link state) takes effect.
+      const { error: updateError } = await client
+        .from("edges")
+        .update({
+          source_class: edge.sourceClass,
+          confidence: edge.confidence,
+          resolver: edge.resolver,
+          link_state: edge.linkState,
+          resolved_at: null,
+          resolution_reason: null,
+        })
+        .eq("id", existingId);
+      if (updateError) throw new Error(updateError.message);
+      continue;
+    }
     const { error: insertError } = await client.from("edges").insert({
       id: randomUUID(),
       from_id: fromId,

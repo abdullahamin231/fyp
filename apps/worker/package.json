@@ -15,6 +15,7 @@
     "dev": "tsx src/index.ts",
     "once": "tsx src/scripts/run-once.ts",
     "seed": "tsx src/scripts/seed-demo.ts",
+    "scenarios": "tsx src/scripts/scenarios.ts",
     "demo:linking": "tsx src/scripts/linking-demo.ts",
     "analyse": "tsx src/scripts/analyse.ts",
     "analyse:evaluate": "tsx src/scripts/evaluate-analyser.ts"
