@@ -64,6 +64,24 @@ analyser: it writes the same node payloads an analyser publishes
 
 ## Model providers
 
+## Demo scenarios
+
+`fixtures/demo_case.json` is the baseline; `fixtures/scenarios/` holds one
+changed input each. `npm run scenarios` runs all of them through the verifier
+offline and prints the verdict, gate outcome and whether a finding is raised.
+
+| Scenario | Verdict | Finding |
+| --- | --- | --- |
+| DEMO-01 baseline | SUPPORTED | no |
+| DEMO-02 failing test | CONTRADICTED | yes |
+| DEMO-03 no test | PARTIAL (critic reviewed) | yes |
+| DEMO-04 stale source | INSUFFICIENT_EVIDENCE (downgraded) | yes |
+| DEMO-05 unconfirmed link (`model_candidate`) | INSUFFICIENT_EVIDENCE (downgraded) | yes |
+
+Model-side faults (fabricated citation, model down) are offline-only, in the
+same script. The hosted seed for each case is
+`npm run seed -- fixtures/scenarios/<file>.json`, then `npm run once`.
+
 `MODEL_PROVIDER=stub` (default) — deterministic, offline, no network. It reads
 the rendered packet and answers from the evidence itself: a passing test ⇒
 `SUPPORTED`, a failing one ⇒ `CONTRADICTED`, code without tests ⇒ `PARTIAL`,
