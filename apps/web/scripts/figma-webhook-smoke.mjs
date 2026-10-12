@@ -44,10 +44,13 @@ const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABA
   auth: { autoRefreshToken: false, persistSession: false },
 });
 const secret = process.env.FIGMA_WEBHOOK_SECRET;
-const base = (process.argv[3] ?? "http://localhost:3000").replace(/\/$/, "");
+// Arguments in any order: a workspace UUID and/or a base URL (default http://localhost:3000).
+const args = process.argv.slice(2);
+const base = (args.find((x) => /^https?:\/\//.test(x)) ?? "http://localhost:3000").replace(/\/$/, "");
+const wsArg = args.find((x) => /^[0-9a-f-]{36}$/i.test(x));
 
 // 1. Workspace and a workspace owner/admin (integration_connections.created_by must be a real user)
-let workspaceId = process.argv[2];
+let workspaceId = wsArg;
 let q = db.from("workspaces").select("id, name, slug, created_by, created_at").order("created_at", { ascending: false });
 if (workspaceId) q = q.eq("id", workspaceId);
 const wsList = await q;
@@ -59,7 +62,7 @@ for (const w of wsList.data) {
   const uid = w.created_by ?? m.data?.user_id ?? null;
   if (uid) { ws = w; ownerId = uid; break; }
 }
-if (!ws && !process.argv[2]) {
+if (!ws && !wsArg) {
   // The onboarding screen does not create workspaces yet, so make a test one
   // owned by the most recently signed-up user (a trigger adds the owner membership).
   const users = await db.auth.admin.listUsers({ page: 1, perPage: 50 });
