@@ -14,6 +14,8 @@ import {
   type NavItem,
   type NavBadge,
 } from "@/lib/nav";
+import { NotificationsBell } from "@/components/layout/notifications-bell";
+import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher";
 
 const STORAGE_KEY = "unify:sidebar";
 /** Fired when this tab changes the rail so `useSyncExternalStore` re-reads it. */
@@ -291,16 +293,11 @@ function TopBar({
         </kbd>
       </div>
 
+      <WorkspaceSwitcher />
+
       <div className="flex items-center gap-2 ml-auto">
         {action}
-        <button
-          aria-label="Notifications"
-          className="p-1.5 rounded-md hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors"
-        >
-          <span className="material-symbols-outlined text-[19px] leading-none">
-            notifications
-          </span>
-        </button>
+        <NotificationsBell />
         <Link
           href="/profile"
           aria-label="Profile"
