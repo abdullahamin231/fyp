@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { providerAppStatus } from "@/lib/integrations/server";
 import type { IntegrationProvider } from "@/lib/integrations/types";
 import type { WorkspaceRole } from "@/lib/types";
 
@@ -15,6 +16,8 @@ export const PROVIDERS: IntegrationProvider[] = ["github", "jira", "figma"];
 
 export type ProviderStatus = {
   provider: IntegrationProvider;
+  /** An OAuth app (client ID + secret) is registered for this provider in this workspace. */
+  appRegistered: boolean;
   connected: boolean;
   accountName: string | null;
   scopes: string[];
@@ -49,7 +52,7 @@ export async function getWorkspaceIntegrations(slug: string): Promise<WorkspaceI
   if (member.error) throw new Error(`workspace_members: ${member.error.message}`);
   if (!member.data) return null;
 
-  const [connections, deliveries] = await Promise.all([
+  const [connections, deliveries, apps] = await Promise.all([
     client
       .from("integration_connections")
       .select("provider, external_account_name, scopes, updated_at")
@@ -60,6 +63,8 @@ export async function getWorkspaceIntegrations(slug: string): Promise<WorkspaceI
       .eq("workspace_id", ws.data.id)
       .order("received_at", { ascending: false })
       .limit(500),
+    // Server-side (service role) read of client IDs only; no secrets are selected.
+    providerAppStatus(ws.data.id),
   ]);
   if (connections.error) throw new Error(`integration_connections: ${connections.error.message}`);
   if (deliveries.error) throw new Error(`integration_deliveries: ${deliveries.error.message}`);
@@ -76,6 +81,7 @@ export async function getWorkspaceIntegrations(slug: string): Promise<WorkspaceI
       const mine = dels.filter((d) => d.provider === provider);
       return {
         provider,
+        appRegistered: apps.some((a: { provider: string }) => a.provider === provider),
         connected: !!conn,
         accountName: conn?.external_account_name ?? null,
         scopes: conn?.scopes ?? [],
