@@ -94,6 +94,13 @@ export default async function WorkspacesPage() {
                   <span className="font-mono-code text-micro-label text-muted">
                     {new Date(workspace.createdAt).toLocaleDateString()}
                   </span>
+                  <Link
+                    href={`/workspaces/${workspace.slug}/integrations`}
+                    className="flex items-center gap-1 px-2 py-1 rounded bg-surface-container-highest hover:bg-surface-container text-on-surface font-body-sm text-micro-label transition-colors"
+                  >
+                    <Icon name="link" className="text-[14px]" />
+                    Integrations
+                  </Link>
                 </div>
               </div>
             ))}
