@@ -10,27 +10,35 @@ describe("rule metadata", () => {
 
   it("derives guards from the rule's guard descriptions", () => {
     for (const rule of committedRules) {
-      expect(RULE_META[rule.id].guards).toEqual(rule.guards.map((guard) => guard.description));
+      const meta = RULE_META[rule.id];
+      expect(meta, `rule ${rule.id} should have an entry`).toBeDefined();
+      expect(meta?.guards).toEqual(rule.guards.map((guard) => guard.description));
     }
   });
 
   it("carries the deployed grace period, not a re-typed copy", () => {
     for (const rule of committedRules) {
-      expect(RULE_META[rule.id].gracePeriodHours).toBe(rule.gracePeriodHours);
+      const meta = RULE_META[rule.id];
+      expect(meta, `rule ${rule.id} should have an entry`).toBeDefined();
+      expect(meta?.gracePeriodHours).toBe(rule.gracePeriodHours);
     }
   });
 
   it("exposes a non-empty title and description for every rule", () => {
     for (const rule of committedRules) {
-      expect(RULE_META[rule.id].title.length).toBeGreaterThan(0);
-      expect(RULE_META[rule.id].description.length).toBeGreaterThan(0);
+      const meta = RULE_META[rule.id];
+      expect(meta, `rule ${rule.id} should have an entry`).toBeDefined();
+      expect(meta?.title.length).toBeGreaterThan(0);
+      expect(meta?.description.length).toBeGreaterThan(0);
     }
   });
 
   it("names the notify template and finding kind the rule produces", () => {
     for (const rule of committedRules) {
-      expect(RULE_META[rule.id].notifyTemplate).toBe(rule.notify.template);
-      expect(RULE_META[rule.id].produces).toBe(rule.produces);
+      const meta = RULE_META[rule.id];
+      expect(meta, `rule ${rule.id} should have an entry`).toBeDefined();
+      expect(meta?.notifyTemplate).toBe(rule.notify.template);
+      expect(meta?.produces).toBe(rule.produces);
     }
   });
 });
