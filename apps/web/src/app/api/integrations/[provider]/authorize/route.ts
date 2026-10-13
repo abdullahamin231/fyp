@@ -45,6 +45,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
     if (provider === "jira") url.searchParams.set("audience", "api.atlassian.com");
     return NextResponse.redirect(url);
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Authorization failed" }, { status: 400 });
+    const message = error instanceof Error ? error.message : "Authorization failed";
+    // Send the user back to the page they clicked Connect on, with the reason.
+    if (/^[a-z0-9]+(-[a-z0-9]+)*$/.test(workspace)) {
+      return NextResponse.redirect(new URL(`/workspaces/${workspace}/integrations?integration=${provider}&error=${encodeURIComponent(message)}`, request.url));
+    }
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }
