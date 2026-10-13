@@ -5,7 +5,7 @@
  * needed. The webhook route reads the passcode from integration_connections
  * (normally written by the OAuth callback); if the workspace has no Figma
  * connection yet, this script writes one marked "smoke test (no OAuth)" with
- * the encrypted FIGMA_WEBHOOK_SECRET and a placeholder instead of a token.
+ * a generated webhook secret and a placeholder instead of a token.
  *
  *   terminal 1:  npm run dev
  *   terminal 2:  node scripts/figma-webhook-smoke.mjs [workspace-uuid] [base-url]
@@ -19,7 +19,7 @@ for (const line of readFileSync(new URL("../.env.local", import.meta.url), "utf8
   if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
 }
 process.env.SUPABASE_SERVICE_ROLE_KEY ??= process.env.SUPABASE_SECRET_KEY;
-const need = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "INTEGRATION_ENCRYPTION_KEY", "FIGMA_WEBHOOK_SECRET"];
+const need = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "INTEGRATION_ENCRYPTION_KEY"];
 const missing = need.filter((k) => !process.env[k]);
 if (missing.length) { console.error("Missing in apps/web/.env.local:", missing.join(", ")); process.exitCode = 1; throw new Error("__stop__"); }
 
@@ -43,7 +43,6 @@ process.on("uncaughtException", (e) => { if (e?.message !== "__stop__") { consol
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
-const secret = process.env.FIGMA_WEBHOOK_SECRET;
 // Arguments in any order: a workspace UUID and/or a base URL (default http://localhost:3000).
 const args = process.argv.slice(2);
 const base = (args.find((x) => /^https?:\/\//.test(x)) ?? "http://localhost:3000").replace(/\/$/, "");
@@ -82,7 +81,9 @@ console.log(`Workspace: ${ws.name} (slug ${ws.slug}, id ${workspaceId})`);
 const conn = await db.from("integration_connections").select("webhook_secret_ciphertext, external_account_name")
   .eq("workspace_id", workspaceId).eq("provider", "figma").maybeSingle();
 if (conn.error) die("Could not read integration_connections (is migration 00010_integrations applied?):" + " " + conn.error.message);
+let secret;
 if (!conn.data) {
+  secret = randomBytes(32).toString("hex");
   const { error } = await db.from("integration_connections").insert({
     workspace_id: workspaceId, provider: "figma",
     access_token_ciphertext: encrypt("smoke-test-placeholder-not-a-token"),
@@ -91,9 +92,15 @@ if (!conn.data) {
   });
   if (error) die("Could not create the Figma connection:" + " " + error.message);
   console.log("Figma connection: created for the smoke test (no OAuth).");
-} else if (!conn.data.webhook_secret_ciphertext || (() => { try { return decrypt(conn.data.webhook_secret_ciphertext); } catch { return null; } })() !== secret) {
-  die(`A Figma connection exists ("${conn.data.external_account_name ?? "?"}") but its passcode is not FIGMA_WEBHOOK_SECRET (or it was encrypted with a different INTEGRATION_ENCRYPTION_KEY). Reconnect Figma or fix the secret; nothing was changed.`);
-} else console.log("Figma connection: exists, passcode matches.");
+} else {
+  try {
+    secret = conn.data.webhook_secret_ciphertext ? decrypt(conn.data.webhook_secret_ciphertext) : null;
+  } catch {
+    secret = null;
+  }
+  if (!secret) die(`A Figma connection exists ("${conn.data.external_account_name ?? "?"}") but its webhook secret could not be decrypted. Reconnect Figma or fix the encryption key; nothing was changed.`);
+  console.log("Figma connection: exists, passcode loaded from the database.");
+}
 
 // 3. Requests
 const run = Date.now().toString(36);
