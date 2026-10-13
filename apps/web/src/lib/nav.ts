@@ -34,7 +34,7 @@ export const operationsNav: NavItem[] = [
   { label: "Conflict Alerts", href: "/alerts", icon: "warning", path: "conflict-alerts" },
   { label: "Search & Filters", href: "/search", icon: "search", path: "search" },
   { label: "Evaluation", href: "/evaluation", icon: "monitoring", path: "evaluation" },
-  { label: "Onboarding", href: "/onboarding", icon: "rocket_launch", path: "onboarding" },
+  { label: "Workspaces", href: "/workspaces", icon: "groups", path: "workspaces" },
 ];
 
 export const settingsNav: NavItem[] = [

@@ -25,6 +25,7 @@ the remote project (applied via the Supabase MCP `apply_migration`). Order:
 | `00010_edge_dedupe.sql` | One current edge per `(from_id, to_id, type)` — partial unique index scoped to `link_state <> 'revoked'` |
 | `00011_finding_state_superseded.sql` | Adds `superseded` to the `finding_state` enum |
 | `00012_findings_superseded_by.sql` | `findings.superseded_by_id` self-FK + the `state = superseded ⟺ superseded_by_id set` CHECK |
+| `00018_workspace_invitations.sql` | `workspace_invitations` table + `invite_to_workspace` / `accept_workspace_invitation` / `decline_workspace_invitation` RPCs |
 
 Schema highlights:
 
@@ -73,7 +74,11 @@ per identity, so the index can be created on a populated table.
 `snapshot_workspace` are SECURITY DEFINER and callable by `authenticated` —
 they resolve workspace scoping across FK chains so RLS policies can be written
 as simple predicates. The Supabase advisor flags this class (WARN, lint 0029);
-it is **by design**, not an oversight. `create_workspace` is in the same class.
+it is **by design**, not an oversight. `create_workspace`,
+`current_user_email` and the three invitation RPCs (`invite_to_workspace`,
+`accept_workspace_invitation`, `decline_workspace_invitation`) are in the same
+class — the invitation RPCs additionally enforce their own role/email checks
+before writing.
 
 ## Auth
 
@@ -136,6 +141,30 @@ are unaffected, which is why:
 
 The strict `workspaces_insert_authenticated` policy stays as defense-in-depth
 for the plain-insert path; the RPC is the supported client API.
+
+## Inviting members — use the RPCs
+
+Workspace owners/admins invite by email; the invitee sees the pending invite
+in-app (top-bar bell) and joins on accept. No email is sent — matching is by
+address at read time, so an invite surfaces even if the person signs up later.
+
+```ts
+await supabase.rpc("invite_to_workspace", {
+  p_workspace_id: workspaceId,
+  p_email: "teammate@example.com",
+  p_role: "member", // or "admin"; "owner" is rejected
+});
+
+// Invitee side:
+await supabase.rpc("accept_workspace_invitation", { p_invitation_id: id });
+await supabase.rpc("decline_workspace_invitation", { p_invitation_id: id });
+```
+
+Accepting inserts the `workspace_members` row and marks the invite answered in
+one definer call; an invitee has no direct UPDATE on `workspace_invitations`
+(there is deliberately no update policy). Revoking a pending invite is a plain
+DELETE by an owner/admin. The permissive `workspaces_select_invited` policy
+lets an invitee read the invited workspace's name/slug so the UI can render it.
 
 ## Regenerating TypeScript types
 
