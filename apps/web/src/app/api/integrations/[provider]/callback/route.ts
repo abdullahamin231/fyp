@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createHmac } from "node:crypto";
-import { saveConnection } from "@/lib/integrations/server";
+import { providerAppCredentials, saveConnection, type ProviderAppCredentials } from "@/lib/integrations/server";
 import { isProvider, type IntegrationProvider } from "@/lib/integrations/types";
 
 function verifyState(state: string, expectedProvider: IntegrationProvider) {
@@ -16,11 +16,14 @@ function verifyState(state: string, expectedProvider: IntegrationProvider) {
   return value;
 }
 
-async function exchange(provider: IntegrationProvider, code: string, redirectUri: string) {
+async function exchange(
+  provider: IntegrationProvider,
+  code: string,
+  redirectUri: string,
+  credentials: ProviderAppCredentials,
+) {
   type TokenConfig = {
     tokenUrl: string;
-    clientId?: string;
-    clientSecret?: string;
     /** Provider-specific extra form fields. Values are always strings because
      *  the whole object is spread into a URLSearchParams below. */
     body: Record<string, string>;
@@ -28,36 +31,29 @@ async function exchange(provider: IntegrationProvider, code: string, redirectUri
   const allProviders: Record<IntegrationProvider, TokenConfig> = {
     github: {
       tokenUrl: "https://github.com/login/oauth/access_token",
-      clientId: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
       body: { redirect_uri: redirectUri },
     },
     jira: {
       tokenUrl: "https://auth.atlassian.com/oauth/token",
-      clientId: process.env.JIRA_CLIENT_ID,
-      clientSecret: process.env.JIRA_CLIENT_SECRET,
       body: { audience: "api.atlassian.com", grant_type: "authorization_code", redirect_uri: redirectUri },
     },
     figma: {
       tokenUrl: "https://api.figma.com/v1/oauth/token",
-      clientId: process.env.FIGMA_CLIENT_ID,
-      clientSecret: process.env.FIGMA_CLIENT_SECRET,
       // Figma requires the same redirect_uri as the authorize step.
       body: { redirect_uri: redirectUri },
     },
   };
   const configs = allProviders[provider];
-  if (!configs.clientId || !configs.clientSecret) throw new Error(`${provider.toUpperCase()} OAuth credentials are not configured`);
   // Figma takes the client credentials as HTTP Basic auth, not in the form body.
   const basicAuth = provider === "figma";
   const form = new URLSearchParams({
     grant_type: "authorization_code",
-    ...(basicAuth ? {} : { client_id: configs.clientId, client_secret: configs.clientSecret }),
+    ...(basicAuth ? {} : { client_id: credentials.clientId, client_secret: credentials.clientSecret }),
     code,
     ...configs.body,
   });
   const headers: Record<string, string> = { "content-type": "application/x-www-form-urlencoded", accept: "application/json" };
-  if (basicAuth) headers.authorization = `Basic ${Buffer.from(`${configs.clientId}:${configs.clientSecret}`).toString("base64")}`;
+  if (basicAuth) headers.authorization = `Basic ${Buffer.from(`${credentials.clientId}:${credentials.clientSecret}`).toString("base64")}`;
   const response = await fetch(configs.tokenUrl, {
     method: "POST",
     headers,
@@ -90,18 +86,20 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
     if (oauthError) throw new Error(`Provider denied access: ${oauthError}`);
     if (!code || !state) throw new Error("OAuth callback is missing code or state");
     const stateValue = verifyState(state, provider);
+    const workspaceId = stateValue.workspaceId ?? stateValue.workspace;
+    const credentials = await providerAppCredentials(workspaceId, provider);
     const redirectUri = `${request.nextUrl.origin}/api/integrations/${provider}/callback`;
-    const token = await exchange(provider, code, redirectUri);
+    const token = await exchange(provider, code, redirectUri, credentials);
     if (!token.access_token) throw new Error("Provider returned no access token");
     await saveConnection({
-      workspaceId: stateValue.workspaceId ?? stateValue.workspace,
+      workspaceId,
       provider,
       userId: stateValue.userId,
       accessToken: token.access_token,
       refreshToken: token.refresh_token,
       expiresAt: token.expires_in ? new Date(Date.now() + token.expires_in * 1000).toISOString() : undefined,
       scopes: token.scope?.split(/[ ,]+/).filter(Boolean) ?? [],
-      webhookSecret: process.env[`${provider.toUpperCase()}_WEBHOOK_SECRET`],
+      webhookSecret: credentials.webhookSecret,
     });
     return NextResponse.redirect(new URL(`${returnPath(state)}?integration=${provider}&connected=1`, request.url));
   } catch (error) {
