@@ -3,11 +3,10 @@ import { gate, type GateContext } from "@unify/contracts";
 import { fixtureBundleSources } from "../src/fixture/bundle.js";
 import { StubModelClient, type StubOptions } from "../src/model/stub.js";
 import type { ModelClient } from "../src/model/types.js";
-import { loadFixtureBundle } from "../src/packet/providers/fixture.js";
 import { gateInputsFrom } from "../src/verifier/gateInputs.js";
 import { runVerifierLoop } from "../src/verifier/loop.js";
 import { findingAnnotation, shouldCreateFinding } from "../src/verifier/persist.js";
-import { CRITERION_ID, DEMO_BUNDLE_PATH, demoPacket, fixedRun, scriptedModel } from "./helpers.js";
+import { caseBundle, CRITERION_ID, demoPacket, fixedRun, scriptedModel } from "./helpers.js";
 
 /**
  * End-to-end verification: stub model → bounded loop → gate → verdict.
@@ -20,7 +19,7 @@ import { CRITERION_ID, DEMO_BUNDLE_PATH, demoPacket, fixedRun, scriptedModel } f
  */
 const base = { criterionId: CRITERION_ID, timeoutMs: 5000, weakCitationThreshold: 1 };
 const policy = { upper: 0.85, lower: 0.55 };
-const bundle = await loadFixtureBundle(DEMO_BUNDLE_PATH);
+const bundle = caseBundle;
 
 async function verify(opts: {
   model?: ModelClient;
