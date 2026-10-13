@@ -177,6 +177,38 @@ export interface Policy {
   firedLast7d: number;
 }
 
+/* ------------------------------------------------------------------- tenancy */
+
+/** Membership role in a workspace — mirrors the DB's `workspace_role` enum. */
+export type WorkspaceRole = "owner" | "admin" | "member";
+
+/** One workspace the signed-in user belongs to, with their role in it. */
+export interface WorkspaceSummary {
+  id: string;
+  name: string;
+  slug: string;
+  role: WorkspaceRole;
+  createdAt: string;
+  memberCount: number;
+}
+
+/** Mirrors the DB's `invitation_status` enum. */
+export type InvitationStatus = "pending" | "accepted" | "declined";
+
+/** A pending workspace invitation as shown in the notifications bell. */
+export interface WorkspaceInvitation {
+  id: string;
+  workspaceId: string;
+  workspaceName: string;
+  workspaceSlug: string;
+  invitedEmail: string;
+  /** User id of the inviter; resolved to a display name client-side. */
+  invitedBy: string | null;
+  role: WorkspaceRole;
+  status: InvitationStatus;
+  createdAt: string;
+}
+
 /* ---------------------------------------------------------------- evaluation */
 
 export interface EvalMetric {
