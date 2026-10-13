@@ -63,6 +63,18 @@ async function exchange(
   return (await response.json()) as { access_token?: string; refresh_token?: string; expires_in?: number; scope?: string };
 }
 
+/** Where to send the browser afterwards: the workspace's integrations page.
+ *  The slug is only read from the state to build a path (validated as kebab-case);
+ *  the state is verified separately before anything is stored. */
+function returnPath(state: string | null): string {
+  try {
+    const encoded = state?.split(".")[0];
+    const slug = encoded ? (JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as { workspace?: string }).workspace : undefined;
+    if (slug && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return `/workspaces/${slug}/integrations`;
+  } catch {}
+  return "/workspaces";
+}
+
 export async function GET(request: NextRequest, context: { params: Promise<{ provider: string }> }) {
   const { provider: rawProvider } = await context.params;
   if (!isProvider(rawProvider)) return NextResponse.json({ error: "Unsupported provider" }, { status: 404 });
@@ -89,9 +101,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
       scopes: token.scope?.split(/[ ,]+/).filter(Boolean) ?? [],
       webhookSecret: credentials.webhookSecret,
     });
-    return NextResponse.redirect(new URL(`/onboarding?integration=${provider}&connected=1`, request.url));
+    return NextResponse.redirect(new URL(`${returnPath(state)}?integration=${provider}&connected=1`, request.url));
   } catch (error) {
     const message = error instanceof Error ? error.message : "OAuth callback failed";
-    return NextResponse.redirect(new URL(`/onboarding?integration=${provider}&error=${encodeURIComponent(message)}`, request.url));
+    return NextResponse.redirect(new URL(`${returnPath(request.nextUrl.searchParams.get("state"))}?integration=${provider}&error=${encodeURIComponent(message)}`, request.url));
   }
 }
