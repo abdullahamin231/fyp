@@ -3,6 +3,12 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { IntegrationProvider } from "./types";
 
+export type ProviderAppCredentials = {
+  clientId: string;
+  clientSecret: string;
+  webhookSecret: string;
+};
+
 function admin() {
   const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!key) throw new Error("SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) is required for integrations");
@@ -30,6 +36,60 @@ export function decryptSecret(value: string): string {
   const decipher = createDecipheriv("aes-256-gcm", encryptionKey(), Buffer.from(iv, "base64url"));
   decipher.setAuthTag(Buffer.from(tag, "base64url"));
   return Buffer.concat([decipher.update(Buffer.from(ciphertext, "base64url")), decipher.final()]).toString("utf8");
+}
+
+export async function providerAppCredentials(
+  workspaceId: string,
+  provider: IntegrationProvider,
+): Promise<ProviderAppCredentials> {
+  const { data, error } = await admin()
+    .from("integration_apps")
+    .select("client_id, client_secret_ciphertext, webhook_secret_ciphertext")
+    .eq("workspace_id", workspaceId)
+    .eq("provider", provider)
+    .maybeSingle();
+  if (error) throw new Error(`Could not load ${provider} app registration: ${error.message}`);
+  if (!data) {
+    throw new Error(
+      `No ${provider} app is registered for this workspace. ` +
+      `Register one in workspace settings before connecting.`,
+    );
+  }
+  return {
+    clientId: data.client_id,
+    clientSecret: decryptSecret(data.client_secret_ciphertext),
+    webhookSecret: decryptSecret(data.webhook_secret_ciphertext),
+  };
+}
+
+export async function saveProviderApp(input: {
+  workspaceId: string;
+  provider: IntegrationProvider;
+  userId: string;
+  clientId: string;
+  clientSecret: string;
+}): Promise<{ webhookSecret: string }> {
+  const webhookSecret = randomBytes(32).toString("hex");
+  const { error } = await admin().from("integration_apps").upsert({
+    workspace_id: input.workspaceId,
+    provider: input.provider,
+    client_id: input.clientId.trim(),
+    client_secret_ciphertext: encryptSecret(input.clientSecret.trim()),
+    webhook_secret_ciphertext: encryptSecret(webhookSecret),
+    created_by: input.userId,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "workspace_id,provider" });
+  if (error) throw new Error(`Could not save ${input.provider} app registration: ${error.message}`);
+  return { webhookSecret };
+}
+
+export async function providerAppStatus(workspaceId: string) {
+  const { data, error } = await admin()
+    .from("integration_apps")
+    .select("provider, client_id, updated_at")
+    .eq("workspace_id", workspaceId);
+  if (error) throw new Error(`Could not load app registrations: ${error.message}`);
+  return data ?? [];
 }
 
 export async function requireWorkspaceAdmin(workspaceSlug: string) {
