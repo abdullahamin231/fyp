@@ -115,8 +115,22 @@ function ProviderCard({
         </div>
       )}
 
+      {!status.appRegistered && canConnect && (
+        <p className="font-body-sm text-micro-label text-on-surface-variant">
+          Connecting needs this workspace&apos;s {meta.name} OAuth app (client ID and secret) registered once under Provider Apps.
+        </p>
+      )}
+
       <div className="flex items-center justify-end mt-auto">
-        {canConnect ? (
+        {canConnect && !status.appRegistered ? (
+          <Link
+            href={`/settings/integrations?workspace=${encodeURIComponent(slug)}`}
+            className="flex items-center gap-2 px-3 py-2 rounded bg-surface-container-highest hover:bg-surface-container text-on-surface font-body-sm font-medium transition-all"
+          >
+            <Icon name="key" className="text-[16px]" />
+            Register {meta.name} app first
+          </Link>
+        ) : canConnect ? (
           <a
             href={authorizeHref}
             className={
