@@ -3,6 +3,7 @@ import { adapters } from "@/lib/integrations/adapters";
 import { rawHash } from "@/lib/integrations/common";
 import { connectionForWebhook, persistDelivery } from "@/lib/integrations/server";
 import { isProvider } from "@/lib/integrations/types";
+import { evaluateWorkflowRule, linkPullRequestFromGithub, upsertTicketFromJira } from "@/lib/integrations/pipeline";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 const MAX_BODY_BYTES = 10 * 1024 * 1024;
@@ -33,15 +34,26 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
       ?? headers.get("x-atlassian-webhook-identifier")
       ?? `${rawProvider}:${rawHash(rawBody)}`;
     const firstEvent = events[0];
+    // A GitHub pull-request event is recorded by the linker itself (one
+    // transaction: event, PR node, TRACKS edges), so the plain insert below is
+    // skipped for it. Inserting it here first would make the linker see its own
+    // delivery as a duplicate and link nothing.
+    const isPullRequest = rawProvider === "github" && firstEvent?.entityType === "pull_request";
     await persistDelivery({
       workspaceId,
       provider: rawProvider,
       deliveryId,
-      eventId: firstEvent?.eventId ?? null,
+      eventId: isPullRequest ? `github:${deliveryId}` : (firstEvent?.eventId ?? null),
       payload,
     });
-    if (events.length > 0) {
-      const { error } = await admin().from("events").upsert(events.map((event) => ({
+    const db = admin();
+    const pipeline: Record<string, unknown> = {};
+    if (isPullRequest) {
+      const link = await linkPullRequestFromGithub(db, workspaceId, deliveryId, payload, rawHash(rawBody), receivedAt);
+      pipeline.linking = link;
+      if (link.prNodeId) pipeline.findingsCreated = await evaluateWorkflowRule(db, link.prNodeId);
+    } else if (events.length > 0) {
+      const { error } = await db.from("events").upsert(events.map((event) => ({
         event_id: event.eventId,
         vendor_delivery_id: event.vendorDeliveryId,
         workspace_id: workspaceId,
@@ -61,7 +73,14 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
       })), { onConflict: "event_id", ignoreDuplicates: true });
       if (error) throw new Error(`Could not persist normalized event: ${error.message}`);
     }
-    return NextResponse.json({ accepted: true, events: events.length });
+    if (rawProvider === "jira" && firstEvent) {
+      const ticket = await upsertTicketFromJira(db, workspaceId, payload, firstEvent.occurredAt);
+      if (ticket) {
+        pipeline.ticket = ticket;
+        pipeline.findingsCreated = await evaluateWorkflowRule(db, ticket.ticketNodeId);
+      }
+    }
+    return NextResponse.json({ accepted: true, events: events.length, ...pipeline });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Webhook rejected";
     const status = message.includes("signature") || message.includes("passcode") ? 401 : 400;
