@@ -161,6 +161,39 @@ export interface ActivityEvent {
   findingId?: string;
 }
 
+/* ------------------------------------------------------------------- ingest */
+
+export interface IngestedReference {
+  entityType: string;
+  entityId: string;
+  provenance: string;
+  url?: string;
+}
+
+export interface IngestedEvent {
+  eventId: string;
+  vendorDeliveryId: string;
+  sourceTool: string;
+  entityType: string;
+  entityId: string;
+  version: string | null;
+  action: string;
+  stateBefore: string | null;
+  stateAfter: string | null;
+  actor: string;
+  occurredAt: string;
+  receivedAt: string;
+  references: IngestedReference[];
+  rawHash: string;
+  rawPayload: Record<string, unknown> | null;
+}
+
+export interface IngestCounts {
+  deliveries: number;
+  events: number;
+  providers: string[];
+}
+
 /* ------------------------------------------------------------------ policies */
 
 export interface Policy {
