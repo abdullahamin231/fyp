@@ -136,7 +136,9 @@ async function relinkUnknownKey(db: SupabaseClient, workspaceId: string, key: st
     .eq("workspace_id", workspaceId)
     .eq("source_tool", "github")
     .eq("entity_type", "PullRequest")
-    .contains("references", [{ entityId: key }]);
+    // jsonb containment needs a JSON literal; supabase-js would format a JS array
+    // as a Postgres array literal here.
+    .filter("references", "cs", JSON.stringify([{ entityId: key }]));
   if (error) throw new Error(`events (re-resolve ${key}): ${error.message}`);
   let linked = 0;
   for (const prExternalId of new Set((events ?? []).map((e) => e.entity_id as string))) {
@@ -184,7 +186,8 @@ export async function linkPullRequestFromGithub(
 ): Promise<LinkResult> {
   const pr = asRecord(payload.pull_request);
   const repo = text(asRecord(payload.repository).full_name) ?? "unknown";
-  const number = text(payload.number) ?? text(pr.number) ?? "0";
+  // GitHub sends the PR number as a JSON number, so text() (strings only) would miss it.
+  const number = String(payload.number ?? pr.number ?? "0");
   const head = asRecord(pr.head);
   const title = text(pr.title) ?? "";
   const branch = text(head.ref) ?? "";
