@@ -155,6 +155,22 @@ export async function connectionForWebhook(workspaceId: string, provider: Integr
   return decryptSecret(data.webhook_secret_ciphertext);
 }
 
+/** Server-only. The decrypted provider access token for a workspace connection. */
+export async function connectionAccessToken(
+  workspaceId: string,
+  provider: IntegrationProvider,
+): Promise<{ token: string; expiresAt: string | null }> {
+  const { data, error } = await admin()
+    .from("integration_connections")
+    .select("access_token_ciphertext, token_expires_at")
+    .eq("workspace_id", workspaceId)
+    .eq("provider", provider)
+    .maybeSingle();
+  if (error) throw new Error(`Could not load ${provider} connection: ${error.message}`);
+  if (!data?.access_token_ciphertext) throw new Error(`${provider} is not connected for this workspace`);
+  return { token: decryptSecret(data.access_token_ciphertext), expiresAt: data.token_expires_at ?? null };
+}
+
 export async function persistDelivery(input: {
   workspaceId: string;
   provider: IntegrationProvider;
