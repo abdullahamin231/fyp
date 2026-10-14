@@ -30,6 +30,7 @@ export const intelligenceNav: NavItem[] = [
 
 export const operationsNav: NavItem[] = [
   { label: "Dashboard", href: "/", icon: "dashboard", path: "dashboard" },
+  { label: "Ingestion", href: "/ingest", icon: "input", path: "ingestion" },
   { label: "Activity Feed", href: "/activity", icon: "rss_feed", path: "activity-feed" },
   { label: "Conflict Alerts", href: "/alerts", icon: "warning", path: "conflict-alerts" },
   { label: "Search & Filters", href: "/search", icon: "search", path: "search" },
