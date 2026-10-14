@@ -56,20 +56,53 @@ npm run once                # drain the queue once, print one JSON line per job
 npm run dev                 # poll forever (JSON-lines log, one object per event)
 ```
 
-The graph is populated by the analyser (`npm run analyse -- --publish`) from a
-real repository — there is no seed script and no committed case data. A
-criterion reaches the queue through `enqueue_verification` the same way it does
-in production.
+`.env` holds **only the secrets** (Supabase URL + service-role key, plus
+`ANALYSIS_GIT_TOKEN` for private repositories). Every operational value —
+model provider, budgets, poll interval, analysis settings — is hardcoded in
+`src/config.ts` (`WORKER_SETTINGS`), so a run's inputs are a recorded decision
+in git rather than a shell export. Change a value there, commit, redeploy.
+
+## Configuration
+
+`src/config.ts` is the whole story: the fixed budgets, the poll cadence, the
+model seam and the evidence-enrichment settings, each with the reason in a
+comment. Tests import `DEFAULT_SLOT_BUDGETS` from the same file, so the tests
+and the live worker can never disagree about a budget.
+
+## Live evidence enrichment (the webhook chain)
+
+On the live path the web app only ever creates tickets, pull requests and
+criteria — it has no access to git objects. `src/analyser/enrich.ts` closes
+that gap: when a claimed job's (repo, base, head) has no code/test evidence in
+the graph, the worker
+
+1. walks criterion → Ticket → PullRequest to find the change (the exact
+   `owner/repo#number` id the webhook created),
+2. refuses to proceed unless the workspace has an `analysis_targets` row for
+   that repository (migration 00019) — an analysis run is never silent,
+3. clones/fetches the repository into the cache dir and verifies both commits
+   are present,
+4. runs the analyser (read-only git objects; the test command runs only in a
+   throwaway worktree, only when the target configures one),
+5. publishes the nodes/edges through the `publish_analysis` RPC, so the packet
+   builder then attaches them to the PR node that already exists.
+
+Any failure throws and fails the **job** — enrichment that cannot run must
+never become a verdict. An existing commit node for the head skips the whole
+path, so a re-enqueued job is a no-op. The repository cache lives in
+`WORKER_SETTINGS.repoCacheDir` (under the worker user's home); private
+repositories need `ANALYSIS_GIT_TOKEN` in `.env`.
 
 ## Model providers
 
-`MODEL_PROVIDER=stub` (default) — deterministic, offline, no network. It reads
-the rendered packet and answers from the evidence itself: a passing test ⇒
-`SUPPORTED`, a failing one ⇒ `CONTRADICTED`, code without tests ⇒ `PARTIAL`,
-empty packet ⇒ not applicable. Because it is bit-for-bit repeatable, the tests
-drive the whole pipeline, including its failure paths, without a serving stack.
+`modelProvider: "stub"` (the current setting) — deterministic, offline, no
+network. It reads the rendered packet and answers from the evidence itself: a
+passing test ⇒ `SUPPORTED`, a failing one ⇒ `CONTRADICTED`, code without tests
+⇒ `PARTIAL`, empty packet ⇒ not applicable. Because it is bit-for-bit
+repeatable, the tests drive the whole pipeline, including its failure paths,
+without a serving stack.
 
-`MODEL_PROVIDER=opencode` — wraps `opencode run --standalone --format json`.
+`modelProvider: "opencode"` — wraps `opencode run --standalone --format json`.
 Each call gets a scratch directory containing an `opencode.json` that pins
 `temperature: 0` (the CLI has no `--temperature` flag; OpenCode's config schema
 does, which is what makes hard gate 2's "same packet ×3 at temperature 0"

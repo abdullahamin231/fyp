@@ -116,7 +116,9 @@ describe("coverage and test runs", () => {
     const card = g.nodes.find((n) => n.type === "CodeSymbol")!.payload.slotItems[0]!;
     expect(card.content).toContain("coverage: 4/5 lines run by tests; changed lines 1/1");
     const run = g.nodes.find((n) => n.externalId.includes(":test-run:"))!;
-    expect(run.payload.slotItems[0]!.content).toMatch(/^\$ node write-lcov\.cjs\nPASS \(exit 0, \d+ ms\)/);
+    // Verdict on its own line — the shape the stub model and the fixture
+    // bundles key off (`\nPASS\n` / `\nFAIL\n` inside TEST_EVIDENCE).
+    expect(run.payload.slotItems[0]!.content).toMatch(/^\$ node write-lcov\.cjs\nPASS\n\(exit 0, \d+ ms\)/);
     // The throwaway checkout is gone again.
     expect(execFileSync("git", ["-C", dir, "worktree", "list"], { encoding: "utf8" }).trim().split("\n")).toHaveLength(1);
   });
