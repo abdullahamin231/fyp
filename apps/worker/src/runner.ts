@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { gate, type GateOutcome, type StopReason, type VerdictStatus } from "@unify/contracts";
 import type { Config } from "./config.js";
+import { ensureEvidence } from "./analyser/enrich.js";
 import { loadCriterion, loadLinkPolicy } from "./graph/nodes.js";
 import type { ModelClient } from "./model/types.js";
 import { buildPacket } from "./packet/builder.js";
@@ -78,6 +79,16 @@ export async function runJob(deps: RunnerDeps, job: JobRow): Promise<JobOutcome>
 
   try {
     const criterion = await loadCriterion(client, job.criterion_node_id);
+
+    // Evidence first: on the live path the webhook path created only tickets
+    // and pull requests, so the worker analyses the repository itself before
+    // the packet is built. Fixed on in src/config.ts (WORKER_SETTINGS); tests
+    // construct their own deps instead.
+    if (config.analysisEnabled) {
+      const enrichment = await ensureEvidence({ client, config, logger: (m, f) => log(m, f) }, job, criterion);
+      log("evidence enrichment", { jobId: job.id, ...enrichment });
+    }
+
     const bundle = await provider.load({
       criterionNodeId: criterion.id,
       workspaceId: criterion.workspaceId,
@@ -218,6 +229,9 @@ export async function pollForever(deps: RunnerDeps): Promise<never> {
     model: deps.model.describe().modelId,
     provider: deps.provider.name,
     pollIntervalMs: deps.config.pollIntervalMs,
+    analysisEnabled: deps.config.analysisEnabled,
+    // Printed on every start so an armed demo fault is never silent.
+    stubFabricate: deps.config.stubFabricate,
   });
   for (;;) {
     const outcome = await claimAndRun(deps);

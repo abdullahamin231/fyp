@@ -1,62 +1,119 @@
-import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { z } from "zod";
 import { PACKET_SLOTS, type PacketSlot } from "@unify/contracts";
 
 /**
  * Worker configuration.
  *
- * Everything the pipeline treats as a fixed, recorded decision lives here so a
- * run's inputs are reproducible: budgets, model identity and the pass
- * behaviour. Env vars are the source of truth; this file is where they become
- * typed, defaulted and validated rather than read ad hoc at call sites.
+ * **Operational values are hardcoded in this file, not read from `.env`.** A
+ * verification run's inputs must be a recorded decision, not something a shell
+ * export can flip between restarts — which is what made the mid-evaluation
+ * story ("the same packet always gives the same answer") fragile. Change a
+ * number here, commit it, and the change is in the repository history.
+ *
+ * The environment holds exactly the three things that must never be committed:
+ * the Supabase URL, the service-role key, and (only for private repositories)
+ * a read-only git token.
  */
 
 /**
- * Default per-slot budgets (TODO §1.7). Sum = 7200, deliberately under the
- * 8000 default total so the global eviction pass is a safety net rather than
- * the normal path.
+ * Fixed operational settings. Everything here is a deliberate, recorded
+ * decision — see `docs/` and the report's configuration section for the
+ * rationale of each value.
  */
-export const DEFAULT_SLOT_BUDGETS: Record<PacketSlot, number> = {
-  REQUIREMENT_TEXT: 600,
-  DESIGN_CONSTRAINTS: 400,
-  TEST_EVIDENCE: 1200,
-  SYMBOL_CARDS: 1800,
-  DIFF_HUNKS: 2400,
-  GRAPH_NEIGHBOURHOOD: 400,
-  POLICY_DEFINITION: 400,
-};
+export const WORKER_SETTINGS = {
+  /**
+   * `stub` = deterministic offline model; `opencode` = the real CLI runner.
+   * There is deliberately no silent fallback between the two: if this says
+   * `opencode` and the CLI is unreachable, jobs finish with MODEL_UNAVAILABLE
+   * rather than quietly downgrading to the stub.
+   */
+  modelProvider: "stub" as "stub" | "opencode",
+  /** `provider/model` as the OpenCode CLI expects (`-m`); only used above. */
+  model: "opencode/ling-3.1-flash-free",
+  /** One model call, end to end (the bound the loop enforces per pass). */
+  modelTimeoutMs: 180_000,
+  /** Queue poll cadence. */
+  pollIntervalMs: 3_000,
 
-export const configSchema = z.object({
+  /** Total packet budget; per-slot budgets below must sum under it. */
+  tokenBudget: 8_000,
+  /**
+   * Per-slot budgets (TODO §1.7). Sum = 7200, deliberately under the 8000
+   * total so the global eviction pass is a safety net rather than the normal
+   * path.
+   */
+  slotBudgets: {
+    REQUIREMENT_TEXT: 600,
+    DESIGN_CONSTRAINTS: 400,
+    TEST_EVIDENCE: 1200,
+    SYMBOL_CARDS: 1800,
+    DIFF_HUNKS: 2400,
+    GRAPH_NEIGHBOURHOOD: 400,
+    POLICY_DEFINITION: 400,
+  } as Record<PacketSlot, number>,
+  /** A decisive verdict citing this few spans triggers the pass-3 critic. */
+  weakCitationThreshold: 1,
+  /** Stop polling after this many consecutive empty claims (used by `once`). */
+  maxIdleClaims: 1,
+
+  // ---- evidence enrichment (analyser on claim) ------------------------------
+  /**
+   * A claimed job with no code/test evidence in the graph triggers the
+   * analyser for the job's (repo, base, head): the worker clones the
+   * repository, fetches both commits, analyses, and publishes nodes.
+   */
+  analysisEnabled: true,
+  /** Where repositories are cloned/cached for analysis. */
+  repoCacheDir: join(homedir(), ".cache", "unify", "repos"),
+  /** Timeout for the analysis target's test command at head. */
+  analysisTestTimeoutMs: 600_000,
+
+  // ---- demo fault injection (stub model only) --------------------------------
+  /**
+   * T10, demonstrated live rather than asserted: make the deterministic stub
+   * behave like a badly-behaved model.
+   *
+   *   none     the stub answers strictly from the packet (production default)
+   *   extra    adds one fabricated citation to a genuine answer
+   *   only     answers with a single fabricated citation and nothing real
+   *
+   * The gate's job is to catch all of these: citations that were never in the
+   * packet are dropped (INVALID_CITATION) and the verdict is downgraded, so
+   * the demo shows the enforcement instead of describing it. The worker logs
+   * this value on startup so an armed fault can never be a silent one.
+   */
+  stubFabricate: "none" as "none" | "extra" | "only",
+} as const;
+
+/** Secrets only. `.env` (gitignored) holds the values; nothing else does. */
+const secretSchema = z.object({
   supabaseUrl: z.string().url(),
   serviceRoleKey: z.string().min(1),
-  /** `stub` = deterministic, offline, CI/demo; `opencode` = the local runner. */
-  modelProvider: z.enum(["stub", "opencode"]).default("stub"),
-  /** `provider/model` as the OpenCode CLI expects (`-m`). */
-  model: z.string().min(1).default("opencode/gpt-5-nano"),
-  modelTimeoutMs: z.number().int().positive().default(180_000),
-  pollIntervalMs: z.number().int().positive().default(3_000),
-  tokenBudget: z.number().int().positive().default(8000),
-  slotBudgets: z.record(
-    z.enum(PACKET_SLOTS),
-    z.number().int().positive(),
-  ),
-  /** A decisive verdict citing this few spans triggers the pass-3 critic. */
-  weakCitationThreshold: z.number().int().min(0).default(1),
-  /** Stop polling after this many consecutive empty claims (used by `once`). */
-  maxIdleClaims: z.number().int().positive().default(1),
+  gitToken: z.string().optional(),
+});
+
+export const configSchema = z.object({
+  ...secretSchema.shape,
+  modelProvider: z.enum(["stub", "opencode"]),
+  model: z.string().min(1),
+  modelTimeoutMs: z.number().int().positive(),
+  pollIntervalMs: z.number().int().positive(),
+  tokenBudget: z.number().int().positive(),
+  slotBudgets: z.record(z.enum(PACKET_SLOTS), z.number().int().positive()),
+  weakCitationThreshold: z.number().int().min(0),
+  maxIdleClaims: z.number().int().positive(),
+  analysisEnabled: z.boolean(),
+  repoCacheDir: z.string().min(1),
+  analysisTestTimeoutMs: z.number().int().positive(),
+  stubFabricate: z.enum(["none", "extra", "only"]),
 });
 
 export type Config = z.infer<typeof configSchema>;
 
-function intOr(env: NodeJS.ProcessEnv, key: string, fallback: number): number {
-  const raw = env[key];
-  if (raw === undefined || raw.trim() === "") return fallback;
-  const parsed = Number(raw);
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(`${key} must be a positive integer, got ${JSON.stringify(raw)}`);
-  }
-  return parsed;
-}
+/** Kept for the tests and report: the fixed per-slot budgets, verbatim. */
+export const DEFAULT_SLOT_BUDGETS = WORKER_SETTINGS.slotBudgets;
 
 /**
  * Read `.env` from the working directory, if one exists.
@@ -67,33 +124,21 @@ function intOr(env: NodeJS.ProcessEnv, key: string, fallback: number): number {
  * exported by hand, which is exactly the failure mode `.env.example` invites.
  */
 function loadDotEnv(): void {
-  if (existsSync(".env")) process.loadEnvFile(".env");
+  try {
+    process.loadEnvFile(".env");
+  } catch {
+    // No .env (or unreadable): the three secrets must come from the real
+    // environment — that is the case under systemd, where they live in the
+    // unit's EnvironmentFile.
+  }
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   loadDotEnv();
-  const rawBudgets = env.SLOT_BUDGETS_JSON;
-  let slotBudgets: Record<PacketSlot, number> = { ...DEFAULT_SLOT_BUDGETS };
-  if (rawBudgets) {
-    const parsed = z.record(z.enum(PACKET_SLOTS), z.number().int().positive()).safeParse(
-      JSON.parse(rawBudgets),
-    );
-    if (!parsed.success) {
-      throw new Error(`SLOT_BUDGETS_JSON must map every packet slot to a positive integer`);
-    }
-    slotBudgets = parsed.data;
-  }
-
   return configSchema.parse({
     supabaseUrl: env.SUPABASE_URL ?? env.NEXT_PUBLIC_SUPABASE_URL,
-    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
-    modelProvider: env.MODEL_PROVIDER ?? "stub",
-    model: env.UNIFY_MODEL ?? undefined,
-    modelTimeoutMs: intOr(env, "MODEL_TIMEOUT_MS", 180_000),
-    pollIntervalMs: intOr(env, "POLL_INTERVAL_MS", 3_000),
-    tokenBudget: intOr(env, "PACKET_TOKEN_BUDGET", 8000),
-    slotBudgets,
-    weakCitationThreshold: Number(env.WEAK_CITATION_THRESHOLD ?? 1),
-    maxIdleClaims: intOr(env, "MAX_IDLE_CLAIMS", 1),
+    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY ?? env.SUPABASE_SECRET_KEY,
+    gitToken: env.ANALYSIS_GIT_TOKEN?.trim() || undefined,
+    ...WORKER_SETTINGS,
   });
 }
