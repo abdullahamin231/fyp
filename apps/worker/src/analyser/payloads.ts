@@ -190,7 +190,10 @@ export function toGraph(
     }
   }
 
-  // TestCase for the test run, if one was requested: same `test_run` item shape as the fixtures.
+  // TestCase for the test run, if one was requested: same `test_run` item shape
+  // as the fixtures (bundle.ts) — verdict on its own line, then the exit
+  // detail. The stub model keys off exactly that shape (`\nFAIL\n` /
+  // `\nPASS\n`), so this line's format is load-bearing, not cosmetic.
   if (analysis.testRun) {
     const run = analysis.testRun;
     const verdict = run.timedOut ? "TIMEOUT" : run.passed ? "PASS" : "FAIL";
@@ -205,7 +208,7 @@ export function toGraph(
         durationMs: run.durationMs,
         analyser: RESOLVER,
         slotItems: [
-          makeItem("run", "test_run", `$ ${run.command}\n${verdict} (exit ${run.exitCode ?? "none"}, ${run.durationMs} ms)\n${run.logTail}`, {
+          makeItem("run", "test_run", `$ ${run.command}\n${verdict}\n(exit ${run.exitCode ?? "none"}, ${run.durationMs} ms)\n${run.logTail}`, {
             file: "(test run)",
           }),
         ],

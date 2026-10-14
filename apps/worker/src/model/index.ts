@@ -21,7 +21,7 @@ export function createModelClient(config: Config, stubOptions: StubOptions = {})
       });
     default: {
       const never: never = config.modelProvider;
-      throw new Error(`unsupported MODEL_PROVIDER ${JSON.stringify(never)}`);
+      throw new Error(`unsupported model provider ${JSON.stringify(never)}`);
     }
   }
 }

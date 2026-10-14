@@ -3,12 +3,13 @@
 # Install the UNIFY verification worker as a systemd service.
 #
 # Usage:
-#   ./deploy/install.sh                 # default model: opencode/ling-3.1-flash-free
-#   UNIFY_MODEL=opencode/space-bunny-free ./deploy/install.sh
+#   ./deploy/install.sh
 #
 # Run WITHOUT sudo — the script escalates only the privileged steps itself.
 # It builds the worker, locks down .env, generates the unit from the template
 # (substituting your user, repo path and node binary), and enables + starts it.
+# All operational values (model provider, budgets, analysis settings) are
+# hardcoded in the worker's src/config.ts.
 
 set -euo pipefail
 
@@ -33,23 +34,19 @@ if [[ -z "$NODE_BIN" ]]; then
   exit 1
 fi
 
-# --- Model (override with UNIFY_MODEL=... ./install.sh) ---
-MODEL="${UNIFY_MODEL:-opencode/ling-3.1-flash-free}"
-
 echo "==> Building worker ($WORKER_DIR)"
 ( cd "$WORKER_DIR" && npm install && npm run build )
 
 echo "==> Locking down .env (holds the service-role key)"
 chmod 600 "$WORKER_DIR/.env"
 
-echo "==> Generating unit (user=$RUN_USER, group=$RUN_GROUP, node=$NODE_BIN, model=$MODEL)"
+echo "==> Generating unit (user=$RUN_USER, group=$RUN_GROUP, node=$NODE_BIN)"
 UNIT="$(mktemp)"
 sed \
   -e "s|@REPO@|$REPO_DIR|g" \
   -e "s|@USER@|$RUN_USER|g" \
   -e "s|@GROUP@|$RUN_GROUP|g" \
   -e "s|@NODE@|$NODE_BIN|g" \
-  -e "s|@MODEL@|$MODEL|g" \
   "$TEMPLATE" > "$UNIT"
 
 echo "==> Installing to /etc/systemd/system/unify-worker.service"

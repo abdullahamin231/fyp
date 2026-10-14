@@ -24,13 +24,16 @@ Group=@GROUP@
 WorkingDirectory=@REPO@/apps/worker
 EnvironmentFile=@REPO@/apps/worker/.env
 
-# Model seam. `stub` = offline/deterministic (no model needed); `opencode` = the
-# real runner. There is no silent fallback between them.
-Environment=MODEL_PROVIDER=opencode
-# provider/model exactly as `opencode run -m` expects. Free-tier default:
+# Model seam + operational values are hardcoded in src/config.ts (WORKER_SETTINGS):
+# `stub` = offline/deterministic (no model needed); `opencode` = the real
+# runner, `opencode run -m` per call, with UNIFY_MODEL-style models:
 #   opencode/ling-3.1-flash-free   (fast, free, good JSON)
 #   opencode/space-bunny-free      (zero-retention, 1M ctx, time-limited)
-Environment=UNIFY_MODEL=@MODEL@
+# There is no silent fallback between the two. Evidence enrichment
+# (ANALYSIS_ENABLED) is on there too, with the repo cache under this user's
+# home (writable by design — see ProtectHome above). The unit's .env carries
+# the Supabase URL/service-role key and, for private repositories,
+# ANALYSIS_GIT_TOKEN.
 
 # Optional tuning (defaults shown; see src/config.ts):
 # Environment=MODEL_TIMEOUT_MS=180000
