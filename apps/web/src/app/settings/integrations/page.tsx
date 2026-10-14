@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { AppShell } from "@/components/layout/app-shell";
 import { ProviderAppRegistration } from "@/components/settings/provider-app-registration";
 import {
@@ -66,6 +67,8 @@ export default async function ProviderIntegrationsPage({
         clientId,
         clientSecret: secret,
       });
+      // Refresh the server-rendered status ("Registered as ...") right away.
+      revalidatePath("/settings/integrations");
       return { oneTimeValue: result.webhookSecret };
     } catch (error) {
       return { error: error instanceof Error ? error.message : "Could not save provider registration." };
