@@ -278,6 +278,31 @@ export class IngestionEngine {
   }
 }
 
+/**
+ * The deterministic half of §8.4's SOURCE_STALE marking.
+ *
+ * A source is stale when its checkpoint has been quiet for at least
+ * `staleAfterMs`. A checkpoint that never recorded a success is stale by
+ * definition — nobody can claim freshness that was never observed — and a
+ * `lastSuccessAt` in the future (clock skew between the vendor and us) reads
+ * as fresh rather than stale, because the quiet window has not opened yet.
+ */
+export function isSourceStale(
+  checkpoint: Pick<IngestionCheckpoint, "lastSuccessAt">,
+  now: string,
+  staleAfterMs: number,
+): boolean {
+  if (!Number.isFinite(staleAfterMs) || staleAfterMs <= 0) {
+    throw new Error("staleAfterMs must be a positive finite number");
+  }
+  if (checkpoint.lastSuccessAt === null) return true;
+  const quietForMs = Date.parse(now) - Date.parse(checkpoint.lastSuccessAt);
+  if (Number.isNaN(quietForMs)) {
+    throw new Error("checkpoint.lastSuccessAt is not a parseable timestamp");
+  }
+  return quietForMs >= staleAfterMs;
+}
+
 /** A controllable vendor double for duplicate, outage, and replay scenarios. */
 export class MockVendor implements VendorAdapter {
   private available = true;
