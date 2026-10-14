@@ -34,11 +34,12 @@ export const operationsNav: NavItem[] = [
   { label: "Conflict Alerts", href: "/alerts", icon: "warning", path: "conflict-alerts" },
   { label: "Search & Filters", href: "/search", icon: "search", path: "search" },
   { label: "Evaluation", href: "/evaluation", icon: "monitoring", path: "evaluation" },
-  { label: "Onboarding", href: "/onboarding", icon: "rocket_launch", path: "onboarding" },
+  { label: "Workspaces", href: "/workspaces", icon: "groups", path: "workspaces" },
 ];
 
 export const settingsNav: NavItem[] = [
   { label: "Settings", href: "/settings/workspace", icon: "settings", path: "settings" },
+  { label: "Provider Apps", href: "/settings/integrations", icon: "key", path: "provider-app-registrations" },
   { label: "Notifications", href: "/settings/notifications", icon: "notifications", path: "notification-preferences" },
   { label: "Slack Delivery", href: "/settings/slack", icon: "chat", path: "slack-configuration" },
 ];
