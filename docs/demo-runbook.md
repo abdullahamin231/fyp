@@ -44,16 +44,21 @@ Environment notes:
 
 ---
 
-## 3. Rehearsal (a day or two before, not the morning of)
+## 3. Rehearsal — DONE, green (2026-10-15)
 
-1. Push one commit to each demo branch (or reopen the PR) so the chain runs
-   under the deployed code:
-   - PR #47 (`demo/uni-7-supported`) → expect `SUPPORTED`
-   - PR #48 (`demo/uni-7-contradicted`) → expect `CONTRADICTED`
-2. Confirm in the UI: `/conflicts` shows both findings with verdicts; the
-   evidence case shows citations, the pass log, and the packet manifest.
-3. Time each beat. Verification takes ~1–2 minutes per PR (analysis + test run).
-4. Then **close both PRs** so the meeting's re-run is a fresh, visible event.
+Rehearsed end to end against the live project: real GitHub webhooks, real
+`enqueue_verification` from the delivery, real clone-and-analyse of
+`abdullahamin231/fyp`, real test run, real verdicts stored.
+
+| PR | Head | Result |
+|---|---|---|
+| #47 `demo/uni-7-supported` | `b6e5230` | **SUPPORTED** — both criteria, 3 evidence spans each |
+| #48 `demo/uni-7-contradicted` | `205953a` | **CONTRADICTED** — both criteria, 9 spans, reason "the test-run evidence records a FAIL", severity critical |
+
+The earlier findings were superseded by the re-verification (the finding
+lifecycle works). Both PRs are now **closed**: at the meeting, reopening one
+fires `reopened` → a fresh job per criterion → verdicts land live. Nothing
+needs re-doing, and the chain takes ~25s per PR at rehearsal speed.
 
 ---
 
@@ -90,9 +95,35 @@ Say out loud, once, without being asked:
 
 ---
 
-## 6. Known landmines (all fixed, all real)
+## 6. Known landmines — every one of these actually bit during the rehearsal
 
-- **npm swallows failure inside a workspace**: `npm test` exits 0 when the script fails. The analysis target must invoke the runner directly (`npx vitest run`).
-- **The test-run verdict must be on its own line**: the stub model and the gate tests key off `\nFAIL\n` / `\nPASS\n` inside `TEST_EVIDENCE`. The analyser's payload used to write `FAIL (exit 1, …)` on one line, which silently read as PARTIAL.
-- **Criterion edges must be decisive-eligible**: `REFERENCES` with `source_class: "derived"` maps to `system-confirmed`. A `model_candidate` or `unresolved` edge downgrades every verdict built on it — `AMBIGUOUS_LINK`.
-- **Order matters**: the Jira ticket must exist before the PR delivery, or the linker records `unknown_key`, no `TRACKS` edge is created, and no criterion is ever enqueued.
+1. **npm swallows failure inside a workspace.** `npm test` exits 0 when the
+   script fails (npm prints `npm ERR!` and returns 0). The analysis target must
+   invoke the runner directly: `npx vitest run`.
+2. **The test-run verdict must be on its own line.** The stub model and the
+   gate tests key off `\nFAIL\n` / `\nPASS\n` inside `TEST_EVIDENCE`. The
+   analyser used to write `FAIL (exit 1, …)` on one line — a failing suite
+   silently read as PARTIAL.
+3. **Evidence must be attributed to the PR at the job's head.** Enrichment
+   first picked the *first* PR linked to the ticket, so one PR's analysis was
+   published against another's node. It matches the PR whose node `version` is
+   the job's pinned head (the linker records the head there, not in payload).
+4. **The test-run node needs an edge.** It was an orphan — in the graph, never
+   reached by the bounded walk — so the packet carried test *sources* but not
+   the record of whether the suite passed.
+5. **The evidence window is shared until it is scoped.** Two open PRs on one
+   criterion produced one identical packet (and verdict) because the walk is
+   criterion-centric. The provider now scopes to the pinned revision pair.
+6. **TEST_EVIDENCE budget order is load-bearing.** The assembler never squeezes
+   a smaller item in, so the run must be admitted ahead of the sources (fixed
+   priority) and the recorded log tail is bounded (~600 chars).
+7. **Criterion edges must be decisive-eligible.** `REFERENCES` with
+   `source_class: "derived"` maps to `system-confirmed`. A `model_candidate` or
+   `unresolved` edge downgrades every verdict built on it — `AMBIGUOUS_LINK`.
+8. **Order matters.** The Jira ticket must exist before the PR delivery, or the
+   linker records `unknown_key`, no `TRACKS` edge is created, and no criterion
+   is ever enqueued.
+9. **One worker, on the right branch.** `npm run dev` runs the *source*
+   (via tsx), on whichever branch is checked out — and stale workers from
+   earlier shells keep polling and racing. Before a rehearsal: confirm the
+   branch is `feat/live-demo-chain` and exactly one worker is running.
