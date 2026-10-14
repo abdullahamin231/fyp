@@ -219,6 +219,9 @@ export async function linkPullRequestFromGithub(
 // Rule 2: workflow-state inconsistency (FR-12)
 // ---------------------------------------------------------------------------
 
+/** Grace period used for Rule 2 until a scheduled re-check exists (see evaluateWorkflowRule). */
+const DEMO_GRACE_HOURS = 0;
+
 type NodeRow = { id: string; type: string; external_id: string; status: string | null; last_modified: string; payload: Record<string, unknown> };
 
 /**
@@ -227,15 +230,17 @@ type NodeRow = { id: string; type: string; external_id: string; status: string |
  *   A. the PR is merged but the ticket is not Done
  *   B. the ticket is Done but the PR is still open
  * Each case produces at most one finding per link (idempotency key, FR-15).
- * The grace period comes from the RULE_2 record; UNIFY_RULE_GRACE_HOURS
- * overrides it (0 for a live demonstration, since nothing here re-evaluates later).
+ * The grace period is DEMO_GRACE_HOURS (0) for now; see the note in the body.
  */
 export async function evaluateWorkflowRule(db: SupabaseClient, nodeId: string): Promise<number> {
   const rule = await db.from("rules").select("id, version, grace_period_hours, severity").eq("id", "RULE_2").eq("active", true).order("version", { ascending: false }).limit(1).maybeSingle();
   if (rule.error) throw new Error(`rules: ${rule.error.message}`);
   if (!rule.data) return 0;
-  const override = process.env.UNIFY_RULE_GRACE_HOURS;
-  const graceHours = override !== undefined && override !== "" ? Number(override) : Number(rule.data.grace_period_hours ?? 0);
+  // DEMO SETTING: the RULE_2 record specifies a grace period (4 h), but nothing
+  // re-evaluates later yet, so a finding could never appear after the event.
+  // Until a scheduled re-check exists, findings are raised as soon as the
+  // inconsistency is observed. Restore `rule.data.grace_period_hours` then.
+  const graceHours = DEMO_GRACE_HOURS;
 
   const links = await db
     .from("edges")
