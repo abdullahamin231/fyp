@@ -52,35 +52,16 @@ lands in.
 npm install                 # postinstall links packages/contracts (live, not a copy)
 cp .env.example .env        # SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY are required
 
-npm run seed                # write the demo case into the graph + enqueue a job
 npm run once                # drain the queue once, print one JSON line per job
 npm run dev                 # poll forever (JSON-lines log, one object per event)
 ```
 
-`npm run seed [-- <bundle.json>]` is idempotent and stands in for the Slice B
-analyser: it writes the same node payloads an analyser publishes
-(`payload.slotItems`), wires the case's links, records an ingestion checkpoint
-(so freshness reads `CURRENT`, not `UNKNOWN`), and enqueues the criterion.
+The graph is populated by the analyser (`npm run analyse -- --publish`) from a
+real repository — there is no seed script and no committed case data. A
+criterion reaches the queue through `enqueue_verification` the same way it does
+in production.
 
 ## Model providers
-
-## Demo scenarios
-
-`fixtures/demo_case.json` is the baseline; `fixtures/scenarios/` holds one
-changed input each. `npm run scenarios` runs all of them through the verifier
-offline and prints the verdict, gate outcome and whether a finding is raised.
-
-| Scenario | Verdict | Finding |
-| --- | --- | --- |
-| DEMO-01 baseline | SUPPORTED | no |
-| DEMO-02 failing test | CONTRADICTED | yes |
-| DEMO-03 no test | PARTIAL (critic reviewed) | yes |
-| DEMO-04 stale source | INSUFFICIENT_EVIDENCE (downgraded) | yes |
-| DEMO-05 unconfirmed link (`model_candidate`) | INSUFFICIENT_EVIDENCE (downgraded) | yes |
-
-Model-side faults (fabricated citation, model down) are offline-only, in the
-same script. The hosted seed for each case is
-`npm run seed -- fixtures/scenarios/<file>.json`, then `npm run once`.
 
 `MODEL_PROVIDER=stub` (default) — deterministic, offline, no network. It reads
 the rendered packet and answers from the evidence itself: a passing test ⇒
@@ -233,6 +214,8 @@ filled, and a control with the `IMPLEMENTS` edges removed.
   the optimisation later).
 - Passes are persisted after the loop rather than streamed per pass; a worker
   killed mid-run loses that job's pass rows but never writes a partial verdict.
-- The fixture bundle (`fixtures/demo_case.json`) carries the case's text, which
-  the dataset's gold packets do not (they store hashes + line ranges only);
-  keeping the case in-repo makes the build network-free and immutable.
+- The test case (`test/case.ts`) carries the case's text, which the dataset's
+  gold packets do not (they store hashes + line ranges only); keeping it in-repo
+  makes the build network-free and immutable. The analyser's live output does
+  not have this property, so a packet built from a real repository can differ
+  from the test packet in length and content.

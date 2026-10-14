@@ -339,31 +339,6 @@ export function OnboardingWizard() {
         </div>
       </section>
 
-      {/* Security protocol architecture banner */}
-      <section className="w-full mt-8 bg-surface-container-low rounded-xl p-4 shadow-sm">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0">
-              <Icon name="shield_lock" className="text-secondary text-[22px]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-headline-sm text-headline-sm text-on-surface">
-                  Enterprise Zero-Knowledge Token Vault
-                </span>
-                <span className="px-2 py-0.2 rounded-full bg-secondary/10 text-secondary font-mono-code text-eyebrow uppercase font-semibold">
-                  AES-256-GCM Active
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 self-end lg:self-center flex-shrink-0 bg-surface-container px-3 py-1.5 rounded">
-            <Icon name="verified_user" className="text-muted text-[16px]" />
-            <span className="font-mono-code text-micro-label text-muted">SOC2 Type II Compliant</span>
-          </div>
-        </div>
-      </section>
-
       {/* Main asymmetric bento workspace */}
       <div className="grid grid-cols-12 gap-4 items-start mt-8">
         <div className="col-span-12 lg:col-span-7 flex flex-col gap-4">

@@ -34,7 +34,7 @@ const VERDICT_COLUMNS =
 const PACKET_COLUMNS =
   "id, criterion_node_id, base_commit, head_commit, token_budget, manifest, prompt_hash, packet_hash";
 
-const NODE_COLUMNS = "id, workspace_id, type, external_id, payload, last_modified";
+const NODE_COLUMNS = "id, workspace_id, type, external_id, payload, status, last_modified";
 
 async function loadVerdictContext(
   verdictIds: string[],
@@ -74,6 +74,33 @@ async function loadNodes(ids: string[]): Promise<Map<string, NodeRow>> {
   return out;
 }
 
+/**
+ * For rule findings: each subject node plus the nodes joined to it by an
+ * active TRACKS edge (a ticket and the pull requests that name it, or the
+ * reverse), so the row can show the artefacts in both tools.
+ */
+async function loadLinked(subjectIds: string[]): Promise<Map<string, NodeRow[]>> {
+  const out = new Map<string, NodeRow[]>();
+  const unique = [...new Set(subjectIds)];
+  if (unique.length === 0) return out;
+  const client = await createClient();
+  const list = `(${unique.join(",")})`;
+  const res = await client
+    .from("edges")
+    .select("from_id, to_id")
+    .eq("type", "TRACKS")
+    .eq("link_state", "active")
+    .or(`from_id.in.${list},to_id.in.${list}`);
+  if (res.error) throw new Error(`edges (linked): ${res.error.message}`);
+  const edges = (res.data ?? []) as { from_id: string; to_id: string }[];
+  const nodes = await loadNodes([...unique, ...edges.flatMap((e) => [e.from_id, e.to_id])]);
+  for (const id of unique) {
+    const others = edges.flatMap((e) => (e.from_id === id ? [e.to_id] : e.to_id === id ? [e.from_id] : []));
+    out.set(id, [id, ...new Set(others)].flatMap((n) => (nodes.has(n) ? [nodes.get(n)!] : [])));
+  }
+  return out;
+}
+
 /** The reviewer's queue: every finding their workspaces can see, newest first. */
 export async function listFindings(limit = 50): Promise<Finding[]> {
   const client = await createClient();
@@ -89,9 +116,11 @@ export async function listFindings(limit = 50): Promise<Finding[]> {
     rows.map((row) => row.verdict_id).filter((id): id is string => id !== null),
   );
   const nodes = await loadNodes(rows.map((row) => row.subject_node_id));
+  const linked = await loadLinked(rows.filter((row) => row.origin === "rule").map((row) => row.subject_node_id));
 
   return rows.map((row) =>
     findingView(row, {
+      linked: linked.get(row.subject_node_id),
       verdict: row.verdict_id ? (verdicts.get(row.verdict_id) ?? null) : null,
       packet: row.verdict_id ? (packets.get(verdicts.get(row.verdict_id)?.packet_id ?? "") ?? null) : null,
       criterion: nodes.get(row.subject_node_id) ?? null,
@@ -119,6 +148,7 @@ export async function getFindingDetail(id: string): Promise<FindingDetail | null
   const verdict = row.verdict_id ? (verdicts.get(row.verdict_id) ?? null) : null;
   const packet = verdict ? (packets.get(verdict.packet_id) ?? null) : null;
   const nodes = await loadNodes([row.subject_node_id]);
+  const linked = row.origin === "rule" ? await loadLinked([row.subject_node_id]) : new Map<string, NodeRow[]>();
 
   let passes: PassRow[] = [];
   if (verdict?.job_id) {
@@ -135,6 +165,7 @@ export async function getFindingDetail(id: string): Promise<FindingDetail | null
 
   return {
     finding: findingView(row, {
+      linked: linked.get(row.subject_node_id),
       verdict,
       packet,
       criterion: nodes.get(row.subject_node_id) ?? null,

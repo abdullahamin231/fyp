@@ -688,7 +688,8 @@ This contribution completes the deterministic verification slice for Iteration
 1: a change can be converted into bounded evidence, checked through a
 multi-pass verifier, admitted or downgraded by a pure gate, and exposed as a
 review finding with provenance. The module is therefore ready for a live
-evaluation using fixture-backed evidence and the configured Supabase queue.
+evaluation: the analyser publishes evidence from a real repository into the
+configured Supabase queue, and the verifier reads it back from the graph.
 
 The result does not establish general correctness or eliminate human review.
 The type-system analyser has a known miss in the pilot cases, and unresolved

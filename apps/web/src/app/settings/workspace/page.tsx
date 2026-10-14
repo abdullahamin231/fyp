@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { WorkspaceAdmin } from "@/components/settings/workspace-admin";
@@ -20,10 +21,10 @@ export default function WorkspaceAdministrationPage() {
             <Icon name="download" className="text-[16px] text-primary" />
             <span>Compliance Audit (SOC2/ISO)</span>
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 rounded bg-primary-container hover:bg-primary-container/80 text-on-primary font-body-sm font-medium transition-all shadow-sm">
+          <Link href="/settings/integrations" className="flex items-center gap-2 px-3 py-2 rounded bg-primary-container hover:bg-primary-container/80 text-on-primary font-body-sm font-medium transition-all shadow-sm">
             <Icon name="add" className="text-[16px]" />
             <span>Connect Provider</span>
-          </button>
+          </Link>
         </div>
       </div>
 
