@@ -1,6 +1,6 @@
 # UNIFY verification worker — systemd unit (template)
 #
-# This file is a template: `@REPO@`, `@USER@`, `@GROUP@`, `@NODE@` and `@MODEL@`
+# This file is a template: `@REPO@`, `@USER@`, `@GROUP@`, `@NODE@` and `@NPM@`
 # are substituted by `deploy/install.sh`. Do not install this file directly —
 # run `./deploy/install.sh` instead.
 #
@@ -40,16 +40,15 @@ EnvironmentFile=@REPO@/apps/worker/.env
 # Environment=POLL_INTERVAL_MS=3000
 # Environment=PACKET_TOKEN_BUDGET=8000
 
-ExecStart=@NODE@ dist/index.js
+ExecStart=@NPM@ run dev
 
 # Restart on crash; back off a little so a hard failure loop doesn't spin.
 Restart=always
 RestartSec=5
 
-# Hardening. Deliberately light: the spawned `opencode` CLI writes to its own
-# home cache (~/.cache/opencode, ~/.local/share/opencode), so we do NOT set
-# ProtectHome=read-only. ProtectSystem=full only makes /usr, /boot, /etc
-# read-only — home stays writable.
+# Hardening. Deliberately light: the worker runs repository code (the analyser's
+# test run) and writes its own caches, so ProtectHome stays writable.
+# `ProtectSystem=full` only makes /usr, /boot, /etc read-only — home stays writable.
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
