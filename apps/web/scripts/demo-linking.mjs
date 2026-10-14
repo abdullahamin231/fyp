@@ -7,8 +7,8 @@
  *   1. Jira issue_created UNI-1..3            -> Ticket nodes
  *   2. GitHub PR opened "UNI-2: ..."          -> linker: PR node + TRACKS edge PR -> UNI-2
  *   3. same delivery again                    -> duplicate_event, nothing written
- *   4. PR naming UNI-4 (no ticket yet)        -> unknown_key, no edge, no fake ticket
- *   5. Jira issue_created UNI-4               -> ticket created AND the earlier PR linked to it
+ *   4. PR naming UNI-n (no ticket yet)        -> unknown_key, no edge, no fake ticket
+ *   5. Jira issue_created UNI-n               -> ticket created AND the earlier PR linked to it
  *   6. PR #1 closed + merged, UNI-2 In Progress -> Rule 2 finding (shows in /conflicts)
  *
  * Signing: uses the workspace's real GitHub/Jira webhook secret if those
@@ -137,11 +137,14 @@ check("PR #1 \"UNI-2: add login page\" → linked to UNI-2", a.status === 200 &&
 const b = await github(d1, 1, "UNI-2: add login page", "feature/UNI-2-login");
 check("Same delivery again → duplicate, nothing written", b.status === 200 && b.json?.linking?.status === "duplicate_event", `${b.status} ${JSON.stringify(b.json?.linking ?? b.json)}`);
 
-const c = await github(`demo-${run}-pr2-opened`, 2, "UNI-4: profile settings (UTF-8 names)", "feature/profile");
-check("PR #2 names UNI-4 (no ticket yet) → unknown_key, no edge; UTF-8 ignored", c.status === 200 && keyStatus(c, "UNI-4") === "unknown_key" && !keyStatus(c, "UTF-8"), `${c.status} ${JSON.stringify(c.json?.linking ?? c.json)}`);
+// A ticket number that does not exist yet, so "unknown key" is real on every run.
+const existing = await db.from("nodes").select("external_id").eq("workspace_id", workspaceId).eq("type", "Ticket").like("external_id", "UNI-%");
+const late = `UNI-${Math.max(3, ...(existing.data ?? []).map((n) => Number(String(n.external_id).split("-")[1]) || 0)) + 1}`;
+const c = await github(`demo-${run}-pr2-opened`, 2, `${late}: profile settings (UTF-8 names)`, "feature/profile");
+check(`PR #2 names ${late} (no ticket yet) → unknown_key, no edge; UTF-8 ignored`, c.status === 200 && keyStatus(c, late) === "unknown_key" && !keyStatus(c, "UTF-8"), `${c.status} ${JSON.stringify(c.json?.linking ?? c.json)}`);
 
-const e = await jira("UNI-4", "Profile settings", "To Do", "new");
-check("Jira UNI-4 arrives later → PR #2 linked to it", e.status === 200 && (e.json?.ticket?.relinked ?? 0) >= 1, `${e.status} ${JSON.stringify(e.json?.ticket ?? e.json)}`);
+const e = await jira(late, "Profile settings", "To Do", "new");
+check(`Jira ${late} arrives later → PR #2 linked to it`, e.status === 200 && (e.json?.ticket?.relinked ?? 0) >= 1, `${e.status} ${JSON.stringify(e.json?.ticket ?? e.json)}`);
 
 const f = await github(`demo-${run}-pr1-merged`, 1, "UNI-2: add login page", "feature/UNI-2-login", "closed", true);
 check("PR #1 merged while UNI-2 is In Progress → Rule 2 finding", f.status === 200 && f.json?.findingsCreated === 1, `${f.status} findingsCreated=${f.json?.findingsCreated} ${f.json?.error ?? ""}${f.json?.findingsCreated === 0 ? "  (is UNIFY_RULE_GRACE_HOURS=0 set on the server?)" : ""}`);
