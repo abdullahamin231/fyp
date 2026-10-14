@@ -3,15 +3,22 @@
  *
  *   Jira issue event   -> Ticket node (created or updated)
  *                      -> re-resolve pull requests that named this key before it existed
+ *                      -> Criterion nodes for the ticket's acceptance criteria
+ *                         (one per criterion, from the configured field or a strict
+ *                         description section; none when the ticket states none)
  *   GitHub PR event    -> deterministic linker (link_pull_request_event, migration 00015):
  *                         PullRequest node + TRACKS edge to each ticket it names
+ *                      -> verification job per criterion of the linked ticket,
+ *                         pinned to the delivery's base/head commit pair
  *   either             -> Rule 2, workflow-state inconsistency, on the affected links
  *
  * Everything here runs with the service-role client inside the webhook request,
- * so a provider event shows up as graph changes and findings straight away.
+ * so a provider event shows up as graph changes, findings and queued
+ * verification work straight away.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { asRecord, text } from "./common";
+import { criterionExternalIds, extractCriteria } from "./criteria";
 
 // ---------------------------------------------------------------------------
 // Key extraction. Same rules as apps/worker/src/linking/extract-keys.ts (kept in
@@ -163,6 +170,176 @@ async function relinkUnknownKey(db: SupabaseClient, workspaceId: string, key: st
     else if (ins.error.code !== "23505") throw new Error(`edges (re-resolve ${key}): ${ins.error.message}`);
   }
   return linked;
+}
+
+// ---------------------------------------------------------------------------
+// Jira acceptance criteria -> Criterion nodes
+// ---------------------------------------------------------------------------
+
+export interface CriteriaResult {
+  created: number;
+  /** Node ids of every criterion this ticket now has (created or already present). */
+  criterionNodeIds: string[];
+  externalIds: string[];
+}
+
+/**
+ * One Criterion node per acceptance criterion, linked from the ticket with a
+ * `REFERENCES` edge.
+ *
+ * The edge values are load-bearing, not cosmetic: the verdict gate only lets a
+ * *decisive* status stand when the criterion's incident edges are
+ * decisive-eligible, and `eligibilityFor` (packages/contracts) maps a
+ * `derived` source to `system-confirmed`. Anything weaker (model_candidate,
+ * unresolved) would silently downgrade every verdict built on it.
+ */
+export async function upsertCriteriaFromJira(
+  db: SupabaseClient,
+  workspaceId: string,
+  payload: Record<string, unknown>,
+  ticketKey: string,
+  ticketNodeId: string,
+  criteriaField: string | null,
+  occurredAt: string,
+): Promise<CriteriaResult> {
+  const { texts, source } = extractCriteria(payload, criteriaField);
+  const externalIds = criterionExternalIds(ticketKey, texts.length);
+  if (externalIds.length === 0) return { created: 0, criterionNodeIds: [], externalIds };
+
+  const criterionNodeIds: string[] = [];
+  let created = 0;
+  for (const [index, externalId] of externalIds.entries()) {
+    const text_ = texts[index]!;
+    const selectExisting = async () => {
+      const { data } = await db
+        .from("nodes")
+        .select("id")
+        .eq("workspace_id", workspaceId)
+        .eq("type", "Criterion")
+        .eq("external_id", externalId)
+        .maybeSingle();
+      return (data?.id as string | undefined) ?? null;
+    };
+    const existingId = await selectExisting();
+    if (existingId) {
+      criterionNodeIds.push(existingId);
+      continue;
+    }
+    const { data, error } = await db
+      .from("nodes")
+      .insert({
+        workspace_id: workspaceId,
+        type: "Criterion",
+        external_id: externalId,
+        version: occurredAt,
+        last_modified: occurredAt,
+        payload: {
+          text: text_,
+          ticketKey,
+          source,
+          // `loadCriterion` (worker) reads these three; defaults mirror the
+          // fixture bundle so live and dataset paths stay byte-identical.
+          requirementRef: ticketKey,
+          ruleApplicable: true,
+          policyId: null,
+        },
+      })
+      .select("id")
+      .single();
+    if (error) {
+      // A concurrent delivery of the same issue created it first: adopt the
+      // existing row rather than failing the redelivery.
+      if (error.code !== "23505") {
+        throw new Error(`Could not save criterion ${externalId}: ${error.message}`);
+      }
+      const raced = await selectExisting();
+      if (!raced) throw new Error(`Could not save criterion ${externalId}: ${error.message}`);
+      criterionNodeIds.push(raced);
+      continue;
+    }
+    criterionNodeIds.push(data.id as string);
+    created += 1;
+
+    // Ticket -> Criterion, decisive-eligible (see the note above).
+    const edge = await db.from("edges").insert({
+      from_id: ticketNodeId,
+      to_id: data.id as string,
+      type: "REFERENCES",
+      source_class: "derived",
+      confidence: 1.0,
+      resolver: source === "field" ? `jira:customfield:${criteriaField}` : "jira:description",
+    });
+    if (edge.error && edge.error.code !== "23505") {
+      throw new Error(`Could not link criterion ${externalId}: ${edge.error.message}`);
+    }
+  }
+  return { created, criterionNodeIds, externalIds };
+}
+
+// ---------------------------------------------------------------------------
+// Verification queue (migration 00013/00017)
+// ---------------------------------------------------------------------------
+
+const SHA40 = /^[0-9a-f]{40}$/;
+
+export interface EnqueueResult {
+  /** Job ids returned by `enqueue_verification`, one per criterion. */
+  jobIds: string[];
+  criterionNodeIds: string[];
+}
+
+/**
+ * Queue a verification job for every criterion of the given tickets, pinned to
+ * one commit pair.
+ *
+ * The RPC is idempotent by construction (00017): a queued/running job for the
+ * same (criterion, base, head) is returned rather than duplicated, and a new
+ * job is only created once the previous one finished. A malformed or missing
+ * SHA pair is skipped rather than coerced — a packet without a pinned revision
+ * pair is meaningless (FR-06, §22.2).
+ */
+export async function enqueueVerificationForTickets(
+  db: SupabaseClient,
+  input: {
+    workspaceId: string;
+    ticketKeys: string[];
+    baseCommit: string | null | undefined;
+    headCommit: string | null | undefined;
+  },
+): Promise<EnqueueResult> {
+  const { baseCommit, headCommit } = input;
+  if (!baseCommit || !headCommit || !SHA40.test(baseCommit) || !SHA40.test(headCommit)) {
+    return { jobIds: [], criterionNodeIds: [] };
+  }
+  if (input.ticketKeys.length === 0) return { jobIds: [], criterionNodeIds: [] };
+
+  // One exact-prefix query per key: `or(...)` value quoting for keys
+  // containing `/` and `-` is a PostgREST foot-gun, and a delivery names at
+  // most a handful of tickets.
+  const criterionNodeIds: string[] = [];
+  for (const key of input.ticketKeys) {
+    const { data, error } = await db
+      .from("nodes")
+      .select("id")
+      .eq("workspace_id", input.workspaceId)
+      .eq("type", "Criterion")
+      .like("external_id", `${key}/AC-%`);
+    if (error) throw new Error(`Could not load criteria for ${key}: ${error.message}`);
+    for (const row of (data ?? []) as { id: string }[]) {
+      if (!criterionNodeIds.includes(row.id)) criterionNodeIds.push(row.id);
+    }
+  }
+  const jobIds: string[] = [];
+  for (const criterionNodeId of criterionNodeIds) {
+    const { data, error: rpcError } = await db.rpc("enqueue_verification", {
+      p_criterion_node_id: criterionNodeId,
+      p_base_commit: baseCommit,
+      p_head_commit: headCommit,
+    });
+    if (rpcError) throw new Error(`Could not enqueue verification: ${rpcError.message}`);
+    if (typeof data === "string") jobIds.push(data);
+  }
+  return { jobIds, criterionNodeIds };
 }
 
 // ---------------------------------------------------------------------------
