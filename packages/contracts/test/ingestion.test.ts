@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   IngestionEngine,
   MockVendor,
+  isSourceStale,
   type VendorResource,
 } from "../src/index.js";
 
@@ -94,5 +95,36 @@ describe("ingestion reliability", () => {
     vendor.setAvailable(true);
     engine.reconcile("figma", vendor);
     expect(engine.getCheckpoint("figma", "file-1").sourceStale).toBe(false);
+  });
+});
+
+describe("isSourceStale", () => {
+  const now = "2026-10-09T10:15:00Z";
+  const at = (iso: string) => ({ lastSuccessAt: iso });
+
+  it("is stale once the quiet window has fully elapsed", () => {
+    expect(isSourceStale(at("2026-10-09T10:00:00Z"), now, 15 * 60 * 1000)).toBe(true);
+  });
+
+  it("is fresh inside the window and at the exact boundary's far side", () => {
+    expect(isSourceStale(at("2026-10-09T10:14:59Z"), now, 15 * 60 * 1000)).toBe(false);
+  });
+
+  it("is stale exactly at the threshold — the boundary counts as quiet", () => {
+    // now - lastSuccessAt === staleAfterMs exactly.
+    expect(isSourceStale(at("2026-10-09T10:00:00Z"), now, 900_000)).toBe(true);
+  });
+
+  it("treats a checkpoint with no recorded success as stale", () => {
+    expect(isSourceStale({ lastSuccessAt: null }, now, 900_000)).toBe(true);
+  });
+
+  it("treats a future success (clock skew) as fresh, not stale", () => {
+    expect(isSourceStale(at("2026-10-09T10:20:00Z"), now, 900_000)).toBe(false);
+  });
+
+  it("rejects a non-positive threshold", () => {
+    expect(() => isSourceStale(at("2026-10-09T10:00:00Z"), now, 0)).toThrow();
+    expect(() => isSourceStale(at("2026-10-09T10:00:00Z"), now, -1)).toThrow();
   });
 });
