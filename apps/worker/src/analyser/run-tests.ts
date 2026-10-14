@@ -10,6 +10,14 @@
  * dependencies, e.g.
  *   "pnpm install --frozen-lockfile && pnpm vitest run --coverage --coverage.reporter=lcov"
  *   "pip install -e . && coverage run -m pytest && coverage lcov"
+ *
+ * The recorded tail is deliberately small (~600 chars): the runner's failure
+ * summary is what the packet carries as TEST_EVIDENCE, and a packet slot has a
+ * budget. A multi-kilobyte log tail crowds out the very evidence it belongs to —
+ * a failing run once landed as PARTIAL because its log could not be admitted
+ * while the source items filled the slot. The full output is re-derivable by
+ * re-running the recorded command; the item records command, verdict, exit code
+ * and duration so that re-run is exact.
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -33,7 +41,7 @@ export interface TestRunWithCoverage extends TestRun {
   root: string;
 }
 
-const LOG_TAIL = 4000;
+const LOG_TAIL = 600;
 
 export function runTestsAtHead(
   repoDir: string,

@@ -6,6 +6,7 @@ import {
   TYPE_TO_SLOT,
   edgeLine,
   makeItem,
+  prioritizeSlotItems,
   slotItemsFromPayload,
   type EvidenceBundle,
   type EvidenceProvider,
@@ -13,15 +14,21 @@ import {
   type SupportingEdge,
 } from "../provider.js";
 
+/** The node shape `loadNodes` returns (its row type is module-local there). */
+type NodeRow = Awaited<ReturnType<typeof loadNodes>>[number];
+
 /**
  * Evidence from the live evidence graph — the production provider.
- *
- * Retrieval is a bounded two-hop walk from the criterion (§11.5): what the
- * criterion links to, and what *those* link to. Every node in the window that
- * has a packet slot contributes its `payload.slotItems`; every active edge in
- * the window is rendered as neighbourhood evidence. Nothing is re-ranked: the
- * order is node id, then payload order, then edge order — so the same graph
+ * Retrieval is a bounded walk from the criterion (§11.5): what the criterion
+ * links to, and what those link to, to the hop bound. Every node in the window
+ * that has a packet slot contributes its `payload.slotItems`; every active edge
+ * in the window is rendered as neighbourhood evidence. Nothing is re-ranked:
+ * the order is node id, then payload order, then edge order — so the same graph
  * always yields the same packet (FR-08).
+ *
+ * The window is then scoped to the job's pinned revision pair: the graph is
+ * shared state, so a node or pull request belonging to a different head is
+ * dropped rather than mixed into a packet that claims to be about this change.
  *
  * When the Slice B analyser exists, it publishes code/test evidence into node
  * payloads; this class is already the consumer of exactly that shape.
@@ -37,6 +44,7 @@ export class GraphEvidenceProvider implements EvidenceProvider {
   async load(ctx: ProviderContext): Promise<EvidenceBundle> {
     const criterion = await loadCriterion(this.client, ctx.criterionNodeId);
     const maxHops = this.opts.maxHops ?? 3;
+    const head = ctx.headCommit ?? null;
 
     interface Row {
       id: string;
@@ -70,6 +78,29 @@ export class GraphEvidenceProvider implements EvidenceProvider {
     const nodes = await loadNodes(this.client, [...visited]);
     const externalById = new Map(nodes.map((node) => [node.id, node.external_id]));
 
+    // Scope the window to the pinned revision pair (FR-06): the walking graph
+    // is shared, mutable state — several open changes can link to the same
+    // criterion — so a node describing another commit, or a pull request at
+    // another head, belongs to that change's packet. Context nodes (the
+    // criterion, its ticket, requirements and design constraints) describe the
+    // criterion itself and always belong.
+    const CONTEXT_TYPES = new Set(["Criterion", "Ticket", "Requirement", "DesignConstraint", "DesignArtifact", "Person"]);
+    const atThisHead = (node: NodeRow): boolean =>
+      !head ||
+      node.version === head ||
+      node.payload?.sha === head ||
+      node.payload?.commit === head ||
+      node.payload?.headSha === head;
+    const kept = nodes.filter((node) => CONTEXT_TYPES.has(node.type) || atThisHead(node));
+    const keptIds = new Set(kept.map((node) => node.id));
+    const dropped = nodes.length - kept.length;
+    if (dropped > 0) {
+      console.warn(
+        `GraphEvidenceProvider: dropped ${dropped} node(s) from another revision pair ` +
+          `(${kept.length}/${nodes.length} kept for head ${head ?? "(unscoped)"})`,
+      );
+    }
+
     const sources: Partial<Record<PacketSlot, EvidenceItem[]>> = {};
     const push = (slot: PacketSlot, items: EvidenceItem[]) => {
       if (items.length === 0) return;
@@ -77,7 +108,7 @@ export class GraphEvidenceProvider implements EvidenceProvider {
     };
 
     let invalidPayloadItems = 0;
-    for (const node of nodes) {
+    for (const node of kept) {
       const slot = TYPE_TO_SLOT[node.type as keyof typeof TYPE_TO_SLOT];
       if (!slot) continue;
       const { items, invalid } = slotItemsFromPayload(node.external_id, node.payload);
@@ -85,13 +116,17 @@ export class GraphEvidenceProvider implements EvidenceProvider {
       push(slot, items);
     }
 
-    const orderedEdges = [...edgeById.values()].sort((a, b) =>
-      a.from_id === b.from_id
-        ? a.type === b.type
-          ? a.to_id.localeCompare(b.to_id)
-          : a.type.localeCompare(b.type)
-        : a.from_id.localeCompare(b.from_id),
-    );
+    // Only edges between two kept nodes: an edge into a dropped node would
+    // smuggle another change's evidence into the neighbourhood rendering.
+    const orderedEdges = [...edgeById.values()]
+      .filter((edge) => keptIds.has(edge.from_id) && keptIds.has(edge.to_id))
+      .sort((a, b) =>
+        a.from_id === b.from_id
+          ? a.type === b.type
+            ? a.to_id.localeCompare(b.to_id)
+            : a.type.localeCompare(b.type)
+          : a.from_id.localeCompare(b.from_id),
+      );
 
     const label = (id: string) => externalById.get(id) ?? id;
     push(
@@ -122,7 +157,7 @@ export class GraphEvidenceProvider implements EvidenceProvider {
 
     if (invalidPayloadItems > 0) {
       console.warn(
-        `GraphEvidenceProvider: dropped ${invalidPayloadItems} malformed payload item(s) in the ${nodes.length}-node window`,
+        `GraphEvidenceProvider: dropped ${invalidPayloadItems} malformed payload item(s) in the ${kept.length}-node window`,
       );
     }
 
@@ -139,12 +174,13 @@ export class GraphEvidenceProvider implements EvidenceProvider {
       }));
 
     return {
-      sources,
+      sources: prioritizeSlotItems(sources),
       summary: {
         ruleApplicable: criterion.ruleApplicable,
         supportingEdges,
         freshnessState: await loadFreshness(this.client, criterion.workspaceId),
-        nodesRead: nodes.length,
+        // What this packet actually read — the scoped window, not the raw walk.
+        nodesRead: kept.length,
         edgesRead: orderedEdges.length,
       },
     };

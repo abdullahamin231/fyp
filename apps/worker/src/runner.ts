@@ -92,6 +92,10 @@ export async function runJob(deps: RunnerDeps, job: JobRow): Promise<JobOutcome>
     const bundle = await provider.load({
       criterionNodeId: criterion.id,
       workspaceId: criterion.workspaceId,
+      // The packet is pinned to this revision pair: evidence from another
+      // change's head is dropped by the provider, not mixed in.
+      baseCommit: job.base_commit,
+      headCommit: job.head_commit,
     });
 
     const built = buildPacket({

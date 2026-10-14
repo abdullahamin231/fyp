@@ -57,6 +57,8 @@ interface NodeRow {
   id: string;
   type: string;
   external_id: string;
+  /** The linker records the PR's head commit here (00015 step 2). */
+  version: string | null;
   payload: Record<string, unknown> | null;
 }
 
@@ -64,6 +66,7 @@ interface NodeRow {
 async function findPullRequest(
   client: SupabaseClient,
   criterion: CriterionInfo,
+  headCommit: string,
 ): Promise<{ ticket: NodeRow; pullRequest: NodeRow } | { ticket: NodeRow; pullRequest: null } | null> {
   // Hop 1 from the criterion: ingestion linked the ticket that owns it.
   const { data: incident, error: incidentError } = await client
@@ -78,13 +81,13 @@ async function findPullRequest(
   const neighbourIds = [...new Set(edges.flatMap((e) => [e.from_id, e.to_id]))].filter((id) => id !== criterion.id);
   const { data: neighbours, error: neighbourError } = await client
     .from("nodes")
-    .select("id, type, external_id, payload")
+    .select("id, type, external_id, version, payload")
     .in("id", neighbourIds);
   if (neighbourError) throw new Error(`enrich: criterion neighbours: ${neighbourError.message}`);
   const ticket = ((neighbours ?? []) as NodeRow[]).find((node) => node.type === "Ticket");
   if (!ticket) return null;
 
-  // Hop 2: the PR the linker attached to that ticket.
+  // Hop 2: the PRs the linker attached to that ticket.
   const { data: trackEdges, error: trackError } = await client
     .from("edges")
     .select("from_id, to_id")
@@ -101,11 +104,21 @@ async function findPullRequest(
 
   const { data: prs, error: prError } = await client
     .from("nodes")
-    .select("id, type, external_id, payload")
+    .select("id, type, external_id, version, payload")
     .in("id", prIds);
   if (prError) throw new Error(`enrich: pull request nodes: ${prError.message}`);
-  const pullRequest = ((prs ?? []) as NodeRow[]).find((node) => node.type === "PullRequest");
-  return { ticket, pullRequest: pullRequest ?? null };
+  const pullRequests = ((prs ?? []) as NodeRow[]).filter((node) => node.type === "PullRequest");
+  if (pullRequests.length === 0) return { ticket, pullRequest: null };
+
+  // The change this job verifies is the one at the job's head commit — a ticket
+  // can have several open pull requests, and attributing one PR's evidence to
+  // another's packet is a provenance error, not a convenience. The linker
+  // records the head on the node's `version` column (00015 step 2); `payload`
+  // is a fallback for rows written by other paths.
+  const atHead = pullRequests.find(
+    (node) => node.version === headCommit || node.payload?.headSha === headCommit,
+  );
+  return { ticket, pullRequest: atHead ?? null };
 }
 
 /** Repo name recorded on the PR node by ingestion (`owner/name`). */
@@ -237,9 +250,13 @@ export async function ensureEvidence(
     return { status: "already-present" };
   }
 
-  const found = await findPullRequest(client, criterion);
+  const found = await findPullRequest(client, criterion, job.head_commit);
   if (!found) return { status: "no-pull-request", ticketExternalId: "" };
-  if (!found.pullRequest) return { status: "no-pull-request", ticketExternalId: found.ticket.external_id };
+  if (!found.pullRequest) {
+    // PRs are linked to the ticket, but none sits at this job's head: the
+    // graph's PR rows are stale relative to the pinned revision pair.
+    return { status: "no-pull-request", ticketExternalId: found.ticket.external_id };
+  }
 
   const repo = repoOf(found.pullRequest);
   if (!repo) return { status: "no-target", repo: "" };
