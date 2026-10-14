@@ -14,6 +14,7 @@
  *   Commit      PART_OF     PullRequest
  *   PullRequest IMPLEMENTS  CodeSymbol   every symbol the diff touches
  *   PullRequest IMPLEMENTS  TestCase     every test file the diff touches
+ *   PullRequest IMPLEMENTS  TestCase     the test *run* at head, when one ran
  * and always:
  *   TestCase    COVERS      CodeSymbol   only when the test imports the
  *                                        symbol's file
@@ -25,6 +26,11 @@
  * cards and tests would sit in the graph unreachable, and only the diff hunks
  * (on the Commit) would reach a packet. IMPLEMENTS is the type the worker's
  * demo fixture already uses for PR -> symbol.
+ *
+ * The test-run node needs that edge like any other evidence node: it is the
+ * only record of whether the suite passed at head, and an orphan node is
+ * invisible to the walk — which is how a failing suite once landed as PARTIAL
+ * instead of CONTRADICTED.
  */
 import type { EdgeType, EvidenceItem, NodeType } from "@unify/contracts";
 import { makeItem } from "../packet/provider.js";
@@ -197,8 +203,9 @@ export function toGraph(
   if (analysis.testRun) {
     const run = analysis.testRun;
     const verdict = run.timedOut ? "TIMEOUT" : run.passed ? "PASS" : "FAIL";
+    const runId = `${analysis.repo}:test-run:${analysis.head.slice(0, 12)}`;
     nodes.push({
-      externalId: `${analysis.repo}:test-run:${analysis.head.slice(0, 12)}`,
+      externalId: runId,
       type: "TestCase",
       version,
       payload: {
@@ -214,6 +221,10 @@ export function toGraph(
         ],
       },
     });
+    // Reachable from the criterion walk (criterion -> PR -> run). Without this
+    // edge the node is an orphan: it exists in the graph but never enters a
+    // packet, and a failing suite reads as PARTIAL rather than CONTRADICTED.
+    if (pr) edges.push(edge(pr, "PullRequest", runId, "TestCase", "IMPLEMENTS"));
   }
 
   return { nodes, edges };

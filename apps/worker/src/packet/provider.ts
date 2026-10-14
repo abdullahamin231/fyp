@@ -27,6 +27,15 @@ import { sha256 } from "./tokens.js";
 export interface ProviderContext {
   criterionNodeId: string;
   workspaceId: string;
+  /**
+   * The revision pair this packet is pinned to (FR-06, §22.2). When present,
+   * evidence is scoped to it: a node describing another change's commit — or a
+   * pull request at another head — belongs to that change's packet, not this
+   * one. Without this, two open pull requests on the same criterion share one
+   * evidence window and produce one identical verdict for both.
+   */
+  baseCommit?: string;
+  headCommit?: string;
 }
 
 /** The links a verdict would rest on — criterion-incident edges only. */
@@ -53,6 +62,45 @@ export interface EvidenceProvider {
   /** Recorded in run logs so a packet's provenance names its evidence source. */
   readonly name: string;
   load(ctx: ProviderContext): Promise<EvidenceBundle>;
+}
+
+/**
+ * Admission priority within a slot, for the kinds where one item's *content*
+ * is the evidence and another's content is only context for it.
+ *
+ * The assembler fills a slot in provider order and stops at the first item
+ * that would overrun it (no second pass — that would make admission depend on
+ * item sizes). Provider order for the graph is node id, which is arbitrary, so
+ * without this the single most decisive item in a slot can land after its
+ * budget is spent: a failing test run once recorded as PARTIAL because the
+ * run's log arrived after the test sources had filled TEST_EVIDENCE.
+ *
+ * This is not relevance re-ranking: the order is a fixed, recorded function of
+ * the item kind, so the same graph still yields byte-identical packets (FR-08).
+ * Kinds absent from the map keep provider order, tie-broken by citation id.
+ */
+const SLOT_ITEM_PRIORITY: Partial<Record<PacketSlot, Record<string, number>>> = {
+  TEST_EVIDENCE: { test_run: 0, test_source: 1 },
+};
+
+/** Reorder a slot's items into admission order (stable, deterministic). */
+export function prioritizeSlotItems(
+  sources: Partial<Record<PacketSlot, readonly EvidenceItem[]>>,
+): Partial<Record<PacketSlot, readonly EvidenceItem[]>> {
+  const out: Partial<Record<PacketSlot, readonly EvidenceItem[]>> = {};
+  for (const [slot, items] of Object.entries(sources) as [PacketSlot, readonly EvidenceItem[]][]) {
+    const priority = SLOT_ITEM_PRIORITY[slot];
+    if (!priority || !items) {
+      out[slot] = items;
+      continue;
+    }
+    out[slot] = [...items].sort((a, b) => {
+      const pa = priority[a.kind] ?? 99;
+      const pb = priority[b.kind] ?? 99;
+      return pa === pb ? a.id.localeCompare(b.id) : pa - pb;
+    });
+  }
+  return out;
 }
 
 /**
