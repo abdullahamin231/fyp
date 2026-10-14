@@ -18,7 +18,6 @@
  *   node scripts/demo-linking.mjs <workspace-slug> [base-url]
  *   e.g. node scripts/demo-linking.mjs demo-unify https://unify-web-weld.vercel.app
  *
- * Needs UNIFY_RULE_GRACE_HOURS=0 on the server for step 6 to fire immediately.
  */
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -147,7 +146,7 @@ const e = await jira(late, "Profile settings", "To Do", "new");
 check(`Jira ${late} arrives later → PR #2 linked to it`, e.status === 200 && (e.json?.ticket?.relinked ?? 0) >= 1, `${e.status} ${JSON.stringify(e.json?.ticket ?? e.json)}`);
 
 const f = await github(`demo-${run}-pr1-merged`, 1, "UNI-2: add login page", "feature/UNI-2-login", "closed", true);
-check("PR #1 merged while UNI-2 is In Progress → Rule 2 finding", f.status === 200 && f.json?.findingsCreated === 1, `${f.status} findingsCreated=${f.json?.findingsCreated} ${f.json?.error ?? ""}${f.json?.findingsCreated === 0 ? "  (is UNIFY_RULE_GRACE_HOURS=0 set on the server?)" : ""}`);
+check("PR #1 merged while UNI-2 is In Progress → Rule 2 finding", f.status === 200 && f.json?.findingsCreated === 1, `${f.status} findingsCreated=${f.json?.findingsCreated} ${f.json?.error ?? ""}${f.json?.findingsCreated === 0 ? "  (is the latest code deployed?)" : ""}`);
 
 const failed = results.filter((r) => !r.ok).length;
 console.log(`\n${results.length - failed}/${results.length} passed. See ${base}/links and ${base}/conflicts.`);
