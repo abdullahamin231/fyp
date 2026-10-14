@@ -145,6 +145,26 @@ export interface FindingViewContext {
   verdict: VerdictRow | null;
   packet: PacketRow | null;
   criterion: NodeRow | null;
+  /** Rule findings: the subject plus the nodes linked to it (ticket <-> pull request). */
+  linked?: NodeRow[];
+}
+
+/**
+ * A rule finding is about artefacts in different tools, e.g. a Jira ticket and
+ * the pull request that tracks it, so those are what the row shows.
+ */
+export function linkedArtifacts(nodes: NodeRow[]): ArtifactRef[] {
+  const out: ArtifactRef[] = [];
+  for (const node of nodes) {
+    if (node.type === "Ticket") {
+      out.push({ tool: "jira", ref: node.external_id, label: node.status ?? "ticket", ...(node.payload?.url ? { href: node.payload.url } : {}) });
+    } else if (node.type === "PullRequest") {
+      out.push({ tool: "github", ref: node.external_id, label: node.status ? `PR ${node.status}` : "pull request" });
+    } else if (node.type === "DesignArtifact") {
+      out.push({ tool: "figma", ref: node.external_id, label: node.status ?? "design" });
+    }
+  }
+  return out;
 }
 
 /**
@@ -198,11 +218,10 @@ export function findingView(row: FindingRow, ctx: FindingViewContext): Finding {
     title: row.annotation,
     severity: severityToWeb(row.severity),
     status: statusToWeb(row.state),
-    artifacts: artifactsFrom(
-      verdict ?? ({} as VerdictRow),
-      packet,
-      requirementRef,
-    ),
+    artifacts:
+      row.origin === "rule" && ctx.linked?.length
+        ? linkedArtifacts(ctx.linked)
+        : artifactsFrom(verdict ?? ({} as VerdictRow), packet, requirementRef),
     ageLabel: ageLabel(row.created_at),
     createdAt: row.created_at,
     assignedTo: [],
