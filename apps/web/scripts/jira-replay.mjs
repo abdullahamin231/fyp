@@ -34,13 +34,20 @@ import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
 let envFile = "";
-try {
-  envFile = readFileSync(new URL("../.env.local", import.meta.url), "utf8");
-} catch {
+for (const name of [".env.local", ".env"]) {
+  try {
+    envFile = readFileSync(new URL(`../${name}`, import.meta.url), "utf8");
+    break;
+  } catch {
+    // try the next convention
+  }
+}
+if (!envFile) {
   console.error(
-    "apps/web/.env.local not found. Create it with the values from the Vercel project\n" +
-    "(Project Settings -> Environment Variables): NEXT_PUBLIC_SUPABASE_URL,\n" +
-    "SUPABASE_SERVICE_ROLE_KEY, INTEGRATION_ENCRYPTION_KEY.",
+    "Neither apps/web/.env.local nor apps/web/.env was found. Create one with the\n" +
+    "values from the Vercel project (Project Settings -> Environment Variables):\n" +
+    "NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY),\n" +
+    "INTEGRATION_ENCRYPTION_KEY.",
   );
   process.exit(1);
 }
