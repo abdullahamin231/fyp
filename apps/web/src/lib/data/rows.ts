@@ -107,7 +107,10 @@ export interface NodeRow {
     requirementRef?: string | null;
     title?: string;
     author?: string;
+    url?: string | null;
   } | null;
+  /** Source-side state, e.g. a ticket's "In Progress" or a PR's "merged". */
+  status?: string | null;
   last_modified: string;
 }
 
