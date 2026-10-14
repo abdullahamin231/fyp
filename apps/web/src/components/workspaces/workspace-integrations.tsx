@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
+import { FigmaPoller } from "@/components/workspaces/figma-poller";
 import type { IntegrationProvider } from "@/lib/integrations/types";
 import type { ProviderStatus, WorkspaceIntegrations } from "@/lib/data/integrations";
 
@@ -29,8 +30,8 @@ const META: Record<IntegrationProvider, { name: string; icon: string; reads: str
   figma: {
     name: "Figma",
     icon: "palette",
-    reads: "File versions and Dev Mode status (read-only).",
-    webhookHint: "Register a Figma webhook for the file or team (FILE_VERSION_UPDATE, DEV_MODE_STATUS_UPDATE) with the workspace passcode.",
+    reads: "File versions (read-only, polled on an interval).",
+    webhookHint: "Version polling works on Starter teams; Dev Mode status and file deletion remain webhook-only or unavailable.",
   },
 };
 
@@ -207,6 +208,10 @@ export function WorkspaceIntegrationsSection({
           />
         ))}
       </div>
+
+      {providers.some((provider) => provider.provider === "figma" && provider.connected) && (
+        <FigmaPoller slug={workspace.slug} canManage={canConnect} />
+      )}
 
       <p className="font-body-sm text-micro-label text-muted">
         Back to <Link href="/workspaces" className="underline">all workspaces</Link>.
