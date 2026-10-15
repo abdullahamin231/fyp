@@ -11,8 +11,8 @@
  *       [--coverage-file <path>]       LCOV file that command writes (relative to the repo root)
  *       [--timeout <seconds>]          for --run-tests (default 600)
  *       [--lcov <file> [--lcov-root <dir>]]  an LCOV report produced elsewhere
- *       [--publish [--workspace <slug>]]     write nodes/edges to Supabase (needs .env and
- *                                            migration 00016); default workspace: linking-demo
+ *       [--publish --workspace <slug>]       write nodes/edges to Supabase (needs .env and
+ *                                            migration 00016)
  *
  * Without --run-tests the analyser only reads git objects and never runs code.
  */
@@ -92,10 +92,11 @@ if (process.argv.includes("--publish")) {
   const { loadConfig } = await import("../config.js");
   const { createServiceClient } = await import("../db.js");
   const client = createServiceClient(loadConfig());
-  const slug = arg("workspace") ?? "linking-demo";
+  const slug = arg("workspace");
+  if (!slug) throw new Error("--publish needs --workspace <slug>");
   const ws = await client.from("workspaces").select("id").eq("slug", slug).maybeSingle();
   if (ws.error) throw new Error(`find workspace: ${ws.error.message}`);
-  if (!ws.data) throw new Error(`no workspace with slug "${slug}" (run the linking demo once, or pass --workspace)`);
+  if (!ws.data) throw new Error(`no workspace with slug "${slug}"`);
   const result = await publishGraph(publishViaSupabase(client), (ws.data as { id: string }).id, graph);
   console.log(`\nPublished to workspace "${slug}": nodes +${result.nodesInserted} new / ${result.nodesUpdated} updated; edges +${result.edgesInserted} new / ${result.edgesExisting} existing`);
   for (const e of result.edgesSkipped) console.log(`  skipped edge ${e.from} -${e.type}-> ${e.to}: ${e.reason}`);

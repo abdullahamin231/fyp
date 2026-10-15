@@ -7,8 +7,8 @@ import type { BuiltPacket } from "../packet/builder.js";
  * Two implementations exist from day one and neither may ever be allowed to
  * silently degrade into the other:
  *
- *   `StubModelClient`  deterministic, offline — tests, CI, and the demo path
- *                      when no serving stack is reachable
+ *   `StubModelClient`  deterministic, offline — tests, CI, and any run
+ *                      without a serving stack
  *   `OpenCodeModelClient` wraps the OpenCode CLI (`opencode run --standalone
  *                      --format json`), which is the serving front-end this
  *                      project uses

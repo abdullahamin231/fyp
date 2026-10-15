@@ -15,7 +15,7 @@
  *      recorded without its links. supabase-js cannot hold a transaction open
  *      across calls, which is why that half lives in SQL.
  *
- * The four demo cases and where each is decided (steps refer to 00015):
+ * The four linking cases and where each is decided (steps refer to 00015):
  *   normal       key found, ticket exists       → new edge         (step 4)
  *   no key       nothing matched                → event kept, no edge (step 3)
  *   unknown key  key matched, no such ticket    → reported, no edge (step 4)

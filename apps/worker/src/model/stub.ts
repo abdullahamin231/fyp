@@ -17,10 +17,10 @@ import {
  * pipeline (packet → loop → gate → verdict) testable end to end without a
  * serving stack, and what keeps CI honest when no GPU is available.
  *
- * It also lets a demo *pretend* to be a badly-behaved model — `fabricate`
- * invents a citation the packet never contained (T10), and `forceStatus`
- * claims a verdict the evidence does not support — so the gate's enforcement
- * can be demonstrated rather than asserted.
+ * It also lets the tests make it behave like a badly-behaved model —
+ * `fabricate` invents a citation the packet never contained (T10), and
+ * `forceStatus` claims a verdict the evidence does not support — so the gate's
+ * enforcement is exercised rather than assumed.
  */
 export interface StubOptions {
   /** T10: inject citations the packet never contained. */

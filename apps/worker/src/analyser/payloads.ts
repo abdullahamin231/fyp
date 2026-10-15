@@ -25,7 +25,7 @@
  * a criterion (criterion -> PR -> ...). Without an edge from the PR, symbol
  * cards and tests would sit in the graph unreachable, and only the diff hunks
  * (on the Commit) would reach a packet. IMPLEMENTS is the type the worker's
- * demo fixture already uses for PR -> symbol.
+ * fixture already uses for PR -> symbol.
  *
  * The test-run node needs that edge like any other evidence node: it is the
  * only record of whether the suite passed at head, and an orphan node is
