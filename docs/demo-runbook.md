@@ -35,7 +35,8 @@ verifier loop → provenance gate → reviewer surface.
 | 4. Jira leg | demo presenter | `node scripts/jira-replay.mjs mishals-workspace --issue UNI-7 --summary "Discount codes at checkout" --criteria "the total drops by the code percentage;;the receipt shows the discounted total"` | Response `200` with `criteria: { created: 2, … }` |
 | 5. Worker | demo presenter | Put the **`sb_secret_…`** key in `apps/worker/.env`, then `cd apps/worker && ./deploy/install.sh` | `journalctl -u unify-worker` shows `worker started` with `stubFabricate: "none"` |
 | 6. Settings check | any member | `/settings/workspace?workspace=mishals-workspace` shows the analysis target `abdullahamin231/fyp` | Criteria field may stay empty (description fallback is in use) |
-| 7. Figma (optional beat) | workspace admin | Register the Figma app at `/settings/integrations?workspace=mishals-workspace` → connect via OAuth → on the workspace page add a file key → **Poll now** | A version lands in `/ingest` as a `design_artifact` event; `/graph` shows the `DesignArtifact` node. For the hourly schedule, set `CRON_SECRET` in Vercel (Project Settings → Environment Variables) |
+| 7. Figma (optional beat) | workspace admin | Register the Figma app at `/settings/integrations?workspace=mishals-workspace` → connect via OAuth → on the workspace page add a file key → **Poll now** | A version lands in `/ingest` as a `design_artifact` event; `/graph` shows the `DesignArtifact` node |
+| 8. Figma poll loop (optional) | presenter | `cd apps/web && npx tsx scripts/figma-poll-loop.ts` (or `npm run figma:poll`) | JSON lines every 60s; `--once` polls a single pass. Vercel Hobby allows only daily crons, so the scheduled half runs here rather than in `vercel.json` |
 
 Environment notes:
 
