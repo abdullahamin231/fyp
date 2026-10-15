@@ -1,5 +1,5 @@
 /**
- * A real Postgres for the linking tests and demo, running inside Node (PGlite).
+ * A real Postgres for the linking tests, running inside Node (PGlite).
  * Not used by the worker at runtime; @electric-sql/pglite is a dev dependency.
  *
  * It loads Abdullah's actual migrations, so the linker is tested against the

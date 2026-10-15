@@ -3,8 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { gate, type GateOutcome, type StopReason, type VerdictStatus } from "@unify/contracts";
 import type { Config } from "./config.js";
 import { ensureEvidence } from "./analyser/enrich.js";
-import { loadCriterion, loadDemoFault, loadLinkPolicy } from "./graph/nodes.js";
-import { StubModelClient } from "./model/stub.js";
+import { loadCriterion, loadLinkPolicy } from "./graph/nodes.js";
 import type { ModelClient } from "./model/types.js";
 import { buildPacket } from "./packet/builder.js";
 import type { EvidenceProvider } from "./packet/provider.js";
@@ -70,8 +69,7 @@ export async function claimJob(client: SupabaseClient): Promise<JobRow | null> {
 }
 
 export async function runJob(deps: RunnerDeps, job: JobRow): Promise<JobOutcome> {
-  const { client, config, provider } = deps;
-  let model = deps.model;
+  const { client, config, model, provider } = deps;
   const log = deps.logger ?? (() => {});
   let packetId: string | null = null;
   let verdictId: string | null = null;
@@ -115,17 +113,6 @@ export async function runJob(deps: RunnerDeps, job: JobRow): Promise<JobOutcome>
     });
     packetId = built.packet.id;
     await insertContextPacket(client, built.packet);
-
-    // T10 from the /demo page: a workspace can arm the stub's fabrication
-    // fault without a file edit or restart. Stub only — a real model is never
-    // told to fabricate — and the model id records it on the verdict.
-    if (config.modelProvider === "stub") {
-      const fault = await loadDemoFault(client, job.workspace_id);
-      if (fault !== "none") {
-        model = new StubModelClient({ fabricate: fault, modelId: `stub:deterministic+fabricate-${fault}` });
-        log("demo fault armed", { jobId: job.id, stubFabricate: fault });
-      }
-    }
 
     const loop = await runVerifierLoop({
       model,
@@ -247,8 +234,6 @@ export async function pollForever(deps: RunnerDeps): Promise<never> {
     provider: deps.provider.name,
     pollIntervalMs: deps.config.pollIntervalMs,
     analysisEnabled: deps.config.analysisEnabled,
-    // Printed on every start so an armed demo fault is never silent.
-    stubFabricate: deps.config.stubFabricate,
   });
   for (;;) {
     const outcome = await claimAndRun(deps);

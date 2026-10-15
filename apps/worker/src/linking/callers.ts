@@ -6,8 +6,8 @@
  *                service-role client (the function is granted to service_role
  *                only, like the queue RPCs).
  *   viaSql       any plain Postgres connection with a `query(sql, params)`
- *                method. Used by the tests and the local demo, which run the
- *                same migrations in an in-process Postgres (PGlite).
+ *                method. Used by the tests, which run the same migrations in
+ *                an in-process Postgres (PGlite).
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Db } from "./db.js";
