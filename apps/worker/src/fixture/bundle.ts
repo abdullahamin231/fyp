@@ -13,6 +13,7 @@ import {
   edgeLine,
   makeItem,
   namespaceItemId,
+  prioritizeSlotItems,
   slotItemsFromPayload,
   type EvidenceBundle,
   type ProviderSummary,
@@ -270,8 +271,7 @@ export function fixtureNodePayloads(bundle: FixtureBundle): FixtureNode[] {
 }
 
 /** Build slot sources from bundle node payloads, with citation namespacing applied. */
-export function fixtureBundleSources(bundle: FixtureBundle): EvidenceBundle {
-  const nodes = fixtureNodePayloads(bundle);
+export function fixtureBundleSources(bundle: FixtureBundle): EvidenceBundle {  const nodes = fixtureNodePayloads(bundle);
   const byExternalId = new Map(nodes.map((node) => [node.externalId, node]));
   const criterion = bundle.criterion.externalId;
 
@@ -326,5 +326,8 @@ export function fixtureBundleSources(bundle: FixtureBundle): EvidenceBundle {
     edgesRead: bundle.edges.length,
   };
 
-  return { sources, summary };
+  // Same fixed admission priority as the graph provider (packet/provider.ts),
+  // so a packet from a bundle and a packet from the live graph are assembled
+  // under one order.
+  return { sources: prioritizeSlotItems(sources), summary };
 }

@@ -15,10 +15,10 @@ import type { EdgeRow, NodeRow } from "./rows";
  * `/graph` and `/graph/artifacts`.
  *
  * Reads through the signed-in user's session (RLS), like every other query in
- * this folder. For the demo the explorers show every `demo-*` workspace at
- * once. Each workspace is one horizontal lane; kinds are columns within it, so
- * cases never stack on top of each other. Labels carry the case name, because
- * external ids (such as a commit hash) repeat across cases.
+ * this folder. Each workspace the user belongs to is one horizontal lane; kinds
+ * are columns within it, so nodes never stack on top of each other. Labels
+ * carry the workspace name, because external ids (such as a commit hash) repeat
+ * across workspaces.
  */
 
 const NODE_COLUMNS = "id, workspace_id, type, external_id, payload, last_modified";
@@ -105,7 +105,11 @@ export async function loadExplorerGraph(stage: {
 }): Promise<ExplorerGraph> {
   const client = await createClient();
 
-  const workspaces = await client.from("workspaces").select("id, slug").like("slug", "demo-%");
+  // Every workspace the signed-in user can see — RLS already scopes this to
+  // their memberships, so there is nothing to filter here. (An earlier revision
+  // hard-coded `slug like 'demo-%'`, which silently emptied the explorer for any
+  // real workspace.)
+  const workspaces = await client.from("workspaces").select("id, slug");
   if (workspaces.error) throw new Error(`workspaces: ${workspaces.error.message}`);
   const lanes = ((workspaces.data ?? []) as { id: string; slug: string }[]).sort((a, b) =>
     a.slug.localeCompare(b.slug),

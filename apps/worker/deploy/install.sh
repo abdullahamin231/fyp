@@ -16,7 +16,8 @@ set -euo pipefail
 # --- Resolve paths relative to this script (apps/worker/deploy/install.sh) ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"      # apps/worker
-REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"      # repo root
+# deploy/ -> worker/ -> apps/ -> repo root: three levels up from this script.
+REPO_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"   # repo root
 TEMPLATE="$SCRIPT_DIR/unify-worker.service"
 
 # --- Identity: run the service as the invoking user, not root ---
@@ -29,6 +30,7 @@ RUN_GROUP="$(id -gn "$RUN_USER")"
 
 # --- Node binary (systemd ExecStart needs an absolute path) ---
 NODE_BIN="$(command -v node || true)"
+NPM_BIN="$(command -v npm || true)"
 if [[ -z "$NODE_BIN" ]]; then
   echo "error: node not found on PATH" >&2
   exit 1
@@ -47,6 +49,7 @@ sed \
   -e "s|@USER@|$RUN_USER|g" \
   -e "s|@GROUP@|$RUN_GROUP|g" \
   -e "s|@NODE@|$NODE_BIN|g" \
+  -e "s|@NPM@|$NPM_BIN|g" \
   "$TEMPLATE" > "$UNIT"
 
 echo "==> Installing to /etc/systemd/system/unify-worker.service"
