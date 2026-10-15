@@ -169,7 +169,8 @@ if (lastJob.data) {
 
 // 8. Worker on this machine -----------------------------------------------------------------
 const active = sh("systemctl", ["is-active", "unify-worker"]);
-const workers = sh("pgrep", ["-fc", "tsx.*src/index.ts"]);
+// One worker is a three-process tree (sh → tsx → node); count the tree roots.
+const workers = sh("pgrep", ["-fc", "^sh -c tsx src/index.ts"]);
 const workerCount = typeof workers === "string" ? Number(workers) : 0;
 if (active === "active") {
   report(workerCount <= 1 ? "PASS" : "FAIL", "worker service", `unify-worker active · ${workerCount} worker process(es)`,
