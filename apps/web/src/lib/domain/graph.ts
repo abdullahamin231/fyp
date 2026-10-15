@@ -15,9 +15,9 @@ import type {
  * `@/lib/types` — they are a superset, never a fork, so the screens keep
  * working when the graph API is wired in.
  *
- * Positions are **centres** in stage pixels: both explorers position cards
- * with `translate(-50%, -50%)` and draw edges centre → centre, so opaque
- * cards always cover the line ends.
+ * Positions are **centres** in canvas pixels. The loader leaves them at the
+ * origin; the explorers compute them client-side (`components/graph/layout.ts`)
+ * because the layout depends on the active filters and layout mode.
  */
 
 /** Accent tone for node chrome — always one of the design-token colours. */

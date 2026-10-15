@@ -276,15 +276,15 @@ body {
   }
 }
 
-/* Animated relationship links — quick enough to read as "drawing", not wait */
-.graph-line {
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: dash 1.1s ease-out forwards;
+/* React Flow canvases (components/graph/graph-canvas.tsx) — token-driven chrome */
+.react-flow.unify-flow {
+  --xy-background-color: transparent;
+  --xy-minimap-background-color: var(--color-surface-container-low);
+  --xy-node-boxshadow-selected: none;
 }
 
-@keyframes dash {
-  to {
-    stroke-dashoffset: 0;
-  }
+.react-flow.unify-flow .react-flow__node:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+  border-radius: 10px;
 }

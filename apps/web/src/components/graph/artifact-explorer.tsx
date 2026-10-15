@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Panel } from "@xyflow/react";
 import { Badge, ToolPill } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
-import { edgeLabelAnchor, edgePath, type Point } from "./geometry";
-import { eligibilityStyle, kindIcon, kindTone, toneClasses, toolName } from "./graph-styles";
+import { GraphCanvas } from "./graph-canvas";
+import { eligibilityStyle, toneClasses } from "./graph-styles";
+import { computeLayout, type LayoutMode } from "./layout";
 import type {
   EdgeRelation,
   ExplorerEdge,
@@ -15,21 +17,15 @@ import type {
 import { graphStats, isDecisive } from "@/lib/domain/graph";
 import type { GraphNodeKind, LinkEligibility } from "@/lib/types";
 
-/** Canvas stage (px) — cards centre on their node coordinates. */
-const STAGE_W = 1100;
-const STAGE_H = 900;
-
-type LayoutMode = "hierarchical" | "force" | "radial";
-
 const LAYOUTS: { id: LayoutMode; label: string; icon: string }[] = [
-  { id: "hierarchical", label: "Hierarchical", icon: "account_tree" },
+  { id: "layered", label: "Hierarchical", icon: "account_tree" },
   { id: "force", label: "Force-directed", icon: "hub" },
   { id: "radial", label: "Radial", icon: "radio_button_unchecked" },
 ];
 
 const ENTITY_FILTERS: { id: string; label: string; kinds: GraphNodeKind[] }[] = [
   { id: "figma", label: "Figma Frames / UI", kinds: ["design"] },
-  { id: "github", label: "GitHub PRs & Code", kinds: ["pr", "code"] },
+  { id: "github", label: "GitHub PRs, Code & Tests", kinds: ["pr", "code", "test"] },
   { id: "jira", label: "Jira Tickets", kinds: ["requirement"] },
   { id: "finding", label: "Findings", kinds: ["finding"] },
 ];
@@ -43,17 +39,14 @@ const RELATIONS: EdgeRelation[] = [
   "TRIGGERS",
 ];
 
-const ELIGIBILITIES: LinkEligibility[] = ["confirmed", "system-confirmed", "inferred", "unconfirmed"];
+const ELIGIBILITIES: LinkEligibility[] = [
+  "confirmed",
+  "system-confirmed",
+  "inferred",
+  "unconfirmed",
+];
 
-/**
- * Saved node-id subsets for the preset chips. Empty until the artifact API
- * supplies real node ids — with no ids, no preset matches and the full graph
- * (itself empty) is shown.
- */
-const PRESETS: Record<string, string[]> = {
-  drift: [],
-  checkout: [],
-};
+type Preset = "divergences" | "neighbourhood";
 
 function eligibilityCaption(edge: ExplorerEdge): string {
   const pct = Math.round(edge.confidence * 100);
@@ -65,136 +58,9 @@ function eligibilityCaption(edge: ExplorerEdge): string {
   return `${pct}% Unconfirmed`;
 }
 
-/** Deterministic alternate layouts so the layout pills actually redraw. */
-function computeLayout(
-  nodes: ExplorerNode[],
-  mode: LayoutMode,
-  origin: Point,
-): Map<string, Point> {
-  const map = new Map<string, Point>();
-  if (mode === "hierarchical") {
-    for (const node of nodes) map.set(node.id, { x: node.x, y: node.y });
-    return map;
-  }
-  if (mode === "force") {
-    const ordered = [...nodes].sort((a, b) => a.id.localeCompare(b.id));
-    ordered.forEach((node, index) => {
-      const column = index % 3;
-      const row = Math.floor(index / 3);
-      map.set(node.id, {
-        x: 120 + column * 210 + ((index * 37) % 46) - 23,
-        y: 105 + row * 175 + ((index * 23) % 40) - 20,
-      });
-    });
-    return map;
-  }
-  const radiusX = 235;
-  const radiusY = 215;
-  nodes.forEach((node, index) => {
-    const angle = (index / nodes.length) * Math.PI * 2 - Math.PI / 2;
-    map.set(node.id, {
-      x: origin.x + Math.cos(angle) * radiusX,
-      y: origin.y + Math.sin(angle) * radiusY,
-    });
-  });
-  return map;
-}
-
-function ArtifactNodeCard({
-  node,
-  selected,
-  onSelect,
-}: {
-  node: ExplorerNode;
-  selected: boolean;
-  onSelect: (id: string) => void;
-}) {
-  const tone = toneClasses[kindTone[node.kind]];
-  const rich = node.kind === "design" || node.kind === "pr" || node.kind === "requirement";
-
-  if (node.kind === "finding") {
-    return (
-      <button
-        onClick={() => onSelect(node.id)}
-        className="absolute w-40 p-3 rounded-lg bg-surface-container-high border-2 border-error shadow-2xl text-left cursor-pointer hover:scale-105 transition-transform duration-150"
-        style={{ left: node.x, top: node.y, transform: "translate(-50%, -50%)" }}
-      >
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-mono-code text-micro-label font-bold">
-            <Icon name="crisis_alert" className="text-micro-label" />
-            Finding
-          </span>
-          <span className="w-2 h-2 rounded-full bg-error animate-pulse" />
-        </div>
-        <div className="font-body-sm font-semibold text-on-surface truncate">{node.label}</div>
-        <div className="mt-1 text-micro-label font-mono-code text-error">{node.meta}</div>
-      </button>
-    );
-  }
-
-  if (rich) {
-    return (
-      <button
-        onClick={() => onSelect(node.id)}
-        className={`absolute w-36 p-1.5 rounded-md bg-surface-container border-2 text-left cursor-pointer transition-all duration-150 hover:scale-105 ${
-          node.conflict
-            ? "border-error ring-4 ring-error/30 shadow-2xl animate-pulse"
-            : `${tone.border} shadow-xl`
-        } ${selected ? "ring-4 ring-primary/30 border-primary" : ""}`}
-        style={{ left: node.x, top: node.y, transform: "translate(-50%, -50%)" }}
-      >
-        <div className="flex items-center justify-between mb-1">
-          <ToolPill tool={node.tool ?? "github"}>{node.kindLabel}</ToolPill>
-          <span
-            className={`w-2 h-2 rounded-full ${
-              node.conflict ? "bg-error" : "bg-secondary"
-            }`}
-          />
-        </div>
-        <div className="font-body-sm text-xs font-semibold text-on-surface truncate">{node.label}</div>
-        <div className="flex items-center justify-between mt-1 text-micro-label font-mono-code text-muted gap-2">
-          <span className="truncate">{node.subtitle.split(" · ")[1] ?? node.subtitle}</span>
-          <span
-            className={`shrink-0 font-medium ${
-              node.metaTone ? toneClasses[node.metaTone].text : "text-muted"
-            }`}
-          >
-            {node.meta}
-          </span>
-        </div>
-      </button>
-    );
-  }
-
-  return (
-    <button
-      onClick={() => onSelect(node.id)}
-      className={`absolute w-40 p-3 rounded-lg bg-surface-container border shadow-md text-left cursor-pointer transition-all hover:border-primary/60 ${
-        selected ? "ring-4 ring-primary/30 border-primary" : "border-outline-variant/40"
-      }`}
-      style={{ left: node.x, top: node.y, transform: "translate(-50%, -50%)" }}
-    >
-      <div className="flex items-center gap-1 font-mono-code text-micro-label text-on-surface-variant">
-        <Icon name={kindIcon[node.kind]} className={`${tone.text} text-[12px]`} />
-        <span className="truncate">{node.label}</span>
-      </div>
-      <div className="flex items-center justify-between text-micro-label mt-0.5 gap-2">
-        <span
-          className={`truncate font-mono-code text-micro-label ${
-            node.metaTone ? toneClasses[node.metaTone].text : "text-muted"
-          }`}
-        >
-          {node.meta}
-        </span>
-        <span className="shrink-0 text-muted text-micro-label">{toolName(node.tool)}</span>
-      </div>
-    </button>
-  );
-}
-
 /**
- * `/graph/artifacts` — the three-pane artefact explorer from the Stitch
- * screen: filter & provenance drawer, topology canvas, node inspector.
+ * `/graph/artifacts` — the three-pane artefact explorer: filter & provenance
+ * drawer, pan-and-zoom topology canvas with three layouts, node inspector.
  */
 export function ArtifactGraphExplorer({
   graph,
@@ -205,9 +71,10 @@ export function ArtifactGraphExplorer({
   proposal: LinkProposal | null;
   driftAffected: string[];
 }) {
-  const [layout, setLayout] = useState<LayoutMode>("hierarchical");
+  const [layout, setLayout] = useState<LayoutMode>("layered");
   const [showFilters, setShowFilters] = useState(true);
-  const [zoom, setZoom] = useState(100);
+  const [focusQuery, setFocusQuery] = useState("");
+  const [focusMiss, setFocusMiss] = useState(false);
   const [cutoff, setCutoff] = useState(70);
   const [enabledKinds, setEnabledKinds] = useState<Set<GraphNodeKind>>(
     new Set(["design", "pr", "code", "requirement", "finding", "test"]),
@@ -215,34 +82,13 @@ export function ArtifactGraphExplorer({
   const [enabledEligibility, setEnabledEligibility] = useState<Set<LinkEligibility>>(
     new Set(ELIGIBILITIES),
   );
-  const [preset, setPreset] = useState<string | null>(null);
+  const [preset, setPreset] = useState<Preset | null>(null);
   const [selectedId, setSelectedId] = useState<string>("");
   const [proposalState, setProposalState] = useState<"pending" | "confirmed" | "dismissed">(
     "pending",
   );
 
   const stats = useMemo(() => graphStats(graph), [graph]);
-  const positions = useMemo(
-    () => computeLayout(graph.nodes, layout, { x: STAGE_W / 2, y: STAGE_H / 2 }),
-    [graph, layout],
-  );
-
-  const proposalPoint = useMemo(() => {
-    if (!proposal) return { x: STAGE_W / 2, y: STAGE_H / 2 };
-    const origin = positions.get(proposal.from) ?? { x: STAGE_W / 2, y: STAGE_H / 2 };
-    const half = { w: 116, h: 56 };
-    return {
-      x: Math.min(
-        Math.max(origin.x + proposal.offsetX, half.w),
-        STAGE_W - half.w,
-      ),
-      y: Math.min(
-        Math.max(origin.y + proposal.offsetY, half.h),
-        STAGE_H - half.h,
-      ),
-    };
-  }, [positions, proposal]);
-
   /** Base edge list = graph edges + the (stateful) Slack link proposal. */
   const allEdges = useMemo<ExplorerEdge[]>(() => {
     if (!proposal || proposalState === "dismissed") return graph.edges;
@@ -260,13 +106,29 @@ export function ArtifactGraphExplorer({
     return [...graph.edges, proposalEdge];
   }, [graph, proposal, proposalState]);
 
+  /** Node ids a quick-focus preset keeps: a node and everything one hop from it. */
+  const presetIds = useMemo(() => {
+    if (!preset) return null;
+    const seeds =
+      preset === "divergences"
+        ? graph.nodes.filter((node) => node.conflict).map((node) => node.id)
+        : selectedId
+          ? [selectedId]
+          : [];
+    const ids = new Set(seeds);
+    for (const edge of graph.edges) {
+      if (seeds.includes(edge.from)) ids.add(edge.to);
+      if (seeds.includes(edge.to)) ids.add(edge.from);
+    }
+    return ids;
+  }, [preset, graph, selectedId]);
+
   const visibleNodes = useMemo(
     () =>
       graph.nodes.filter(
-        (node) =>
-          enabledKinds.has(node.kind) && (!preset || PRESETS[preset].includes(node.id)),
+        (node) => enabledKinds.has(node.kind) && (!presetIds || presetIds.has(node.id)),
       ),
-    [graph, enabledKinds, preset],
+    [graph, enabledKinds, presetIds],
   );
 
   const visibleNodeIds = useMemo(
@@ -277,7 +139,8 @@ export function ArtifactGraphExplorer({
   const visibleEdges = useMemo(
     () =>
       allEdges.filter((edge) => {
-        const proposalEndpoint = proposal !== null && (edge.to === proposal.id || edge.from === proposal.id);
+        const proposalEndpoint =
+          proposal !== null && (edge.to === proposal.id || edge.from === proposal.id);
         const endpointsVisible = proposalEndpoint
           ? proposalState !== "dismissed" && visibleNodeIds.has(proposal.from)
           : visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to);
@@ -289,6 +152,29 @@ export function ArtifactGraphExplorer({
       }),
     [allEdges, visibleNodeIds, enabledEligibility, cutoff, proposal, proposalState],
   );
+
+  /** Edges between two canvas nodes (the Slack proposal floats as a panel). */
+  const canvasEdges = useMemo(
+    () =>
+      visibleEdges.filter((edge) => visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to)),
+    [visibleEdges, visibleNodeIds],
+  );
+
+  const positions = useMemo(
+    () => computeLayout(layout, visibleNodes, canvasEdges),
+    [layout, visibleNodes, canvasEdges],
+  );
+
+  function focusNode() {
+    const query = focusQuery.trim().toLowerCase();
+    if (!query) return;
+    const match = visibleNodes.find(
+      (node) =>
+        node.label.toLowerCase().includes(query) || node.locator.toLowerCase().includes(query),
+    );
+    setFocusMiss(!match);
+    if (match) setSelectedId(match.id);
+  }
 
   const selected = graph.nodes.find((node) => node.id === selectedId) ?? graph.nodes[0] ?? null;
 
@@ -326,7 +212,9 @@ export function ArtifactGraphExplorer({
           <div className="flex items-center gap-stack-compact text-muted font-mono-code text-body-sm">
             <span>Workspace</span>
             <Icon name="chevron_right" className="text-[14px]" />
-            <span className="text-on-surface-variant font-medium">Core Checkout</span>
+            <span className="text-on-surface-variant font-medium">
+              {[...new Set(graph.nodes.map((node) => node.subtitle))].join(" · ") || "—"}
+            </span>
             <Icon name="chevron_right" className="text-[14px]" />
             <span className="text-secondary font-semibold">Artifact Graph</span>
           </div>
@@ -381,9 +269,19 @@ export function ArtifactGraphExplorer({
                   className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted text-[16px]"
                 />
                 <input
-                  className="w-full pl-8 pr-12 py-1.5 bg-surface-container rounded border border-outline-variant/30 text-on-surface placeholder:text-muted font-mono-code text-[12px] focus:outline-none focus:border-primary transition-colors"
+                  className={`w-full pl-8 pr-12 py-1.5 bg-surface-container rounded border text-on-surface placeholder:text-muted font-mono-code text-[12px] focus:outline-none focus:border-primary transition-colors ${
+                    focusMiss ? "border-error" : "border-outline-variant/30"
+                  }`}
                   placeholder="Focus on node / artifact ID..."
                   type="text"
+                  value={focusQuery}
+                  onChange={(event) => {
+                    setFocusQuery(event.target.value);
+                    setFocusMiss(false);
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") focusNode();
+                  }}
                 />
                 <span className="absolute right-2 top-1/2 -translate-y-1/2 font-mono-code text-micro-label text-muted px-1.5 py-0.5 rounded bg-surface-container-highest">
                   ↵
@@ -437,7 +335,9 @@ export function ArtifactGraphExplorer({
                   <button
                     className="font-mono-code text-micro-label text-primary hover:underline"
                     onClick={() =>
-                      setEnabledKinds(new Set(["design", "pr", "code", "requirement", "finding", "test"]))
+                      setEnabledKinds(
+                        new Set(["design", "pr", "code", "requirement", "finding", "test"]),
+                      )
                     }
                   >
                     Select All
@@ -446,7 +346,9 @@ export function ArtifactGraphExplorer({
                 <div className="space-y-1.5">
                   {ENTITY_FILTERS.map((filter) => {
                     const active = filter.kinds.every((kind) => enabledKinds.has(kind));
-                    const count = graph.nodes.filter((node) => filter.kinds.includes(node.kind)).length;
+                    const count = graph.nodes.filter((node) =>
+                      filter.kinds.includes(node.kind),
+                    ).length;
                     return (
                       <label
                         key={filter.id}
@@ -521,7 +423,9 @@ export function ArtifactGraphExplorer({
                 <div className="space-y-4">
                   {ELIGIBILITIES.map((eligibility) => {
                     const style = eligibilityStyle[eligibility];
-                    const count = allEdges.filter((edge) => edge.eligibility === eligibility).length;
+                    const count = allEdges.filter(
+                      (edge) => edge.eligibility === eligibility,
+                    ).length;
                     const active = enabledEligibility.has(eligibility);
                     return (
                       <label
@@ -563,7 +467,9 @@ export function ArtifactGraphExplorer({
 
                 <div className="pt-2 bg-surface-container-lowest/50 p-3.5 rounded-lg">
                   <div className="flex justify-between items-center mb-1.5">
-                    <span className="font-mono-code text-micro-label text-muted">Confidence Cutoff</span>
+                    <span className="font-mono-code text-micro-label text-muted">
+                      Confidence Cutoff
+                    </span>
                     <span className="font-mono-code text-micro-label text-tertiary font-bold">
                       {cutoff}%
                     </span>
@@ -590,9 +496,11 @@ export function ArtifactGraphExplorer({
               <span className="font-mono-code text-micro-label text-muted">Quick Focus:</span>
               <div className="flex gap-1">
                 <button
-                  onClick={() => setPreset((value) => (value === "drift" ? null : "drift"))}
+                  onClick={() =>
+                    setPreset((value) => (value === "divergences" ? null : "divergences"))
+                  }
                   className={`px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high font-mono-code text-micro-label border ${
-                    preset === "drift"
+                    preset === "divergences"
                       ? "text-error border-error"
                       : "text-error border-error/30"
                   }`}
@@ -600,14 +508,18 @@ export function ArtifactGraphExplorer({
                   Divergences
                 </button>
                 <button
-                  onClick={() => setPreset((value) => (value === "checkout" ? null : "checkout"))}
-                  className={`px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high font-mono-code text-micro-label border ${
-                    preset === "checkout"
+                  onClick={() =>
+                    setPreset((value) => (value === "neighbourhood" ? null : "neighbourhood"))
+                  }
+                  disabled={!selectedId}
+                  title={selectedId ? "Selected node and its direct links" : "Select a node first"}
+                  className={`px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high font-mono-code text-micro-label border disabled:opacity-40 ${
+                    preset === "neighbourhood"
                       ? "text-secondary border-secondary"
                       : "text-secondary border-secondary/30"
                   }`}
                 >
-                  Checkout
+                  Selected ±1
                 </button>
               </div>
             </div>
@@ -618,207 +530,98 @@ export function ArtifactGraphExplorer({
         <main
           className={`col-span-12 ${
             showFilters ? "lg:col-span-6" : "lg:col-span-9"
-          } flex flex-col bg-surface-container-lowest rounded-xl border border-outline-variant/30 relative overflow-hidden group shadow-2xl h-[720px] lg:h-[calc(100vh-248px)] lg:min-h-[640px]`}
+          } flex flex-col bg-surface-container-lowest rounded-xl border border-outline-variant/30 relative overflow-hidden shadow-2xl h-[720px] lg:h-[calc(100vh-248px)] lg:min-h-[640px]`}
         >
-          {/* Status pill */}
-          <div className="absolute top-3 left-3 z-20 flex items-center gap-2 pointer-events-none flex-wrap">
-            <div className="px-2 py-1 rounded bg-surface-container/85 border border-outline-variant/30 backdrop-blur font-mono-code text-micro-label text-muted">
-              Nodes: <span className="text-on-surface">{visibleNodes.length}</span> · Edges:{" "}
-              <span className="text-on-surface">{visibleEdges.length}</span> | Zoom:{" "}
-              <span className="text-secondary">{zoom}%</span>
+          {graph.nodes.length === 0 ? (
+            <div className="absolute inset-0 grid place-items-center p-6 text-center">
+              <div>
+                <Icon name="hub" className="text-[32px] text-muted mb-2" />
+                <p className="text-body-sm text-muted">No artifacts ingested yet.</p>
+              </div>
             </div>
-            {divergenceNode ? (
-              <button
-                onClick={() => setSelectedId(divergenceNode.id)}
-                className="px-2 py-1 rounded bg-error/10 border border-error/30 font-mono-code text-micro-label text-error flex items-center gap-1 pointer-events-auto"
-              >
-                <Icon name="warning" className="text-[12px] animate-pulse" />
-                {divergenceNode.label} Divergence Alert
-              </button>
-            ) : null}
-          </div>
-
-          {/* Canvas grid */}
-          <div className="absolute inset-0 z-0 opacity-100 pointer-events-none bg-surface-container-lowest" />
-
-          {/* Topology viewport */}
-          <div className="relative z-10 w-full h-full overflow-hidden">
-            <div
-              className="absolute left-1/2 top-0 -translate-x-1/2"
-              style={{ width: STAGE_W, height: STAGE_H }}
-            >
-              <div
-                className="absolute inset-0 origin-center transition-transform duration-200"
-                style={{ transform: `scale(${zoom / 100})` }}
-              >
-                <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  aria-hidden
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  {visibleEdges.map((edge) => {
-                    const a =
-                      proposal !== null && edge.from === proposal.id
-                        ? proposalPoint
-                        : (positions.get(edge.from) ?? null);
-                    const b =
-                      proposal !== null && edge.to === proposal.id
-                        ? proposalPoint
-                        : (positions.get(edge.to) ?? null);
-                    if (!a || !b) return null;
-                    const style = eligibilityStyle[edge.eligibility];
-                    const anchor = edgeLabelAnchor(a, b);
-                    return (
-                      <g key={`${edge.from}-${edge.to}-${edge.label}`}>
-                        <path
-                          d={edgePath(a, b)}
-                          fill="none"
-                          strokeWidth={isDecisive(edge.eligibility) ? 2 : 1.5}
-                          strokeLinecap="round"
-                          strokeDasharray={style.dash}
-                          className={style.strokeClass}
-                        />
-                        <text
-                          x={anchor.x}
-                          y={anchor.y}
-                          textAnchor="middle"
-                          className="font-mono-code text-micro-label font-bold fill-on-surface-variant"
-                        >
-                          {edge.label}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-
-                {visibleNodes.map((node) => (
-                  <ArtifactNodeCard
-                    key={node.id}
-                    node={node}
-                    selected={node.id === selectedId}
-                    onSelect={setSelectedId}
-                  />
-                ))}
-
-                {/* Inferred Slack link proposal */}
-                {proposal && proposalState !== "dismissed" && visibleNodeIds.has(proposal.from) ? (
-                  <div
-                    className="absolute w-56 p-3 rounded-lg border shadow-xl backdrop-blur-md"
-                    style={{
-                      left: proposalPoint.x,
-                      top: proposalPoint.y,
-                      transform: "translate(-50%, -50%)",
-                    }}
+          ) : null}
+          <GraphCanvas
+            nodes={visibleNodes}
+            edges={canvasEdges}
+            positions={positions}
+            selectedId={selectedId || null}
+            onSelect={(id) => setSelectedId(id ?? "")}
+            alwaysLabelEdges={visibleNodes.length <= 12}
+            controlsPosition="bottom-left"
+            minimapPosition="bottom-right"
+          >
+            <Panel position="top-left">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="px-2 py-1 rounded bg-surface-container/85 border border-outline-variant/30 backdrop-blur font-mono-code text-micro-label text-muted">
+                  Nodes: <span className="text-on-surface">{visibleNodes.length}</span> · Edges:{" "}
+                  <span className="text-on-surface">{canvasEdges.length}</span>
+                </div>
+                {divergenceNode ? (
+                  <button
+                    onClick={() => setSelectedId(divergenceNode.id)}
+                    className="px-2 py-1 rounded bg-error/10 border border-error/30 font-mono-code text-micro-label text-error flex items-center gap-1"
                   >
-                    {proposalState === "confirmed" ? (
-                      <div className="bg-surface-container-highest/90 border border-secondary">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="flex items-center gap-1 text-secondary font-mono-code text-micro-label font-bold">
-                            <Icon name="check_circle" className="text-[13px]" />
-                            Confirmed Link
-                          </span>
-                          <span className="text-muted font-mono-code text-micro-label">You</span>
-                        </div>
-                        <div className="font-body-sm text-[12px] text-on-surface truncate">
-                          {proposal.channel}: {proposal.quote}
-                        </div>
-                        <div className="mt-1.5 font-mono-code text-micro-label text-on-surface-variant">
-                          manual · reversible · provenance recorded
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-surface-container-highest/90 border border-tertiary">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="flex items-center gap-1 text-tertiary font-mono-code text-micro-label font-bold">
-                            <Icon name="cyclone" className="text-[13px] animate-spin" />
-                            Inferred Link: {Math.round(proposal.confidence * 100)}%
-                          </span>
-                          <span className="text-muted font-mono-code text-micro-label">NLP Heuristic</span>
-                        </div>
-                        <div className="font-body-sm text-[12px] text-on-surface truncate">
-                          {proposal.channel}: {proposal.quote}
-                        </div>
-                        <div className="mt-2 flex items-center gap-1.5">
-                          <button
-                            onClick={() => setProposalState("confirmed")}
-                            className="flex-1 py-1 rounded bg-secondary-container text-on-secondary font-mono-code text-micro-label font-bold hover:brightness-110 transition-all flex items-center justify-center gap-0.5"
-                          >
-                            <Icon name="check" className="text-[12px]" /> Confirm
-                          </button>
-                          <button
-                            onClick={() => setProposalState("dismissed")}
-                            className="flex-1 py-1 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 text-muted hover:text-on-surface font-mono-code text-micro-label flex items-center justify-center gap-0.5 transition-all"
-                          >
-                            <Icon name="close" className="text-[12px]" /> Dismiss
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    <Icon name="warning" className="text-[12px] animate-pulse" />
+                    {divergenceNode.label} Divergence Alert
+                  </button>
                 ) : null}
               </div>
-            </div>
-          </div>
+            </Panel>
 
-          {/* Canvas utilities */}
-          <div className="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-2">
-            <div className="w-32 h-20 bg-surface-container-lowest/90 border border-outline-variant/40 rounded-lg p-1.5 shadow-xl backdrop-blur hidden md:block">
-              <div className="relative w-full h-full bg-surface-container-low rounded overflow-hidden">
-                {graph.nodes.map((node) => (
-                  <span
-                    key={node.id}
-                    className={`absolute w-3 h-1.5 rounded-xs ${
-                      kindTone[node.kind] === "primary"
-                        ? "bg-primary"
-                        : kindTone[node.kind] === "secondary"
-                          ? "bg-secondary"
-                          : kindTone[node.kind] === "tertiary"
-                            ? "bg-tertiary"
-                            : "bg-error"
-                    }`}
-                    style={{
-                      left: `${(node.x / STAGE_W) * 120}px`,
-                      top: `${(node.y / STAGE_H) * 72}px`,
-                    }}
-                  />
-                ))}
-                <span className="absolute top-0.5 left-1 w-20 h-10 border border-secondary/70 bg-secondary/10 rounded-xs pointer-events-none" />
-              </div>
-            </div>
-            <div className="flex items-center bg-surface-container/90 border border-outline-variant/40 rounded-lg p-0.5 backdrop-blur shadow-lg">
-              <button
-                className="p-1.5 rounded hover:bg-surface-container-high text-muted hover:text-on-surface transition-colors"
-                title="Zoom In"
-                onClick={() => setZoom((value) => Math.min(200, value + 25))}
-              >
-                <Icon name="add" className="text-[16px]" />
-              </button>
-              <div className="h-3 w-px bg-outline-variant/40" />
-              <button
-                className="p-1.5 rounded hover:bg-surface-container-high text-muted hover:text-on-surface transition-colors"
-                title="Zoom Out"
-                onClick={() => setZoom((value) => Math.max(50, value - 25))}
-              >
-                <Icon name="remove" className="text-[16px]" />
-              </button>
-              <div className="h-3 w-px bg-outline-variant/40" />
-              <button
-                className="px-2 py-1 rounded hover:bg-surface-container-high font-mono-code text-micro-label text-on-surface transition-colors"
-                title="Reset View"
-                onClick={() => setZoom(100)}
-              >
-                {zoom}%
-              </button>
-              <div className="h-3 w-px bg-outline-variant/40" />
-              <button
-                className="p-1.5 rounded hover:bg-surface-container-high text-muted hover:text-on-surface transition-colors"
-                title="Fit to Screen"
-                onClick={() => setZoom(100)}
-              >
-                <Icon name="fit_screen" className="text-[16px]" />
-              </button>
-            </div>
-          </div>
+            {/* Inferred Slack link proposal */}
+            {proposal && proposalState !== "dismissed" && visibleNodeIds.has(proposal.from) ? (
+              <Panel position="top-right">
+                <div className="w-56 p-3 rounded-lg border shadow-xl backdrop-blur-md">
+                  {proposalState === "confirmed" ? (
+                    <div className="bg-surface-container-highest/90 border border-secondary">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="flex items-center gap-1 text-secondary font-mono-code text-micro-label font-bold">
+                          <Icon name="check_circle" className="text-[13px]" />
+                          Confirmed Link
+                        </span>
+                        <span className="text-muted font-mono-code text-micro-label">You</span>
+                      </div>
+                      <div className="font-body-sm text-[12px] text-on-surface truncate">
+                        {proposal.channel}: {proposal.quote}
+                      </div>
+                      <div className="mt-1.5 font-mono-code text-micro-label text-on-surface-variant">
+                        manual · reversible · provenance recorded
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-surface-container-highest/90 border border-tertiary">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="flex items-center gap-1 text-tertiary font-mono-code text-micro-label font-bold">
+                          <Icon name="cyclone" className="text-[13px] animate-spin" />
+                          Inferred Link: {Math.round(proposal.confidence * 100)}%
+                        </span>
+                        <span className="text-muted font-mono-code text-micro-label">
+                          NLP Heuristic
+                        </span>
+                      </div>
+                      <div className="font-body-sm text-[12px] text-on-surface truncate">
+                        {proposal.channel}: {proposal.quote}
+                      </div>
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <button
+                          onClick={() => setProposalState("confirmed")}
+                          className="flex-1 py-1 rounded bg-secondary-container text-on-secondary font-mono-code text-micro-label font-bold hover:brightness-110 transition-all flex items-center justify-center gap-0.5"
+                        >
+                          <Icon name="check" className="text-[12px]" /> Confirm
+                        </button>
+                        <button
+                          onClick={() => setProposalState("dismissed")}
+                          className="flex-1 py-1 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 text-muted hover:text-on-surface font-mono-code text-micro-label flex items-center justify-center gap-0.5 transition-all"
+                        >
+                          <Icon name="close" className="text-[12px]" /> Dismiss
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Panel>
+            ) : null}
+          </GraphCanvas>
         </main>
 
         {/* RIGHT: node inspector */}
@@ -827,178 +630,185 @@ export function ArtifactGraphExplorer({
             <div className="flex-1 grid place-items-center p-6 text-center">
               <div>
                 <Icon name="interesting" className="text-[32px] text-muted mb-2" />
-                <p className="font-body-sm text-body-sm text-muted">
-                  No artifact selected.
-                </p>
+                <p className="font-body-sm text-body-sm text-muted">No artifact selected.</p>
               </div>
             </div>
           ) : (
-          <>
-          <div className="p-4 border-b border-outline-variant/25 bg-surface-container-lowest/60">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="font-label-caps text-label-caps text-primary uppercase tracking-wider">
-                Node Inspector
-              </span>
-              {selected.kind === "finding" ? (
-                <Badge tone="critical">Finding</Badge>
-              ) : (
-                <ToolPill tool={selected.tool ?? "github"}>{selected.kindLabel}</ToolPill>
-              )}
-            </div>
-            <div className="flex items-baseline gap-2">
-              <h2 className="font-headline-sm text-headline-sm font-bold text-on-surface truncate">
-                {selected.label}
-              </h2>
-            </div>
-            <div className="font-mono-code text-micro-label text-muted mt-0.5 truncate">
-              {selected.locator}
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 text-body-sm">
-            {/* Provenance metadata */}
-            <div className="bg-surface-container-lowest/70 rounded-lg p-3.5 border border-outline-variant/20 space-y-3 text-[12px]">
-              {selected.fields.map((field) => (
-                <div key={field.label} className="flex justify-between gap-3">
-                  <span className="text-muted">{field.label}</span>
-                  <span
-                    className={`font-mono-code truncate ${
-                      field.tone ? toneClasses[field.tone].text : "text-on-surface"
-                    }`}
-                  >
-                    {field.value}
+            <>
+              <div className="p-4 border-b border-outline-variant/25 bg-surface-container-lowest/60">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-label-caps text-label-caps text-primary uppercase tracking-wider">
+                    Node Inspector
                   </span>
+                  {selected.kind === "finding" ? (
+                    <Badge tone="critical">Finding</Badge>
+                  ) : (
+                    <ToolPill tool={selected.tool ?? "github"}>{selected.kindLabel}</ToolPill>
+                  )}
                 </div>
-              ))}
-            </div>
+                <div className="flex items-baseline gap-2">
+                  <h2 className="font-headline-sm text-headline-sm font-bold text-on-surface truncate">
+                    {selected.label}
+                  </h2>
+                </div>
+                <div className="font-mono-code text-micro-label text-muted mt-0.5 truncate">
+                  {selected.locator}
+                </div>
+              </div>
 
-            {/* Blast radius / eligibility summary */}
-            {inDrift ? (
-              <div className="space-y-3">
-                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider flex items-center justify-between">
-                  Blast Radius Impact
-                  <span className="text-error font-mono-code text-micro-label">DRIFT ACTIVE</span>
-                </span>
-                <div className="bg-error-container/20 border border-error/30 rounded-lg p-3.5">
-                  <div className="flex items-center gap-2 text-error font-semibold text-[12px]">
-                    <Icon name="crisis_alert" className="text-[16px]" />
-                    Affected artifacts pending.
-                  </div>
-                  <p className="font-body-sm text-micro-label text-on-surface-variant mt-1.5">
-                    {/* DATA HOLE — replace with the drift API's affected field, source artifact, and conflicting revision. */}
-                    Impact details unavailable.
-                  </p>
-                  <div className="mt-3 pt-3 border-t border-error/20 flex items-center justify-between">
-                    <span className="font-mono-code text-micro-label text-muted">
-                      Conflict Reference:
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 text-body-sm">
+                {/* Provenance metadata */}
+                <div className="bg-surface-container-lowest/70 rounded-lg p-3.5 border border-outline-variant/20 space-y-3 text-[12px]">
+                  {selected.fields.map((field) => (
+                    <div key={field.label} className="flex justify-between gap-3">
+                      <span className="text-muted">{field.label}</span>
+                      <span
+                        className={`font-mono-code truncate ${
+                          field.tone ? toneClasses[field.tone].text : "text-on-surface"
+                        }`}
+                      >
+                        {field.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Blast radius / eligibility summary */}
+                {inDrift ? (
+                  <div className="space-y-3">
+                    <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider flex items-center justify-between">
+                      Blast Radius Impact
+                      <span className="text-error font-mono-code text-micro-label">
+                        DRIFT ACTIVE
+                      </span>
                     </span>
-                    <span className="font-mono-code text-micro-label text-muted">—</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
-                  Link Eligibility
-                </span>
-                <div className="bg-surface-container-lowest/70 border border-outline-variant/20 rounded-lg p-3.5">
-                  <p className="font-body-sm text-micro-label text-on-surface-variant">
-                    <span className="text-secondary font-bold">
-                      {selectedEdges.filter((entry) => isDecisive(entry.edge.eligibility)).length}
-                    </span>{" "}
-                    of{" "}
-                    <span className="text-on-surface font-bold">{selectedEdges.length}</span> links
-                    decisive.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Connected edges */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
-                  Connected Edges ({selectedEdges.length})
-                </span>
-                <span className="font-mono-code text-micro-label text-muted">
-                  {selectedEdges.filter((entry) => entry.edge.from === selected.id).length} Out /{" "}
-                  {selectedEdges.filter((entry) => entry.edge.to === selected.id).length} In
-                </span>
-              </div>
-              <div className="space-y-3">
-                {selectedEdges.length === 0 ? (
-                  <p className="font-mono-code text-micro-label text-tertiary p-3 rounded bg-surface-container rounded-lg border border-outline-variant/20">
-                    Orphan node
-                  </p>
-                ) : (
-                  selectedEdges.map(({ edge, other }) => (
-                    <div
-                      key={`${edge.from}-${edge.to}-${edge.label}`}
-                      className="p-3 rounded bg-surface-container hover:bg-surface-container-high transition-colors border border-outline-variant/20 flex flex-col gap-1.5"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`font-mono-code text-micro-label px-1 py-0.2 rounded font-bold ${
-                            edge.eligibility === "inferred" || edge.eligibility === "unconfirmed"
-                              ? "bg-tertiary/20 text-tertiary"
-                              : "bg-primary/15 text-primary"
-                          }`}
-                        >
-                          {edge.label}
-                        </span>
-                        <span
-                          className={`font-mono-code text-micro-label ${
-                            isDecisive(edge.eligibility) ? "text-secondary" : "text-tertiary"
-                          }`}
-                        >
-                          {eligibilityCaption(edge)}
-                        </span>
+                    <div className="bg-error-container/20 border border-error/30 rounded-lg p-3.5">
+                      <div className="flex items-center gap-2 text-error font-semibold text-[12px]">
+                        <Icon name="crisis_alert" className="text-[16px]" />
+                        Affected artifacts pending.
                       </div>
-                      <div className="flex items-center justify-between text-micro-label gap-2">
-                        <button
-                          onClick={() => other && setSelectedId(other.id)}
-                          className="text-on-surface truncate font-medium hover:text-primary transition-colors text-left"
-                        >
-                          {other ? `${other.kindLabel} ${other.label}` : proposal?.channel ?? "—"}
-                        </button>
-                        <Icon
-                          name={
-                            edge.eligibility === "inferred" || edge.eligibility === "unconfirmed"
-                              ? "psychology"
-                              : "link"
-                          }
-                          className={`text-[14px] shrink-0 ${
-                            edge.eligibility === "inferred" || edge.eligibility === "unconfirmed"
-                              ? "text-tertiary"
-                              : "text-muted"
-                          }`}
-                        />
+                      <p className="font-body-sm text-micro-label text-on-surface-variant mt-1.5">
+                        {/* DATA HOLE — replace with the drift API's affected field, source artifact, and conflicting revision. */}
+                        Impact details unavailable.
+                      </p>
+                      <div className="mt-3 pt-3 border-t border-error/20 flex items-center justify-between">
+                        <span className="font-mono-code text-micro-label text-muted">
+                          Conflict Reference:
+                        </span>
+                        <span className="font-mono-code text-micro-label text-muted">—</span>
                       </div>
                     </div>
-                  ))
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
+                      Link Eligibility
+                    </span>
+                    <div className="bg-surface-container-lowest/70 border border-outline-variant/20 rounded-lg p-3.5">
+                      <p className="font-body-sm text-micro-label text-on-surface-variant">
+                        <span className="text-secondary font-bold">
+                          {
+                            selectedEdges.filter((entry) => isDecisive(entry.edge.eligibility))
+                              .length
+                          }
+                        </span>{" "}
+                        of <span className="text-on-surface font-bold">{selectedEdges.length}</span>{" "}
+                        links decisive.
+                      </p>
+                    </div>
+                  </div>
                 )}
-              </div>
-            </div>
-          </div>
 
-          {/* Inspector actions */}
-          <div className="p-4 border-t border-outline-variant/25 bg-surface-container-lowest/80 space-y-3">
-            <button className="w-full py-2 px-3 rounded bg-primary-container text-on-primary-container font-body-sm text-[12px] font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-sm">
-              <span>{selected.action}</span>
-              <Icon name="open_in_new" className="text-[14px]" />
-            </button>
-            <div className="grid grid-cols-2 gap-1.5">
-              <button className="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface font-body-sm text-micro-label font-medium flex items-center justify-center gap-1 transition-colors">
-                <Icon name="add_link" className="text-[13px] text-secondary" />
-                Link Edge +
-              </button>
-              <button className="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-error font-body-sm text-micro-label font-medium flex items-center justify-center gap-1 transition-colors">
-                <Icon name="published_with_changes" className="text-[13px]" />
-                Re-verify
-              </button>
-            </div>
-          </div>
-          </>
+                {/* Connected edges */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider">
+                      Connected Edges ({selectedEdges.length})
+                    </span>
+                    <span className="font-mono-code text-micro-label text-muted">
+                      {selectedEdges.filter((entry) => entry.edge.from === selected.id).length} Out
+                      / {selectedEdges.filter((entry) => entry.edge.to === selected.id).length} In
+                    </span>
+                  </div>
+                  <div className="space-y-3">
+                    {selectedEdges.length === 0 ? (
+                      <p className="font-mono-code text-micro-label text-tertiary p-3 rounded bg-surface-container rounded-lg border border-outline-variant/20">
+                        Orphan node
+                      </p>
+                    ) : (
+                      selectedEdges.map(({ edge, other }) => (
+                        <div
+                          key={`${edge.from}-${edge.to}-${edge.label}`}
+                          className="p-3 rounded bg-surface-container hover:bg-surface-container-high transition-colors border border-outline-variant/20 flex flex-col gap-1.5"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span
+                              className={`font-mono-code text-micro-label px-1 py-0.2 rounded font-bold ${
+                                edge.eligibility === "inferred" ||
+                                edge.eligibility === "unconfirmed"
+                                  ? "bg-tertiary/20 text-tertiary"
+                                  : "bg-primary/15 text-primary"
+                              }`}
+                            >
+                              {edge.label}
+                            </span>
+                            <span
+                              className={`font-mono-code text-micro-label ${
+                                isDecisive(edge.eligibility) ? "text-secondary" : "text-tertiary"
+                              }`}
+                            >
+                              {eligibilityCaption(edge)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-micro-label gap-2">
+                            <button
+                              onClick={() => other && setSelectedId(other.id)}
+                              className="text-on-surface truncate font-medium hover:text-primary transition-colors text-left"
+                            >
+                              {other
+                                ? `${other.kindLabel} ${other.label}`
+                                : (proposal?.channel ?? "—")}
+                            </button>
+                            <Icon
+                              name={
+                                edge.eligibility === "inferred" ||
+                                edge.eligibility === "unconfirmed"
+                                  ? "psychology"
+                                  : "link"
+                              }
+                              className={`text-[14px] shrink-0 ${
+                                edge.eligibility === "inferred" ||
+                                edge.eligibility === "unconfirmed"
+                                  ? "text-tertiary"
+                                  : "text-muted"
+                              }`}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Inspector actions */}
+              <div className="p-4 border-t border-outline-variant/25 bg-surface-container-lowest/80 space-y-3">
+                <button className="w-full py-2 px-3 rounded bg-primary-container text-on-primary-container font-body-sm text-[12px] font-semibold hover:brightness-110 transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                  <span>{selected.action}</span>
+                  <Icon name="open_in_new" className="text-[14px]" />
+                </button>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button className="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface font-body-sm text-micro-label font-medium flex items-center justify-center gap-1 transition-colors">
+                    <Icon name="add_link" className="text-[13px] text-secondary" />
+                    Link Edge +
+                  </button>
+                  <button className="py-1.5 px-2 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-error font-body-sm text-micro-label font-medium flex items-center justify-center gap-1 transition-colors">
+                    <Icon name="published_with_changes" className="text-[13px]" />
+                    Re-verify
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </aside>
       </div>

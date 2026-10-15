@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ArtifactGraphPage() {
-  const artifactGraph = await loadExplorerGraph({ width: 1100, height: 900, maxGap: 64 });
+  const artifactGraph = await loadExplorerGraph();
 
   return (
     <AppShell>
