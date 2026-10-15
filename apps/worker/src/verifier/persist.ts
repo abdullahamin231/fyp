@@ -108,14 +108,20 @@ export const LIVE_FINDING_STATES = ["open", "acknowledged", "disputed"] as const
 /**
  * Does this verdict need a row in the reviewer's queue?
  *
- * A decisive, well-cited, gate-passing SUPPORTED verdict is not a conflict —
- * it is the record of work that went right, and stays readable as a verdict
- * without occupying a reviewer's attention. Everything else (a contradiction,
- * partial support, an abstention, a rejected output, or anything the gate
- * flagged for review) does.
+ * Yes — always. A decisive, well-cited, gate-passing `SUPPORTED` verdict is
+ * not a *conflict*, but it is still an outcome of the one workflow the product
+ * runs, and "the evidence supports this change" is exactly what a reviewer
+ * needs to see. Severity carries the difference instead: a contradiction is
+ * `critical`, an abstention `medium`, a verified change `low`, so the same
+ * inbox reads as a priority-ordered list of verification results rather than a
+ * pile of problems.
+ *
+ * (An earlier revision skipped `SUPPORTED` and kept it readable only as a
+ * verdict row — which made the product's normal case invisible in the surface
+ * it exists to inform.)
  */
-export function shouldCreateFinding(verdict: GatedVerdict): boolean {
-  return verdict.status !== "SUPPORTED" || verdict.reviewRequired;
+export function shouldCreateFinding(_verdict: GatedVerdict): boolean {
+  return true;
 }
 
 export function findingAnnotation(verdict: GatedVerdict, criterionExternalId: string): string {

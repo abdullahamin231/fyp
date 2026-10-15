@@ -18,7 +18,7 @@
  *   node scripts/github-webhook-setup.mjs <workspace-slug-or-uuid> [repo owner/name]
  *   node scripts/github-webhook-setup.mjs mishals-workspace abdullahamin231/fyp
  */
-import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from "node:crypto";
+import { createCipheriv, createHash, createHmac, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
@@ -55,12 +55,6 @@ const encrypt = (v) => {
   const c = createCipheriv("aes-256-gcm", key, iv);
   const enc = Buffer.concat([c.update(v, "utf8"), c.final()]);
   return `${iv.toString("base64url")}.${c.getAuthTag().toString("base64url")}.${enc.toString("base64url")}`;
-};
-const decrypt = (v) => {
-  const [iv, tag, ct] = v.split(".");
-  const d = createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "base64url"));
-  d.setAuthTag(Buffer.from(tag, "base64url"));
-  return Buffer.concat([d.update(Buffer.from(ct, "base64url")), d.final()]).toString("utf8");
 };
 
 function die(msg) { console.error(msg); process.exitCode = 1; throw new Error("__stop__"); }
