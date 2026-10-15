@@ -51,10 +51,10 @@ Rehearsed end to end against the live project: real GitHub webhooks, real
 `enqueue_verification` from the delivery, real clone-and-analyse of
 `abdullahamin231/fyp`, real test run, real verdicts stored.
 
-| PR | Head | Result |
+| PR | Ticket | Head | Result |
 |---|---|---|
-| #47 `demo/uni-7-supported` | `b6e5230` | **SUPPORTED** — both criteria, 3 evidence spans each |
-| #48 `demo/uni-7-contradicted` | `205953a` | **CONTRADICTED** — both criteria, 9 spans, reason "the test-run evidence records a FAIL", severity critical |
+| #47 `demo/uni-7-supported` | UNI-7 | `b6e5230` | **SUPPORTED** — both criteria, 3 evidence spans each |
+| #48 `demo/uni-7-contradicted` | UNI-8 | `205953a` | **CONTRADICTED** — both criteria, 9 spans, reason "the test-run evidence records a FAIL", severity critical |
 
 The earlier findings were superseded by the re-verification (the finding
 lifecycle works). Both PRs are now **closed**: at the meeting, reopening one
@@ -88,7 +88,9 @@ low, superseding the rehearsal rows. Open one — citations (symbol card + the
 **passing** test run), the verifier's pass log, the packet manifest, gate
 `PASSED`.
 
-**Beat 2 — the bad PR (2:30–4:00).**
+**Beat 2 — the bad PR (2:30–4:00).** PR #48 names `UNI-8` (its own ticket),
+so the two beats' results coexist in the inbox — nothing supersedes anything
+and there is no lifecycle concept to explain mid-demo.
 
 ```bash
 gh pr close 48 && gh pr reopen 48
