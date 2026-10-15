@@ -22,7 +22,7 @@ import {
 
 /**
  * Frozen case bundles — the dataset-shaped fixtures the packet builder and the
- * demo run are tested against (TODO §3.3 "packet code slots served via
+ * live run are tested against (TODO §3.3 "packet code slots served via
  * dataset fixtures first").
  *
  * A bundle carries *text*, which the dataset's `04_cases/*.json` do not: those
@@ -34,7 +34,7 @@ import {
  * citation check is exercised for real), and the dataset cases remain the
  * evaluation reference rather than a runtime dependency.
  *
- * The bundle is also the single source of truth for the demo seed: the seed
+ * The bundle is also the single source of truth for seeded graphs: a seed
  * writes `fixtureNodePayloads` into graph nodes, and `GraphEvidenceProvider`
  * reads the same payloads back — so tests and the live run assemble identical
  * packets from identical data.

@@ -141,7 +141,7 @@ function toEvent(delivery: VendorDelivery, receivedAt: string): NormalisedEvent 
 }
 
 /**
- * Deterministic in-memory ingestion core for demos and contract tests.
+ * Deterministic in-memory ingestion core for contract tests.
  *
  * The maps model the database uniqueness/checkpoint constraints: an event is
  * persisted before it can advance a resource, and an older delivery never

@@ -69,22 +69,6 @@ export const WORKER_SETTINGS = {
   repoCacheDir: join(homedir(), ".cache", "unify", "repos"),
   /** Timeout for the analysis target's test command at head. */
   analysisTestTimeoutMs: 600_000,
-
-  // ---- demo fault injection (stub model only) --------------------------------
-  /**
-   * T10, demonstrated live rather than asserted: make the deterministic stub
-   * behave like a badly-behaved model.
-   *
-   *   none     the stub answers strictly from the packet (production default)
-   *   extra    adds one fabricated citation to a genuine answer
-   *   only     answers with a single fabricated citation and nothing real
-   *
-   * The gate's job is to catch all of these: citations that were never in the
-   * packet are dropped (INVALID_CITATION) and the verdict is downgraded, so
-   * the demo shows the enforcement instead of describing it. The worker logs
-   * this value on startup so an armed fault can never be a silent one.
-   */
-  stubFabricate: "none" as "none" | "extra" | "only",
 } as const;
 
 /** Secrets only. `.env` (gitignored) holds the values; nothing else does. */
@@ -107,7 +91,6 @@ export const configSchema = z.object({
   analysisEnabled: z.boolean(),
   repoCacheDir: z.string().min(1),
   analysisTestTimeoutMs: z.number().int().positive(),
-  stubFabricate: z.enum(["none", "extra", "only"]),
 });
 
 export type Config = z.infer<typeof configSchema>;

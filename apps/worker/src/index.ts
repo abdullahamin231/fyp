@@ -21,7 +21,7 @@ import { pollForever } from "./runner.js";
 
 const config = loadConfig();
 const client = createServiceClient(config);
-const model = createModelClient(config, { fabricate: config.stubFabricate });
+const model = createModelClient(config);
 const provider = new GraphEvidenceProvider(client);
 
 const logger = (message: string, fields: Record<string, unknown> = {}) => {

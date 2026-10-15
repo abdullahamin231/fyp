@@ -11,7 +11,7 @@ import type { GraphNodeKind, ToolKind } from "@/lib/types";
 import type { EdgeRow, NodeRow } from "./rows";
 
 /**
- * Graph explorer data: the evidence graph of the demo workspaces, shaped for
+ * Graph explorer data: the evidence graph of the user's workspaces, shaped for
  * `/graph` and `/graph/artifacts`.
  *
  * Reads through the signed-in user's session (RLS), like every other query in

@@ -151,8 +151,8 @@ verification pipeline above; it does not touch the queue.
 | `src/linking/extract-keys.ts` | Finds keys such as `UNI-123` in the PR title, branch name and commit messages. Pure TypeScript. A project allow-list rejects lookalikes like `UTF-8`. |
 | `supabase/migrations/00015_link_pull_request_event.sql` | `link_pull_request_event(...)` RPC, one transaction: records the event (stops if this delivery was seen before), upserts the `PullRequest` node, looks up each key's `Ticket` node, inserts a `TRACKS` edge (`observed`, confidence 1.0, resolver `explicit-reference`). `service_role` only, like the queue RPCs. |
 | `src/linking/link-pull-request.ts` | Extracts the keys, then makes the one RPC call. |
-| `src/linking/callers.ts` | `viaSupabase(client)` calls the RPC through supabase-js; `viaSql(db)` calls the same function over plain SQL (tests, local demo). |
-| `src/linking/local-db.ts` | In-process Postgres (PGlite) loaded with migrations 00001–00003, 00005, 00010 and 00015. Tests and local demo only. |
+| `src/linking/callers.ts` | `viaSupabase(client)` calls the RPC through supabase-js; `viaSql(db)` calls the same function over plain SQL (tests). |
+| `src/linking/local-db.ts` | In-process Postgres (PGlite) loaded with migrations 00001–00003, 00005, 00010 and 00015. Tests only. |
 
 Outcomes: `linked`; `no_key`; `unknown_key` (no edge and no invented node;
 the key stays in `events.references`); `duplicate_event` (via
@@ -164,15 +164,9 @@ revoked one can be re-created). The RPC's `ON CONFLICT` names the predicate
 The steps live in SQL because they must commit together, and supabase-js sends
 each call as its own transaction.
 
-```bash
-npm run demo:linking              # local: in-process Postgres, same migrations
-npm run demo:linking -- --live    # hosted project: needs SUPABASE_URL and
-                                  # SUPABASE_SERVICE_ROLE_KEY in .env, and 00015 applied
-```
-
-`--live` writes to its own workspace (slug `linking-demo`) and uses a fresh
-demo repo name per run. Not yet: a webhook endpoint that builds the
-`PullRequestEvent` from a real GitHub payload.
+On the live path the web app's GitHub webhook route calls the same RPC
+(`linkPullRequestFromGithub`); `test/link-pull-request.test.ts` runs every
+outcome against PGlite with the real migrations.
 
 ## TypeScript change analyser (FR-06, FR-25)
 
@@ -252,3 +246,36 @@ filled, and a control with the `IMPLEMENTS` edges removed.
   makes the build network-free and immutable. The analyser's live output does
   not have this property, so a packet built from a real repository can differ
   from the test packet in length and content.
+
+## Operational pitfalls (each one bit during live runs)
+
+1. **npm swallows failure inside a workspace.** `npm test` exits 0 when the
+   script fails (npm prints `npm ERR!` and returns 0). The analysis target must
+   invoke the runner directly: `npx vitest run`.
+2. **The test-run verdict must be on its own line.** The stub model and the
+   gate tests key off `\nFAIL\n` / `\nPASS\n` inside `TEST_EVIDENCE`. The
+   analyser used to write `FAIL (exit 1, …)` on one line — a failing suite
+   silently read as PARTIAL.
+3. **Evidence must be attributed to the PR at the job's head.** Enrichment
+   first picked the *first* PR linked to the ticket, so one PR's analysis was
+   published against another's node. It matches the PR whose node `version` is
+   the job's pinned head (the linker records the head there, not in payload).
+4. **The test-run node needs an edge.** It was an orphan — in the graph, never
+   reached by the bounded walk — so the packet carried test *sources* but not
+   the record of whether the suite passed.
+5. **The evidence window is shared until it is scoped.** Two open PRs on one
+   criterion produced one identical packet (and verdict) because the walk is
+   criterion-centric. The provider now scopes to the pinned revision pair.
+6. **TEST_EVIDENCE budget order is load-bearing.** The assembler never squeezes
+   a smaller item in, so the run must be admitted ahead of the sources (fixed
+   priority) and the recorded log tail is bounded (~600 chars).
+7. **Criterion edges must be decisive-eligible.** `REFERENCES` with
+   `source_class: "derived"` maps to `system-confirmed`. A `model_candidate` or
+   `unresolved` edge downgrades every verdict built on it — `AMBIGUOUS_LINK`.
+8. **Order matters.** The Jira ticket must exist before the PR delivery, or the
+   linker records `unknown_key`, no `TRACKS` edge is created, and no criterion
+   is ever enqueued.
+9. **One worker, on the right branch.** `npm run dev` runs the *source*
+   (via tsx), on whichever branch is checked out — and stale workers from
+   earlier shells keep polling and racing. Before a live run: confirm the
+   checked-out branch and that exactly one worker is running.
