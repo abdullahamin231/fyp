@@ -5,7 +5,11 @@ import { NextResponse, type NextRequest } from "next/server";
 const PUBLIC_PATHS = ["/login", "/signup", "/auth"];
 
 function isPublic(pathname: string): boolean {
+  // Webhooks authenticate by provider signature; cron routes by CRON_SECRET
+  // (checked inside the route — it must be reachable without a session, or the
+  // scheduled call is redirected to /login before the route ever runs).
   if (pathname.startsWith("/api/webhooks/")) return true;
+  if (pathname.startsWith("/api/cron/")) return true;
   return PUBLIC_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
