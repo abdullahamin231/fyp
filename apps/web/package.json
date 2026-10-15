@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "figma:poll": "tsx scripts/figma-poll-loop.ts"
   },
   "dependencies": {
     "@material-symbols/font-400": "^0.47.6",
