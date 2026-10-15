@@ -6,7 +6,7 @@
  * Vercel Hobby only allows daily cron jobs, so the scheduled half of Figma
  * polling lives here instead of in `vercel.json`. The route
  * `/api/cron/figma-poll` still exists for a Pro schedule or a manual call;
- * this loop is the hobby-plan answer and the one the demo uses.
+ * this loop is the hobby-plan answer.
  *
  *   terminal:  cd apps/web && npx tsx scripts/figma-poll-loop.ts
  *   interval:  FIGMA_POLL_INTERVAL_MS=60000 (default) npx tsx scripts/...
