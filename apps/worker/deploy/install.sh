@@ -16,7 +16,8 @@ set -euo pipefail
 # --- Resolve paths relative to this script (apps/worker/deploy/install.sh) ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKER_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"      # apps/worker
-REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"      # repo root
+# deploy/ -> worker/ -> apps/ -> repo root: three levels up from this script.
+REPO_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"   # repo root
 TEMPLATE="$SCRIPT_DIR/unify-worker.service"
 
 # --- Identity: run the service as the invoking user, not root ---
