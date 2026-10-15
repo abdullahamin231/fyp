@@ -32,7 +32,7 @@ verifier loop → provenance gate → reviewer surface.
 | 1. Deploy | team | Merge PR #49 (`feat/live-demo-chain`) → Vercel deploys to `unify-web-weld` | Deployment READY on `main` |
 | 2. Local env | demo presenter | Create `apps/web/.env.local` with the Vercel values: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `INTEGRATION_ENCRYPTION_KEY` | — |
 | 3. GitHub leg | demo presenter | `node scripts/github-webhook-setup.mjs mishals-workspace abdullahamin231/fyp` → follow the printed `gh api` command | Script prints `ping self-test: 200` and `delivery recorded: yes` |
-| 4. Jira leg | demo presenter | `node scripts/jira-replay.mjs mishals-workspace --issue UNI-7 --summary "Discount codes at checkout" --criteria "the total drops by the code percentage;;the receipt shows the discounted total"` | Response `200` with `criteria: { created: 2, … }` |
+| 4. Jira leg | demo presenter | `node scripts/jira-replay.mjs mishals-workspace --issue UNI-7 …` (see §4 beat 1 — ticket states the `isSourceStale` contract) | Response `200` with `criteria: { created: 3, … }` |
 | 5. Worker | demo presenter | Put the **`sb_secret_…`** key in `apps/worker/.env`, then `cd apps/worker && ./deploy/install.sh` | `journalctl -u unify-worker` shows `worker started` with `stubFabricate: "none"` |
 | 6. Settings check | any member | `/settings/workspace?workspace=mishals-workspace` shows the analysis target `abdullahamin231/fyp` | Criteria field may stay empty (description fallback is in use) |
 | 7. Figma (optional beat) | workspace admin | Register the Figma app at `/settings/integrations?workspace=mishals-workspace` → connect via OAuth → on the workspace page add a file key → **Poll now** | A version lands in `/ingest` as a `design_artifact` event; `/graph` shows the `DesignArtifact` node |
@@ -80,20 +80,34 @@ one verified change, per criterion, with every decisive claim traceable.
 
 **Beat 1 — the normal case (0:30–2:30).**
 
+`isSourceStale` in `packages/contracts/src/ingestion.ts` — the deterministic
+half of SOURCE_STALE marking. The ticket (UNI-7) states the contract; PR #47
+implements it.
+
 ```bash
+cd apps/web
+node scripts/jira-replay.mjs mishals-workspace --issue UNI-7 \
+  --summary "Mark ingestion sources stale after a quiet window (packages/contracts: isSourceStale)" \
+  --criteria "a checkpoint whose last successful ingest is older than the staleness threshold is marked stale;;a checkpoint that never recorded a success is stale, since freshness cannot be claimed for a source that was never observed;;a checkpoint dated in the future (clock skew) reads as fresh, not stale"
+
 gh pr close 47 && gh pr reopen 47
 ```
 
 ~25s later refresh `/conflicts`: two new rows, verdict **SUPPORTED**, severity
-low, superseding the rehearsal rows. Open one — citations (symbol card + the
-**passing** test run), the verifier's pass log, the packet manifest, gate
-`PASSED`.
+low. Open one — citations (symbol card + the **passing** test run), the
+verifier's pass log, the packet manifest, gate `PASSED`.
 
-**Beat 2 — the bad PR (2:30–4:00).** PR #48 names `UNI-8` (its own ticket),
-so the two beats' results coexist in the inbox — nothing supersedes anything
-and there is no lifecycle concept to explain mid-demo.
+**Beat 2 — the bad PR (2:30–4:00).** UNI-8 is the *same* capability, one
+ticket later: its criterion is that a checkpoint **exactly at** the threshold is
+stale. PR #48 claims to "tighten" the comparison and flips `>=` to `>` — so the
+boundary stops counting. The repo's own tests catch it.
 
 ```bash
+cd apps/web
+node scripts/jira-replay.mjs mishals-workspace --issue UNI-8 \
+  --summary "Stale-source threshold: exactly at the threshold counts as stale (packages/contracts: isSourceStale)" \
+  --criteria "a checkpoint whose last successful ingest is exactly at the staleness threshold is marked stale;;a checkpoint that never recorded a success is stale"
+
 gh pr close 48 && gh pr reopen 48
 ```
 
