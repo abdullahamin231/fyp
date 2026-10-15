@@ -215,6 +215,9 @@ its **if not** line. Do not improvise a fix in front of the supervisor.
 3. **Do:** refresh and open the UNI-8 row.
    **Expect:** **INSUFFICIENT_EVIDENCE**, gate **DOWNGRADED**, reason `INVALID_CITATION`.
    **Say:** "The citation does not resolve against the immutable packet, so the gate refuses the decisive verdict. A hallucinated citation can never reach a reviewer as fact."
+   *No password prompt on stage:* the unit runs as you with `Restart=always`,
+   so `kill $(systemctl show unify-worker -p MainPID --value)` restarts it in
+   ~5 s without sudo. Use it in place of `sudo systemctl restart unify-worker`.
 4. **Disarm. Do not skip this.**
    ```bash
    git checkout -- apps/worker/src/config.ts
