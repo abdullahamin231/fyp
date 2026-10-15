@@ -15,10 +15,10 @@ import type { EdgeRow, NodeRow } from "./rows";
  * `/graph` and `/graph/artifacts`.
  *
  * Reads through the signed-in user's session (RLS), like every other query in
- * this folder. Each workspace the user belongs to is one horizontal lane; kinds
- * are columns within it, so nodes never stack on top of each other. Labels
- * carry the workspace name, because external ids (such as a commit hash) repeat
- * across workspaces.
+ * this folder. Positions are left at the origin: the explorers lay the graph
+ * out client-side (`components/graph/layout.ts`), one lane per workspace.
+ * Labels carry the workspace name, because external ids (such as a commit
+ * hash) repeat across workspaces.
  */
 
 const NODE_COLUMNS = "id, workspace_id, type, external_id, payload, last_modified";
@@ -58,16 +58,6 @@ const TOOL_BY_KIND: Record<GraphNodeKind, ToolKind> = {
   finding: "git",
 };
 
-/** Column centres as fractions of the stage width, left to right. */
-const COLUMN_X: Record<GraphNodeKind, number> = {
-  requirement: 0.1,
-  design: 0.3,
-  pr: 0.5,
-  code: 0.7,
-  test: 0.9,
-  finding: 0.5,
-};
-
 const RELATION_BY_TYPE: Partial<Record<string, EdgeRelation>> = {
   SATISFIES: "SATISFIES",
   SATISFIES_CANDIDATE: "SATISFIES",
@@ -97,12 +87,7 @@ function describe(node: NodeRow): string {
   return payload.text ?? payload.title ?? "";
 }
 
-export async function loadExplorerGraph(stage: {
-  width: number;
-  height: number;
-  /** Largest vertical gap between stacked nodes in one cell (px). */
-  maxGap?: number;
-}): Promise<ExplorerGraph> {
+export async function loadExplorerGraph(): Promise<ExplorerGraph> {
   const client = await createClient();
 
   // Every workspace the signed-in user can see — RLS already scopes this to
@@ -150,51 +135,33 @@ export async function loadExplorerGraph(stage: {
     }
   }
 
-  // Group by lane (workspace), then by kind, keeping the order rows arrived in.
-  const laneOf = new Map(lanes.map((lane, index) => [lane.id, index]));
-  const cells = new Map<string, NodeRow[]>();
-  for (const row of rows) {
-    const key = `${row.workspace_id}|${KIND_BY_TYPE[row.type]}`;
-    cells.set(key, [...(cells.get(key) ?? []), row]);
-  }
-  const maxPerCell = Math.max(1, ...[...cells.values()].map((group) => group.length));
-  const laneHeight = stage.height / lanes.length;
-  const gap = Math.min(stage.maxGap ?? 40, (laneHeight * 0.85) / maxPerCell);
-
-  const nodes: ExplorerNode[] = [];
-  for (const [key, group] of cells) {
-    const [workspaceId, kindName] = key.split("|");
-    const kind = kindName as GraphNodeKind;
-    const laneIndex = laneOf.get(workspaceId) ?? 0;
-    const lane = lanes[laneIndex];
-    const laneCentre = (laneIndex + 0.5) * laneHeight;
-    group.forEach((row, index) => {
-      const finding = openFindings.get(row.id);
-      const caseName = lane.slug.toUpperCase();
-      const kindLabel = LABEL_BY_TYPE[row.type] ?? row.type;
-      const offset = (index - (group.length - 1) / 2) * gap;
-      nodes.push({
-        id: row.id,
-        label: `${caseName} · ${row.external_id}`,
-        kind,
-        tool: TOOL_BY_KIND[kind],
-        x: Math.round(stage.width * COLUMN_X[kind]),
-        y: Math.round(laneCentre + offset),
-        kindLabel,
-        subtitle: caseName,
-        meta: finding ? "CONFLICT" : kindLabel,
-        metaTone: finding ? "error" : undefined,
-        description: describe(row),
-        locator: `${caseName} ${row.type}:${row.external_id}`,
-        fields: [
-          { label: "Case", value: caseName },
-          ...(finding ? [{ label: "Finding", value: finding.annotation, tone: "error" as const }] : []),
-        ],
-        action: "View",
-        ...(finding ? { findingId: finding.id, conflict: true } : {}),
-      });
-    });
-  }
+  const slugOf = new Map(lanes.map((lane) => [lane.id, lane.slug]));
+  const nodes: ExplorerNode[] = rows.map((row) => {
+    const kind = KIND_BY_TYPE[row.type]!;
+    const finding = openFindings.get(row.id);
+    const caseName = (slugOf.get(row.workspace_id) ?? "").toUpperCase();
+    const kindLabel = LABEL_BY_TYPE[row.type] ?? row.type;
+    return {
+      id: row.id,
+      label: `${caseName} · ${row.external_id}`,
+      kind,
+      tool: TOOL_BY_KIND[kind],
+      x: 0,
+      y: 0,
+      kindLabel,
+      subtitle: caseName,
+      meta: finding ? "CONFLICT" : kindLabel,
+      metaTone: finding ? "error" : undefined,
+      description: describe(row),
+      locator: `${caseName} ${row.type}:${row.external_id}`,
+      fields: [
+        { label: "Case", value: caseName },
+        ...(finding ? [{ label: "Finding", value: finding.annotation, tone: "error" as const }] : []),
+      ],
+      action: "View",
+      ...(finding ? { findingId: finding.id, conflict: true } : {}),
+    };
+  });
 
   const placed = new Set(nodes.map((node) => node.id));
   const edges: ExplorerEdge[] = edgeRows

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function GraphExplorerPage() {
-  const relationshipGraph = await loadExplorerGraph({ width: 1150, height: 620 });
+  const relationshipGraph = await loadExplorerGraph();
   const stats = graphStats(relationshipGraph);
 
   return (
