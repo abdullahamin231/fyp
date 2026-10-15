@@ -5,7 +5,7 @@ import { Icon } from "@/components/ui/icon";
 import { VERDICTS, type Finding, type Severity, type Verdict } from "@/lib/types";
 import { listFindings } from "@/lib/data/queries";
 import { loadExplorerGraph } from "@/lib/data/graph";
-import { kindIcon, kindTone, toneClasses } from "@/components/graph/graph-styles";
+import { EvidencePreview } from "@/components/graph/evidence-preview";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -59,50 +59,10 @@ const severityIcon: Record<Severity, string> = {
   info: "info",
 };
 
-/**
- * Node card for the dependency graph panel. Positions are percentages of the
- * panel so the cards and the SVG edges stay attached at any content width.
- */
-function GraphNode({
-  x,
-  y,
-  tone,
-  icon,
-  label,
-  muted = false,
-}: {
-  x: number;
-  y: number;
-  tone: string;
-  icon: string;
-  label: string;
-  muted?: boolean;
-}) {
-  return (
-    <div
-      className="absolute group cursor-pointer -translate-x-1/2 -translate-y-1/2"
-      style={{ left: `${x}%`, top: `${y}%` }}
-    >
-      <div
-        className={`px-4 py-3 rounded-lg text-center transition-all group-hover:scale-105 ${
-          muted
-            ? "w-32 bg-surface-container-high border border-outline opacity-75"
-            : `w-32 bg-surface-container shadow-lg ${tone}`
-        }`}
-      >
-        <div className="flex justify-center mb-1.5">
-          <Icon name={icon} className="text-[20px]" />
-        </div>
-        <div className="text-micro-label font-semibold truncate">{label}</div>
-      </div>
-    </div>
-  );
-}
-
 export default async function DashboardPage() {
   const [findings, graph] = await Promise.all([
     listFindings(),
-    loadExplorerGraph({ width: 100, height: 100, maxGap: 12 }),
+    loadExplorerGraph(),
   ]);
 
   const criteria = findings.flatMap((finding) => finding.criteria);
@@ -112,29 +72,6 @@ export default async function DashboardPage() {
   }));
   const reviewed = criteria.filter((criterion) => criterion.reviewRequired).length;
   const critical = findings.filter((finding) => finding.severity === "critical").slice(0, 3);
-
-  const nodes = graph.nodes.map((node) => ({
-    x: node.x,
-    y: node.y,
-    icon: kindIcon[node.kind],
-    label: node.label,
-    tone: toneClasses[kindTone[node.kind]].border,
-    muted: node.kind === "finding",
-  }));
-
-  const position = new Map(graph.nodes.map((node) => [node.id, node]));
-  const edges = graph.edges.flatMap((edge) => {
-    const from = position.get(edge.from);
-    const to = position.get(edge.to);
-    if (!from || !to) return [];
-    return [
-      {
-        from: [from.x, from.y] as [number, number],
-        to: [to.x, to.y] as [number, number],
-        stroke: edge.eligible ? "#34d399" : "#64748b",
-      },
-    ];
-  });
 
   return (
     <AppShell contentClassName="w-full space-y-gutter">
@@ -264,53 +201,21 @@ export default async function DashboardPage() {
             </div>
             <div className="flex gap-2">
               <span className="px-2.5 py-1 rounded bg-surface-container-highest border border-outline-variant text-micro-label font-mono-code text-on-surface-variant">
-                {nodes.length} nodes
+                {graph.nodes.length} nodes
               </span>
               <span className="px-2.5 py-1 rounded bg-surface-container-highest border border-outline-variant text-micro-label font-mono-code text-on-surface-variant">
-                {edges.length} edges
+                {graph.edges.length} edges
               </span>
             </div>
           </div>
 
-          <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-            {nodes.length === 0 && edges.length === 0 ? (
-              <p className="text-body-sm text-muted text-center px-6">
+          <div className="flex-1 relative">
+            {graph.nodes.length === 0 ? (
+              <p className="h-full grid place-items-center text-body-sm text-muted text-center px-6">
                 No artifacts linked yet
               </p>
             ) : (
-              <>
-                {/* Edges share the 0–100 coordinate space with the node cards, so
-                    lines stay attached to their nodes at any panel size. */}
-                <svg
-                  className="absolute inset-0 w-full h-full pointer-events-none"
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                >
-                  {edges.map((edge) => (
-                    <path
-                      key={`${edge.from.join()}-${edge.to.join()}`}
-                      className="graph-line"
-                      d={`M${edge.from[0]},${edge.from[1]} L${edge.to[0]},${edge.to[1]}`}
-                      fill="none"
-                      stroke={edge.stroke}
-                      strokeWidth="1.5"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  ))}
-                </svg>
-
-                {nodes.map((node) => (
-                  <GraphNode
-                    key={node.label}
-                    x={node.x}
-                    y={node.y}
-                    tone={node.tone}
-                    icon={node.icon}
-                    label={node.label}
-                    muted={node.muted}
-                  />
-                ))}
-              </>
+              <EvidencePreview graph={graph} />
             )}
           </div>
         </div>

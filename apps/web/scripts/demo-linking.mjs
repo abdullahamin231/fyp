@@ -23,7 +23,16 @@ import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, 
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
-for (const line of readFileSync(new URL("../.env.local", import.meta.url), "utf8").split(/\r?\n/)) {
+let envFile = "";
+for (const name of [".env.local", ".env"]) {
+  try {
+    envFile = readFileSync(new URL(`../${name}`, import.meta.url), "utf8");
+    break;
+  } catch {
+    // try the next convention
+  }
+}
+for (const line of envFile.split(/\r?\n/)) {
   const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/.exec(line);
   if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
 }
@@ -31,7 +40,7 @@ const serviceKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVI
 function die(msg) { console.error(msg); process.exitCode = 1; throw new Error("__stop__"); }
 process.on("uncaughtException", (e) => { if (e?.message !== "__stop__") { console.error(e); process.exitCode = 1; } });
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !serviceKey || !process.env.INTEGRATION_ENCRYPTION_KEY) {
-  die("apps/web/.env.local needs NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY and INTEGRATION_ENCRYPTION_KEY");
+  die("apps/web/.env.local (or .env) needs NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY and INTEGRATION_ENCRYPTION_KEY");
 }
 
 const encKey = createHash("sha256").update(process.env.INTEGRATION_ENCRYPTION_KEY).digest();

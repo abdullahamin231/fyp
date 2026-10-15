@@ -5,6 +5,10 @@ is verified against its linked Jira acceptance criteria, and the system shows
 what the evidence supports, contradicts, or cannot support — with every decisive
 finding tied to its cited source.**
 
+> Full ~30-minute tour of everything built (ingestion, linking edge cases,
+> reviewer lifecycle, graph explorers, boundaries): `docs/demo-walkthrough.md`.
+> Before either, run `cd apps/web && npm run demo:preflight -- mishals-workspace`.
+
 Session context (Form 2): live core-module demo, 8 minutes, **must include an
 edge or failure condition**. Screenshots/prerecorded video are backup evidence
 only. This document is the script required by TODO §7.
