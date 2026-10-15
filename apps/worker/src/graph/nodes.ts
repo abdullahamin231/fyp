@@ -181,6 +181,27 @@ export async function loadLinkPolicy(
 }
 
 /**
+ * The /demo page's T10 switch for this workspace (00021_demo_controls).
+ * No row, or a database without the table yet, means no fault.
+ */
+export async function loadDemoFault(
+  client: SupabaseClient,
+  workspaceId: string,
+): Promise<"none" | "extra" | "only"> {
+  const { data, error } = await client
+    .from("demo_controls")
+    .select("stub_fabricate")
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (error) {
+    if (error.code === "42P01" || error.code === "PGRST205") return "none";
+    throw new Error(`loadDemoFault: ${error.message}`);
+  }
+  const value = (data as { stub_fabricate?: string } | null)?.stub_fabricate;
+  return value === "extra" || value === "only" ? value : "none";
+}
+
+/**
  * Freshness of the sources behind this workspace (FR-10, §8.4).
  *
  * `STALE` when any ingestion checkpoint is flagged stale, `UNKNOWN` when the
