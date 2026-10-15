@@ -35,6 +35,7 @@ verifier loop → provenance gate → reviewer surface.
 | 4. Jira leg | demo presenter | `node scripts/jira-replay.mjs mishals-workspace --issue UNI-7 --summary "Discount codes at checkout" --criteria "the total drops by the code percentage;;the receipt shows the discounted total"` | Response `200` with `criteria: { created: 2, … }` |
 | 5. Worker | demo presenter | Put the **`sb_secret_…`** key in `apps/worker/.env`, then `cd apps/worker && ./deploy/install.sh` | `journalctl -u unify-worker` shows `worker started` with `stubFabricate: "none"` |
 | 6. Settings check | any member | `/settings/workspace?workspace=mishals-workspace` shows the analysis target `abdullahamin231/fyp` | Criteria field may stay empty (description fallback is in use) |
+| 7. Figma (optional beat) | workspace admin | Register the Figma app at `/settings/integrations?workspace=mishals-workspace` → connect via OAuth → on the workspace page add a file key → **Poll now** | A version lands in `/ingest` as a `design_artifact` event; `/graph` shows the `DesignArtifact` node. For the hourly schedule, set `CRON_SECRET` in Vercel (Project Settings → Environment Variables) |
 
 Environment notes:
 
@@ -44,38 +45,93 @@ Environment notes:
 
 ---
 
-## 3. Rehearsal (a day or two before, not the morning of)
+## 3. Rehearsal — DONE, green (2026-10-15)
 
-1. Push one commit to each demo branch (or reopen the PR) so the chain runs
-   under the deployed code:
-   - PR #47 (`demo/uni-7-supported`) → expect `SUPPORTED`
-   - PR #48 (`demo/uni-7-contradicted`) → expect `CONTRADICTED`
-2. Confirm in the UI: `/conflicts` shows both findings with verdicts; the
-   evidence case shows citations, the pass log, and the packet manifest.
-3. Time each beat. Verification takes ~1–2 minutes per PR (analysis + test run).
-4. Then **close both PRs** so the meeting's re-run is a fresh, visible event.
+Rehearsed end to end against the live project: real GitHub webhooks, real
+`enqueue_verification` from the delivery, real clone-and-analyse of
+`abdullahamin231/fyp`, real test run, real verdicts stored.
+
+| PR | Head | Result |
+|---|---|---|
+| #47 `demo/uni-7-supported` | `b6e5230` | **SUPPORTED** — both criteria, 3 evidence spans each |
+| #48 `demo/uni-7-contradicted` | `205953a` | **CONTRADICTED** — both criteria, 9 spans, reason "the test-run evidence records a FAIL", severity critical |
+
+The earlier findings were superseded by the re-verification (the finding
+lifecycle works). Both PRs are now **closed**: at the meeting, reopening one
+fires `reopened` → a fresh job per criterion → verdicts land live. Nothing
+needs re-doing, and the chain takes ~25s per PR at rehearsal speed.
 
 ---
 
 ## 4. Live run (8 minutes)
 
-| Time | Action | Screen | Expected |
-|---|---|---|---|
-| 0:00 | "Here is the ticket and the criterion it states." | Jira (UNI-7) + the criterion it states | 2 acceptance criteria, written as prose |
-| 0:30 | Reopen PR #47. "This PR implements the criterion." | `/conflicts` on refresh | New finding, `SUPPORTED`, citations on the symbol card + the passing test run |
-| 1:30 | Open the evidence case | `/conflicts/<id>` | Pass log (why the loop stopped where it did), packet manifest, gate outcome PASSED |
-| 2:45 | Reopen PR #48. "Same criterion, different implementation." | `/conflicts` | New finding, `CONTRADICTED`, the failing test cited verbatim |
-| 4:00 | Show the diff next to the cited failing test | GitHub + evidence case | The PR says one thing; the test run says another |
-| 5:00 | **Arm the T10 fault**: set `stubFabricate: "only"` in `WORKER_SETTINGS`, rebuild, restart the service, push a commit to PR #48 | worker log shows `stubFabricate: "only"`; new verdict | `INSUFFICIENT_EVIDENCE`, gate `DOWNGRADED`, reason code `INVALID_CITATION` — the citation was never in the packet |
-| 6:30 | **Disarm**: back to `"none"`, rebuild, restart | `journalctl` | fault off |
-| 7:00 | Show it was all real | `/graph` (Ticket → Criterion → PR → CodeSymbol / TestCase / Commit), `/ingest` (raw payloads, secrets redacted), `/evaluation` (real counts) | The graph the verdicts were built from |
-| 7:45 | State the boundaries plainly | — | Model = the deterministic seam (see below); Jira = replayed; Figma = connected + ingested only |
+Both demo PRs are **open** with live results already on screen from the
+rehearsal (2 × `SUPPORTED` low, 2 × `CONTRADICTED` critical). Each beat below
+*regenerates* its result live: close the PR, reopen it, and a fresh job per
+criterion runs the whole chain (webhook → linker → enqueue → clone → analyse →
+test run → packet → loop → gate → verdict + finding), superseding the old row.
 
-Say out loud, once, without being asked:
+**Beat 0 — orient (0:00–0:30).** Log in at
+`https://unify-web-weld.vercel.app`. Open `/graph`: the evidence graph is
+already populated — `Ticket UNI-7` → `UNI-7/AC-1` / `AC-2` (criterion lane),
+the pull requests, and the code/test evidence they link to. Say what it is:
+one verified change, per criterion, with every decisive claim traceable.
 
-- The verdict is only ever written by the gate — never by the model.
-- Every decisive finding cites an evidence span that was in the packet, or it is downgraded. That is the whole claim, and beat 3 proves it.
-- The model currently configured is the deterministic stub — a seam, not a result. The local-model selection study (proposal §25) is not finished, and no verdict claim here depends on which model sits behind the seam.
+**Beat 1 — the normal case (0:30–2:30).**
+
+```bash
+gh pr close 47 && gh pr reopen 47
+```
+
+~25s later refresh `/conflicts`: two new rows, verdict **SUPPORTED**, severity
+low, superseding the rehearsal rows. Open one — citations (symbol card + the
+**passing** test run), the verifier's pass log, the packet manifest, gate
+`PASSED`.
+
+**Beat 2 — the bad PR (2:30–4:00).**
+
+```bash
+gh pr close 48 && gh pr reopen 48
+```
+
+Refresh: **CONTRADICTED**, critical, with the failing test cited verbatim
+(`FAIL (exit 1, …)` and the two failing test names). Show the GitHub diff beside
+it — the change looks fine; the test run says otherwise.
+
+**Beat 3 — the failure case, T10 (4:00–6:00).** The gate catching a model that
+invents evidence:
+
+```bash
+sed -i 's/stubFabricate: "none"/stubFabricate: "only"/' apps/worker/src/config.ts
+sudo systemctl restart unify-worker
+gh pr close 48 && gh pr reopen 48        # same change, badly-behaved model
+```
+
+Refresh: the finding flips to **INSUFFICIENT_EVIDENCE**, gate `DOWNGRADED`,
+reason code `INVALID_CITATION` — the citation was never in the packet. Then
+disarm:
+
+```bash
+git checkout -- apps/worker/src/config.ts
+sudo systemctl restart unify-worker
+journalctl -u unify-worker -n 2 --no-pager   # confirm stubFabricate: "none"
+```
+
+**Beat 4 — proof it was all real (6:00–7:00).** `/graph` (the growth), `/ingest`
+(raw payloads with secrets redacted, real GitHub delivery ids), `/evaluation`
+(real counts over stored verdicts).
+
+**Beat 5 — the Figma leg (7:00–7:45), if wired.** `/settings/integrations?workspace=mishals-workspace`
+shows the Figma app + connection; the workspace page shows watched files;
+"Poll now" ingests new versions as `design_artifact` events, visible in
+`/ingest` and as `DesignArtifact` nodes in `/graph`. Wiring steps in §2.
+
+**Beat 6 — boundaries, said plainly (7:45–8:00).** The verdict is only ever
+written by the gate. The model behind the seam today is the deterministic stub
+(the local-model selection study is still open — proposal §25). The Jira leg is
+replayed §13.4-style (real-shaped, HMAC-signed at the real endpoint); GitHub and
+the analyser's test runs are fully real. Design→criterion linking is not wired:
+Figma versions are ingested as evidence, not yet attached to a criterion.
 
 ---
 
@@ -90,9 +146,35 @@ Say out loud, once, without being asked:
 
 ---
 
-## 6. Known landmines (all fixed, all real)
+## 6. Known landmines — every one of these actually bit during the rehearsal
 
-- **npm swallows failure inside a workspace**: `npm test` exits 0 when the script fails. The analysis target must invoke the runner directly (`npx vitest run`).
-- **The test-run verdict must be on its own line**: the stub model and the gate tests key off `\nFAIL\n` / `\nPASS\n` inside `TEST_EVIDENCE`. The analyser's payload used to write `FAIL (exit 1, …)` on one line, which silently read as PARTIAL.
-- **Criterion edges must be decisive-eligible**: `REFERENCES` with `source_class: "derived"` maps to `system-confirmed`. A `model_candidate` or `unresolved` edge downgrades every verdict built on it — `AMBIGUOUS_LINK`.
-- **Order matters**: the Jira ticket must exist before the PR delivery, or the linker records `unknown_key`, no `TRACKS` edge is created, and no criterion is ever enqueued.
+1. **npm swallows failure inside a workspace.** `npm test` exits 0 when the
+   script fails (npm prints `npm ERR!` and returns 0). The analysis target must
+   invoke the runner directly: `npx vitest run`.
+2. **The test-run verdict must be on its own line.** The stub model and the
+   gate tests key off `\nFAIL\n` / `\nPASS\n` inside `TEST_EVIDENCE`. The
+   analyser used to write `FAIL (exit 1, …)` on one line — a failing suite
+   silently read as PARTIAL.
+3. **Evidence must be attributed to the PR at the job's head.** Enrichment
+   first picked the *first* PR linked to the ticket, so one PR's analysis was
+   published against another's node. It matches the PR whose node `version` is
+   the job's pinned head (the linker records the head there, not in payload).
+4. **The test-run node needs an edge.** It was an orphan — in the graph, never
+   reached by the bounded walk — so the packet carried test *sources* but not
+   the record of whether the suite passed.
+5. **The evidence window is shared until it is scoped.** Two open PRs on one
+   criterion produced one identical packet (and verdict) because the walk is
+   criterion-centric. The provider now scopes to the pinned revision pair.
+6. **TEST_EVIDENCE budget order is load-bearing.** The assembler never squeezes
+   a smaller item in, so the run must be admitted ahead of the sources (fixed
+   priority) and the recorded log tail is bounded (~600 chars).
+7. **Criterion edges must be decisive-eligible.** `REFERENCES` with
+   `source_class: "derived"` maps to `system-confirmed`. A `model_candidate` or
+   `unresolved` edge downgrades every verdict built on it — `AMBIGUOUS_LINK`.
+8. **Order matters.** The Jira ticket must exist before the PR delivery, or the
+   linker records `unknown_key`, no `TRACKS` edge is created, and no criterion
+   is ever enqueued.
+9. **One worker, on the right branch.** `npm run dev` runs the *source*
+   (via tsx), on whichever branch is checked out — and stale workers from
+   earlier shells keep polling and racing. Before a rehearsal: confirm the
+   branch is `feat/live-demo-chain` and exactly one worker is running.

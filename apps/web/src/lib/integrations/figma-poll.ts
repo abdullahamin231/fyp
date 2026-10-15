@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { figmaAdapter } from "./adapters";
 import { rawHash } from "./common";
+import { recordCheckpoint } from "./checkpoints";
 import { connectionAccessToken, persistDelivery } from "./server";
 
 type WatchedFile = {
@@ -124,6 +125,7 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
     }
 
     const receivedAt = new Date();
+    const ingestedEventIds: string[] = [];
     for (const version of newer.reverse()) {
       const payload = {
         event_type: "FILE_VERSION_UPDATE",
@@ -146,6 +148,7 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
         payload,
       });
       if (event) {
+        ingestedEventIds.push(event.eventId);
         const { error } = await admin().from("events").upsert({
           event_id: event.eventId,
           vendor_delivery_id: event.vendorDeliveryId,
@@ -175,6 +178,19 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
       last_poll_error: null,
     }).eq("id", file.id).eq("workspace_id", workspaceId);
     if (error) throw new Error(`Could not update Figma poll state: ${error.message}`);
+    // A checkpoint per file: polling is an ingestion source like any other, and
+    // freshness (§8.4) is computed from these rows, not from webhook deliveries.
+    if (newer.length > 0 && ingestedEventIds.length > 0) {
+      await recordCheckpoint(admin(), {
+        workspaceId,
+        provider: "figma",
+        resource: { provider: "figma", fileKey: file.file_key },
+        // The normalised event id — `checkpoints.last_event_id` references
+        // `events(event_id)`, so it must name a row that exists.
+        eventId: ingestedEventIds[ingestedEventIds.length - 1]!,
+        eventTime: newer[0]!.created_at,
+      });
+    }
     return {
       fileKey: file.file_key,
       status: newer.length > 0 ? "ingested" : "up_to_date",
@@ -213,4 +229,31 @@ export async function pollFigmaWorkspace(workspaceId: string): Promise<FilePollR
   const results: FilePollResult[] = [];
   for (const file of files) results.push(await pollFile(workspaceId, token, file));
   return results;
+}
+
+/**
+ * Every workspace with at least one watched file — what the scheduled poll
+ * iterates. Service-role read (RLS has no policy for this join), used only by
+ * the cron route, which is itself authenticated.
+ */
+export async function figmaWatchedWorkspaces(): Promise<{ id: string; slug: string; files: number }[]> {
+  const { data, error } = await admin()
+    .from("figma_watched_files")
+    .select("workspace_id, workspaces(slug)")
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`Could not load watched Figma workspaces: ${error.message}`);
+  const rows = (data ?? []) as unknown as Array<{
+    workspace_id: string;
+    workspaces: { slug: string } | { slug: string }[] | null;
+  }>;
+  const counts = new Map<string, { id: string; slug: string; files: number }>();
+  for (const row of rows) {
+    // supabase-js types an embedded to-one resource as an array; handle both.
+    const embedded = row.workspaces;
+    const slug = (Array.isArray(embedded) ? embedded[0]?.slug : embedded?.slug) ?? row.workspace_id;
+    const entry = counts.get(row.workspace_id) ?? { id: row.workspace_id, slug, files: 0 };
+    entry.files += 1;
+    counts.set(row.workspace_id, entry);
+  }
+  return [...counts.values()];
 }

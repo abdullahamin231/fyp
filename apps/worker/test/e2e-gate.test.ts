@@ -55,7 +55,7 @@ async function verify(opts: {
 const decisiveScope = '{"applicable":true,"reason":"code and tests present","missingEvidence":null}';
 
 describe("verifier → gate, end to end", () => {
-  it("a passing, well-cited change lands SUPPORTED and needs no reviewer queue entry", async () => {
+  it("a passing, well-cited change lands SUPPORTED — and still shows in the queue", async () => {
     const { result, loop } = await verify();
     expect(result.outcome).toBe("PASSED");
     expect(result.verdict.status).toBe("SUPPORTED");
@@ -63,7 +63,10 @@ describe("verifier → gate, end to end", () => {
     expect(result.verdict.stopReason).toBe("VERIFIED");
     expect(result.verdict.evidence.length).toBeGreaterThan(1);
     expect(loop.unavailable).toBe(false);
-    expect(shouldCreateFinding(result.verdict)).toBe(false);
+    // A verified change is an outcome the reviewer surface reports, not a
+    // conflict: the queue entry exists and its severity carries the difference.
+    expect(shouldCreateFinding(result.verdict)).toBe(true);
+    expect(findingAnnotation(result.verdict, "C-01")).toContain("SUPPORTED");
   });
 
   it("T10 · a fabricated citation downgrades the verdict and is dropped from evidence", async () => {

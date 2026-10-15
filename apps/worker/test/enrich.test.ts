@@ -154,26 +154,40 @@ const config = {
 } as unknown as Config;
 
 const NODES = {
-  ticket: { id: "n-ticket", type: "Ticket", external_id: "UNI-7", payload: { status: "Done" } },
-  pr: { id: "n-pr", type: "PullRequest", external_id: "acme/store#42", payload: { repo: "acme/store" } },
-  commit: { id: "n-commit", type: "Commit", external_id: "commit:existing", payload: {} },
+  ticket: { id: "n-ticket", type: "Ticket", external_id: "UNI-7", version: "2026-10-14T10:00:00Z", payload: { status: "Done" } },
+  // The linker records the head on `version`, not payload (00015 step 2).
+  pr: { id: "n-pr", type: "PullRequest", external_id: "acme/store#42", version: "b".repeat(40), payload: { repo: "acme/store" } },
+  prOther: { id: "n-pr-other", type: "PullRequest", external_id: "acme/store#41", version: "f".repeat(40), payload: { repo: "acme/store" } },
+  commit: { id: "n-commit", type: "Commit", external_id: "commit:existing", version: "b".repeat(40), payload: {} },
 };
 
 /**
  * The graph around a criterion as ingestion leaves it: the ticket linked to
  * the criterion by a REFERENCES edge (from upsertCriteriaFromJira), and the
- * PR linked to the ticket by a TRACKS edge (from the linker).
+ * PRs linked to the ticket by TRACKS edges (from the linker).
+ *
+ * `headSha` is what the enrichment now matches the job's pinned head against:
+ * the PR node at this head is the one the evidence is published for.
  */
-function graphRoutes(overrides: { commitExists?: boolean; hasPR?: boolean; hasTarget?: boolean } = {}): Route[] {
+function graphRoutes(
+  overrides: { commitExists?: boolean; hasPR?: boolean; hasTarget?: boolean; headSha?: string } = {},
+): Route[] {
+  const headSha = overrides.headSha ?? "b".repeat(40);
+  const prs = overrides.hasPR === false
+    ? []
+    : [
+        { ...NODES.prOther },
+        { ...NODES.pr, version: headSha },
+      ];
   return [
     // criterion-incident edges: selected as "from_id, to_id, type" → the REFERENCES edge.
     { table: "edges", match: (c) => c.select.includes("type"), data: [{ from_id: "n-ticket", to_id: CRITERION.id, type: "REFERENCES" }] },
     // nodes loaded from that edge → the ticket.
     { table: "nodes", match: (c) => c.inFilters[0]?.[1].includes("n-ticket") === true, data: [NODES.ticket] },
     // TRACKS edges of the ticket: selected as "from_id, to_id" (no "type" column).
-    { table: "edges", match: (c) => !c.select.includes("type"), data: overrides.hasPR === false ? [] : [{ from_id: "n-ticket", to_id: "n-pr" }] },
-    // nodes loaded from TRACKS → the pull request the webhook created.
-    { table: "nodes", match: (c) => c.inFilters[0]?.[1].includes("n-pr") === true, data: [NODES.pr] },
+    { table: "edges", match: (c) => !c.select.includes("type"), data: prs.map((p) => ({ from_id: "n-ticket", to_id: p.id })) },
+    // nodes loaded from TRACKS → both pull requests on the ticket.
+    { table: "nodes", match: (c) => c.inFilters[0]?.[1].some((v) => v.startsWith("n-pr")) === true, data: prs },
     // commit-node existence check: the single-row nodes lookup by external_id.
     { table: "nodes", match: (c) => c.filters.some(([col, val]) => col === "external_id" && String(val).startsWith("commit:")), data: overrides.commitExists ? [NODES.commit] : [] },
     // analysis target (workspace + repo). `null`/`[]` through maybeSingle means
@@ -183,9 +197,9 @@ function graphRoutes(overrides: { commitExists?: boolean; hasPR?: boolean; hasTa
 }
 
 describe("ensureEvidence", () => {
-  it("publishes analysis for the job's commit pair, attached to the webhook's PR node", async () => {
+  it("publishes analysis for the job's commit pair, attached to the PR at this head", async () => {
     const { dir, base, head } = repo();
-    const client = new FakeClient(graphRoutes());
+    const client = new FakeClient(graphRoutes({ headSha: head }));
     const outcome = await ensureEvidence(
       { client: client as unknown as SupabaseClient, config, resolveRepoDir: async () => dir },
       { workspace_id: "ws-1", base_commit: base, head_commit: head },
@@ -263,7 +277,7 @@ describe("ensureEvidence", () => {
 
   it("refuses a repository with no analysis target — analysis is never silent", async () => {
     const { dir, base, head } = repo();
-    const client = new FakeClient(graphRoutes({ hasTarget: false }));
+    const client = new FakeClient(graphRoutes({ hasTarget: false, headSha: head }));
     const outcome = await ensureEvidence(
       { client: client as unknown as SupabaseClient, config, resolveRepoDir: async () => dir },
       { workspace_id: "ws-1", base_commit: base, head_commit: head },
@@ -274,7 +288,7 @@ describe("ensureEvidence", () => {
   });
 
   it("fails the caller (never a verdict) when the repository cannot be resolved", async () => {
-    const client = new FakeClient(graphRoutes());
+    const client = new FakeClient(graphRoutes({ headSha: "b".repeat(40) }));
     await expect(
       ensureEvidence(
         {
@@ -286,6 +300,46 @@ describe("ensureEvidence", () => {
         CRITERION,
       ),
     ).rejects.toThrow(/clone failed/);
+    expect(client.rpcCalls).toEqual([]);
+  });
+
+  it("attaches evidence to the PR at this head, never to another PR on the ticket", async () => {
+    // Regression: the graph holds two open pull requests for the same ticket
+    // (as in the demo — #47 and #48 both name UNI-7). The job's head names
+    // which one this evidence belongs to; picking the other attaches one
+    // change's proof to another change's packet.
+    const { dir, base, head } = repo();
+    const client = new FakeClient(graphRoutes({ headSha: head }));
+    await ensureEvidence(
+      { client: client as unknown as SupabaseClient, config, resolveRepoDir: async () => dir },
+      { workspace_id: "ws-1", base_commit: base, head_commit: head },
+      CRITERION,
+    );
+    const publish = client.rpcCalls.find((call) => call.name === "publish_analysis")!;
+    const args = publish.args as unknown as { p_edges: Array<{ from: string; to: string; type: string; fromType: string; toType: string }> };
+    const prEdges = args.p_edges.filter(
+      (e) => e.fromType === "PullRequest" || e.toType === "PullRequest",
+    );
+    expect(prEdges.length).toBeGreaterThan(0);
+    // Every edge touching a pull request touches the one at this head.
+    const prSide = new Set(prEdges.flatMap((e) => [e.from, e.to]).filter((id) => id.startsWith("acme/store#")));
+    expect([...prSide]).toEqual(["acme/store#42"]);
+    // The other PR (head ffff…) appears on no edge at all.
+    expect(args.p_edges.some((e) => e.from === "acme/store#41" || e.to === "acme/store#41")).toBe(false);
+  });
+
+  it("abstains when linked PRs are stale — none sits at this job's head", async () => {
+    const client = new FakeClient(graphRoutes({ headSha: "c".repeat(40) }));
+    const outcome = await ensureEvidence(
+      {
+        client: client as unknown as SupabaseClient,
+        config,
+        resolveRepoDir: async () => { throw new Error("must not run git"); },
+      },
+      { workspace_id: "ws-1", base_commit: "a".repeat(40), head_commit: "b".repeat(40) },
+      CRITERION,
+    );
+    expect(outcome).toEqual({ status: "no-pull-request", ticketExternalId: "UNI-7" });
     expect(client.rpcCalls).toEqual([]);
   });
 });

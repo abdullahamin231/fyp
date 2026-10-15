@@ -18,18 +18,25 @@
  *   node scripts/github-webhook-setup.mjs <workspace-slug-or-uuid> [repo owner/name]
  *   node scripts/github-webhook-setup.mjs mishals-workspace abdullahamin231/fyp
  */
-import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from "node:crypto";
+import { createCipheriv, createHash, createHmac, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
 let envFile = "";
-try {
-  envFile = readFileSync(new URL("../.env.local", import.meta.url), "utf8");
-} catch {
+for (const name of [".env.local", ".env"]) {
+  try {
+    envFile = readFileSync(new URL(`../${name}`, import.meta.url), "utf8");
+    break;
+  } catch {
+    // try the next convention
+  }
+}
+if (!envFile) {
   console.error(
-    "apps/web/.env.local not found. Create it with the values from the Vercel project\n" +
-    "(Project Settings -> Environment Variables): NEXT_PUBLIC_SUPABASE_URL,\n" +
-    "SUPABASE_SERVICE_ROLE_KEY, INTEGRATION_ENCRYPTION_KEY.",
+    "Neither apps/web/.env.local nor apps/web/.env was found. Create one with the\n" +
+    "values from the Vercel project (Project Settings -> Environment Variables):\n" +
+    "NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY),\n" +
+    "INTEGRATION_ENCRYPTION_KEY.",
   );
   process.exit(1);
 }
@@ -48,12 +55,6 @@ const encrypt = (v) => {
   const c = createCipheriv("aes-256-gcm", key, iv);
   const enc = Buffer.concat([c.update(v, "utf8"), c.final()]);
   return `${iv.toString("base64url")}.${c.getAuthTag().toString("base64url")}.${enc.toString("base64url")}`;
-};
-const decrypt = (v) => {
-  const [iv, tag, ct] = v.split(".");
-  const d = createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "base64url"));
-  d.setAuthTag(Buffer.from(tag, "base64url"));
-  return Buffer.concat([d.update(Buffer.from(ct, "base64url")), d.final()]).toString("utf8");
 };
 
 function die(msg) { console.error(msg); process.exitCode = 1; throw new Error("__stop__"); }
