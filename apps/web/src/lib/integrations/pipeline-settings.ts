@@ -16,20 +16,12 @@
  * `requireWorkspaceAdmin` at the action layer (see the settings page), same as
  * the provider app registrations.
  */
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
-
-function admin(): SupabaseClient {
-  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error("SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) is required");
-  return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
+import { admin } from "@/lib/supabase/admin";
 
 /** Jira field key holding acceptance criteria, or null when not configured. */
-export async function loadJiraCriteriaField(workspaceId: string): Promise<string | null> {
-  const { data, error } = await admin()
+export async function loadJiraCriteriaField(workspaceId: string, db: SupabaseClient = admin()): Promise<string | null> {
+  const { data, error } = await db
     .from("integration_apps")
     .select("criteria_field")
     .eq("workspace_id", workspaceId)

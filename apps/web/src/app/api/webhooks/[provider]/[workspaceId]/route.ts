@@ -4,6 +4,7 @@ import { asRecord, rawHash, text } from "@/lib/integrations/common";
 import { connectionForWebhook, persistDelivery } from "@/lib/integrations/server";
 import { isProvider } from "@/lib/integrations/types";
 import { recordCheckpoint } from "@/lib/integrations/checkpoints";
+import { loadJiraCriteriaField } from "@/lib/integrations/pipeline-settings";
 import {
   enqueueVerificationForTickets,
   evaluateWorkflowRule,
@@ -11,7 +12,7 @@ import {
   upsertCriteriaFromJira,
   upsertTicketFromJira,
 } from "@/lib/integrations/pipeline";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { admin } from "@/lib/supabase/admin";
 
 const MAX_BODY_BYTES = 10 * 1024 * 1024;
 
@@ -23,27 +24,6 @@ const MAX_BODY_BYTES = 10 * 1024 * 1024;
  */
 const VERIFIABLE_ACTIONS = new Set(["opened", "synchronize", "reopened"]);
 const SHA40 = /^[0-9a-f]{40}$/;
-
-function admin() {
-  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error("SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) is required for webhooks");
-  return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-/** Which Jira field holds this workspace's acceptance criteria (00025). */
-async function jiraCriteriaField(db: ReturnType<typeof admin>, workspaceId: string): Promise<string | null> {
-  const { data, error } = await db
-    .from("integration_apps")
-    .select("criteria_field")
-    .eq("workspace_id", workspaceId)
-    .eq("provider", "jira")
-    .maybeSingle();
-  if (error) throw new Error(`Could not load Jira criteria field: ${error.message}`);
-  const field = (data as { criteria_field?: string | null } | null)?.criteria_field;
-  return typeof field === "string" && field.trim() ? field.trim() : null;
-}
 
 export async function POST(request: NextRequest, context: { params: Promise<{ provider: string; workspaceId: string }> }) {
   const { provider: rawProvider, workspaceId } = await context.params;
@@ -136,7 +116,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
           payload,
           ticket.key,
           ticket.ticketNodeId,
-          await jiraCriteriaField(db, workspaceId),
+          await loadJiraCriteriaField(workspaceId, db),
           firstEvent.occurredAt,
         );
         pipeline.criteria = criteria;
