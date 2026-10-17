@@ -148,7 +148,7 @@ verification pipeline above; it does not touch the queue.
 
 | Piece | What it does |
 |---|---|
-| `src/linking/extract-keys.ts` | Finds keys such as `UNI-123` in the PR title, branch name and commit messages. Pure TypeScript. A project allow-list rejects lookalikes like `UTF-8`. |
+| `extractJiraKeys` (`packages/contracts/src/jira-keys.ts`) | Finds keys such as `UNI-123` in the PR title, branch name, description and commit messages. Pure TypeScript, shared with the web ingestion path. A project allow-list rejects lookalikes like `UTF-8`. |
 | `supabase/migrations/00015_link_pull_request_event.sql` | `link_pull_request_event(...)` RPC, one transaction: records the event (stops if this delivery was seen before), upserts the `PullRequest` node, looks up each key's `Ticket` node, inserts a `TRACKS` edge (`observed`, confidence 1.0, resolver `explicit-reference`). `service_role` only, like the queue RPCs. |
 | `src/linking/link-pull-request.ts` | Extracts the keys, then makes the one RPC call. |
 | `src/linking/callers.ts` | `viaSupabase(client)` calls the RPC through supabase-js; `viaSql(db)` calls the same function over plain SQL (tests). |

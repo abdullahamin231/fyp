@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { extractJiraKeys, findKeysInText } from "../src/linking/extract-keys.js";
+import { extractJiraKeys, findKeysInText } from "../src/index.js";
 
 const UNI = ["UNI"];
 
@@ -51,6 +51,15 @@ describe("extractJiraKeys", () => {
     expect(keys).toEqual([
       { key: "UNI-123", foundIn: ["title", "branch", "commit:a1b2c3d"] },
       { key: "UNI-124", foundIn: ["commit:b1b2c3d"] },
+    ]);
+  });
+
+  it("reads the description, and commits alone (a push has no title or branch text)", () => {
+    expect(extractJiraKeys({ title: "Login form", body: "Closes UNI-9", branch: null }, UNI)).toEqual([
+      { key: "UNI-9", foundIn: ["body"] },
+    ]);
+    expect(extractJiraKeys({ commits: [{ sha: "c".repeat(40), message: "UNI-4 wip" }] }, UNI)).toEqual([
+      { key: "UNI-4", foundIn: ["commit:ccccccc"] },
     ]);
   });
 });

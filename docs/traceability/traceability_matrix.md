@@ -3,7 +3,7 @@
 > **Generated file — do not edit by hand.**
 > Source: [`traceability_matrix.csv`](traceability_matrix.csv)  
 > Generator: `python3 docs/traceability/build_matrix.py`  
-> CSV SHA-256 (first 12): `48d4ff1b431d` · rows: **43** (29 FR + 14 NFR)
+> CSV SHA-256 (first 12): `12f16af75f43` · rows: **43** (29 FR + 14 NFR)
 
 Regenerate and commit at every gate (proposal §18.1 delivery gates and the
 evaluation tag freeze, TODO §7). See [`README.md`](README.md) for column
@@ -22,7 +22,7 @@ definitions, the worksheet §5 mapping and the discrepancy register.
 | FR-01 | Receive and normalise vendor events into the common envelope | Normalised event envelope (ch5 Interfaces); DFD webhook -> normalisation path | fig:dfd | ingestion/ | -- | T7, T8 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/dfd.tex | Haaniah Ismail |
 | FR-02 | Discard duplicate events and reconcile checkpoint gaps | DFD no-op duplicate path; ingestion sequence for duplicate/out-of-order delivery | fig:dfd; diagrams/05_ingestion_sequence.tex (unwired) | ingestion/ | -- | T7, T8 | demo-failure | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/dfd.tex | Haaniah Ismail |
 | FR-03 | Store each artifact version as an immutable snapshot | artifact_snapshots table; append-only/immutable rule (ch5 Data Design) | fig:erd | store/ | -- | -- | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/erd.tex | Haaniah Ismail |
-| FR-04 | Link artifacts across tools and record resolver provenance | Typed edges carrying provenance; link eligibility (ch5 Domain Model) | fig:domain-model | apps/worker/src/linking/; supabase/migrations/00015 | apps/worker/src/linking/link-pull-request.ts; apps/worker/src/linking/extract-keys.ts; apps/web/src/components/links/link-wizard.tsx | T1 | demo-normal | partially_implemented | apps/worker/src/linking/link-pull-request.ts @ 6a7998e | Mishal Fatima |
+| FR-04 | Link artifacts across tools and record resolver provenance | Typed edges carrying provenance; link eligibility (ch5 Domain Model) | fig:domain-model | apps/worker/src/linking/; supabase/migrations/00015 | apps/worker/src/linking/link-pull-request.ts; packages/contracts/src/jira-keys.ts; apps/web/src/components/links/link-wizard.tsx | T1 | demo-normal | partially_implemented | apps/worker/src/linking/link-pull-request.ts @ 6a7998e | Mishal Fatima |
 | FR-05 | Prevent unconfirmed inferred links from producing decisive findings | Link eligibility gate; only deterministic or confirmed edges may fire (ch5 Domain Model) | fig:domain-model | resolution/ | -- | T1 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/domain-model.tex | Mishal Fatima |
 | FR-06 | Extract base/head diff, changed symbols, neighbourhood and test evidence | CodeSymbol entity; analyser responsibilities (ch1 Project Modules) | fig:domain-model | apps/worker/src/analyser/ | apps/worker/src/analyser/analyse.ts; apps/worker/src/analyser/parse.ts; apps/worker/src/analyser/parse-python.ts | -- | demo-normal | partially_implemented | apps/worker/src/analyser/analyse.ts @ 1808fe9 | Mishal Fatima |
 | FR-07 | Treat atomic criteria and approved design constraints as the verification unit | Criterion decomposition; use case UC-01 (ch4 Detailed Use Cases) | fig:usecase | verify/ (planned) | -- | T10 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/chapters/chapter4_requirements.tex | Abdullah Amin, Mishal Fatima |
@@ -126,7 +126,7 @@ The six columns of `FYP1 Mid Pre-Evaluation Student Worksheet.docx` §5
 | FR-01 | Normalised event envelope (ch5 Interfaces); DFD webhook -> normalisation path · fig:dfd | ingestion/ | T7, T8 · designed | -- | Haaniah Ismail |
 | FR-02 | DFD no-op duplicate path; ingestion sequence for duplicate/out-of-order delivery · fig:dfd; diagrams/05_ingestion_sequence.tex (unwired) | ingestion/ | T7, T8 · designed | demo-failure | Haaniah Ismail |
 | FR-03 | artifact_snapshots table; append-only/immutable rule (ch5 Data Design) · fig:erd | store/ | designed | -- | Haaniah Ismail |
-| FR-04 | Typed edges carrying provenance; link eligibility (ch5 Domain Model) · fig:domain-model | apps/worker/src/linking/; supabase/migrations/00015 · apps/worker/src/linking/link-pull-request.ts; apps/worker/src/linking/extract-keys.ts; apps/web/src/components/links/link-wizard.tsx | T1 · partially_implemented | demo-normal | Mishal Fatima |
+| FR-04 | Typed edges carrying provenance; link eligibility (ch5 Domain Model) · fig:domain-model | apps/worker/src/linking/; supabase/migrations/00015 · apps/worker/src/linking/link-pull-request.ts; packages/contracts/src/jira-keys.ts; apps/web/src/components/links/link-wizard.tsx | T1 · partially_implemented | demo-normal | Mishal Fatima |
 | FR-05 | Link eligibility gate; only deterministic or confirmed edges may fire (ch5 Domain Model) · fig:domain-model | resolution/ | T1 · designed | -- | Mishal Fatima |
 | FR-06 | CodeSymbol entity; analyser responsibilities (ch1 Project Modules) · fig:domain-model | apps/worker/src/analyser/ · apps/worker/src/analyser/analyse.ts; apps/worker/src/analyser/parse.ts; apps/worker/src/analyser/parse-python.ts | partially_implemented | demo-normal | Mishal Fatima |
 | FR-07 | Criterion decomposition; use case UC-01 (ch4 Detailed Use Cases) · fig:usecase | verify/ (planned) | T10 · designed | -- | Abdullah Amin, Mishal Fatima |

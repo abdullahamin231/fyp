@@ -17,46 +17,9 @@
  * verification work straight away.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { extractJiraKeys } from "@unify/contracts";
 import { asRecord, text } from "./common";
 import { criterionExternalIds, extractCriteria } from "./criteria";
-
-// ---------------------------------------------------------------------------
-// Key extraction. Same rules as apps/worker/src/linking/extract-keys.ts (kept in
-// step with it; see that file for the reasoning behind each part of the pattern).
-// ---------------------------------------------------------------------------
-
-export type KeySource = "title" | "branch" | "body" | `commit:${string}`;
-export interface ExtractedKey {
-  key: string;
-  foundIn: KeySource[];
-}
-
-const KEY_PATTERN = /(?<![A-Za-z0-9])([A-Z][A-Z0-9]+)-([1-9][0-9]*)(?![A-Za-z0-9])/g;
-
-export function findKeysInText(value: string, projectKeys: readonly string[] | null): string[] {
-  const found: string[] = [];
-  for (const match of value.matchAll(KEY_PATTERN)) {
-    if (projectKeys !== null && !projectKeys.includes(match[1]!)) continue;
-    if (!found.includes(match[0])) found.push(match[0]);
-  }
-  return found;
-}
-
-export function extractJiraKeys(
-  sources: [KeySource, string | null | undefined][],
-  projectKeys: readonly string[] | null,
-): ExtractedKey[] {
-  const byKey = new Map<string, KeySource[]>();
-  for (const [source, value] of sources) {
-    if (!value) continue;
-    for (const key of findKeysInText(value, projectKeys)) {
-      const list = byKey.get(key) ?? [];
-      if (!list.includes(source)) list.push(source);
-      byKey.set(key, list);
-    }
-  }
-  return [...byKey].map(([key, foundIn]) => ({ key, foundIn }));
-}
 
 /** Project prefixes of the tickets this workspace already has, e.g. ["UNI"]. */
 async function workspaceProjectKeys(db: SupabaseClient, workspaceId: string): Promise<string[] | null> {
@@ -369,14 +332,7 @@ export async function linkPullRequestFromGithub(
   const title = text(pr.title) ?? "";
   const branch = text(head.ref) ?? "";
   const state = pr.merged === true ? "merged" : (text(pr.state) ?? "open");
-  const keys = extractJiraKeys(
-    [
-      ["title", title],
-      ["branch", branch],
-      ["body", text(pr.body)],
-    ],
-    await workspaceProjectKeys(db, workspaceId),
-  );
+  const keys = extractJiraKeys({ title, branch, body: text(pr.body) }, await workspaceProjectKeys(db, workspaceId));
 
   const { data, error } = await db.rpc("link_pull_request_event", {
     p_workspace_id: workspaceId,

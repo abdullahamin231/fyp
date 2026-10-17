@@ -16,6 +16,7 @@
  * - `verdict`    verifier output, abstention rule, gated verdict (§11.4–§11.8)
  * - `gate`       the deterministic verdict/provenance gate (FR-10, §11.8)
  * - `finding`    findings and the FR-18 lifecycle
+ * - `jira-keys`  Jira issue-key extraction from pull-request text (FR-04)
  *
  * Validation stance: every object schema is strict. A malformed payload is
  * rejected at the boundary — it is never silently coerced, because a leniently
@@ -35,6 +36,7 @@ export * from "./verdict.js";
 export * from "./gate.js";
 export * from "./finding.js";
 export * from "./ingestion.js";
+export * from "./jira-keys.js";
 
 /** Version of the contract package; mirror this in DB migration notes. */
 export const CONTRACTS_VERSION = "0.1.0";

@@ -7,7 +7,8 @@
  * each key.
  *
  * The work is split in two:
- *   1. here, in TypeScript: find the keys (extract-keys.ts). Pure, no I/O.
+ *   1. here, in TypeScript: find the keys (`extractJiraKeys`, @unify/contracts).
+ *      Pure, no I/O.
  *   2. in the database: one call to the `link_pull_request_event` function
  *      (supabase/migrations/00015_link_pull_request_event.sql), which records
  *      the event, upserts the PR node, looks up each ticket and writes the
@@ -21,7 +22,7 @@
  *   unknown key  key matched, no such ticket    → reported, no edge (step 4)
  *   same event   webhook delivered twice        → second is a no-op (step 1)
  */
-import { extractJiraKeys, type ExtractedKey, type KeySource } from "./extract-keys.js";
+import { extractJiraKeys, type ExtractedKey, type KeySource } from "@unify/contracts";
 
 export interface PullRequestEvent {
   workspaceId: string;
