@@ -18,6 +18,8 @@ export interface RecordedRequest {
   op: "select" | "insert" | "update" | "delete" | "upsert";
   filters: { column: string; op: string; value: unknown }[];
   payload?: unknown;
+  /** The `select()` column list, verbatim. */
+  columns?: string;
   url: string;
 }
 
@@ -78,6 +80,7 @@ export function fakeSupabase(options: FakeOptions = {}) {
     let single: "one" | "maybe" | undefined;
     let countMode = false;
     let head = false;
+    let columns: string | undefined;
 
     const add = (column: string, kind: string, value: unknown, predicate: Predicate) => {
       filters.push({ column, op: kind, value });
@@ -96,7 +99,7 @@ export function fakeSupabase(options: FakeOptions = {}) {
         .join("&");
 
     function run() {
-      requests.push({ table, op, filters: [...filters], payload, url: urlOf() });
+      requests.push({ table, op, filters: [...filters], payload, columns, url: urlOf() });
       const error = options.errors?.[table];
       if (error) return { data: null, error: { message: error, code: "XX000" }, count: null };
       const rows = (tables[table] ??= []);
@@ -143,7 +146,8 @@ export function fakeSupabase(options: FakeOptions = {}) {
     }
 
     const api = {
-      select(_columns?: string, opts?: { count?: string; head?: boolean }) {
+      select(list?: string, opts?: { count?: string; head?: boolean }) {
+        columns = list;
         if (opts?.count) countMode = true;
         if (opts?.head) head = true;
         return api;
