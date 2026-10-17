@@ -75,3 +75,41 @@ export async function listMyWorkspaces(): Promise<WorkspaceSummary[]> {
     ];
   });
 }
+
+export type WorkspaceAccess =
+  | { status: "admin"; userId: string; workspace: WorkspaceRow & { role: WorkspaceRole } }
+  | { status: "member"; userId: string; workspace: WorkspaceRow & { role: WorkspaceRole } }
+  /** Not signed in, not a member, or no such slug: RLS makes these indistinguishable. */
+  | { status: "none" };
+
+/**
+ * The caller's standing in the workspace named by `slug`, as a value rather
+ * than a throw, so a settings page can render "you need admin access" for a
+ * plain member instead of crashing.
+ */
+export async function workspaceAccess(slug: string): Promise<WorkspaceAccess> {
+  const client = await createClient();
+  const {
+    data: { user },
+  } = await client.auth.getUser();
+  if (!user) return { status: "none" };
+
+  const ws = await client.from("workspaces").select("id, name, slug").eq("slug", slug).maybeSingle();
+  if (ws.error) throw new Error(`workspaces: ${ws.error.message}`);
+  if (!ws.data) return { status: "none" };
+
+  const member = await client
+    .from("workspace_members")
+    .select("role")
+    .eq("workspace_id", ws.data.id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (member.error) throw new Error(`workspace_members: ${member.error.message}`);
+  if (!member.data) return { status: "none" };
+
+  const role = member.data.role as WorkspaceRole;
+  const workspace = { ...(ws.data as WorkspaceRow), role };
+  return role === "member"
+    ? { status: "member", userId: user.id, workspace }
+    : { status: "admin", userId: user.id, workspace };
+}

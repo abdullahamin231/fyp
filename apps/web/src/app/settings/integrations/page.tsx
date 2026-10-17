@@ -3,11 +3,9 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { AppShell } from "@/components/layout/app-shell";
 import { ProviderAppRegistration } from "@/components/settings/provider-app-registration";
-import {
-  providerAppStatus,
-  requireWorkspaceAdmin,
-  saveProviderApp,
-} from "@/lib/integrations/server";
+import { AdminRequired, ChooseWorkspace } from "@/components/settings/workspace-gate";
+import { listMyWorkspaces, workspaceAccess } from "@/lib/data/workspaces";
+import { providerAppStatus, saveProviderApp } from "@/lib/integrations/server";
 import type { IntegrationProvider } from "@/lib/integrations/types";
 
 export const metadata: Metadata = {
@@ -22,21 +20,28 @@ export default async function ProviderIntegrationsPage({
   searchParams: Promise<{ workspace?: string }>;
 }) {
   const { workspace: workspaceSlug } = await searchParams;
-  if (!workspaceSlug) {
+  const access = workspaceSlug ? await workspaceAccess(workspaceSlug) : null;
+  if (access?.status !== "admin") {
     return (
       <AppShell>
         <h1 className="font-headline-md text-headline-md font-semibold text-on-surface">
           Provider App Registrations
         </h1>
-        <p className="mt-3 text-on-surface-variant">
-          Open this page with the workspace slug, for example{" "}
-          <code>/settings/integrations?workspace=your-workspace</code>.
-        </p>
+        {workspaceSlug ? (
+          <AdminRequired slug={workspaceSlug} />
+        ) : (
+          <ChooseWorkspace
+            title="Which workspace's apps?"
+            path="/settings/integrations"
+            workspaces={(await listMyWorkspaces()).filter((ws) => ws.role !== "member")}
+          />
+        )}
       </AppShell>
     );
   }
 
-  const { userId, workspaceId } = await requireWorkspaceAdmin(workspaceSlug);
+  const { userId } = access;
+  const workspaceId = access.workspace.id;
   const registrations = await providerAppStatus(workspaceId);
   const requestHeaders = await headers();
   const origin = `${requestHeaders.get("x-forwarded-proto") ?? "http"}://${requestHeaders.get("host") ?? "localhost"}`;
