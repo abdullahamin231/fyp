@@ -9,7 +9,7 @@
 %          \S11.8 (deterministic verdict/provenance gate),
 %          \S14 (local model failure -> deterministic Rules 1--3, verification
 %          marked unavailable, never fabricated), TODO \S1.4 (seven rows).
-% Two panels: the ascending ladder L0--L4 (L4 crossed out, uBad device as in
+% Two panels: the ascending ladder L0--L4 (L4 shown in the prohibited colour, as in
 % layered-arch.tex) and the register table (stage / what the LLM may do / rung /
 % deterministic fallback), under the invariant banner.
 % Commit: <stamp at evaluation tag> -- regenerate rendered/*.pdf at that tag.
@@ -83,12 +83,12 @@
 
 \alrow{9.48}{11.23}{2.3}{uBad!10}{uBad}{uBad}{\textcolor{white}{L4}}{}{\textcolor{uBad}{}}
 
-% ---- red-cross device on L4 (technique from layered-arch.tex), behind the text ---
-\draw[uBad, line width=1.3pt] (2.45,9.63)  -- (10.75,11.08);
-\draw[uBad, line width=1.3pt] (2.45,11.08) -- (10.75,9.63);
-\node[anchor=west, text width=5.25cm, align=left, font=\scriptsize, text=uInk]
+% ---- L4 row text (the row itself is drawn in the prohibited colour) ----------
+\node[anchor=west, align=left, font=\scriptsize, text=uInk,
+      fill=uBad!10!white, inner sep=2pt]
      at (3.35,10.355) {Autonomous write or autonomous resolution};
-\node[anchor=west, text width=1.85cm, align=left, font=\scriptsize\bfseries]
+\node[anchor=west, text width=1.85cm, align=left, font=\scriptsize\bfseries,
+      fill=uBad!10!white, inner sep=2pt]
      at (8.95,10.355) {\textcolor{uBad}{Prohibited in this project}};
 
 % ---- register header -------------------------------------------------------------

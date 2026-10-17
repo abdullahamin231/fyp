@@ -19,7 +19,6 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          # Matches local dev (v24); verified against it on a clean checkout.
           node-version: 24
           cache: npm
 

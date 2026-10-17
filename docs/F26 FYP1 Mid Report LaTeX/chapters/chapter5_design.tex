@@ -34,19 +34,14 @@ the notification channel outbound. No repository content, ticket text or design
 data leaves the deployment, because all inference is performed by a local,
 team-operated model server rather than by a hosted interface.
 
-\begin{landscape}
-\begin{figure}[p]
-  \centering
-  \resizebox{\linewidth}{!}{\input{diagrams/layered-arch}}
-  \caption{Layered architecture and trust boundary (proposal §8.1). The ten
+\lsfigure{\input{diagrams/layered-arch}}
+  {Layered architecture and trust boundary (proposal §8.1). The ten
            design layers are grouped into named super-bands, flows rise from
            the vendor adapter at the bottom to the reviewer surface at the
            top, only the adapter and the outbound notification channel cross
            the boundary, and no hosted model API is used — the model server
            is local and team-owned.}
-  \label{fig:layered-arch}
-\end{figure}
-\end{landscape}
+  {fig:layered-arch}
 
 A deliberate choice in this architecture is that the source systems are
 represented by \emph{role} rather than by product. The adapter layer defines one
@@ -78,20 +73,15 @@ snapshots, the evidence graph, findings and the audit record. Redis provides the
 job queue and the locks that keep concurrent workers from applying the same
 delta twice. The model server runs the local open-weight verifier.
 
-\begin{landscape}
-\begin{figure}[p]
-  \centering
-  \resizebox{\linewidth}{!}{\input{diagrams/components}}
-  \caption{Component and interface view (proposal §8.2/§8.3): web, API,
+\lsfigure{\input{diagrams/components}}
+  {Component and interface view (proposal §8.2/§8.3): web, API,
            worker, PostgreSQL, Redis and the local model server with their
            labelled interfaces; GitHub, Jira and Figma enter through the
            adapter, Slack leaves through notification routing. Dashed boxes
            are dev-only artefacts (\texttt{tools/mock-vendor},
            \texttt{packages/contracts}) that exist for testing and contract
            discipline, not at runtime.}
-  \label{fig:components}
-\end{figure}
-\end{landscape}
+  {fig:components}
 
 The model server is a separate container for two reasons that are worth stating
 explicitly, because the separation looks like over-engineering at this scale. It
@@ -160,7 +150,7 @@ one actually commits to. The three inbound HTTP routes are
 import, so a change to any of these shapes breaks the build of whichever side
 did not change with it rather than failing at runtime.
 
-\begin{longtable}{p{0.16\textwidth}p{0.24\textwidth}p{0.23\textwidth}p{0.23\textwidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.13\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.21\textwidth}}
 \toprule
 \textbf{Interface} & \textbf{Contract} & \textbf{Validation} &
   \textbf{Behaviour on failure} \\
@@ -258,18 +248,13 @@ confirmation, to explanation over already-confirmed facts. The highest level,
 autonomous write or autonomous resolution, is prohibited outright in this
 project rather than left unimplemented.
 
-\begin{landscape}
-\begin{figure}[p]
-  \centering
-  \resizebox{\linewidth}{!}{\input{diagrams/autonomy-ladder}}
-  \caption{LLM autonomy ladder and usage register (proposal §24): L0–L3 with
+\lsfigure{\input{diagrams/autonomy-ladder}}
+  {LLM autonomy ladder and usage register (proposal §24): L0–L3 with
            the deterministic fallback each stage keeps, and L4 autonomous
            write prohibited. The invariant holds across every register row —
            no LLM output writes to the graph of truth, and no LLM output
            fires a policy on its own.}
-  \label{fig:autonomy-ladder}
-\end{figure}
-\end{landscape}
+  {fig:autonomy-ladder}
 
 Every row of the register carries a deterministic fallback, which is what gives
 the system a defined degraded mode rather than an undefined one. The fallbacks
@@ -336,16 +321,11 @@ relationship proposed by similarity and never confirmed by a person. This is
 what allows the policy layer to require that only deterministic or confirmed
 edges may produce a decisive finding.
 
-\begin{landscape}
-\begin{figure}[p]
-  \centering
-  \resizebox{\linewidth}{!}{\input{diagrams/domain-model}}
-  \caption{Domain model of the evidence graph. Every association is persisted
+\lsfigure{\input{diagrams/domain-model}}
+  {Domain model of the evidence graph. Every association is persisted
            as a typed, provenance-carrying edge; \texttt{CodeAnchor} is the
            association class on \texttt{SATISFIES}.}
-  \label{fig:domain-model}
-\end{figure}
-\end{landscape}
+  {fig:domain-model}
 
 The anchor between a requirement and the code satisfying it is modelled as an
 association class rather than as attributes on either entity, because the anchor
@@ -385,16 +365,11 @@ no-op. A unique constraint on the finding idempotency key makes repeated
 evaluation incapable of producing duplicate findings. Enforcing these in the
 schema means a logic error in the worker cannot silently violate them.
 
-\begin{landscape}
-\begin{figure}[p]
-  \centering
-  \resizebox{\linewidth}{!}{\input{diagrams/erd}}
-  \caption{Entity-relationship diagram of the PostgreSQL schema. Graph entities
+\lsfigure{\input{diagrams/erd}}
+  {Entity-relationship diagram of the PostgreSQL schema. Graph entities
            share one \texttt{nodes} table with a type discriminator; evidence
            tables are append-only or immutable.}
-  \label{fig:erd}
-\end{figure}
-\end{landscape}
+  {fig:erd}
 
 The context packet table deserves particular mention, because it is what makes a
 verdict auditable. Each packet records the criterion it was built for, the base
@@ -421,20 +396,15 @@ discarded without touching the graph, and the reconciliation re-entry, where an
 event the vendor never delivered is synthesised and injected into the same
 pipeline as an ordinary event.
 
-\begin{landscape}
-\begin{figure}[p]
-  \centering
-  \resizebox{\linewidth}{!}{\input{diagrams/dfd}}
-  \caption{Data-flow diagram of the full pipeline (proposal §8.2):
+\lsfigure{\input{diagrams/dfd}}
+  {Data-flow diagram of the full pipeline (proposal §8.2):
            webhook/poll → normalisation → version store → evidence-graph
            update → (a) deterministic rule evaluation and (b) criterion
            queue → context packet → bounded local verification → verdict
            gate → evidence case → notification routing → reviewer UI/audit,
            with the four data stores (D1–D4), the no-op duplicate path
            (§8.4) and the reconciliation re-entry shown.}
-  \label{fig:dfd}
-\end{figure}
-\end{landscape}
+  {fig:dfd}
 
 Figure~\ref{fig:verifier-loop} shows verification and gating as an activity
 flow. The first pass establishes scope and retrieves candidate evidence for one
@@ -452,11 +422,8 @@ exist in the packet cannot be shown as a decisive finding. The first hard
 validation gate, that a verdict citing no evidence span is rejected and counted
 as an abstention rather than as an answer, is enforced at this point.
 
-\begin{landscape}
-\begin{figure}[p]
-  \centering
-  \resizebox{\linewidth}{!}{\input{diagrams/verifier-loop}}
-  \caption{Activity diagram of the bounded verifier loop (proposal §11.4)
+\lsfigure{\input{diagrams/verifier-loop}}
+  {Activity diagram of the bounded verifier loop (proposal §11.4)
            and the verdict/provenance gate (§11.8): pass 1 scope, pass 2
            verify, and the conditional pass 3 critic under a fixed pass cap,
            with every pass's inputs, outputs and stop reason logged. Clean
@@ -464,9 +431,7 @@ as an abstention rather than as an answer, is enforced at this point.
            to review or \texttt{INSUFFICIENT\_EVIDENCE} with a logged reason.
            Hard gate 1 (a verdict citing no evidence span is rejected as an
            abstention) sits inside check 4.}
-  \label{fig:verifier-loop}
-\end{figure}
-\end{landscape}
+  {fig:verifier-loop}
 
 Figure~\ref{fig:anchor} shows the third behaviour, which is specific to the
 traceability addition. A requirement anchored to a symbol and line range would
@@ -480,17 +445,12 @@ anchoring mechanism that degrades without saying so is worse than none at all.
 The proportion of anchors surviving across a commit window is therefore a
 reported metric of the system rather than an internal detail.
 
-\begin{landscape}
-\begin{figure}[p]
-  \centering
-  \resizebox{\linewidth}{!}{\input{diagrams/anchor-reanchoring}}
-  \caption{Commit-pinned requirement-to-code anchoring (illustrative example).
+\lsfigure{\input{diagrams/anchor-reanchoring}}
+  {Commit-pinned requirement-to-code anchoring (illustrative example).
            Re-anchoring tries the fully-qualified symbol, then the content hash,
            then diff-hunk mapping; if all fail, the anchor is marked broken
            rather than left silently wrong.}
-  \label{fig:anchor}
-\end{figure}
-\end{landscape}
+  {fig:anchor}
 
 Two further behaviours are described in the reliability design rather than shown
 here, and are covered by the sequence and state diagrams in the appendix: the

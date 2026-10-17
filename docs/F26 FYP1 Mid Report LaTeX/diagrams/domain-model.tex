@@ -36,35 +36,35 @@
   % ---------------- row A: intent side (anchored on their south edge) ----------
   \node[klass=uIntent, anchor=south] (da) at (2.6,3) {%
     \cname{DesignArtifact}\nodepart{two} fileKey : String\\ nodeId : String\\ versionId : String};
-  \node[klass=uIntent, anchor=south] (dc) at (7.2,3) {%
+  \node[klass=uIntent, anchor=south] (dc) at (7.6,3) {%
     \cname{DesignConstraint}\nodepart{two} kind : ConstraintKind\\ expected : String\\ approvedBy : Person};
-  \node[klass=uIntent, anchor=south] (tk) at (11.8,3) {%
+  \node[klass=uIntent, anchor=south] (tk) at (12.6,3) {%
     \cname{Ticket}\nodepart{two} key : String\\ workflowState : String};
-  \node[klass=uIntent, anchor=south] (cr) at (16.4,3) {%
+  \node[klass=uIntent, anchor=south] (cr) at (17.6,3) {%
     \cname{Criterion}\nodepart{two} text : String\\ atomicIndex : Int};
-  \node[klass=white, anchor=south] (msg) at (21.0,3) {%
+  \node[klass=white, anchor=south] (msg) at (22.6,3) {%
     \cname{Message}\nodepart{two} channel : String\\ ts : Time};
 
   % ---------------- row B: change / evidence side (anchored on north edge) -----
   \node[klass=uIngest, anchor=north] (pr) at (2.6,-3) {%
     \cname{PullRequest}\nodepart{two} number : Int\\ baseSha, headSha : String\\ mergedAt : Time [0..1]};
-  \node[klass=uIngest, anchor=north] (cm) at (7.2,-3) {%
+  \node[klass=uIngest, anchor=north] (cm) at (7.6,-3) {%
     \cname{Commit}\nodepart{two} sha : String\\ message : String\\ authoredAt : Time};
-  \node[klass=uIngest, anchor=north] (tc) at (11.8,-3) {%
+  \node[klass=uIngest, anchor=north] (tc) at (12.6,-3) {%
     \cname{TestCase}\nodepart{two} path : String\\ name : String\\ lastResult : Result [0..1]};
-  \node[klass=uIngest, anchor=north] (cs) at (16.4,-3) {%
+  \node[klass=uIngest, anchor=north] (cs) at (17.6,-3) {%
     \cname[symbol card fields, \S26.1]{CodeSymbol}\nodepart{two}
     fqName : String\\ signature : String\\ filePath : String\\ docstring : String [0..1]\\
     blobHash : String};
-  \node[klass=uIntent, anchor=north] (rq) at (22.4,-3) {%
+  \node[klass=uIntent, anchor=north] (rq) at (24.4,-3) {%
     \cname{Requirement}\nodepart{two} reqKey : String\\ kind : FR | NFR\\ text : String\\ source : String};
 
   % ---------------- generalisation tree ----------------------------------------
   \coordinate (trunkTop) at (-0.25,5.5);
   \coordinate (trunkBot) at (-0.25,-7.1);
   \draw[uline] (trunkTop) -- (trunkBot);
-  \draw[uline] (trunkTop) -- (21.0,5.5);
-  \draw[uline] (trunkBot) -- (22.4,-7.1);
+  \draw[uline] (trunkTop) -- (22.6,5.5);
+  \draw[uline] (trunkBot) -- (24.4,-7.1);
   \foreach \c in {da,dc,tk,cr,msg} \draw[uline] (\c.north) -- (\c.north |- trunkTop);
   \foreach \c in {pr,cm,tc,cs,rq}  \draw[uline] (\c.south) -- (\c.south |- trunkBot);
   \draw[generalise] (-0.25,0) -- (art.east);
@@ -80,7 +80,7 @@
     node[card, pos=0.95, anchor=north west]{1};
 
   % CONSTRAINS: design constraint -> criterion (routed below row A)
-  \draw[directed] (dc.south) |- (15.3,1.7) -- (15.3,3)
+  \draw[directed] (dc.south) |- (16.5,1.7) -- (16.5,3)
     node[lbl, pos=0.5, anchor=south]{CONSTRAINS};
 
   % ---------------- associations within row B ----------------------------------
@@ -114,7 +114,7 @@
     node[lbl, pos=0.5, below=2pt]{SATISFIES}
     node[card, pos=0.04, anchor=south west]{*}
     node[card, pos=0.96, anchor=south east]{*};
-  \node[klass=uGraph, anchor=south] (anchor) at (19.45,-1.75) {%
+  \node[klass=uGraph, anchor=south] (anchor) at (21.0,-1.75) {%
     \cname[\guillemotleft association class\guillemotright]{CodeAnchor}
     \nodepart{two}
     repo, filePath : String\\ symbolFqn : String\\ startLine, endLine : Int\\
@@ -124,12 +124,12 @@
   \draw[uline, dashed] (anchor.south) -- (anchor.south |- satline);
 
   % ---------------- notes ------------------------------------------------------
-  \node[note=3.3cm, anchor=west] (msgnote) at (23.1,4.0)
+  \node[note=3.3cm, anchor=west] (msgnote) at (24.9,4.0)
     {Any \texttt{Artifact} may be \textbf{DISCUSSED\_IN} a \texttt{Message}.
      Messages are a role/watch signal only, never a rule-evaluation target (\S9.1).};
   \draw[uline, dashed] (msgnote.west) -- (msg.east);
 
-  \node[note=3.3cm, anchor=north west] (nfrnote) at (24.5,-3)
+  \node[note=3.3cm, anchor=north west] (nfrnote) at (26.5,-3)
     {\textbf{FR} anchors to symbol + line range, commit-pinned.
      \textbf{NFR} is \emph{not} line-anchored: it links to its enforcement point
      and verifying \texttt{TestCase} (\S22.4).};

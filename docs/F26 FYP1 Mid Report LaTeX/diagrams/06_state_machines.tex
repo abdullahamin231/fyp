@@ -10,6 +10,11 @@
 
 \begin{document}
 \begin{tikzpicture}[x=1cm,y=1cm,node distance=0pt]
+\tikzset{init/.style={circle, fill=black, minimum size=0.28cm, inner sep=0pt},
+         final/.style={circle, draw, line width=0.6pt, minimum size=0.36cm,
+                       inner sep=0pt, path picture={\fill[black]
+                       (path picture bounding box.center) circle (0.1cm);}},
+         dec/.append style={text width=1.75cm, aspect=2.1}}
 
 % ===================== PANEL A : event processing =======================
 \node[font=\bfseries\small,anchor=west] at (-0.4,0.9)
@@ -18,48 +23,59 @@
 \node[st=relblue]   (recv)  at ( 0.9, 0)   {\textbf{Received}\\\scriptsize webhook or poll};
 \node[dec]          (auth)  at ( 4.0, 0)   {signature\\valid?};
 \node[st=relblue]   (pers)  at ( 7.3, 0)   {\textbf{Persisted}\\\scriptsize raw + envelope\\\scriptsize written first};
-\node[dec]          (dup)   at (10.6, 0)   {\texttt{event\_id}\\seen before?};
-\node[dec]          (ver)   at (13.9, 0)   {version newer\\or reconciled?};
-\node[st=graphgreen](appl)  at (17.2, 0)   {\textbf{Applied}\\\scriptsize graph updated\\\scriptsize transactionally};
-\node[st=verorange] (eval)  at (20.4, 0)   {\textbf{Evaluated}\\\scriptsize affected rules\\\scriptsize and criteria only};
-\node[st=verorange] (writ)  at (23.6, 0)   {\textbf{Findings}\\\textbf{written}\\\scriptsize idempotency key};
-\node[st=relblue]   (ckpt)  at (26.8, 0)   {\textbf{Checkpoint}\\\textbf{advanced}};
+\node[dec]          (dup)   at (10.9, 0)   {\texttt{event\_id}\\seen before?};
+\node[dec]          (ver)   at (14.9, 0)   {version newer or\\reconciled?};
+\node[st=graphgreen](appl)  at (18.7, 0)   {\textbf{Applied}\\\scriptsize graph updated\\\scriptsize transactionally};
+\node[st=verorange] (eval)  at (21.9, 0)   {\textbf{Evaluated}\\\scriptsize affected rules\\\scriptsize and criteria only};
+\node[st=verorange] (writ)  at (25.1, 0)   {\textbf{Findings}\\\textbf{written}\\\scriptsize idempotency key};
+\node[st=relblue]   (ckpt)  at (28.3, 0)   {\textbf{Checkpoint}\\\textbf{advanced}};
 
 \node[st=badred]    (rej)   at ( 4.0,-2.3) {\textbf{Rejected}\\\scriptsize logged, not stored};
-\node[st=okgreen]   (noop)  at (10.6,-2.3) {\textbf{Discarded}\\\scriptsize no-op, graph untouched};
-\node[st=okgreen]   (ign)   at (13.9,-2.3) {\textbf{Ignored}\\\scriptsize stale, logged\\\scriptsize final state unchanged};
+\node[st=okgreen]   (noop)  at (10.9,-2.3) {\textbf{Discarded}\\\scriptsize no-op, graph untouched};
+\node[st=okgreen]   (ign)   at (14.9,-2.3) {\textbf{Ignored}\\\scriptsize stale, logged\\\scriptsize final state unchanged};
 
 \draw[tr] (recv) -- (auth);
-\draw[tr] (auth) -- node[lbl,above=-1pt]{yes} (pers);
-\draw[tr] (auth) -- node[lbl,right=1pt]{no} (rej);
+\draw[tr] (auth) -- node[lbl,above=1pt]{[yes]} (pers);
+\draw[tr] (auth) -- node[lbl,right=1pt]{[no]} (rej);
 \draw[tr] (pers) -- (dup);
-\draw[tr] (dup)  -- node[lbl,right=1pt]{yes} (noop);
-\draw[tr] (dup)  -- node[lbl,above=-1pt]{no} (ver);
-\draw[tr] (ver)  -- node[lbl,right=1pt]{no} (ign);
-\draw[tr] (ver)  -- node[lbl,above=-1pt]{yes} (appl);
+\draw[tr] (dup)  -- node[lbl,right=1pt]{[yes]} (noop);
+\draw[tr] (dup)  -- node[lbl,above=1pt]{[no]} (ver);
+\draw[tr] (ver)  -- node[lbl,right=1pt]{[no]} (ign);
+\draw[tr] (ver)  -- node[lbl,above=1pt]{[yes]} (appl);
 \draw[tr] (appl) -- (eval);
 \draw[tr] (eval) -- (writ);
 \draw[tr] (writ) -- (ckpt);
+% initial and final pseudostates
+\node[init] (a0) at (-0.9,0) {};
+\draw[tr] (a0) -- (recv);
+\node[final] (af) at (30.0,0) {};
+\draw[tr] (ckpt) -- (af);
+\node[final] (rejf) at (5.9,-2.3) {};
+\draw[tr] (rej) -- (rejf);
+\node[final] (noopf) at (10.9,-3.45) {};
+\draw[tr] (noop) -- (noopf);
+\node[final] (ignf) at (14.9,-3.75) {};
+\draw[tr] (ign) -- (ignf);
 
 % reconciliation re-entry
 \node[st=relblue] (rec) at (0.9,-2.3) {\textbf{Reconciliation}\\\scriptsize synthesised after a gap};
 \draw[tr] (rec.south) -- ++(0,-0.55) -- node[lbl,above=-1pt,pos=.62]{enters the same pipeline} ++(6.4,0) -| (pers.south);
 
-\node[note=5.6cm,anchor=north west] at (-0.4,-3.4)
+\node[note=5.6cm,anchor=north west] at (-0.4,-4.3)
   {\textbf{Step order is the guarantee.}
    The envelope is persisted \emph{before} evaluation, so a crash between
    steps cannot lose an event that was already accepted. The checkpoint
    advances \emph{last}, so a crash before it causes re-processing, which is
    safe because the duplicate branch is a no-op.};
 
-\node[note=5.6cm,anchor=north west] at (6.2,-3.4)
+\node[note=5.6cm,anchor=north west] at (6.2,-4.3)
   {\textbf{Three different \lq\lq{}nothing happened\rq\rq{} outcomes.}
    \textbf{Rejected} -- never trusted.\ \ \textbf{Discarded} -- already
    applied once.\ \ \textbf{Ignored} -- superseded by a newer version.
    Each is counted separately in the reliability suite, because collapsing
    them hides real failures.};
 
-\node[note=5.6cm,anchor=north west] at (12.8,-3.4)
+\node[note=5.6cm,anchor=north west] at (12.8,-4.3)
   {\textbf{Measured here (sec.~12.1).}\\
    0 duplicate findings from duplicate delivery\\
    100\,\% final-state convergence under reordering\\
@@ -67,7 +83,7 @@
    ingestion p50 / p95 latency, vendor delay separated
    from internal delay via \texttt{occurred\_at} vs \texttt{received\_at}};
 
-\node[note=5.6cm,anchor=north west] at (19.4,-3.4)
+\node[note=5.6cm,anchor=north west] at (19.4,-4.3)
   {\textbf{Reconciliation is not a retry.}
    A retry resends something that failed. Reconciliation polls the vendor,
    compares against the stored checkpoint and \emph{manufactures} the event
@@ -75,26 +91,30 @@
    \texttt{action = reconciled} and is applied even when its timestamp is
    older than the stored version.};
 
+\begin{scope}[yshift=-1.0cm]
 % ===================== PANEL B : source freshness =======================
 \node[font=\bfseries\small,anchor=west] at (-0.4,-7.3)
   {(b)\ \ Source freshness, per connected resource (FR-16)};
 
-\node[st=okgreen]  (fresh) at ( 2.2,-8.9) {\textbf{FRESH}\\\scriptsize checkpoint recent};
-\node[st=warnamber](degr)  at ( 7.0,-8.9) {\textbf{DEGRADED}\\\scriptsize missed poll, inside threshold};
-\node[st=badred]   (stale) at (12.0,-8.9) {\textbf{SOURCE\_STALE}\\\scriptsize threshold exceeded};
+\node[st=okgreen]  (fresh) at ( 1.6,-8.9) {\textbf{FRESH}\\\scriptsize checkpoint recent};
+\node[st=warnamber](degr)  at ( 8.4,-8.9) {\textbf{DEGRADED}\\\scriptsize missed poll, inside threshold};
+\node[st=badred]   (stale) at (15.2,-8.9) {\textbf{SOURCE\_STALE}\\\scriptsize threshold exceeded};
 
+\node[init] (b0) at (-0.9,-8.9) {};
+\draw[tr] (b0) -- (fresh);
 \draw[tr] (fresh) to[bend left=14] node[lbl,above=-1pt]{poll or webhook fails} (degr);
 \draw[tr] (degr)  to[bend left=14] node[lbl,below=-1pt]{recovered} (fresh);
 \draw[tr] (degr)  to[bend left=14] node[lbl,above=-1pt]{still failing past threshold} (stale);
-\draw[tr] (stale) to[bend left=20] node[lbl,below=-2pt]{reconciliation succeeds, gap closed} (fresh);
+\draw[tr] (stale) to[bend left=20] node[lbl,below=1pt]{reconciliation succeeds, gap closed} (fresh);
 
-\node[note=7.4cm,anchor=north west] at (15.0,-7.9)
+\node[note=7.4cm,anchor=north west] at (18.6,-7.9)
   {\textbf{What SOURCE\_STALE does downstream.} Every artifact whose source
    is stale is marked, and any finding that would be computed from it is
    downgraded to \textbf{SOURCE\_STALE} rather than served from old data
    (sec.~11.7). The reviewer is told the data cannot establish current
    state --- the system never silently presents a stale verdict as current.};
 
+\begin{scope}[yshift=-0.7cm]
 % ===================== PANEL C : finding lifecycle ======================
 \node[font=\bfseries\small,anchor=west] at (-0.4,-11.6)
   {(c)\ \ Finding lifecycle --- deterministic rule or gated verdict (FR-18)};
@@ -106,6 +126,10 @@
 \node[st=graphgreen](sup)   at ( 3.6,-17.0) {\textbf{Suppressed}\\\scriptsize noise: with reason, time-boxed};
 \node[st=warnamber] (disp)  at ( 9.8,-17.0) {\textbf{Disputed}\\\scriptsize correctness: verdict contested};
 
+\node[init] (c0) at (0.6,-12.3) {};
+\draw[tr] (c0) -- ([xshift=0.25cm]open.north west);
+\node[final] (cf) at (21.1,-13.3) {};
+\draw[tr] (super) -- (cf);
 \draw[tr] (open) -- node[lbl,above=-1pt]{acknowledge} (ack);
 \draw[tr] (ack)  -- node[lbl,above=-1pt]{resolve} (res);
 \draw[tr] (res.north) to[bend right=16] node[lbl,above=-1pt]{reopen, new evidence} (open.north);
@@ -122,7 +146,7 @@
 \draw[tr] (sup.west) -- ++(-1.3,0) |- node[lbl,left=1pt,pos=.25]{expires or reopened} (open.west);
 \draw[tr] (disp.east) -- ++(1.4,0) |- node[lbl,below=-1pt,pos=.35]{correction logged} (res.south);
 
-\node[note=7.2cm,anchor=north west] at (21.4,-12.2)
+\node[note=7.2cm,anchor=north west] at (22.0,-12.2)
   {\textbf{Why suppress and dispute do not connect.}
    They answer different questions. \emph{Suppressed} means the finding is
    correct but unwanted here --- a known parallel refactor, an accepted
@@ -146,5 +170,7 @@
    reason and an evidence snapshot, so a finding can always be re-read
    against the artifact versions it cited.};
 
+\end{scope}
+\end{scope}
 \end{tikzpicture}
 \end{document}

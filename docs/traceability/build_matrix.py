@@ -292,9 +292,11 @@ def latex(rows: list[dict[str, str]], digest: str) -> str:
     # so that the fixed 2 x 3pt of tabcolsep per column boundary (42pt for 7
     # columns) leaves the p{} widths room for their longest unbreakable tokens.
     col = lambda w: f">{{\\raggedright\\arraybackslash\\hspace{{0pt}}}}p{{{w}\\linewidth}}"
-    # ID widened to 0.085 so "NFR-08" style IDs never break mid-token; the
-    # slack comes from the design-element column, whose text wraps anyway.
-    spec = " ".join(col(w) for w in (0.085, 0.145, 0.17, 0.115, 0.06, 0.17, 0.085))
+    # The report sets this table on landscape pages (\linewidth ~ 24.7cm), so
+    # the widths sum to 0.92 and the remaining ~0.06 is the 42pt of tabcolsep.
+    # Requirement, design element and module get the room; ID, test, status
+    # and demo stay as narrow as their longest unbreakable token.
+    spec = " ".join(col(w) for w in (0.06, 0.20, 0.25, 0.16, 0.05, 0.11, 0.09))
     header = ("\\textbf{ID} & \\textbf{Requirement} & \\textbf{Design element} & "
               "\\textbf{Module} & \\textbf{Test} & \\textbf{Status} & "
               "\\textbf{Demo} \\\\")

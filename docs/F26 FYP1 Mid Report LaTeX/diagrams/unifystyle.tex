@@ -15,6 +15,9 @@
 % Layout note: like unify-diagram-styles.tex, this is plain TikZ (no tikz-uml),
 % so it compiles in any TeX Live.
 % =============================================================================
+% Times, to match the report body and the fragment diagrams
+\usepackage{mathptmx}
+\usepackage[T1]{fontenc}
 \usepackage{tikz}
 \usepackage{pgffor} % \foreach (05_ingestion_sequence lifelines)
 \usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,
@@ -47,6 +50,7 @@
   tr/.style={-{Stealth[length=2.2mm]}},       % state transition
   % ---- shared ----------------------------------------------------------------
   lbl/.style={font=\scriptsize, fill=white, inner sep=1pt},
+  mlbl/.style={font=\scriptsize, align=center, inner sep=1pt}, % message label, sits above the arrow
   note/.style={draw, fill=hynote, font=\scriptsize, align=left,
                text width=#1, inner sep=4pt, rounded corners=2pt},
   note/.default=4.6cm,

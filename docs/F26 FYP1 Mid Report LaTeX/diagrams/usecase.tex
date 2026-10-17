@@ -8,7 +8,7 @@
 \begin{tikzpicture}[x=1cm,y=1cm]
 
   % ---- system boundary --------------------------------------------------------
-  \draw[sysboundary] (-1.0,-2.25) rectangle (10.3,10.6);
+  \draw[sysboundary] (-1.0,-2.25) rectangle (11.2,10.6);
   \node[font=\small\bfseries, anchor=north west] at (-0.85,10.5)
        {UNIFY -- cross-tool change assurance};
 
@@ -25,13 +25,13 @@
   \node[usecase] (connect) at (1.9,-1.45) {Connect repository and view eligibility score};
 
   % ---- right column -------------------------------------------------------------
-  \node[usecase] (passes)  at (7.6, 8.25) {Inspect bounded verification passes};
-  \node[usecase] (ingest)  at (7.6, 6.15) {Ingest and reconcile tool events};
-  \node[usecase] (dispute) at (7.6, 4.6)  {Dispute verdict\\(logged as labelled correction)};
+  \node[usecase] (passes)  at (8.5, 8.25) {Inspect bounded verification passes};
+  \node[usecase] (ingest)  at (8.5, 6.15) {Ingest and reconcile tool events};
+  \node[usecase] (dispute) at (8.5, 4.6)  {Dispute verdict\\(logged as labelled correction)};
 
   % ---- include / extend -----------------------------------------------------------
-  \draw[stereo] (passes) -- node[lbl, above]{\guillemotleft extend\guillemotright} (evid);
-  \draw[stereo] (dispute) -- node[lbl, above]{\guillemotleft extend\guillemotright} (resolve);
+  \draw[stereo] (passes) -- node[lbl, above=2pt]{\guillemotleft extend\guillemotright} (evid);
+  \draw[stereo] (dispute) -- node[lbl, above=2pt]{\guillemotleft extend\guillemotright} (resolve);
 
   % ---- human actors (left) --------------------------------------------------------
   \actor{rev}{(-3.4,8.0)}{Code reviewer /\\technical lead\\(primary)}
@@ -45,16 +45,16 @@
   \foreach \u in {resolve,p4,notify,config,connect} \draw[assoc] (pm) -- (\u.west);
 
   % ---- external systems (right) ---------------------------------------------------
-  \node[extsys] (gh)    at (12.6, 7.55) {\guillemotleft system\guillemotright\\GitHub};
-  \node[extsys] (jira)  at (12.6, 6.15) {\guillemotleft system\guillemotright\\Jira};
-  \node[extsys] (figma) at (12.6, 4.75) {\guillemotleft system\guillemotright\\Figma};
-  \node[extsys] (slack) at (12.6, 1.6)  {\guillemotleft system\guillemotright\\Slack (delivery only)};
+  \node[extsys] (gh)    at (13.6, 7.55) {\guillemotleft system\guillemotright\\GitHub};
+  \node[extsys] (jira)  at (13.6, 6.15) {\guillemotleft system\guillemotright\\Jira};
+  \node[extsys] (figma) at (13.6, 4.75) {\guillemotleft system\guillemotright\\Figma};
+  \node[extsys] (slack) at (13.6, 2.15)  {\guillemotleft system\guillemotright\\Slack (delivery only)};
 
   \foreach \s in {gh,jira,figma} \draw[assoc] (\s.west) -- (ingest);
   \draw[assoc] (slack.west) -- (notify);
 
   % ---- note ----------------------------------------------------------------------
-  \node[note=4.3cm, anchor=north west] at (5.25,3.55)
+  \node[note=4.6cm, anchor=north west] at (6.0,1.3)
     {Link confirmation is routed to the code owner/assignee, not the PM (\S23.1).
      Configuration is proposed by the system from observed transitions; the PM
      only approves it. Slack never feeds reasoning.};

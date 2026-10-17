@@ -55,11 +55,11 @@
 \node[step=4.4cm, fill=uIngest!45, minimum height=1.6cm, align=left] (web)
      at (2.9,12.25)
      {\textbf{Web --- reviewer surface} \texttt{apps/web}\\
-      change selection \textperiodcentered evidence case \textperiodcentered confirm/reject links \textperiodcentered resolution};
+      change selection \textperiodcentered{} evidence case \textperiodcentered{} confirm/reject links \textperiodcentered{} resolution};
 \node[step=4.4cm, fill=uIngest!45, minimum height=2.0cm, align=left] (api)
      at (2.9,9.5)
      {\textbf{API} \texttt{apps/api}\\
-      webhook receiver (\S8.3) \textperiodcentered query/mutation endpoint \textperiodcentered enqueue only};
+      webhook receiver (\S8.3) \textperiodcentered{} query/mutation endpoint \textperiodcentered{} enqueue only};
 \draw[flow] (2.9,11.45) -- (2.9,10.5);
 \node[anchor=center, text width=2.4cm, align=center, font=\scriptsize,
       text=uMuted, fill=white] at (4.15,10.97)
@@ -68,16 +68,16 @@
 % ---- job queue + storage --------------------------------------------------------
 \node[step=3.0cm, fill=uLine!14, minimum height=1.8cm, align=left] (redis)
      at (2.1,1.8)
-     {\textbf{Redis --- job queue}\\ingest \textperiodcentered verify \textperiodcentered notify};
+     {\textbf{Redis --- job queue}\\ingest \textperiodcentered{} verify \textperiodcentered{} notify};
 \node[step=6.6cm, fill=uLine!14, minimum height=2.4cm, align=left] (pg)
      at (8.0,1.9)
      {\textbf{PostgreSQL --- sole committed store (\S9.9)}\\
-      nodes \textperiodcentered edges \textperiodcentered artifact\_snapshots \textperiodcentered events \textperiodcentered checkpoints \textperiodcentered findings \textperiodcentered
-      context\_packets \textperiodcentered audit};
+      nodes \textperiodcentered{} edges \textperiodcentered{} artifact\_snapshots \textperiodcentered{} events \textperiodcentered{} checkpoints \textperiodcentered{} findings \textperiodcentered{}
+      context\_packets \textperiodcentered{} audit};
 \draw[bi] (1.6,8.5) -- (1.6,2.7);
 \node[anchor=center, text width=3.4cm, align=center, font=\scriptsize,
       text=uMuted, fill=white] at (3.7,7.0)
-     {enqueue: ingest \textperiodcentered verify \textperiodcentered notify};
+     {enqueue: ingest \textperiodcentered{} verify \textperiodcentered{} notify};
 \draw[flow] (redis.east) -- (4.2,1.8) -- (4.2,5.9) -- (6.2,5.9);
 \node[anchor=center, text width=1.7cm, align=center, font=\scriptsize,
       text=uMuted, fill=white] at (5.2,6.35) {consume jobs};
@@ -87,11 +87,12 @@
      at (9.8,8.0)
      {\textbf{Worker --- \texttt{apps/worker} (background)}\\[2pt]
       \begin{tabular}{@{}l@{}}
-      normalise $\to$ idempotency \textperiodcentered checkpoint \textperiodcentered reconcile (\S8.4)\\
-      $\to$ graph delta emitted on every mutation (\S9.5) --- deltas, not rescans\\
+      normalise $\to$ idempotency \textperiodcentered{} checkpoint \textperiodcentered{} reconcile (\S8.4)\\
+      $\to$ graph delta emitted on every mutation (\S9.5)\\
+      \phantom{$\to$} --- deltas, not rescans\\
       $\to$ indexed rule dispatch + criterion queue (\S9.8)\\
       $\to$ context builder (\S11.5) $\to$ verdict gate (\S11.8)\\
-      $\to$ findings \textperiodcentered role-edge routing 1--2 hops (\S9.7) \textperiodcentered audit
+      $\to$ findings \textperiodcentered{} role-edge routing 1--2 hops (\S9.7) \textperiodcentered{} audit
       \end{tabular}};
 \draw[bi] (8.4,5.5) -- (8.4,3.1);
 \node[anchor=center, text width=3.6cm, align=center, font=\scriptsize,
@@ -111,11 +112,12 @@
       gate (\S11.8) before any write};
 
 % ---- notification sink (outside) -----------------------------------------------------
-\node[extsys, text width=2.6cm, minimum height=1.0cm] (slack) at (16.0,1.6)
+% Slack is an external system: it sits outside the deployment boundary
+\node[extsys, text width=2.6cm, minimum height=1.0cm] (slack) at (12.6,-1.75)
      {\guillemotleft system\guillemotright\\Slack\\delivery channel only};
-\draw[flow] (12.6,5.5) -- (12.6,4.4) -- (16.0,4.4) -- (16.0,2.15);
-\node[anchor=north, text width=3.2cm, align=left, font=\scriptsize,
-      text=uMuted] at (14.2,4.1)
+\draw[flow] (12.6,5.5) -- (slack.north);
+\node[anchor=west, text width=3.2cm, align=left, font=\scriptsize,
+      text=uMuted] at (12.8,2.4)
      {Slack Web API --- delivery receipt only, never an input to reasoning
       (\S8.2, \S9.7)};
 
@@ -123,8 +125,8 @@
 \node[draw=uInk, dashed, fill=uIntent!50, font=\scriptsize, align=left,
       text width=4.2cm, minimum height=1.6cm, inner sep=4pt] (contracts)
      at (8.4,12.25)
-     {\textbf{packages/contracts (Zod)} --- constrains web \textperiodcentered api \textperiodcentered worker:
-      envelope \textperiodcentered node/edge \textperiodcentered rule \textperiodcentered packet \textperiodcentered verdict = single source of truth};
+     {\textbf{packages/contracts (Zod)} --- constrains web \textperiodcentered{} api \textperiodcentered{} worker:
+      envelope \textperiodcentered{} node/edge \textperiodcentered{} rule \textperiodcentered{} packet \textperiodcentered{} verdict = single source of truth};
 \draw[dsh] (6.2,12.6) -- (5.2,12.6);
 \draw[dsh] (8.4,11.45) -- (8.4,10.5);
 \node[anchor=center, text width=1.6cm, align=center, font=\scriptsize,
@@ -135,6 +137,5 @@
       text width=4.6cm, inner sep=4pt] at (8.1,-1.5)
      {Hosted model API --- outside the loop (\S11.1)};
 \draw[uLine, dashed] (8.1,-1.05) -- (8.1,-0.5);
-\draw[uBad, line width=1.1pt] (7.9,-1.0) -- (8.3,-0.6);
-\draw[uBad, line width=1.1pt] (7.9,-0.6) -- (8.3,-1.0);
+\node[lbl, anchor=east] at (7.95,-0.78) {no runtime connection};
 \end{tikzpicture}
