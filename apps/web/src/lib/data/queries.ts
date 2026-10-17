@@ -2,6 +2,7 @@ import { NODE_TYPE_META, eligibilityFor, type NodeType } from "@unify/contracts"
 import { createClient } from "@/lib/supabase/server";
 import type { Finding, RelationLink, ToolKind } from "@/lib/types";
 import type { LinkSuggestion } from "@/lib/domain/link-suggestions";
+import { selectInChunks } from "./chunk";
 import { findingView } from "./map";
 import type {
   DbFindingState,
@@ -47,19 +48,17 @@ async function loadVerdictContext(
   if (verdictIds.length === 0) return { verdicts, packets };
   const client = await createClient();
 
-  const verdictRes = await client.from("verdicts").select(VERDICT_COLUMNS).in("id", verdictIds);
-  if (verdictRes.error) throw new Error(`verdicts: ${verdictRes.error.message}`);
-  for (const row of (verdictRes.data ?? []) as VerdictRow[]) verdicts.set(row.id, row);
+  const verdictRows = await selectInChunks<VerdictRow>("verdicts", verdictIds, (chunk) =>
+    client.from("verdicts").select(VERDICT_COLUMNS).in("id", chunk),
+  );
+  for (const row of verdictRows) verdicts.set(row.id, row);
 
-  const packetIds = [...new Set([...verdicts.values()].map((v) => v.packet_id))];
-  if (packetIds.length > 0) {
-    const packetRes = await client
-      .from("context_packets")
-      .select(PACKET_COLUMNS)
-      .in("id", packetIds);
-    if (packetRes.error) throw new Error(`context_packets: ${packetRes.error.message}`);
-    for (const row of (packetRes.data ?? []) as PacketRow[]) packets.set(row.id, row);
-  }
+  const packetRows = await selectInChunks<PacketRow>(
+    "context_packets",
+    [...verdicts.values()].map((v) => v.packet_id),
+    (chunk) => client.from("context_packets").select(PACKET_COLUMNS).in("id", chunk),
+  );
+  for (const row of packetRows) packets.set(row.id, row);
   return { verdicts, packets };
 }
 
@@ -68,9 +67,10 @@ async function loadNodes(ids: string[]): Promise<Map<string, NodeRow>> {
   const unique = [...new Set(ids)];
   if (unique.length === 0) return out;
   const client = await createClient();
-  const res = await client.from("nodes").select(NODE_COLUMNS).in("id", unique);
-  if (res.error) throw new Error(`nodes: ${res.error.message}`);
-  for (const row of (res.data ?? []) as NodeRow[]) out.set(row.id, row);
+  const rows = await selectInChunks<NodeRow>("nodes", unique, (chunk) =>
+    client.from("nodes").select(NODE_COLUMNS).in("id", chunk),
+  );
+  for (const row of rows) out.set(row.id, row);
   return out;
 }
 
@@ -84,15 +84,15 @@ async function loadLinked(subjectIds: string[]): Promise<Map<string, NodeRow[]>>
   const unique = [...new Set(subjectIds)];
   if (unique.length === 0) return out;
   const client = await createClient();
-  const list = `(${unique.join(",")})`;
-  const res = await client
-    .from("edges")
-    .select("from_id, to_id")
-    .eq("type", "TRACKS")
-    .eq("link_state", "active")
-    .or(`from_id.in.${list},to_id.in.${list}`);
-  if (res.error) throw new Error(`edges (linked): ${res.error.message}`);
-  const edges = (res.data ?? []) as { from_id: string; to_id: string }[];
+  const edges = await selectInChunks<{ from_id: string; to_id: string }>("edges (linked)", unique, (chunk) => {
+    const list = `(${chunk.join(",")})`;
+    return client
+      .from("edges")
+      .select("from_id, to_id")
+      .eq("type", "TRACKS")
+      .eq("link_state", "active")
+      .or(`from_id.in.${list},to_id.in.${list}`);
+  });
   const nodes = await loadNodes([...unique, ...edges.flatMap((e) => [e.from_id, e.to_id])]);
   for (const id of unique) {
     const others = edges.flatMap((e) => (e.from_id === id ? [e.to_id] : e.to_id === id ? [e.from_id] : []));
