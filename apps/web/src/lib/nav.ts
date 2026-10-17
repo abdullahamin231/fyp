@@ -43,7 +43,6 @@ export const operationsNav: NavItem[] = [
 export const settingsNav: NavItem[] = [
   { label: "Settings", href: "/settings/workspace", icon: "settings", path: "settings", workspaceScoped: true },
   { label: "Provider Apps", href: "/settings/integrations", icon: "key", path: "provider-app-registrations", workspaceScoped: true },
-  { label: "Notifications", href: "/settings/notifications", icon: "notifications", path: "notification-preferences" },
   { label: "Slack Delivery", href: "/settings/slack", icon: "chat", path: "slack-configuration" },
 ];
 

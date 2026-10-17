@@ -3,9 +3,6 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { ToastProvider } from "@/components/ui/toast";
 import { ConnectedTools } from "@/components/profile/connected-tools";
-import { WatcherTable } from "@/components/profile/watcher-table";
-import { NotificationChannels } from "@/components/profile/notification-channels";
-import { TokenCard } from "@/components/profile/token-card";
 
 export const metadata: Metadata = {
   title: "Profile & Watch Preferences",
@@ -94,18 +91,6 @@ export default function ProfilePage() {
           <ConnectedTools />
         </section>
 
-        {/* Two-pane: watcher subscriptions & escalation preferences */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          <div className="lg:col-span-8 flex flex-col min-w-0">
-            <WatcherTable />
-          </div>
-          <div className="lg:col-span-4 flex flex-col min-w-0">
-            <NotificationChannels />
-          </div>
-        </section>
-
-        {/* Personal access tokens & CLI authentication */}
-        <TokenCard />
       </ToastProvider>
     </AppShell>
   );
