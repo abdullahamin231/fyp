@@ -1,13 +1,13 @@
 /**
  * Live-pipeline settings — the two knobs the ingestion path reads.
  *
- *   Jira criteria field (integration_apps.criteria_field, 00019)
+ *   Jira criteria field (integration_apps.criteria_field, 00025)
  *       Which custom field holds a ticket's acceptance criteria. Set after the
  *       Jira app is registered (the row owns the workspace+provider);
  *       null means "no field configured" and ingestion falls back to the
  *       strict description-section parse.
  *
- *   Analysis targets (analysis_targets, 00019)
+ *   Analysis targets (analysis_targets, 00025)
  *       Which repositories the worker may analyse, and the test command it may
  *       run at head. A delivery for an unregistered repository produces no
  *       code evidence — the abstention path, never an un-audited run.

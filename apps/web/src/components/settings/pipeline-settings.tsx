@@ -11,7 +11,7 @@ type SimpleAction = (
 ) => Promise<ActionResult>;
 
 /**
- * The two knobs the live ingestion path reads (migration 00019): which Jira
+ * The two knobs the live ingestion path reads (migration 00025): which Jira
  * field holds acceptance criteria, and which repositories the worker may
  * analyse — with the exact test command it may run at head.
  */
