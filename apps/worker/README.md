@@ -79,7 +79,7 @@ the graph, the worker
 1. walks criterion → Ticket → PullRequest to find the change (the exact
    `owner/repo#number` id the webhook created),
 2. refuses to proceed unless the workspace has an `analysis_targets` row for
-   that repository (migration 00019) — an analysis run is never silent,
+   that repository (migration 00025) — an analysis run is never silent,
 3. clones/fetches the repository into the cache dir and verifies both commits
    are present,
 4. runs the analyser (read-only git objects; the test command runs only in a
@@ -152,14 +152,14 @@ verification pipeline above; it does not touch the queue.
 | `supabase/migrations/00015_link_pull_request_event.sql` | `link_pull_request_event(...)` RPC, one transaction: records the event (stops if this delivery was seen before), upserts the `PullRequest` node, looks up each key's `Ticket` node, inserts a `TRACKS` edge (`observed`, confidence 1.0, resolver `explicit-reference`). `service_role` only, like the queue RPCs. |
 | `src/linking/link-pull-request.ts` | Extracts the keys, then makes the one RPC call. |
 | `src/linking/callers.ts` | `viaSupabase(client)` calls the RPC through supabase-js; `viaSql(db)` calls the same function over plain SQL (tests). |
-| `src/linking/local-db.ts` | In-process Postgres (PGlite) loaded with migrations 00001–00003, 00005, 00010 and 00015. Tests only. |
+| `src/linking/local-db.ts` | In-process Postgres (PGlite) loaded with migrations 00001–00003, 00005, 00015, 00016 and 00023. Tests only. |
 
 Outcomes: `linked`; `no_key`; `unknown_key` (no edge and no invented node;
 the key stays in `events.references`); `duplicate_event` (via
 `UNIQUE (source_tool, vendor_delivery_id)`); `already_linked` (via
 `edges_current_identity_uidx`, so a dismissed link stays dismissed and a
 revoked one can be re-created). The RPC's `ON CONFLICT` names the predicate
-`where link_state <> 'revoked'`, which must match 00010 exactly.
+`where link_state <> 'revoked'`, which must match 00023 exactly.
 
 The steps live in SQL because they must commit together, and supabase-js sends
 each call as its own transaction.

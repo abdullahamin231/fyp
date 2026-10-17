@@ -22,10 +22,26 @@ the remote project (applied via the Supabase MCP `apply_migration`). Order:
 | `00007_workspace_created_by.sql` | `set_created_by()` BEFORE INSERT trigger (defaults `created_by`) |
 | `00008_create_workspace_rpc.sql` | `create_workspace(name, slug)` SECURITY DEFINER RPC |
 | `00009_seed_rules.sql` | Seeds version 1 of deterministic Rules 1–3 |
-| `00010_edge_dedupe.sql` | One current edge per `(from_id, to_id, type)` — partial unique index scoped to `link_state <> 'revoked'` |
+| `00010_integrations.sql` | `integration_connections` (encrypted OAuth tokens) + `integration_deliveries` webhook receipts |
 | `00011_finding_state_superseded.sql` | Adds `superseded` to the `finding_state` enum |
 | `00012_findings_superseded_by.sql` | `findings.superseded_by_id` self-FK + the `state = superseded ⟺ superseded_by_id set` CHECK |
-| `00018_workspace_invitations.sql` | `workspace_invitations` table + `invite_to_workspace` / `accept_workspace_invitation` / `decline_workspace_invitation` RPCs |
+| `00013_verification_queue.sql` | `verification_jobs`, `verifier_passes`, claim/finish/enqueue RPCs |
+| `00014_verification_vocab.sql` | Verification enum additions |
+| `00015_link_pull_request_event.sql` | `link_pull_request_event` RPC (PR → Ticket linking) |
+| `00016_publish_analysis.sql` | `publish_analysis` RPC (analyser output → graph) |
+| `00017_reverification_new_job.sql` | Re-verification creates a new job |
+| `00018_integration_apps.sql` | Per-workspace provider OAuth app registrations |
+| `00019_figma_watched_files.sql` | First version of `figma_watched_files` (superseded by 00020/00026) |
+| `00020_figma_watched_files.sql` | `figma_watched_files` as the poller reads it |
+| `00021_demo_controls.sql`, `00022_drop_demo_controls.sql` | Added then removed with the demo tooling |
+| `00023_edge_dedupe.sql` | One current edge per `(from_id, to_id, type)`, a partial unique index scoped to `link_state <> 'revoked'` |
+| `00024_workspace_invitations.sql` | `workspace_invitations` table + `invite_to_workspace` / `accept_workspace_invitation` / `decline_workspace_invitation` RPCs |
+| `00025_ingestion_pipeline.sql` | `integration_apps.criteria_field` and `analysis_targets` |
+| `00026_figma_watched_files_converge.sql` | Brings a fresh database's `figma_watched_files` to the live shape |
+
+The live project applied these by hand under timestamped versions, so the file
+numbers only govern fresh setups. `apps/worker/test/migrations.test.ts` applies
+the whole chain in order on an empty Postgres and fails on a reused version.
 
 Schema highlights:
 

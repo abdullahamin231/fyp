@@ -20,7 +20,7 @@ import { loadCriterion, type CriterionInfo } from "../graph/nodes.js";
  *   criterion → Ticket (REFERENCES, from ingestion)
  *             → PullRequest (TRACKS, from the linker)
  *             → repo + base/head (job row)
- *             → analysis_targets entry (00019) — the only sanctioned repo/command pair
+ *             → analysis_targets entry (00025) — the only sanctioned repo/command pair
  *             → clone or cache + fetch the two commits
  *             → analyser → graph nodes/edges → publish_analysis RPC
  *
