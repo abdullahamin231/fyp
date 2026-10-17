@@ -1,4 +1,6 @@
-\documentclass{fast-nuces-bs}
+% oneside + openany: every chapter starts on the next page rather than the next
+% right-hand page, so the PDF carries no blank verso pages.
+\documentclass[oneside,openany]{fast-nuces-bs}
 %\documentclass{article}
 
 \usepackage{blindtext}
@@ -14,6 +16,83 @@
 \usepackage{booktabs}
 \input{diagrams/unify-diagram-styles}
 \usepackage{titlesec}
+\usepackage{adjustbox}
+\usepackage{afterpage}
+\usepackage{caption}
+
+% ---------------------------------------------------------------------------
+% Layout and typography
+% ---------------------------------------------------------------------------
+% Captions: bold label, small text, hanging indent -- consistent for figures
+% and (long)tables alike.
+\captionsetup{font=small, labelfont=bf, format=hang, skip=6pt}
+\captionsetup[longtable]{font=small, labelfont=bf}
+% Tables: one size smaller than body text, a little more row height and
+% tighter column padding so narrow p-columns stop breaking every other word.
+\AtBeginEnvironment{longtable}{\small\setlength{\tabcolsep}{4pt}}
+\AtBeginEnvironment{table}{\small\setlength{\tabcolsep}{4pt}}
+\renewcommand{\arraystretch}{1.15}
+% Long monospace paths and identifiers cannot hyphenate; let TeX stretch the
+% inter-word space instead of pushing them into the margin.
+\setlength{\emergencystretch}{3em}
+% Paths and identifiers in \texttt (apps/worker/src/..., INSUFFICIENT\_EVIDENCE)
+% are single unbreakable words and ran into the margin or the next table
+% column. Allow a line break after / _ . and - inside \texttt only; the
+% printed text is unchanged.
+\ExplSyntaxOn
+\NewCommandCopy \unifyorigtexttt \texttt
+\tl_new:N \l__unify_tt_tl
+\RenewDocumentCommand \texttt { m }
+  {
+    \tl_set:Nn \l__unify_tt_tl {#1}
+    \regex_replace_all:nnN { ([/\.\-]) } { \1 \c{allowbreak} } \l__unify_tt_tl
+    \regex_replace_all:nnN { \c{_} } { \c{_} \c{allowbreak} } \l__unify_tt_tl
+    \unifyorigtexttt { \tl_use:N \l__unify_tt_tl }
+  }
+\ExplSyntaxOff
+\makeatletter
+\pdfstringdefDisableCommands{\let\texttt\@firstofone}
+\makeatother
+% The class names the bibliography "References", but babel resets \bibname to
+% "Bibliography" at \begin{document}; re-assert the template's heading. The
+% list is set one size down, as is usual for reference lists.
+\addto\captionsenglish{\renewcommand{\bibname}{References}}
+\renewcommand{\bibfont}{\small}
+% Single-sided running heads: chapter on the left, section on the right.
+\fancyhf{}
+\fancyhead[L]{\footnotesize\nouppercase{\leftmark}}
+\fancyhead[R]{\footnotesize\nouppercase{\rightmark}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{15pt}
+% Quieter link colours (on screen only; ocgcolorlinks prints them black).
+\hypersetup{linkcolor=blue!60!black, citecolor=green!40!black,
+            urlcolor=blue!60!black}
+
+% ---------------------------------------------------------------------------
+% Landscape figures
+%
+% \lsfigure{<body>}{<caption>}{<label>} sets a wide diagram on its own rotated
+% page. \afterpage defers it to the top of the next page, so the running text
+% keeps filling the current page instead of leaving it half empty, and the
+% body is scaled to fit both the rotated width and a height that leaves room
+% for the caption -- nothing is clipped at the page edge.
+% ---------------------------------------------------------------------------
+% The rotated page also gets narrower margins (\newgeometry is safe here: the
+% landscape page always starts and ends on a page boundary), so diagram labels
+% print near their design size instead of at ~60%.
+\newlength{\lsfigmax}
+\newcommand{\lsfigure}[3]{%
+  \afterpage{%
+    \newgeometry{margin=1.8cm, includefoot}%
+    \setlength{\lsfigmax}{0.80\textwidth}%
+    \begin{landscape}
+      \centering
+      \adjustbox{max width=\linewidth, max totalheight=\lsfigmax}{#1}%
+      \par\vspace{8pt}
+      \captionof{figure}{#2}\label{#3}
+    \end{landscape}%
+    \restoregeometry}}
 
 % ---------------------------------------------------------------------------
 % Citation style
@@ -49,6 +128,10 @@
 \patchcmd{\maketitle}{\listoftables}{}{}{}
 \patchcmd{\maketitle}{\pagenumbering{arabic}}{}{}{}
 \patchcmd{\maketitle}{\setcounter{page}{0}}{}{}{}
+% The title block fills page 1 exactly, so the class's trailing \null (an
+% empty box) lands on a page of its own. A plain \vfill is discarded at the
+% page break instead, and no blank page 2 is produced.
+\patchcmd{\maketitle}{\null\vfill}{\vfill}{}{}
 
 % Every list that opens on a fresh right-hand page needs its ToC entry
 % written only after the page break has happened, or the recorded page number
@@ -127,6 +210,7 @@
 % Contents and the two lists, still in the roman front matter. \listintoc
 % writes each entry only once the page break has happened, so the page
 % numbers recorded in the .toc match the page the heading lands on.
+\clearpage
 \tableofcontents
 \listintoc{\listfigurename}
 \listoffigures

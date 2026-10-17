@@ -118,10 +118,11 @@ There is no CI pipeline in the repository yet: none of the commands above runs
 automatically on a pull request. That is defect D-02 below.
 
 % ---------------------------------------------------------------------------
+\begin{landscape}
 \section{Test Cases}
 \label{sec:test-cases}
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{0.07\textwidth} >{\raggedright\arraybackslash}p{0.22\textwidth} >{\raggedright\arraybackslash}p{0.21\textwidth} >{\raggedright\arraybackslash}p{0.19\textwidth} >{\raggedright\arraybackslash}p{0.16\textwidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.07\linewidth} >{\raggedright\arraybackslash}p{0.22\linewidth} >{\raggedright\arraybackslash}p{0.21\linewidth} >{\raggedright\arraybackslash}p{0.19\linewidth} >{\raggedright\arraybackslash}p{0.16\linewidth}}
 \caption{Selected test cases with their expected results and observed outcomes.}\label{tab:test-cases}\\
 \hline\textbf{ID} & \textbf{Method and data} & \textbf{Expected result} &
   \textbf{Actual result} & \textbf{Evidence} \\
@@ -231,6 +232,7 @@ TC-22 & Hand-off from analyser to packet: real analyser output placed in a
   evidence all admitted to the packet; without the edges only the diff hunks &
   As expected, in both runs & \texttt{apps/\allowbreak{}worker/\allowbreak{}test/\allowbreak{}analyser-\allowbreak{}packet.\allowbreak{}test.\allowbreak{}ts} \\
 \hline\end{longtable}
+\end{landscape}
 
 % ---------------------------------------------------------------------------
 \section{Test Results}

@@ -32,13 +32,13 @@
 % ---- trust boundary (everything inside; no artifact content leaves) ----------
 \draw[uline, draw=uInk, dashed, line width=1.1pt, rounded corners=4pt]
       (-0.9,-0.5) rectangle (15.75,12.7);
-\node[anchor=south west, text width=9.5cm, align=left, font=\scriptsize,
+\node[anchor=south west, text width=13cm, align=left, font=\scriptsize,
       fill=white, inner sep=1pt] at (-0.9,12.85)
      {UNIFY local deployment boundary --- no artifact content leaves; all
       inference local (\S8.2, \S11.1).};
 
 % ---- super-band 1: ingestion & reliability (bottom) --------------------------
-\uband{0}{3.2}{uIngest}{1 \textperiodcentered INGESTION \& RELIABILITY --- deterministic; vendor
+\uband{0}{3.2}{uIngest}{1 \textperiodcentered{} INGESTION \& RELIABILITY --- deterministic; vendor
   logic only in the adapter}
 \urow{0.1}{0.95}{uIngest}{Adapter layer}
      {one connector contract per source role; read-only ingestion + normalised
@@ -54,7 +54,7 @@
      {never overwrites evidence cited by an earlier finding}
 
 % ---- super-band 2: evidence & rules ------------------------------------------
-\uband{3.55}{6.75}{uGraph}{2 \textperiodcentered EVIDENCE \& RULES --- typed, versioned,
+\uband{3.55}{6.75}{uGraph}{2 \textperiodcentered{} EVIDENCE \& RULES --- typed, versioned,
   provenance-carrying}
 \urow{3.65}{4.5}{uGraph}{Analysis layer}
      {change/symbol/dependency extraction, test-evidence linkage, criterion
@@ -71,7 +71,7 @@
      {versioned, declarative rules; no vendor semantics leak upward}
 
 % ---- super-band 3: local verification ----------------------------------------
-\uband{7.1}{10.3}{uVerify}{3 \textperiodcentered LOCAL VERIFICATION --- all inference local; the
+\uband{7.1}{10.3}{uVerify}{3 \textperiodcentered{} LOCAL VERIFICATION --- all inference local; the
   model is bounded, not central (\S11.2)}
 \urow{7.2}{8.05}{uVerify}{Context builder}
      {criterion-specific bounded evidence packet from graph + repository}
@@ -85,7 +85,7 @@
       evidence}
 
 % ---- super-band 4: human surface (top) ---------------------------------------
-\uband{10.65}{12.15}{uIntent}{4 \textperiodcentered HUMAN SURFACE --- the human reviewer owns the
+\uband{10.65}{12.15}{uIntent}{4 \textperiodcentered{} HUMAN SURFACE --- the human reviewer owns the
   final decision}
 \urow{10.75}{11.6}{uIntent}{Evidence case and reviewer surface}
      {findings, role routing, resolution, override, audit history}
@@ -100,9 +100,8 @@
      {trust-boundary property};
 
 % ---- \S8.2 data flow, rising through the gaps ---------------------------------
-\draw[flow] (-0.45,3.25) -- (-0.45,3.5);
-\draw[flow] (-0.45,6.8)  -- (-0.45,7.05);
-\draw[flow] (-0.45,10.35) -- (-0.45,10.6);
+\foreach \yy in {3.2,6.75,10.3}
+  \draw[flow, line width=0.9pt] (-0.45,{\yy-0.25}) -- (-0.45,{\yy+0.6});
 \node[font=\scriptsize, text=uMuted, fill=white] at (7.0,3.375)
      {version store $\to$ evidence-graph update};
 \node[font=\scriptsize, text=uMuted, fill=white] at (7.0,6.925)
@@ -126,9 +125,10 @@
      {\guillemotleft system\guillemotright\\Jira\\work-item source};
 \node[extsys, text width=2.7cm, minimum height=0.85cm] (figma) at (-6.4,0.475)
      {\guillemotleft system\guillemotright\\Figma\\design-intent source};
-\draw[flow] (-5.0,2.675) -- (-3.6,2.675) -- (-3.6,0.75) -- (0.2,0.75);
-\draw[flow] (-5.0,1.575) -- (-3.0,1.575) -- (-3.0,0.55) -- (0.2,0.55);
-\draw[flow] (-5.0,0.475) -- (-2.4,0.475) -- (-2.4,0.35) -- (0.2,0.35);
+% verticals ordered so the three source flows never cross each other
+\draw[flow] (-5.0,2.675) -- (-2.4,2.675) -- (-2.4,0.75) -- (0.15,0.75);
+\draw[flow] (-5.0,1.575) -- (-3.0,1.575) -- (-3.0,0.525) -- (0.15,0.525);
+\draw[flow] (-5.0,0.475) -- (-3.6,0.475) -- (-3.6,0.3) -- (0.15,0.3);
 \node[anchor=north west, text width=3.0cm, align=left, font=\scriptsize,
       text=uMuted] at (-4.1,0.0)
      {webhooks / REST + polling reconciliation (\S8.4) $\to$ normalisation};
@@ -148,8 +148,7 @@
      {Hosted frontier API --- offline reference ceiling on sanitised data;
       never a runtime dependency (\S11.1)};
 \draw[uLine, dashed] (2.75,-0.75) -- (2.75,-0.5);
-\draw[uBad, line width=1.1pt] (2.55,-0.73) -- (2.95,-0.52);
-\draw[uBad, line width=1.1pt] (2.55,-0.52) -- (2.95,-0.73);
+\node[lbl, anchor=west] at (2.9,-0.63) {offline only --- no runtime connection};
 
 % ---- human reviewer (outside the boundary) ------------------------------------
 \actor{rev}{(11.5,14.4)}{Code reviewer /\\PM (human decision)}

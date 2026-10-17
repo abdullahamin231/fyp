@@ -9,7 +9,7 @@ Work is reported by technical stream rather than by calendar week, because the
 three streams proceed in parallel and a chronological list would obscure which
 member is accountable for which evidence. Status as of \textbf{12 Oct 2026}.
 
-\begin{longtable}{p{0.30\textwidth}p{0.14\textwidth}p{0.11\textwidth}p{0.37\textwidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.30\textwidth}>{\raggedright\arraybackslash}p{0.14\textwidth}>{\raggedright\arraybackslash}p{0.11\textwidth}>{\raggedright\arraybackslash}p{0.37\textwidth}}
 \toprule
 Work item & Owner & Status & Evidence \\
 \midrule
@@ -57,7 +57,7 @@ The items below are outstanding at the reporting date. Each names the owner and
 the condition that closes it, so that an incomplete item is distinguishable
 from an unplanned one.
 
-\begin{longtable}{p{0.32\textwidth}p{0.13\textwidth}p{0.45\textwidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.32\textwidth}>{\raggedright\arraybackslash}p{0.13\textwidth}>{\raggedright\arraybackslash}p{0.45\textwidth}}
 \toprule
 Outstanding item & Owner & Closing condition \\
 \midrule
@@ -93,7 +93,7 @@ coherent problem together with the evidence that demonstrates it works. The
 division is the same one recorded in the proposal and in Chapter~3; it has not
 been revised during the iteration.
 
-\begin{longtable}{p{0.16\textwidth}p{0.40\textwidth}p{0.36\textwidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.16\textwidth}>{\raggedright\arraybackslash}p{0.40\textwidth}>{\raggedright\arraybackslash}p{0.36\textwidth}}
 \toprule
 Member & Primary ownership & Independent evaluation owned \\
 \midrule
@@ -134,7 +134,7 @@ their own subsystem.
 % artefact a reviewer can open. Fill from the repository, not from memory.
 % ===========================================================================
 
-\begin{longtable}{p{0.13\textwidth}p{0.30\textwidth}p{0.13\textwidth}p{0.36\textwidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.13\textwidth}>{\raggedright\arraybackslash}p{0.30\textwidth}>{\raggedright\arraybackslash}p{0.13\textwidth}>{\raggedright\arraybackslash}p{0.36\textwidth}}
 \toprule
 Member & Contribution & Commit or PR & Review or test evidence \\
 \midrule
@@ -196,7 +196,7 @@ when the packet builder increased its graph walk from two hops to three in
 
 \section{Milestones and Commit Evidence}
 
-\begin{longtable}{p{0.34\textwidth}p{0.13\textwidth}p{0.14\textwidth}p{0.29\textwidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.34\textwidth}>{\raggedright\arraybackslash}p{0.13\textwidth}>{\raggedright\arraybackslash}p{0.14\textwidth}>{\raggedright\arraybackslash}p{0.29\textwidth}}
 \toprule
 Milestone & Owner & Date & Commit or artefact \\
 \midrule
@@ -257,7 +257,7 @@ than a declared one.
 Assistance came from several tools rather than one, so the toolchain is named
 here before the artefact register below.
 
-\begin{longtable}{p{0.30\textwidth}p{0.59\textwidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.30\textwidth}>{\raggedright\arraybackslash}p{0.59\textwidth}}
 \toprule
 \textbf{Tool and models} & \textbf{How it was used} \\
 \midrule
@@ -298,7 +298,6 @@ worked inside the repository, so every claim it produced could be checked by
 running a command, and the prompt journal below records the cases where a
 check failed and the output was corrected or refused.
 
-\subsection*{GenAI artefact register}
 
 % ===========================================================================
 % EACH MEMBER FILLS THEIR OWN ROWS. Do not complete another member's row.
@@ -312,7 +311,9 @@ check failed and the output was corrected or refused.
 %   - the annotation guide, if assistance was used in drafting it
 % ===========================================================================
 
-\begin{longtable}{p{0.16\textwidth}p{0.09\textwidth}p{0.23\textwidth}p{0.23\textwidth}p{0.17\textwidth}}
+\begin{landscape}
+\subsection*{GenAI artefact register}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.16\linewidth}>{\raggedright\arraybackslash}p{0.09\linewidth}>{\raggedright\arraybackslash}p{0.23\linewidth}>{\raggedright\arraybackslash}p{0.23\linewidth}>{\raggedright\arraybackslash}p{0.17\linewidth}}
 \toprule
 Artefact & Level & Assistance used & Member contribution & Verification \\
 \midrule
@@ -435,6 +436,7 @@ Haaniah's source-adapter implementation & L2 assisted implementation &
   attempted but dependencies were not installed in the working environment \\
 \bottomrule
 \end{longtable}
+\end{landscape}
 
 \noindent \textbf{This chapter is itself a registered artefact.} The structure
 and prose of Chapter~9 were drafted with generative assistance; the
@@ -453,7 +455,7 @@ decisions.
 
 \section{External Components and Dependencies}
 
-\begin{longtable}{p{0.22\textwidth}p{0.22\textwidth}p{0.24\textwidth}p{0.26\textwidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.22\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}>{\raggedright\arraybackslash}p{0.24\textwidth}}
 \toprule
 Component & Purpose & Risk or limitation & Fallback \\
 \midrule
@@ -492,7 +494,7 @@ runtime.
 
 \section{Risks and Mitigation}
 
-\begin{longtable}{p{0.26\textwidth}p{0.12\textwidth}p{0.12\textwidth}p{0.42\textwidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.26\textwidth}>{\raggedright\arraybackslash}p{0.12\textwidth}>{\raggedright\arraybackslash}p{0.12\textwidth}>{\raggedright\arraybackslash}p{0.42\textwidth}}
 \toprule
 Risk & Likelihood & Impact & Mitigation \\
 \midrule

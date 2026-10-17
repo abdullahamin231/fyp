@@ -4,6 +4,11 @@
 % Traces to proposal v2 sec. 14 (deployment, privacy, failure behaviour),
 % sec. 11.1 (local-only inference), sec. 25.5 (resource budget)
 % Build: pdflatex 11_deployment.tex
+% Notation: UML deployment view. The host is a <<device>> node (3-D box) with a
+% Docker Compose <<execution environment>>; each container is a component
+% instance; cylinders are named volumes. Notification delivery leaves from the
+% worker, matching the component diagram and the DFD (notification routing is
+% the last pipeline stage).
 % ============================================================================
 \documentclass[border=12pt]{standalone}
 \input{unifystyle}
@@ -12,94 +17,97 @@
 \begin{tikzpicture}[x=1cm,y=1cm]
 
 \tikzset{
-  ctr/.style={draw,fill=#1,rounded corners=2pt,inner sep=5pt,font=\scriptsize,align=center,
-              minimum width=3.4cm,minimum height=1.5cm},
+  ctr/.style={draw,fill=#1,rounded corners=2pt,inner sep=4pt,font=\scriptsize,align=center,
+              minimum width=3.3cm,minimum height=1.45cm},
   vol/.style={draw,fill=white,cylinder,shape border rotate=90,aspect=0.14,inner sep=3pt,
               font=\scriptsize,align=center,minimum width=2.4cm},
   ext/.style={draw,fill=extgrey,rounded corners=2pt,inner sep=4pt,font=\scriptsize,align=center,
               minimum width=2.9cm,minimum height=0.95cm},
-  flow/.style={-{Stealth[length=4pt]},thin,font=\scriptsize},
+  flow/.style={-{Stealth[length=4pt]},line width=0.5pt,font=\scriptsize},
 }
 
-% ===================== host boundary ====================================
-\draw[draw=black!65,dashed,thick,rounded corners=6pt] (-0.6,-9.9) rectangle (17.0,1.9);
-\node[anchor=north west,font=\footnotesize\bfseries] at (-0.5,-9.95)
-  {Deployment boundary --- one self-hosted machine or VM (Docker Compose)};
-\node[anchor=north west,font=\scriptsize\itshape] at (-0.5,-10.35)
-  {No repository, ticket or design content crosses this line.};
+% ===================== host node (UML 3-D box) ===========================
+\def\hostL{-0.4}\def\hostR{20.6}\def\hostT{2.2}\def\hostB{-6.7}\def\hostD{0.35}
+\fill[black!6] (\hostL,\hostT) -- ++(\hostD,\hostD) -- (\hostR+\hostD,\hostT+\hostD) -- (\hostR,\hostT) -- cycle;
+\fill[black!12] (\hostR,\hostT) -- ++(\hostD,\hostD) -- (\hostR+\hostD,\hostB+\hostD) -- (\hostR,\hostB) -- cycle;
+\draw[line width=0.7pt] (\hostL,\hostT) -- ++(\hostD,\hostD) -- (\hostR+\hostD,\hostT+\hostD) -- (\hostR+\hostD,\hostB+\hostD) -- (\hostR,\hostB);
+\draw[line width=0.7pt] (\hostR,\hostT) -- (\hostR+\hostD,\hostT+\hostD);
+\draw[line width=0.7pt, fill=white] (\hostL,\hostB) rectangle (\hostR,\hostT);
+\node[anchor=north west, font=\scriptsize, align=left] at ({\hostL+0.1},{\hostT-0.05})
+  {\guillemotleft device\guillemotright\ \textbf{Self-hosted machine or VM}\ \ \textperiodcentered\ \
+   \guillemotleft execution environment\guillemotright\ \textbf{Docker Compose}\\
+   \textit{Deployment boundary: no repository, ticket or design content crosses it.}};
 
 % ===================== containers =======================================
-\node[ctr=relblue]   (web)  at ( 1.6,-0.6) {\textbf{Web frontend}\\reviewer surface\\\texttt{:3000}};
-\node[ctr=relblue]   (api)  at ( 6.0,-0.6) {\textbf{Backend API}\\REST + webhook receiver\\\texttt{:8000}};
-\node[ctr=relblue]   (wrk)  at (10.6,-0.6) {\textbf{Background worker}\\ingest, reconcile poll,\\rule + criterion queue};
-\node[ctr=verorange] (mdl)  at (15.0,-0.6) {\textbf{Model server}\\local open-weight\\verifier, \texttt{:8080}};
+% row 1: request path, left to right
+\node[ctr=relblue]   (api)  at ( 2.0,-0.3) {\textbf{Backend API}\\REST + webhook receiver\\\texttt{:8000}};
+\node[ctr=relblue]   (redis)at ( 6.9,-0.3) {\textbf{Redis}\\job queue, locks\\\texttt{:6379}};
+\node[ctr=relblue]   (wrk)  at (11.8,-0.3) {\textbf{Background worker}\\ingest, reconcile poll,\\rule + criterion queue};
+\node[ctr=verorange] (mdl)  at (17.4,-0.3) {\textbf{Model server}\\local open-weight\\verifier, \texttt{:8080}};
+% row 2: reviewer surface and stores
+\node[ctr=relblue]   (web)  at ( 2.0,-3.3) {\textbf{Web frontend}\\reviewer surface\\\texttt{:3000}};
+\node[ctr=graphgreen](pg)   at ( 9.3,-3.3) {\textbf{PostgreSQL}\\events, snapshots,\\graph, findings, audit};
+\node[ctr=verorange] (idx)  at (14.2,-3.3) {\textbf{Index store}\\symbol cards +\\embeddings};
+% row 3: volumes
+\node[vol] (vpg)  at ( 9.3,-5.75) {\texttt{pgdata}\\volume};
+\node[vol] (vrepo)at (14.2,-5.75) {\texttt{repos}\\shallow clones};
+\node[vol] (vwt)  at (18.4,-5.75) {\texttt{models}\\weights + adapter};
 
-\node[ctr=relblue]   (redis)at ( 6.0,-3.4) {\textbf{Redis}\\job queue, locks\\\texttt{:6379}};
-\node[ctr=graphgreen](pg)   at (10.6,-3.4) {\textbf{PostgreSQL}\\events, snapshots,\\graph, findings, audit};
-\node[ctr=verorange] (idx)  at (15.0,-3.4) {\textbf{Index store}\\symbol cards +\\embeddings};
-
-\node[vol] (vpg)  at ( 9.1,-5.9) {\texttt{pgdata}\\volume};
-\node[vol] (vwt)  at (12.1,-5.9) {\texttt{models}\\weights + adapter};
-\node[vol] (vrepo)at (15.0,-5.9) {\texttt{repos}\\shallow clones};
-
-\draw[flow] (web) -- node[lbl,above=-1pt]{HTTPS} (api);
-\draw[flow] (api) -- node[lbl,above=-1pt]{enqueue} (wrk);
-\draw[flow] (api) -- (redis);
-\draw[flow] (wrk) -- (redis);
-\draw[flow] (api) -- (pg);
-\draw[flow] (wrk) -- node[lbl,right=1pt,pos=.80]{events, graph, verdicts} (pg);
-\draw[flow] (wrk) -- node[lbl,above=-1pt]{packet} (mdl);
-\draw[flow] (14.2,-1.35) -- (14.2,-1.95) --
-      node[lbl,above=-1pt]{verdict + citations} (11.4,-1.95) -- (11.4,-1.35);
-\draw[flow] (wrk) -- (idx);
+\draw[flow] (web) -- node[lbl,right=1pt]{HTTPS} (api);
+\draw[flow] (api) -- node[lbl,above=1pt]{enqueue} (redis);
+\draw[flow] (wrk) -- node[lbl,above=1pt]{dequeue} (redis);
+\draw[flow] (api.south east) -- node[lbl,pos=.55,sloped,above=1pt]{reads / writes} (pg.north west);
+\draw[flow] (wrk.south west) -- node[lbl,pos=.45,right=3pt,align=left]{events, graph,\\verdicts} (pg.north east);
+\draw[flow] (wrk.south east) -- (idx.north);
+\draw[flow] ([yshift=0.25cm]wrk.east) -- node[lbl,above=1pt]{packet} ([yshift=0.25cm]mdl.west);
+\draw[flow] ([yshift=-0.25cm]mdl.west) -- node[lbl,below=1pt]{verdict + citations} ([yshift=-0.25cm]wrk.east);
 \draw[flow] (pg)  -- (vpg);
-\draw[flow] (mdl.south east) -- ++(0,-2.1) -| (vwt);
 \draw[flow] (idx) -- (vrepo);
+\draw[flow] ([xshift=1.0cm]mdl.south) -- (vwt.north);
 
 % ===================== external systems =================================
-\node[ext] (gh)  at (21.0, 0.4) {\textbf{Change source}\\GitHub};
-\node[ext] (jr)  at (21.0,-0.9) {\textbf{Work-item source}\\Jira};
-\node[ext] (fg)  at (21.0,-2.2) {\textbf{Design source}\\Figma};
-\node[ext] (sl)  at (21.0,-5.0) {\textbf{Delivery channel}\\Slack};
+\node[ext] (gh)  at (-5.6, 0.9) {\guillemotleft system\guillemotright\\\textbf{Change source}: GitHub};
+\node[ext] (jr)  at (-5.6,-0.3) {\guillemotleft system\guillemotright\\\textbf{Work-item source}: Jira};
+\node[ext] (fg)  at (-5.6,-1.5) {\guillemotleft system\guillemotright\\\textbf{Design source}: Figma};
+\node[ext] (sl)  at (24.0,-0.3) {\guillemotleft system\guillemotright\\\textbf{Delivery channel}\\Slack};
 
-% bundled inbound channel, routed above the container row
-\draw[thin] (gh.west) -- (18.7, 0.4);
-\draw[thin] (jr.west) -- (18.7,-0.9);
-\draw[thin] (fg.west) -- (18.7,-2.2);
-\draw[thin] (18.7,-2.2) -- (18.7,1.15);
-\draw[{Stealth[length=4pt]}-{Stealth[length=4pt]},thin] (18.7,1.15)
-      -- node[lbl,above=-1pt,pos=.42]{webhooks in \ \textbullet\ \ read-only OAuth polling out} (6.0,1.15);
-\draw[thin] (6.0,1.15) -- (api.north);
+% inbound: three sources share one corridor into the API
+\draw[line width=0.5pt] (gh.east) -- (-3.4,0.9);
+\draw[line width=0.5pt] (fg.east) -- (-3.4,-1.5);
+\draw[line width=0.5pt] (-3.4,0.9) -- (-3.4,-1.5);
+\draw[{Stealth[length=4pt]}-{Stealth[length=4pt]},line width=0.5pt] (jr.east) -- (api.west);
+\node[lbl, align=center, anchor=south] at (-1.9,-0.25) {webhooks in /\\read-only OAuth\\polling out};
 
-% outbound delivery only
-\draw[flow] (api.south) -- (6.0,-2.0) -- (0.2,-2.0) -- (0.2,-5.05) -- node[lbl,above=-1pt,pos=.62]{outbound delivery only} (18.7,-5.05) -- (sl.west);
-
-\node[note=4.6cm,anchor=north west] at (18.9,-6.2)
-  {\textbf{Direction matters.} Inbound is webhooks plus read-only polling;
-   outbound is Slack delivery only. Slack never feeds reasoning
-   (sec.~8.1). No path leaves the boundary carrying artifact content.};
+% outbound: Slack delivery only, leaves from the worker over the top
+\draw[flow] (wrk.north) -- (11.8,1.25) -- (22.4,1.25) -- (22.4,-0.3) -- (sl.west);
+\node[lbl, anchor=south] at (16.6,1.27) {outbound delivery only (role-routed findings)};
 
 % ===================== notes ============================================
-\node[note=5.0cm,anchor=north west] at (-0.5,-6.6)
+\node[note=5.4cm,anchor=north west] at (-0.4,-7.2)
   {\textbf{Why the model server is its own container.}
    It is the only component with a GPU dependency and the only one whose
    failure must degrade rather than stop the system. If it is down, the
    worker still ingests, Rules~1--3 still fire, and criterion verification
    is marked unavailable --- never silently skipped (sec.~14).};
 
-\node[note=5.0cm,anchor=north west] at (5.2,-6.6)
+\node[note=5.4cm,anchor=north west] at (5.7,-7.2)
   {\textbf{Secrets and tokens.} OAuth tokens encrypted at rest with
    least-privilege read-only scopes, held by the API container only; the
    model server has no network credentials at all. Revocation path
    documented (sec.~14).};
 
-\node[note=5.0cm,anchor=north west] at (10.9,-6.6)
+\node[note=5.4cm,anchor=north west] at (11.8,-7.2)
   {\textbf{Resource budget to report (sec.~25.5).}
    GPU and VRAM available; index storage per 100k LOC; one-off embedding
    time per repository; incremental re-index time per commit; tokens and
    wall-clock per verdict; cost of one full benchmark pass.};
 
-\node[note=10.6cm,anchor=north west] at (-0.5,-11.2)
+\node[note=5.4cm,anchor=north west] at (17.9,-7.2)
+  {\textbf{Direction matters.} Inbound is webhooks plus read-only polling;
+   outbound is Slack delivery only. Slack never feeds reasoning
+   (sec.~8.1). No path leaves the boundary carrying artifact content.};
+
+\node[note=11.5cm,anchor=north west] at (-0.4,-10.0)
   {\textbf{Degraded modes, demonstrated not asserted.}
    \ \ \emph{Model server down} --- deterministic rules and unresolved-evidence
    reporting continue; one full benchmark pass is run with the model server
@@ -110,7 +118,7 @@
    \emph{Worker restart} --- the checkpoint has not advanced, so events are
    re-processed and the duplicate branch makes that a no-op (sec.~8.4).};
 
-\node[note=6.0cm,anchor=north west] at (10.6,-11.2)
+\node[note=11.0cm,anchor=north west] at (11.8,-10.0)
   {\textbf{Reproducibility (Gate 5).} The whole footprint is one
    \texttt{docker compose up} on declared hardware, and a non-author must be
    able to stand it up from the repository. Model, adapter, tokenizer,

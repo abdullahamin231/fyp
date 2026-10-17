@@ -40,19 +40,21 @@
 \draw[flow] (g3.east) -- (g4.west);
 \draw[flow] (g4.east) -- (g5.west);
 
-\node[step=6.0cm, fill=uWarn!25, draw=uWarn, align=left] (dg) at (11.25,0.7)
+\node[step=6.0cm, fill=uWarn!25, draw=uWarn, align=left] (dg) at (7.05,0.2)
      {\textbf{DOWNGRADE} — review / INSUFFICIENT\_EVIDENCE, reason logged;
       never shown as decisive (\S11.8)};
-\node[step=7.0cm, fill=uOk!18, draw=uOk, align=left] (dec) at (18.3,0.7)
+\node[step=7.0cm, fill=uOk!18, draw=uOk, align=left] (dec) at (17.6,0.2)
      {\textbf{DECISIVE} — SUPPORTED / CONTRADICTED / PARTIAL → evidence
       case, provenance complete (\S11.7)};
 
-\draw[flow] (g3.south) -- (dg.north);
-\node[lbl, anchor=west, text width=2.0cm] at (11.6,1.9)
-     {any check fails};
-\draw (g5.east) -- (22.4,3.0) -- (22.4,0.9);
-\draw[flow] (22.4,0.9) -- (dec.east);
-\node[lbl, anchor=east] at (22.3,1.6) {all checks pass};
+% every check can fail: each one drops onto a shared failure bus -> DOWNGRADE
+\foreach \g in {g1,g2,g3,g4,g5} \draw[uline, uWarn!80!black] (\g.south) -- (\g.south |- 0,1.45);
+\draw[uline, uWarn!80!black] (g1.south |- 0,1.45) -- (g5.south |- 0,1.45);
+\draw[flow, draw=uWarn!80!black] (7.05,1.45) -- (dg.north);
+\node[lbl, anchor=west, text=uWarn!80!black] at (7.2,1.15) {[any check fails]};
+\draw (g5.east) -- (22.4,3.0) -- (22.4,0.2);
+\draw[flow] (22.4,0.2) -- (dec.east);
+\node[lbl, anchor=east] at (22.3,1.6) {[all checks pass]};
 \node[anchor=south west, font=\scriptsize, text=uInk, text width=9.6cm,
       align=left] at (11.0,4.12)
      {VERDICT / PROVENANCE GATE — deterministic, between verifier and
@@ -86,31 +88,33 @@
 \draw[flow] (d2.south) -- (p3.north);
 \draw[flow] (p2.south) -- (d2.north);
 \draw[flow] (d1.south) -- (p2.north);
-\node[lbl, anchor=west] at (5.85,11.3) {yes};
+\node[lbl, anchor=west] at (5.85,11.3) {[yes]};
 
 % pass 1 stop rule: nothing applicable -> INSUFFICIENT_EVIDENCE
 \draw[flow] (d1.west) -- (1.24,12.4);
 \draw[fill=white, draw=uLine, line width=0.8pt] (1.0,12.4) circle (0.24);
 \draw[fill=uInk, draw=none]  (1.0,12.4) circle (0.12);
 \node[lbl, anchor=south, text width=2.4cm] at (2.8,12.5)
-     {no — nothing applicable};
+     {[no] nothing applicable};
 \node[anchor=north, font=\scriptsize, text=uMuted, text width=2.8cm,
       align=center] at (1.0,11.45)
      {INSUFFICIENT\_EVIDENCE — stop; stop reason logged (\S11.4)};
 
-% pass 2 stop rule: clean citations -> straight to the gate
-\draw (d2.east) -- (10.6,8.0) -- (10.6,4.3) -- (2.85,4.3);
+% pass 2 stop rule: clean citations -> straight to the gate (via a merge node)
+\node[diamond, draw=uLine, fill=white, line width=0.6pt, minimum size=0.42cm,
+      inner sep=0pt] (merge) at (5.6,4.5) {};
+\draw[flow] (d2.east) -- (10.6,8.0) -- (10.6,4.5) -- (merge.east);
 \node[lbl, anchor=south, text width=2.6cm] at (8.5,8.15)
-     {yes — pass 2 stops (\S11.4)};
+     {[yes] pass 2 stops (\S11.4)};
 \node[anchor=west, font=\scriptsize, text=uMuted, text width=4.2cm,
       align=left] at (6.0,7.05)
-     {disputed · contradictory · weakly cited → critic};
+     {[no] disputed · contradictory · weakly cited → critic};
 
 % conditional critic, then both routes merge into the gate
-\draw (p3.south) -- (5.6,4.3);
+\draw[flow] (p3.south) -- (merge.north);
 \node[anchor=south, font=\scriptsize, text=uMuted, text width=3.4cm,
-      align=center] at (4.15,4.35) {verdict + citations (\S11.6)};
-\draw[flow] (2.85,4.3) -- (g1.north);
+      align=center] at (3.6,4.6) {verdict + citations (\S11.6)};
+\draw[flow] (merge.west) -- (2.85,4.5) -- (g1.north);
 
 % ---- right column: run notes ------------------------------------------------------
 \node[note=5.6cm, anchor=center] at (17.4,15.6)

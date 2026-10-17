@@ -30,7 +30,7 @@ summarises what each role needs from the system and how it interacts with it.
 \begin{table}[htbp]
 \centering
 \small
-\begin{tabular}{p{0.2\linewidth} p{0.36\linewidth} p{0.34\linewidth}}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.36\linewidth} >{\raggedright\arraybackslash}p{0.34\linewidth}}
 \hline
 \textbf{Role} & \textbf{What they need} & \textbf{Main interactions} \\
 \hline
@@ -125,7 +125,7 @@ exports and are covered by their functional requirements.
 \newcommand{\usecase}[8]{%
 \begin{table}[htbp]
 \centering\small
-\begin{tabular}{p{0.2\linewidth} p{0.72\linewidth}}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.72\linewidth}}
 \hline
 \multicolumn{2}{l}{\textbf{#1}} \\
 \hline
@@ -256,7 +256,7 @@ in Table~\ref{tab:acceptance} are planned for FYP-II.
   \hline \textbf{ID} & \textbf{The system shall\ldots} & \textbf{Actor} & \textbf{Owner} \\ \hline}
 
 \subsection{Event Ingestion and Reliability}
-\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.09\linewidth} >{\raggedright\arraybackslash}p{0.48\linewidth} >{\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.09\linewidth}}
 \caption{Functional requirements: ingestion and reliability.}\\
 \frhead
 FR-01 & Receive GitHub, Jira and Figma events by webhook, fall back to polling,
@@ -271,7 +271,7 @@ FR-16 & Mark an artifact \texttt{SOURCE\_STALE} when its source cannot confirm
 \end{longtable}
 
 \subsection{Evidence Graph, Linking and Traceability}
-\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.09\linewidth} >{\raggedright\arraybackslash}p{0.48\linewidth} >{\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.09\linewidth}}
 \caption{Functional requirements: evidence graph, linking and traceability.}\\
 \frhead
 FR-04 & Link artifacts across tools from explicit references (ticket keys,
@@ -294,7 +294,7 @@ FR-28 \textit{(new)} & Auto-confirm links above an upper confidence threshold
 \end{longtable}
 
 \subsection{Code Analysis and Code Semantics}
-\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.09\linewidth} >{\raggedright\arraybackslash}p{0.48\linewidth} >{\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.09\linewidth}}
 \caption{Functional requirements: code analysis and code semantics.}\\
 \frhead
 FR-06 & Extract the base/head diff, changed symbols, their dependency
@@ -313,7 +313,7 @@ FR-27 \textit{(new)} & Score a repository's documentation quality when it is
 \end{longtable}
 
 \subsection{Criteria and Evidence Verification}
-\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.09\linewidth} >{\raggedright\arraybackslash}p{0.48\linewidth} >{\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.09\linewidth}}
 \caption{Functional requirements: criteria and verification.}\\
 \frhead
 FR-07 & Treat atomic acceptance criteria and approved structured design
@@ -330,7 +330,7 @@ FR-11 & Produce a per-criterion evidence case with status, citations, reason and
 \end{longtable}
 
 \subsection{Rules and Incremental Evaluation}
-\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.09\linewidth} >{\raggedright\arraybackslash}p{0.48\linewidth} >{\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.09\linewidth}}
 \caption{Functional requirements: rules and incremental evaluation.}\\
 \frhead
 FR-12 & Evaluate deterministic Rules 1--3 (design-version drift, workflow-state
@@ -347,7 +347,7 @@ FR-24 \textit{(new)} & Evaluate policy P4 and raise a divergence finding when a
 \end{longtable}
 
 \subsection{Reviewer Surface, Notification and Governance}
-\begin{longtable}{p{0.09\linewidth} p{0.48\linewidth} p{0.2\linewidth} p{0.09\linewidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.09\linewidth} >{\raggedright\arraybackslash}p{0.48\linewidth} >{\raggedright\arraybackslash}p{0.2\linewidth} >{\raggedright\arraybackslash}p{0.09\linewidth}}
 \caption{Functional requirements: reviewer surface, notification and governance.}\\
 \frhead
 FR-14 & Route each finding to the responsible role through configurable rules
@@ -439,7 +439,7 @@ requirement. A requirement is accepted only when its check passes on the
 evaluation commit and the evidence (test output, log or dataset file) is in the
 repository.
 
-\begin{longtable}{p{0.12\linewidth} p{0.8\linewidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.12\linewidth} >{\raggedright\arraybackslash}p{0.8\linewidth}}
 \caption{Acceptance check for each functional requirement.}\label{tab:acceptance}\\
 \hline
 \textbf{ID} & \textbf{Acceptance check} \\
@@ -519,8 +519,8 @@ whether that measurement has actually been taken at the evaluation commit.
 The last column is deliberately not a pass/fail column --- several of these
 have not been measured yet, and saying so is the point.
 
-\begin{longtable}{p{0.09\linewidth} p{0.34\linewidth} p{0.20\linewidth}
-                  p{0.13\linewidth} p{0.14\linewidth}}
+\begin{longtable}{>{\raggedright\arraybackslash}p{0.09\linewidth} >{\raggedright\arraybackslash}p{0.34\linewidth} >{\raggedright\arraybackslash}p{0.20\linewidth}
+                  >{\raggedright\arraybackslash}p{0.13\linewidth} >{\raggedright\arraybackslash}p{0.14\linewidth}}
 \caption{Acceptance check, measurement and current status for each
          non-functional requirement.}\label{tab:acceptance-nfr}\\
 \hline
@@ -631,4 +631,6 @@ demo script exists. Fourteen discrepancies between this matrix, the proposal and
 chapter~4 are recorded rather than silently resolved in
 \texttt{docs/traceability/README.md} and need a decision from the team.
 
+\begin{landscape}
 \input{../traceability/chapter4_table}
+\end{landscape}

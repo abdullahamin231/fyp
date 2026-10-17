@@ -5,7 +5,7 @@
 %          checkpoints, reconciliation), §9.5 (graph deltas, no rescans),
 %          §9.7 (role-edge notification routing), §9.8 (algorithms),
 %          §11.4-§11.6 (loop, packet, output schema), §11.8 (verdict gate).
-% Notation: rounded numbered boxes = processes, open-top boxes = data stores
+% Notation: rounded numbered boxes = processes, open-ended boxes = data stores
 % (D1..D4), rectangles = external entities, labelled arrows = data flows.
 % §8.2 order, verbatim: webhook/poll -> normalisation -> version store ->
 % evidence-graph update -> (a) rule evaluation / (b) criterion queue ->
@@ -14,14 +14,17 @@
 % Commit: <stamp at evaluation tag> -- regenerate rendered/*.pdf at that tag.
 % =============================================================================
 \begin{tikzpicture}[x=1cm,y=1cm]
-\tikzset{bi/.style={draw=uLine, line width=0.6pt, >=Stealth, <->},
-         dfstore/.style={draw=uLine, line width=0.6pt, fill=uIngest!20}}
-% #1=cx #2=cy #3=w #4=h #5=text width(cm) #6=text
-\newcommand{\dfstore}[6]{%
-  \draw[dfstore] ({#1-#3/2},{#2-#4/2}) rectangle ({#1+#3/2},{#2+#4/2});
-  \draw[uline] ({#1-#3/2},{#2+#4/2-0.3}) -- ({#1+#3/2},{#2+#4/2-0.3});
+\tikzset{bi/.style={draw=uLine, line width=0.6pt, >=Stealth, <->}}
+% Gane-Sarson data store: ID compartment on the left, open on the right.
+% #1=cx #2=cy #3=w #4=h #5=text width(cm) #6=store ID #7=text
+\newcommand{\dfstore}[7]{%
+  \fill[uIngest!20] ({#1-#3/2},{#2-#4/2}) rectangle ({#1+#3/2},{#2+#4/2});
+  \draw[uline] ({#1+#3/2},{#2+#4/2}) -- ({#1-#3/2},{#2+#4/2})
+               -- ({#1-#3/2},{#2-#4/2}) -- ({#1+#3/2},{#2-#4/2});
+  \draw[uline] ({#1-#3/2+0.6},{#2+#4/2}) -- ({#1-#3/2+0.6},{#2-#4/2});
+  \node[font=\scriptsize\bfseries] at ({#1-#3/2+0.3},{#2}) {#6};
   \node[align=center, font=\scriptsize, text width=#5cm]
-       at ({#1},{#2-0.16}) {#6};}
+       at ({#1+0.3},{#2}) {#7};}
 
 % ---- band 1: ingestion (left to right) ---------------------------------------
 \node[extsys, text width=3.0cm, minimum height=1.5cm] (vend) at (-4.9,14.0)
@@ -32,8 +35,8 @@
 \node[step=3.0cm, fill=uIngest!45, align=left] (p2) at (3.0,14.0)
      {\textbf{2 · Normalise} → persist raw → idempotency by event\_id →
       version guard (\S8.4)};
-\node[decision, text width=2.0cm] (d1) at (7.0,14.0)
-     {duplicate or older version?};
+\node[step=2.6cm, fill=uIngest!45, align=left] (d1) at (7.0,14.0)
+     {\textbf{2a · Duplicate / version check} — duplicate or older version?};
 \node[step=3.6cm, fill=uIngest!45, align=left] (p3) at (12.4,14.0)
      {\textbf{3 · Transactional apply} — snapshot write + graph mutation;
       checkpoint advances (\S8.4)};
@@ -51,26 +54,24 @@
 \node[lbl, anchor=south] at (9.4,14.05) {no — apply (\S8.4)};
 
 % duplicate / stale -> no-op (first-class outcome, §8.4)
-\draw[flow] (d1.north) -- (7.0,16.32);
-\draw[fill=white, draw=uLine, line width=0.8pt] (7.0,16.5) circle (0.15);
-\draw[fill=uInk, draw=none]  (7.0,16.5) circle (0.07);
-\node[anchor=west, text width=4.6cm, align=left, font=\scriptsize,
-      text=uMuted] at (7.35,16.5)
-     {duplicate or stale → no-op discard (\S8.4) — no duplicate finding};
+\node[draw=uMuted, dashed, fill=white, font=\scriptsize, align=center,
+      text width=3.0cm, inner sep=3pt] (noop) at (7.0,16.4)
+     {no-op discard (\S8.4) --- no duplicate finding};
+\draw[flow] (d1.north) -- node[lbl, right=2pt]{yes: duplicate or stale} (noop.south);
 
 % ---- stores fed by band 1 ------------------------------------------------------
-\dfstore{3.0}{11.6}{3.2}{1.25}{2.8}{\textbf{D1} · events +\\checkpoints
+\dfstore{3.0}{11.6}{3.2}{1.25}{2.4}{D1}{events +\\checkpoints
   (idempotency)}
 \draw[flow] (3.0,13.35) -- (3.0,12.25);
 \node[anchor=north west, text width=2.2cm, align=left, font=\scriptsize,
       text=uMuted] at (3.15,13.25)
      {persist before evaluation (\S8.4)};
 
-\dfstore{11.0}{11.6}{3.6}{1.25}{3.2}{\textbf{D2} · artifact \& version
+\dfstore{11.0}{11.6}{3.6}{1.25}{2.8}{D2}{artifact \& version
   store —\\immutable snapshots}
 \draw[flow] (12.4,13.35) -- (12.4,12.25);
 
-\dfstore{15.4}{11.6}{3.6}{1.25}{3.2}{\textbf{D3} · evidence graph —\\nodes ·
+\dfstore{15.4}{11.6}{3.6}{1.25}{2.8}{D3}{evidence graph —\\nodes ·
   edges · provenance}
 \draw[flow] (14.2,14.0) -- (15.4,14.0) -- (15.4,12.25);
 \node[anchor=south, text width=2.8cm, align=center, font=\scriptsize,
@@ -150,7 +151,7 @@
 \node[lbl, align=center, anchor=south, text width=1.7cm]
      at (5.7,2.9) {decisive, or downgrade (\S11.8)};
 
-\dfstore{13.0}{2.9}{3.0}{1.25}{2.6}{\textbf{D4} · findings · provenance ·\\
+\dfstore{13.0}{2.9}{3.0}{1.25}{2.3}{D4}{findings · provenance ·\\
   audit — idempotent}
 \draw[flow] (p8.east) -- (11.5,2.9);
 \node[anchor=north, text width=2.8cm, align=center, font=\scriptsize,
