@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
+import { createWorkspace, slugify, type CreatedWorkspace } from "@/lib/data/create-workspace";
 import type { WorkspaceRole } from "@/lib/types";
-
-type CreatedWorkspace = { id: string; name: string; slug: string };
 
 type PendingInvite = {
   id: string;
@@ -15,15 +14,6 @@ type PendingInvite = {
   role: WorkspaceRole;
   created_at: string;
 };
-
-/** Lowercase kebab-case, matching the workspaces slug CHECK constraint. */
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-}
 
 /**
  * Workspace creation flow: name + slug (persisted via the `create_workspace`
@@ -67,26 +57,17 @@ export function CreateWorkspace() {
     };
   }, [created, supabase]);
 
-  async function createWorkspace() {
+  async function create() {
     if (!canCreate) return;
     setCreating(true);
-    const { data, error } = await supabase.rpc("create_workspace", {
-      p_name: name.trim(),
-      p_slug: effectiveSlug,
-    });
+    const result = await createWorkspace(supabase, name, effectiveSlug);
     setCreating(false);
-    if (error) {
-      toast(
-        error.code === "23505"
-          ? `Slug "${effectiveSlug}" is already taken`
-          : `Could not create workspace: ${error.message}`,
-        { icon: "error", tone: "error" },
-      );
+    if (!result.ok) {
+      toast(result.error, { icon: "error", tone: "error" });
       return;
     }
-    const workspace = data as { id: string; name: string; slug: string };
-    setCreated({ id: workspace.id, name: workspace.name, slug: workspace.slug });
-    toast(`Workspace ${workspace.name} created`, { icon: "cloud_done" });
+    setCreated(result.workspace);
+    toast(`Workspace ${result.workspace.name} created`, { icon: "cloud_done" });
   }
 
   async function invite() {
@@ -228,7 +209,7 @@ export function CreateWorkspace() {
               <button
                 type="button"
                 disabled={!canCreate}
-                onClick={createWorkspace}
+                onClick={create}
                 className="px-4 py-2 rounded bg-primary-container hover:bg-inverse-primary text-on-primary-container font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {creating ? (

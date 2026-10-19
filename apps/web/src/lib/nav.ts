@@ -10,6 +10,8 @@ export type NavItem = {
   badge?: NavBadge;
   /** Matches the reference screens' data-path attribute. */
   path: string;
+  /** The page reads `?workspace=<slug>`; the shell appends the active one. */
+  workspaceScoped?: true;
 };
 
 /**
@@ -21,7 +23,6 @@ export type NavItem = {
 export const intelligenceNav: NavItem[] = [
   { label: "Conflict Inbox", href: "/conflicts", icon: "inbox", path: "conflict-inbox" },
   { label: "Policy Configuration", href: "/policies", icon: "rule", path: "policy-configuration" },
-  { label: "Policy Simulation", href: "/policies/simulation", icon: "labs", path: "policy-simulation", badge: { text: "TEST", tone: "tertiary" } },
   { label: "Graph Explorer", href: "/graph", icon: "account_tree", path: "graph-explorer" },
   { label: "Artifact Graph", href: "/graph/artifacts", icon: "hub", path: "artifact-graph" },
   { label: "Link Management", href: "/links", icon: "link", path: "link-management" },
@@ -39,9 +40,8 @@ export const operationsNav: NavItem[] = [
 ];
 
 export const settingsNav: NavItem[] = [
-  { label: "Settings", href: "/settings/workspace", icon: "settings", path: "settings" },
-  { label: "Provider Apps", href: "/settings/integrations", icon: "key", path: "provider-app-registrations" },
-  { label: "Notifications", href: "/settings/notifications", icon: "notifications", path: "notification-preferences" },
+  { label: "Settings", href: "/settings/workspace", icon: "settings", path: "settings", workspaceScoped: true },
+  { label: "Provider Apps", href: "/settings/integrations", icon: "key", path: "provider-app-registrations", workspaceScoped: true },
   { label: "Slack Delivery", href: "/settings/slack", icon: "chat", path: "slack-configuration" },
 ];
 
@@ -50,10 +50,15 @@ export const navGroups: Array<{ label?: string; items: NavItem[] }> = [
   { label: "Review & Operations", items: operationsNav },
 ];
 
+/** The link target for `item` while `slug` is the active workspace. */
+export function navHref(item: NavItem, slug: string | null): string {
+  return item.workspaceScoped && slug ? `${item.href}?workspace=${encodeURIComponent(slug)}` : item.href;
+}
+
 /**
- * Longest-prefix match so `/policies/simulation` activates Policy Simulation
- * rather than Policy Configuration, and `/conflicts/<id>` activates the
- * Conflict Inbox rather than nothing.
+ * Longest-prefix match so `/graph/artifacts` activates Artifact Graph rather
+ * than Graph Explorer, and `/conflicts/<id>` activates the Conflict Inbox
+ * rather than nothing.
  */
 export function activeHref(pathname: string, items: NavItem[]): string | null {
   let best: { href: string; len: number } | null = null;

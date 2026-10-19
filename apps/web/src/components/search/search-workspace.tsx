@@ -22,18 +22,6 @@ import {
 } from "@/lib/domain/search";
 import type { Severity } from "@/lib/types";
 
-/**
- * DATA HOLE — replace with the search API.
- *
- * The result index, initial query tokens, token suggestions and index
- * metadata are all empty until their endpoints exist: the result list renders
- * its empty state and the meta strip shows placeholders.
- */
-const searchMatches: SearchMatch[] = [];
-const defaultTokens: QueryToken[] = [];
-const tokenSuggestions: QueryToken[] = [];
-const searchMeta: SearchMeta = { engine: "—", indexSha: "—", latencyMs: 0 };
-
 const kinds: SearchKind[] = ["conflict", "artifact", "link", "policy"];
 const severities: Severity[] = ["critical", "warning", "info"];
 const toolKeys = ["github", "figma", "jira", "slack"];
@@ -45,7 +33,6 @@ const defaultFilters: SearchFilters = {
   states: ["open", "acknowledged"],
   horizon: "7d",
   confidence: 80,
-  squads: [],
 };
 
 const horizonHours: Record<SearchFilters["horizon"], number> = {
@@ -86,9 +73,17 @@ function haystack(match: SearchMatch): string {
 }
 
 /** Omni-search workspace: query bar + token pills, facets, results, preview. */
-export function SearchWorkspace() {
+export function SearchWorkspace({
+  searchMatches,
+  tokenSuggestions,
+  searchMeta,
+}: {
+  searchMatches: SearchMatch[];
+  tokenSuggestions: QueryToken[];
+  searchMeta: SearchMeta;
+}) {
   const [query, setQuery] = useState("");
-  const [tokens, setTokens] = useState<QueryToken[]>(defaultTokens);
+  const [tokens, setTokens] = useState<QueryToken[]>([]);
   const [filters, setFilters] = useState<SearchFilters>(defaultFilters);
   const [activeTab, setActiveTab] = useState<SearchKind | "all">("all");
   const [sort, setSort] = useState<"relevance" | "recency">("relevance");
@@ -121,7 +116,7 @@ export function SearchWorkspace() {
       }
     });
     return result;
-  }, []);
+  }, [searchMatches]);
 
   const filtered = useMemo(() => {
     const words = query
@@ -142,8 +137,6 @@ export function SearchWorkspace() {
         match.confidence * 100 < filters.confidence
       )
         return false;
-      if (match.team && filters.squads.length > 0 && !filters.squads.includes(match.team))
-        return false;
       if (!tokens.every((token) => applyToken(match, token))) return false;
       if (words.length > 0) {
         const text = haystack(match);
@@ -158,7 +151,7 @@ export function SearchWorkspace() {
       );
     }
     return list;
-  }, [filters, query, tokens, sort]);
+  }, [searchMatches, filters, query, tokens, sort]);
 
   const tabCounts = useMemo(() => {
     const map: Record<string, number> = { all: filtered.length };
@@ -212,7 +205,6 @@ export function SearchWorkspace() {
   const activeCount =
     tokens.length +
     (statesDiffer ? 1 : 0) +
-    filters.squads.length +
     (filters.confidence === defaultFilters.confidence ? 0 : 1) +
     (filters.horizon === defaultFilters.horizon ? 0 : 1) +
     kinds.filter((kind) => !filters.kinds[kind]).length +
@@ -221,7 +213,7 @@ export function SearchWorkspace() {
 
   const resetAll = () => {
     setFilters(defaultFilters);
-    setTokens(defaultTokens);
+    setTokens([]);
     setQuery("");
     setPage(0);
     setActiveTab("all");

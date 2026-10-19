@@ -1,5 +1,6 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { randomBytes } from "node:crypto";
+import { decryptSecret as unseal, encryptSecret as seal } from "@unify/contracts/secret-box";
+import { admin } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { IntegrationProvider } from "./types";
 
@@ -9,34 +10,10 @@ export type ProviderAppCredentials = {
   webhookSecret: string;
 };
 
-function admin() {
-  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error("SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) is required for integrations");
-  return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
+const passphrase = () => process.env.INTEGRATION_ENCRYPTION_KEY ?? "";
 
-function encryptionKey() {
-  const value = process.env.INTEGRATION_ENCRYPTION_KEY;
-  if (!value) throw new Error("INTEGRATION_ENCRYPTION_KEY is required for integrations");
-  return createHash("sha256").update(value).digest();
-}
-
-export function encryptSecret(value: string): string {
-  const iv = randomBytes(12);
-  const cipher = createCipheriv("aes-256-gcm", encryptionKey(), iv);
-  const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
-  return `${iv.toString("base64url")}.${cipher.getAuthTag().toString("base64url")}.${encrypted.toString("base64url")}`;
-}
-
-export function decryptSecret(value: string): string {
-  const [iv, tag, ciphertext] = value.split(".");
-  if (!iv || !tag || !ciphertext) throw new Error("Malformed encrypted integration secret");
-  const decipher = createDecipheriv("aes-256-gcm", encryptionKey(), Buffer.from(iv, "base64url"));
-  decipher.setAuthTag(Buffer.from(tag, "base64url"));
-  return Buffer.concat([decipher.update(Buffer.from(ciphertext, "base64url")), decipher.final()]).toString("utf8");
-}
+export const encryptSecret = (value: string) => seal(value, passphrase());
+export const decryptSecret = (value: string) => unseal(value, passphrase());
 
 export async function providerAppCredentials(
   workspaceId: string,
@@ -153,22 +130,6 @@ export async function connectionForWebhook(workspaceId: string, provider: Integr
   if (error) throw new Error(`Could not load integration: ${error.message}`);
   if (!data?.webhook_secret_ciphertext) throw new Error("Webhook secret is not configured");
   return decryptSecret(data.webhook_secret_ciphertext);
-}
-
-/** Server-only. The decrypted provider access token for a workspace connection. */
-export async function connectionAccessToken(
-  workspaceId: string,
-  provider: IntegrationProvider,
-): Promise<{ token: string; expiresAt: string | null }> {
-  const { data, error } = await admin()
-    .from("integration_connections")
-    .select("access_token_ciphertext, token_expires_at")
-    .eq("workspace_id", workspaceId)
-    .eq("provider", provider)
-    .maybeSingle();
-  if (error) throw new Error(`Could not load ${provider} connection: ${error.message}`);
-  if (!data?.access_token_ciphertext) throw new Error(`${provider} is not connected for this workspace`);
-  return { token: decryptSecret(data.access_token_ciphertext), expiresAt: data.token_expires_at ?? null };
 }
 
 export async function persistDelivery(input: {

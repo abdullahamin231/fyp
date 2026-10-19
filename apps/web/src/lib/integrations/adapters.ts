@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { asRecord, rawHash, referencesFromText, text, verifyHmacSha256 } from "./common";
 import type { IntegrationAdapter, NormalizedIntegrationEvent } from "./types";
 
@@ -88,7 +89,9 @@ export const jiraAdapter: IntegrationAdapter = {
   },
   normalise(payload, receivedAt, headers) {
     const body = asRecord(payload);
-    const delivery = text(headers.get("x-atlassian-webhook-identifier")) ?? text(body.webhookEvent) ?? "unknown";
+    // Without Jira's identifier header, the body itself is the identity: a true
+    // replay dedupes, and two different events can never share an id.
+    const delivery = text(headers.get("x-atlassian-webhook-identifier")) ?? `body:${rawHash(Buffer.from(JSON.stringify(payload)))}`;
     const issue = asRecord(body.issue);
     const fields = asRecord(issue.fields);
     const key = text(issue.key);
@@ -118,7 +121,9 @@ export const figmaAdapter: IntegrationAdapter = {
   provider: "figma",
   verify(rawBody, _headers, secret) {
     const body = asRecord(JSON.parse(rawBody.toString("utf8")));
-    if (text(body.passcode) !== secret) throw new Error("Invalid Figma webhook passcode");
+    const given = Buffer.from(text(body.passcode) ?? "");
+    const want = Buffer.from(secret);
+    if (given.length !== want.length || !timingSafeEqual(given, want)) throw new Error("Invalid Figma webhook passcode");
   },
   normalise(payload, receivedAt) {
     const body = asRecord(payload);

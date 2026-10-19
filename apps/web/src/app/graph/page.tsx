@@ -15,13 +15,7 @@ export default async function GraphExplorerPage() {
   const stats = graphStats(relationshipGraph);
 
   return (
-    <AppShell
-      action={
-        <button className="bg-primary text-on-primary px-4 py-1.5 rounded-lg font-bold text-body-sm hover:opacity-90 active:scale-95 transition-all">
-          Export Graph
-        </button>
-      }
-    >
+    <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
           <h2 className="font-headline-lg text-headline-lg text-on-surface">

@@ -63,13 +63,46 @@ export interface Integration {
   connected: boolean;
 }
 
+/** Each provider's state across the caller's workspaces. */
+export function integrationStatus(
+  connections: { provider: string }[],
+  deliveries: { provider: string; received_at: string }[],
+  now: Date,
+): Integration[] {
+  const names: Record<string, string> = { github: "GitHub", jira: "Jira", figma: "Figma" };
+  return Object.entries(names).map(([provider, name]) => {
+    const connected = connections.some((c) => c.provider === provider);
+    const latest = deliveries.filter((d) => d.provider === provider).map((d) => d.received_at).sort().at(-1);
+    if (!connected) return { name, status: "Not connected", connected };
+    if (!latest) return { name, status: "No deliveries yet", connected };
+    const hours = (now.getTime() - new Date(latest).getTime()) / 3_600_000;
+    const ago = hours < 1 ? `${Math.max(1, Math.round(hours * 60))}m` : hours < 48 ? `${Math.round(hours)}h` : `${Math.round(hours / 24)}d`;
+    return { name, status: `Last event ${ago} ago`, connected };
+  });
+}
+
+/** Who resolved findings this week, most first. */
+export function resolutionLeaders(
+  resolutions: { actor_id: string }[],
+  actors: Map<string, string>,
+): ResolutionLeader[] {
+  const counts = new Map<string, number>();
+  for (const r of resolutions) counts.set(r.actor_id, (counts.get(r.actor_id) ?? 0) + 1);
+  return [...counts]
+    .map(([id, resolved]) => {
+      const name = actors.get(id) ?? "Unknown reviewer";
+      const parts = name.replace(/@.*/, "").split(/[\s._-]+/).filter(Boolean);
+      return { name, initials: ((parts[0]?.[0] ?? "?") + (parts[1]?.[0] ?? "")).toUpperCase(), resolved };
+    })
+    .sort((a, b) => b.resolved - a.resolved || a.name.localeCompare(b.name))
+    .slice(0, 5);
+}
+
 /** Right-rail: per-person resolution leaderboard row. */
 export interface ResolutionLeader {
   name: string;
   initials: string;
   resolved: number;
-  open: number;
-  verified: boolean;
 }
 
 /** Dismissible AI-health banner copy. */

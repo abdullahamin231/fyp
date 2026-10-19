@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
-import { EvalActions } from "@/components/evaluation/eval-actions";
 import { loadEvalMetrics } from "@/lib/data/evaluation";
 import type { EvalMetric } from "@/lib/types";
 
@@ -79,7 +78,6 @@ export default async function EvaluationPage() {
               System Evaluation &amp; Benchmark Metrics
             </h1>
           </div>
-          <EvalActions />
         </div>
       </div>
 

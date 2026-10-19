@@ -21,9 +21,11 @@ const LOADED = [
   "00002_tenancy.sql",
   "00003_schema.sql",
   "00005_immutability.sql",
-  "00010_edge_dedupe.sql",
+  "00023_edge_dedupe.sql",
   "00015_link_pull_request_event.sql",
   "00016_publish_analysis.sql",
+  "00035_events_delivery_per_workspace.sql",
+  "00037_workspace_event_identity.sql",
 ];
 
 export const WORKSPACE_ID = "11111111-1111-4111-8111-111111111111";

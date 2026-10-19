@@ -1,13 +1,13 @@
 /**
  * Live-pipeline settings — the two knobs the ingestion path reads.
  *
- *   Jira criteria field (integration_apps.criteria_field, 00019)
+ *   Jira criteria field (integration_apps.criteria_field, 00025)
  *       Which custom field holds a ticket's acceptance criteria. Set after the
  *       Jira app is registered (the row owns the workspace+provider);
  *       null means "no field configured" and ingestion falls back to the
  *       strict description-section parse.
  *
- *   Analysis targets (analysis_targets, 00019)
+ *   Analysis targets (analysis_targets, 00025)
  *       Which repositories the worker may analyse, and the test command it may
  *       run at head. A delivery for an unregistered repository produces no
  *       code evidence — the abstention path, never an un-audited run.
@@ -16,20 +16,12 @@
  * `requireWorkspaceAdmin` at the action layer (see the settings page), same as
  * the provider app registrations.
  */
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
-
-function admin(): SupabaseClient {
-  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error("SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) is required");
-  return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
+import { admin } from "@/lib/supabase/admin";
 
 /** Jira field key holding acceptance criteria, or null when not configured. */
-export async function loadJiraCriteriaField(workspaceId: string): Promise<string | null> {
-  const { data, error } = await admin()
+export async function loadJiraCriteriaField(workspaceId: string, db: SupabaseClient = admin()): Promise<string | null> {
+  const { data, error } = await db
     .from("integration_apps")
     .select("criteria_field")
     .eq("workspace_id", workspaceId)

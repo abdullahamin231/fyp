@@ -119,3 +119,111 @@ export async function dismissLinkAction(
     return fail(error);
   }
 }
+
+export interface ManualLinkOutcome extends ActionOutcome {
+  edgeId?: string;
+  confirmedBy?: string;
+}
+
+/** Wizard relation names onto the `edge_type` enum (00001). */
+const EDGE_TYPE_FOR = {
+  SATISFIES: "SATISFIES",
+  REFERENCES: "REFERENCES",
+  IMPLEMENTS: "IMPLEMENTS",
+  VERIFIES: "COVERS",
+  BLOCKS: "BLOCKS",
+} as const;
+export type ManualRelation = keyof typeof EDGE_TYPE_FOR;
+
+/**
+ * A reviewer asserts a link the system did not find. It is recorded as
+ * observed and resolved by the reviewer, so it is `confirmed` and decisive,
+ * and audited like any other confirmation. The database refuses a second
+ * current link with the same (from, to, type).
+ */
+export async function createManualLinkAction(
+  fromId: string,
+  toId: string,
+  relation: ManualRelation = "REFERENCES",
+  reason?: string,
+): Promise<ManualLinkOutcome> {
+  try {
+    if (fromId === toId) return { ok: false, error: "A node cannot link to itself." };
+    const client = await getSessionClient();
+    const user = await requireUser(client);
+    const [fromWs, toWs] = await Promise.all([
+      client.rpc("node_workspace", { n: fromId }),
+      client.rpc("node_workspace", { n: toId }),
+    ]);
+    if (fromWs.error) throw new Error(`node_workspace: ${fromWs.error.message}`);
+    if (toWs.error) throw new Error(`node_workspace: ${toWs.error.message}`);
+    const workspaceId = fromWs.data as string | null;
+    if (!workspaceId || workspaceId !== toWs.data) return { ok: false, error: "Both nodes must be in the same workspace." };
+
+    const actorId = await ensureActorNode(client, workspaceId, user);
+    const why = reason?.trim() || "linked by reviewer";
+    const res = await client
+      .from("edges")
+      .insert({
+        from_id: fromId,
+        to_id: toId,
+        type: EDGE_TYPE_FOR[relation],
+        source_class: "observed",
+        confidence: 1,
+        resolver: `user:${user.id}`,
+        resolved_at: new Date().toISOString(),
+        resolution_reason: why,
+        metadata: { manual: true },
+      })
+      .select("id")
+      .single();
+    if (res.error) {
+      if (res.error.code === "23505") return { ok: false, error: "Those two nodes are already linked." };
+      throw new Error(`edges: ${res.error.message}`);
+    }
+    const edgeId = (res.data as { id: string }).id;
+    await recordAudit(client, { actorId, action: "link_confirmed", reason: why, snapshot: { edgeId, manual: true } });
+    revalidatePath("/graph");
+    revalidatePath("/links");
+    const name = (user.user_metadata?.full_name as string | undefined) ?? user.email ?? "you";
+    return { ok: true, edgeId, confirmedBy: name };
+  } catch (error) {
+    return fail(error);
+  }
+}
+
+/**
+ * One current node the caller can see whose external id is `ref`, or ends in
+ * it (`#48` finds `owner/repo#48`). Anything else is reported, never guessed.
+ */
+async function resolveNodeRef(ref: string): Promise<{ id: string } | { error: string }> {
+  const client = await getSessionClient();
+  const exact = await client.from("nodes").select("id, type, external_id").eq("external_id", ref).is("valid_to", null).limit(5);
+  if (exact.error) throw new Error(`nodes: ${exact.error.message}`);
+  let rows = (exact.data ?? []) as { id: string; type: string; external_id: string }[];
+  if (rows.length === 0 && /#\d+$/.test(ref)) {
+    const suffix = await client.from("nodes").select("id, type, external_id").like("external_id", `%${ref}`).is("valid_to", null).limit(5);
+    if (suffix.error) throw new Error(`nodes: ${suffix.error.message}`);
+    rows = (suffix.data ?? []) as typeof rows;
+  }
+  if (rows.length === 1) return { id: rows[0]!.id };
+  if (rows.length === 0) return { error: `No artifact named ${ref} in your workspaces.` };
+  return { error: `${ref} is ambiguous: ${rows.map((r) => `${r.type} ${r.external_id}`).join(", ")}.` };
+}
+
+/** The link wizard: artifacts named by reference instead of picked on the graph. */
+export async function createManualLinkByRefAction(
+  sourceRef: string,
+  targetRef: string,
+  relation: ManualRelation,
+  notes: string,
+): Promise<ManualLinkOutcome> {
+  try {
+    const [source, target] = await Promise.all([resolveNodeRef(sourceRef.trim()), resolveNodeRef(targetRef.trim())]);
+    if ("error" in source) return { ok: false, error: source.error };
+    if ("error" in target) return { ok: false, error: target.error };
+    return await createManualLinkAction(source.id, target.id, relation, notes);
+  } catch (error) {
+    return fail(error);
+  }
+}

@@ -143,16 +143,6 @@ export function ResolutionDock({ finding }: { finding: Finding }) {
           >
             Reopen
           </button>
-          <button
-            type="button"
-            className="px-4 py-2 rounded bg-primary-container text-on-primary-container text-body-sm font-body-sm font-semibold transition-all shadow-md hover:brightness-110 active:scale-95 flex items-center gap-1.5"
-            onClick={() =>
-              fire("Remediation queued", `Ticket & PR draft created for ${finding.id}.`)
-            }
-          >
-            <Icon name="add_task" className="text-[18px]" />
-            <span>Create remediation</span>
-          </button>
         </div>
       </div>
 

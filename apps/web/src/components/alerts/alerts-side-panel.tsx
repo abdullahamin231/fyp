@@ -3,13 +3,6 @@ import { Icon } from "@/components/ui/icon";
 import type { FrequencySeries, Integration, ResolutionLeader } from "@/lib/domain/alerts";
 import type { Finding } from "@/lib/types";
 
-/**
- * DATA HOLE — the resolution leaders and integration status need owner and
- * integration-state data that is not stored yet, so those two lists render
- * their empty copy. The frequency trend is computed from real findings.
- */
-const resolutionLeaders: ResolutionLeader[] = [];
-const integrations: Integration[] = [];
 
 /** Findings raised per day over the last seven days, from their creation times. */
 function frequencyFrom(findings: Finding[]): FrequencySeries {
@@ -33,7 +26,15 @@ function frequencyFrom(findings: Finding[]): FrequencySeries {
 }
 
 /** Right rail of the alerts screen: frequency trend, active resolution, integrations. */
-export function AlertsSidePanel({ findings }: { findings: Finding[] }) {
+export function AlertsSidePanel({
+  findings,
+  resolutionLeaders,
+  integrations,
+}: {
+  findings: Finding[];
+  resolutionLeaders: ResolutionLeader[];
+  integrations: Integration[];
+}) {
   const frequency = frequencyFrom(findings);
   const hasSeries = frequency.points.length > 1;
   const max = hasSeries ? Math.max(...frequency.points) : 1;
@@ -88,11 +89,11 @@ export function AlertsSidePanel({ findings }: { findings: Finding[] }) {
 
       {/* Active resolution */}
       <div className="bg-surface-container border border-outline-variant rounded-xl p-4">
-        <h3 className="font-bold text-body-md text-on-surface mb-4">Active Resolution</h3>
+        <h3 className="font-bold text-body-md text-on-surface mb-4">Resolved This Week</h3>
         <div className="space-y-4">
           {resolutionLeaders.length === 0 ? (
             <p className="text-body-sm text-muted">
-              Nobody is assigned to an open conflict right now.
+              No findings were resolved in the last 7 days.
             </p>
           ) : (
             resolutionLeaders.map((leader) => (
@@ -104,16 +105,10 @@ export function AlertsSidePanel({ findings }: { findings: Finding[] }) {
                   <div className="min-w-0">
                     <p className="text-body-sm font-bold truncate">{leader.name}</p>
                     <p className="text-micro-label text-on-surface-variant">
-                      {leader.resolved} resolved · {leader.open} open
+                      {leader.resolved} resolved
                     </p>
                   </div>
                 </div>
-                <Icon
-                  name={leader.verified ? "verified" : "pending"}
-                  className={
-                    leader.verified ? "text-secondary text-sm" : "text-on-surface-variant text-sm"
-                  }
-                />
               </div>
             ))
           )}

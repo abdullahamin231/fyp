@@ -2,7 +2,8 @@ import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { Badge, ToolPill, type Tone } from "@/components/ui/badge";
-import { SegmentedTabs } from "@/components/ui/segmented-tabs";
+import { ConflictFilterBar } from "@/components/conflicts/conflict-filters";
+import { applyConflictFilters, conflictsCsv, parseConflictFilters, ruleOptions } from "@/lib/domain/conflict-filters";
 import { listFindings } from "@/lib/data/queries";
 import type { Finding, FindingStatus, Severity } from "@/lib/types";
 
@@ -13,12 +14,6 @@ import type { Finding, FindingStatus, Severity } from "@/lib/types";
  * exactly what Postgres says they may see; there is no second, wider query
  * anywhere behind it. Workspaces they don't belong to simply aren't here.
  */
-
-/**
- * DATA HOLE — replace with the teams API's active-squad list.
- * Empty until the endpoint exists, so the team filter shows only its header.
- */
-const teams: string[] = [];
 
 /** Per-status counts derived from the findings list. */
 function countsFor(findings: Finding[]) {
@@ -129,13 +124,6 @@ function ConflictRow({ finding, index }: { finding: Finding; index: number }) {
         index % 2 === 1 ? "bg-surface-container-low/40" : ""
       }`}
     >
-      <td className="py-3.5 px-4">
-        <input
-          aria-label={`Select ${finding.id}`}
-          className="rounded bg-surface-container-highest cursor-pointer focus:ring-0"
-          type="checkbox"
-        />
-      </td>
       <td className="py-3.5 px-3 whitespace-nowrap">
         <Badge tone={severityTone[finding.severity]} pulse={finding.severity === "critical"}>
           {severityLabel[finding.severity]}
@@ -187,31 +175,25 @@ function ConflictRow({ finding, index }: { finding: Finding; index: number }) {
             <span>Investigate</span>
             <Icon name="arrow_forward" className="text-[14px]" />
           </Link>
-          <button
-            aria-label="Row actions"
-            className="p-1 rounded-md text-muted hover:text-on-surface hover:bg-surface-container-highest transition"
-          >
-            <Icon name="more_vert" className="text-[18px]" />
-          </button>
         </div>
       </td>
     </tr>
   );
 }
 
-export default async function ConflictInboxPage() {
-  const findings = await listFindings();
-  const findingsByStatus = countsFor(findings);
+export default async function ConflictInboxPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const filters = parseConflictFilters(await searchParams);
+  const allFindings = await listFindings();
+  const findingsByStatus = countsFor(allFindings);
   const statCards = statCardsFor(findingsByStatus);
+  const findings = applyConflictFilters(allFindings, filters);
 
   return (
-    <AppShell
-      action={
-        <button className="bg-primary text-on-primary px-4 py-1.5 rounded-lg font-bold text-body-sm hover:opacity-90 active:scale-95 transition-all">
-          Bulk Triage
-        </button>
-      }
-    >
+    <AppShell>
       <div className="flex items-end justify-between">
         <div>
           <h2 className="font-headline-lg text-headline-lg text-on-surface">Conflict Inbox</h2>
@@ -250,87 +232,12 @@ export default async function ConflictInboxPage() {
         ))}
       </section>
 
-      {/* Filter toolbar */}
-      <section
-        aria-label="Table filters and toolbar"
-        className="rounded-xl bg-surface-container-low p-3.5 shadow-sm flex flex-col gap-3"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <SegmentedTabs
-            tabs={[
-              { id: "all", label: "All", count: findingsByStatus.all },
-              { id: "open", label: "Open", count: findingsByStatus.open },
-              { id: "acknowledged", label: "Acknowledged", count: findingsByStatus.acknowledged },
-              { id: "resolved", label: "Resolved", count: findingsByStatus.resolved },
-              { id: "suppressed", label: "Suppressed", count: findingsByStatus.suppressed },
-            ]}
-          />
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-mono-code text-mono-code flex items-center gap-2 transition shadow-sm">
-              <Icon name="calendar_today" className="text-muted text-[16px]" />
-              <span>Last 7 Days</span>
-              <Icon name="expand_more" className="text-muted text-[16px]" />
-            </button>
-            <button
-              className="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition"
-              title="Export CSV"
-            >
-              <Icon name="download" className="text-[18px]" />
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 pt-1">
-          <div className="md:col-span-4 relative">
-            <Icon
-              name="filter_alt"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[18px]"
-            />
-            <input
-              className="w-full pl-9 pr-8 py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-mono-code text-mono-code focus:outline-none focus:bg-surface-container transition placeholder:text-muted"
-              placeholder="Filter by commit, PR, ticket, or artifact..."
-              type="text"
-            />
-          </div>
-          <div className="md:col-span-2 relative">
-            <select className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container cursor-pointer transition">
-              <option>Severity: All</option>
-              <option>Critical</option>
-              <option>Warning</option>
-              <option>Info</option>
-            </select>
-            <Icon
-              name="expand_more"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[18px] pointer-events-none"
-            />
-          </div>
-          <div className="md:col-span-3 relative">
-            <select className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container cursor-pointer transition">
-              <option>Team: All Active Squads</option>
-              {teams.map((team) => (
-                <option key={team}>{team}</option>
-              ))}
-            </select>
-            <Icon
-              name="expand_more"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[18px] pointer-events-none"
-            />
-          </div>
-          <div className="md:col-span-3 relative">
-            <select className="w-full appearance-none px-3 py-1.5 pr-8 rounded-lg bg-surface-container-lowest text-on-surface font-body-sm text-body-sm focus:outline-none focus:bg-surface-container cursor-pointer transition">
-              <option>Policy: All Rules</option>
-              <option>P1: Design Drift after PR Merge</option>
-              <option>P2: Ghost Ticket (No Code Attached)</option>
-              <option>P3: Spec Outdated (Tokens Diverged)</option>
-              <option>P4: Requirement / Implementation Divergence</option>
-            </select>
-            <Icon
-              name="expand_more"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-[18px] pointer-events-none"
-            />
-          </div>
-        </div>
-      </section>
+      <ConflictFilterBar
+        filters={filters}
+        counts={findingsByStatus}
+        rules={ruleOptions(allFindings)}
+        csv={conflictsCsv(findings)}
+      />
 
       {/* Data table */}
       <section
@@ -341,38 +248,11 @@ export default async function ConflictInboxPage() {
           <table className="w-full text-left border-collapse select-text">
             <thead>
               <tr className="bg-surface-container-lowest/80 text-on-surface-variant font-label-caps text-label-caps uppercase tracking-wider select-none">
-                <th className="py-3 px-4 w-10">
-                  <input
-                    aria-label="Select all conflicts"
-                    className="rounded bg-surface-container-highest cursor-pointer focus:ring-0"
-                    type="checkbox"
-                  />
-                </th>
-                <th className="py-3.5 px-3 w-28 cursor-pointer hover:text-on-surface transition">
-                  <div className="flex items-center gap-1">
-                    <span>Severity</span>
-                    <Icon name="arrow_downward" className="text-[14px]" />
-                  </div>
-                </th>
-                <th className="py-3.5 px-4 min-w-[240px] cursor-pointer hover:text-on-surface transition">
-                  <div className="flex items-center gap-1">
-                    <span>Conflict / Policy</span>
-                    <Icon name="unfold_more" className="text-[14px]" />
-                  </div>
-                </th>
+                <th className="py-3.5 px-3 w-28">Severity</th>
+                <th className="py-3.5 px-4 min-w-[240px]">Conflict / Policy</th>
                 <th className="py-3.5 px-4 min-w-[260px]">Affected Artifacts (Cross-Tool)</th>
-                <th className="py-3.5 px-3 w-36 cursor-pointer hover:text-on-surface transition">
-                  <div className="flex items-center gap-1">
-                    <span>Status</span>
-                    <Icon name="unfold_more" className="text-[14px]" />
-                  </div>
-                </th>
-                <th className="py-3.5 px-3 w-24 cursor-pointer hover:text-on-surface transition">
-                  <div className="flex items-center gap-1">
-                    <span>Age</span>
-                    <Icon name="unfold_more" className="text-[14px]" />
-                  </div>
-                </th>
+                <th className="py-3.5 px-3 w-36">Status</th>
+                <th className="py-3.5 px-3 w-24">Age</th>
                 <th className="py-3.5 px-4 min-w-[180px]">Assigned Recipients</th>
                 <th className="py-3.5 px-4 text-right w-36">Actions</th>
               </tr>
@@ -380,10 +260,10 @@ export default async function ConflictInboxPage() {
             <tbody className="divide-y divide-outline-variant/40 text-on-surface font-body-md text-body-md">
               {findings.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 px-4 text-center">
+                  <td colSpan={7} className="py-12 px-4 text-center">
                     <Icon name="inbox" className="text-[28px] text-muted mb-2" />
                     <p className="font-body-md text-body-md font-semibold text-on-surface">
-                      No findings yet
+                      {allFindings.length === 0 ? "No findings yet" : "No findings match these filters"}
                     </p>
                   </td>
                 </tr>
@@ -396,20 +276,8 @@ export default async function ConflictInboxPage() {
         </div>
         <div className="flex items-center justify-between px-4 py-3 border-t border-outline-variant/60 font-mono-code text-micro-label text-on-surface-variant">
           <span>
-            showing {findings.length} of {findingsByStatus.all} findings · resolved against the
-            immutable evidence packet
+            showing {findings.length} of {findingsByStatus.all} findings
           </span>
-          <div className="flex items-center gap-2">
-            <button className="px-2 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition">
-              prev
-            </button>
-            <button className="px-2 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface transition">
-              1
-            </button>
-            <button className="px-2 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition">
-              next
-            </button>
-          </div>
         </div>
       </section>
     </AppShell>

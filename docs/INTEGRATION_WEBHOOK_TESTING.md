@@ -68,23 +68,16 @@ SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
 INTEGRATION_ENCRYPTION_KEY=generate-a-long-random-secret
 OAUTH_STATE_SECRET=generate-another-long-random-secret
 
-# GitHub OAuth application
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-GITHUB_OAUTH_SCOPE=read:org read:user
-GITHUB_WEBHOOK_SECRET=
+# Provider OAuth apps are not configured here. Register each provider's
+# client ID and secret per workspace at /settings/integrations?workspace=<slug>;
+# they and the generated webhook secrets are stored encrypted in the database.
+# Optional scope overrides:
+# GITHUB_OAUTH_SCOPE=repo read:org read:user
+# JIRA_OAUTH_SCOPE=read:jira-work read:jira-user offline_access
+# FIGMA_OAUTH_SCOPE=file_content:read file_metadata:read
 
-# Jira Cloud OAuth 2.0 (3LO)
-JIRA_CLIENT_ID=
-JIRA_CLIENT_SECRET=
-JIRA_OAUTH_SCOPE=read:jira-work read:jira-user offline_access
-JIRA_WEBHOOK_SECRET=
-
-# Figma OAuth application
-FIGMA_CLIENT_ID=
-FIGMA_CLIENT_SECRET=
-FIGMA_OAUTH_SCOPE=file_content:read file_metadata:read
-FIGMA_WEBHOOK_SECRET=
+# Scheduled Figma poll route (/api/cron/figma-poll), if you call it
+CRON_SECRET=generate-a-third-random-secret
 ```
 
 Generate application secrets with PowerShell:
@@ -144,18 +137,18 @@ Authorization callback URL:
 https://YOUR-TUNNEL.example.com/api/integrations/github/callback
 ```
 
-Put the generated client ID and client secret into
-`GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`.
+Register the generated client ID and client secret for the workspace at
+`/settings/integrations?workspace=<slug>`.
 
-The current authorization request asks for:
+The authorization request asks for:
 
 ```text
-read:org read:user
+repo read:org read:user
 ```
 
-For private repository content, the GitHub OAuth application may require an
-additional read-only repository scope approved by the organization. Do not add
-write scopes.
+`repo` is needed because OAuth apps have no read-only scope for private
+repository contents; UNIFY only reads with it. Override with
+`GITHUB_OAUTH_SCOPE` if your organization requires otherwise.
 
 ### Jira Cloud
 
@@ -243,7 +236,8 @@ https://YOUR-TUNNEL.example.com/api/webhooks/figma/WORKSPACE_UUID
 ```
 
 Configure the same secret in the provider and in the corresponding
-`*_WEBHOOK_SECRET` environment variable.
+webhook secret shown when the provider app is registered at
+`/settings/integrations?workspace=<slug>`.
 
 The OAuth callback stores the configured webhook secret, encrypted, in
 `integration_connections`. If the connection already existed before changing
@@ -262,7 +256,7 @@ Content type:
 application/json
 
 Secret:
-the value of GITHUB_WEBHOOK_SECRET
+the GitHub webhook secret from /settings/integrations
 
 Events:
 Pull requests
@@ -291,7 +285,7 @@ jira:issue_updated
 jira:issue_deleted
 ```
 
-Use the value of `JIRA_WEBHOOK_SECRET` for the HMAC secret. Jira sends the
+Use the Jira webhook secret from `/settings/integrations` for the HMAC secret. Jira sends the
 signature in `X-Hub-Signature`.
 
 For a transition test, make sure the webhook payload includes a changelog.
@@ -311,7 +305,7 @@ Create a Figma webhook for the test file or team using:
 https://YOUR-TUNNEL.example.com/api/webhooks/figma/WORKSPACE_UUID
 ```
 
-Use the value of `FIGMA_WEBHOOK_SECRET` as the Figma webhook passcode.
+Use the Figma webhook secret from `/settings/integrations` as the Figma webhook passcode.
 
 Test these event types:
 
@@ -398,7 +392,7 @@ $json = @'
 '@
 $bytes = [System.Text.Encoding]::UTF8.GetBytes($json)
 $hmac = [System.Security.Cryptography.HMACSHA256]::new(
-  [System.Text.Encoding]::UTF8.GetBytes($env:GITHUB_WEBHOOK_SECRET)
+  [System.Text.Encoding]::UTF8.GetBytes($env:UNIFY_GITHUB_WEBHOOK_SECRET)
 )
 $digest = [Convert]::ToHexString($hmac.ComputeHash($bytes)).ToLowerInvariant()
 Invoke-WebRequest `
@@ -461,7 +455,7 @@ Figma uses the passcode in the JSON payload rather than an HMAC header:
 ```json
 {
   "id": "integration-test-figma-001",
-  "passcode": "the-value-of-FIGMA_WEBHOOK_SECRET",
+  "passcode": "the-figma-webhook-secret-from-settings",
   "event_type": "FILE_VERSION_UPDATE",
   "file_key": "test-file-key",
   "version_id": "test-version-001",

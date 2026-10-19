@@ -12,7 +12,7 @@
  *   node scripts/jira-replay.mjs <workspace-slug-or-uuid> [options]
  *
  * Options:
- *   --issue UNI-7                 issue key (default: demo ticket key)
+ *   --issue UNI-7                 issue key (default: UNI-7)
  *   --summary "..."               issue summary
  *   --criteria "c1;;c2;;c3"       acceptance criteria, ;; separated, rendered
  *                                 into the description's Acceptance Criteria
@@ -22,7 +22,7 @@
  *   --to-status "In Progress"     changelog status target (issue_updated only)
  *   --file payload.json           replay this captured payload instead of
  *                                 building one (venue-network fallback)
- *   --base https://unify-web-weld.vercel.app
+ *   --base https://your-unify-host  (or set UNIFY_BASE_URL)
  *   --dry-run                     print the payload and the URL, send nothing
  *
  *   terminal:  node scripts/jira-replay.mjs mishals-workspace --issue UNI-7 \
@@ -84,7 +84,11 @@ const workspaceArg = (() => {
   }
   return undefined;
 })();
-const base = (flag("base") ?? "https://unify-web-weld.vercel.app").replace(/\/$/, "");
+const base = (flag("base") ?? process.env.UNIFY_BASE_URL ?? "").replace(/\/$/, "");
+if (!base && !args.includes("--dry-run")) {
+  console.error("Pass --base https://your-unify-host (or set UNIFY_BASE_URL).");
+  process.exit(1);
+}
 const dryRun = args.includes("--dry-run");
 
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {

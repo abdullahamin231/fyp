@@ -13,8 +13,7 @@ import {
   finishJob,
   insertContextPacket,
   insertPasses,
-  insertVerdict,
-  upsertVerdictFinding,
+  completeVerificationJob,
 } from "./verifier/persist.js";
 
 /**
@@ -36,6 +35,8 @@ export interface JobRow {
   head_commit: string;
   state: string;
   attempts: number;
+  criterion_version: string | null;
+  criterion_text: string;
 }
 
 export interface RunnerDeps {
@@ -49,7 +50,7 @@ export interface RunnerDeps {
 export interface JobOutcome {
   jobId: string;
   criterionNodeId: string;
-  state: "succeeded" | "failed";
+  state: "succeeded" | "failed" | "cancelled";
   packetId: string | null;
   verdictId: string | null;
   status: VerdictStatus | null;
@@ -79,6 +80,11 @@ export async function runJob(deps: RunnerDeps, job: JobRow): Promise<JobOutcome>
 
   try {
     const criterion = await loadCriterion(client, job.criterion_node_id);
+    if (criterion.version !== job.criterion_version || criterion.text !== job.criterion_text) {
+      await finishJob(client, job.id, "cancelled", null, "criterion changed before verification");
+      return { jobId: job.id, criterionNodeId: criterion.id, state: "cancelled", packetId: null,
+        verdictId: null, status: null, gateOutcome: null, stopReason: null, findingId: null, passes: 0 };
+    }
 
     // Evidence first: on the live path the webhook path created only tickets
     // and pull requests, so the worker analyses the repository itself before
@@ -140,15 +146,14 @@ export async function runJob(deps: RunnerDeps, job: JobRow): Promise<JobOutcome>
       stopReason: loop.stopReason,
     });
 
-    verdictId = result.verdict.id;
-    await insertVerdict(client, result.verdict, job.id);
-    findingId = await upsertVerdictFinding(client, {
-      verdict: result.verdict,
-      criterionNodeId: criterion.id,
-      criterionExternalId: criterion.externalId,
-      supersedeLive: true,
-    });
-    await finishJob(client, job.id, "succeeded", loop.stopReason);
+    const completion = await completeVerificationJob(client, job.id, result.verdict, criterion.externalId);
+    if (completion.state === "cancelled") {
+      log("verification cancelled", { jobId: job.id, reason: "criterion changed or retired" });
+      return { jobId: job.id, criterionNodeId: criterion.id, state: "cancelled", packetId,
+        verdictId: null, status: null, gateOutcome: null, stopReason, findingId: null, passes };
+    }
+    verdictId = completion.verdictId;
+    findingId = completion.findingId;
 
     log("verification finished", {
       jobId: job.id,

@@ -3,6 +3,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { AlertsFeed } from "@/components/alerts/alerts-feed";
 import { AlertsSidePanel } from "@/components/alerts/alerts-side-panel";
 import { listFindings } from "@/lib/data/queries";
+import { loadAlertsRail } from "@/lib/data/alerts";
 
 export const metadata: Metadata = {
   title: "Conflict Alerts",
@@ -11,13 +12,13 @@ export const metadata: Metadata = {
 };
 
 export default async function ConflictAlertsPage() {
-  const findings = await listFindings();
+  const [findings, rail] = await Promise.all([listFindings(), loadAlertsRail()]);
 
   return (
     <AppShell>
       <div className="flex flex-col xl:flex-row gap-gutter items-start">
         <AlertsFeed findings={findings} />
-        <AlertsSidePanel findings={findings} />
+        <AlertsSidePanel findings={findings} resolutionLeaders={rail.leaders} integrations={rail.integrations} />
       </div>
     </AppShell>
   );

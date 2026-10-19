@@ -56,16 +56,17 @@ function clockFrom(events: ActivityEvent[]): Date {
   return newest ?? new Date();
 }
 
-/**
- * DATA HOLE — replace with the workspace roster API.
- * Empty until the endpoint exists; the roster renders its empty state.
- */
-interface TeamMember {
-  name: string;
-  role: string;
-  online: boolean;
+function exportEvents(events: ActivityEvent[]) {
+  const cell = (value: string) => (/[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value);
+  const rows = events.map((e) => [e.timestamp, e.kind, e.tool, e.actor, e.title, e.detail, e.target ?? ""].map(cell).join(","));
+  const csv = ["timestamp,kind,tool,actor,title,detail,target", ...rows].join("\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `unify-activity-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
 }
-const TEAM: TeamMember[] = [];
 
 function initialsOf(name: string): string {
   return name
@@ -394,47 +395,17 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
             </div>
           </div>
 
-          <div>
-            <h4 className="font-label-caps text-label-caps text-on-surface uppercase mb-stack-comfortable">
-              Team Members
-            </h4>
-            <div className="space-y-stack-comfortable">
-              {TEAM.length === 0 ? (
-                <p className="font-body-sm text-body-sm text-muted">
-                  No teammates yet
-                </p>
-              ) : (
-                TEAM.map((member) => (
-                  <div key={member.name} className="flex items-center justify-between group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full border border-outline-variant bg-surface-container-highest grid place-items-center text-micro-label font-bold text-on-surface">
-                        {initialsOf(member.name)}
-                      </div>
-                      <span className="flex flex-col">
-                        <span className="font-body-sm text-body-sm text-on-surface-variant group-hover:text-on-surface">
-                          {member.name}
-                        </span>
-                        <span className="font-mono-code text-micro-label text-muted">
-                          {member.role}
-                        </span>
-                      </span>
-                    </div>
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        member.online ? "bg-secondary" : "bg-outline-variant"
-                      }`}
-                    />
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
         </div>
 
         <div className="mt-auto pt-6 border-t border-outline-variant">
-          <button className="w-full py-2.5 bg-primary text-on-primary font-bold rounded-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => exportEvents(filtered)}
+            disabled={filtered.length === 0}
+            className="w-full py-2.5 bg-primary text-on-primary font-bold rounded-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+          >
             <Icon name="download" className="text-[18px]" />
-            <span>Export Report</span>
+            <span>Export {filtered.length} Events</span>
           </button>
         </div>
       </aside>

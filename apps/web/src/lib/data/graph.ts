@@ -8,6 +8,7 @@ import {
   type EdgeRelation,
 } from "@/lib/domain/graph";
 import type { GraphNodeKind, ToolKind } from "@/lib/types";
+import { selectInChunks } from "./chunk";
 import type { EdgeRow, NodeRow } from "./rows";
 
 /**
@@ -38,7 +39,7 @@ const KIND_BY_TYPE: Partial<Record<string, GraphNodeKind>> = {
 };
 
 const LABEL_BY_TYPE: Record<string, string> = {
-  Requirement: "Requirement",
+  Requirement: "NFR",
   Ticket: "Jira Ticket",
   Criterion: "Criterion",
   DesignArtifact: "Figma Frame",
@@ -106,30 +107,25 @@ export async function loadExplorerGraph(): Promise<ExplorerGraph> {
     .from("nodes")
     .select(NODE_COLUMNS)
     .in("workspace_id", workspaceIds)
+    .is("valid_to", null)
     .limit(1000);
   if (nodeRes.error) throw new Error(`nodes: ${nodeRes.error.message}`);
   const rows = ((nodeRes.data ?? []) as NodeRow[]).filter((row) => KIND_BY_TYPE[row.type]);
   const nodeIds = rows.map((row) => row.id);
   if (nodeIds.length === 0) return { nodes: [], edges: [] };
 
-  const edgeRes = await client
-    .from("edges")
-    .select(EDGE_COLUMNS)
-    .eq("link_state", "active")
-    .in("from_id", nodeIds)
-    .in("to_id", nodeIds)
-    .limit(2000);
-  if (edgeRes.error) throw new Error(`edges: ${edgeRes.error.message}`);
-  const edgeRows = (edgeRes.data ?? []) as EdgeRow[];
-
-  const findingRes = await client
-    .from("findings")
-    .select("id, subject_node_id, state, annotation")
-    .in("subject_node_id", nodeIds)
-    .limit(1000);
-  if (findingRes.error) throw new Error(`findings: ${findingRes.error.message}`);
+  // Filtering on `from_id` alone keeps one request per chunk; the `to_id` side
+  // is checked against the placed nodes below.
+  const [edgeRows, findingRows] = await Promise.all([
+    selectInChunks<EdgeRow>("edges", nodeIds, (chunk) =>
+      client.from("edges").select(EDGE_COLUMNS).eq("link_state", "active").in("from_id", chunk),
+    ),
+    selectInChunks<FindingRef>("findings", nodeIds, (chunk) =>
+      client.from("findings").select("id, subject_node_id, state, annotation").in("subject_node_id", chunk),
+    ),
+  ]);
   const openFindings = new Map<string, FindingRef>();
-  for (const finding of (findingRes.data ?? []) as FindingRef[]) {
+  for (const finding of findingRows) {
     if (OPEN_FINDING_STATES.has(finding.state) && !openFindings.has(finding.subject_node_id)) {
       openFindings.set(finding.subject_node_id, finding);
     }

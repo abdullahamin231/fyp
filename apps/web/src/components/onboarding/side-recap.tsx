@@ -1,88 +1,40 @@
 "use client";
 
+import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
-import type { AuthState, ConnectKey } from "@/components/onboarding/step-panels";
+import type { AuthState, ConnectKey, ProviderKey } from "@/components/onboarding/step-panels";
+import type { ProviderStatus } from "@/lib/data/integrations";
 
-/**
- * DATA HOLE — replace with the connector API's per-source details (connected
- * handle, granted scopes, selected repo/board counts, last sync + webhook
- * state). The names/icons are static product copy; every account-specific
- * string is an em dash until the endpoint supplies the real one.
- */
-const sources: {
-  key: Exclude<ConnectKey, "workspace">;
-  name: string;
-  handle: string;
-  icon: string;
-  footLeft: string;
-  footRight: string;
-  footRightTone: string;
-}[] = [
-  {
-    key: "figma",
-    name: "Figma Enterprise",
-    handle: "—",
-    icon: "palette",
-    footLeft: "Scopes: —",
-    footRight: "Sync: —",
-    footRightTone: "text-muted",
-  },
-  {
-    key: "github",
-    name: "GitHub Organization",
-    handle: "—",
-    icon: "code",
-    footLeft: "Repos: —",
-    footRight: "Webhook —",
-    footRightTone: "text-secondary",
-  },
-  {
-    key: "jira",
-    name: "Atlassian Jira",
-    handle: "—",
-    icon: "view_kanban",
-    footLeft: "Boards: —",
-    footRight: "Webhook —",
-    footRightTone: "text-secondary",
-  },
+const sources: { key: ProviderKey; name: string; icon: string }[] = [
+  { key: "figma", name: "Figma", icon: "palette" },
+  { key: "github", name: "GitHub Organization", icon: "code" },
+  { key: "jira", name: "Atlassian Jira", icon: "view_kanban" },
 ];
 
 const nextStepCopy: Record<number, { label: string; title: string }> = {
-  1: {
-    label: "Up Next: Step 1",
-    title: "Name Your Workspace",
-  },
-  2: {
-    label: "Up Next: Step 2",
-    title: "Connect Figma",
-  },
-  3: {
-    label: "Up Next: Step 3",
-    title: "Connect GitHub",
-  },
-  4: {
-    label: "Up Next: Step 4",
-    title: "Connect Jira Cloud",
-  },
-  5: {
-    label: "Up Next: Step 5",
-    title: "First Policy Run",
-  },
-  6: {
-    label: "Up Next: Finish",
-    title: "Workspace Ready",
-  },
+  1: { label: "Up Next: Step 1", title: "Name Your Workspace" },
+  2: { label: "Up Next: Step 2", title: "Connect Figma" },
+  3: { label: "Up Next: Step 3", title: "Connect GitHub" },
+  4: { label: "Up Next: Step 4", title: "Connect Jira Cloud" },
+  5: { label: "Up Next: Step 5", title: "Review Active Policies" },
+  6: { label: "Up Next: Finish", title: "Workspace Ready" },
 };
+
+function lastDelivery(iso: string | null): string {
+  return iso ? `Last event ${new Date(iso).toLocaleString()}` : "No events yet";
+}
 
 /** Right-hand recap column: workspace profile, connected sources, next step. */
 export function SideRecap({
   auth,
   workspace,
+  providers,
   onEdit,
   step,
 }: {
   auth: Record<ConnectKey, AuthState>;
-  workspace: { name: string; slug: string; imported: boolean };
+  workspace: { name: string; slug: string; created: boolean };
+  providers: ProviderStatus[];
   onEdit: () => void;
   step: number;
 }) {
@@ -105,7 +57,7 @@ export function SideRecap({
             onClick={onEdit}
             className="font-mono-code text-micro-label text-primary hover:underline"
           >
-            Edit
+            {workspace.created ? "View" : "Edit"}
           </button>
         </div>
         <div className="flex items-center gap-3">
@@ -121,29 +73,6 @@ export function SideRecap({
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2 mt-4 pt-4 bg-surface-container-lowest/30 rounded p-2.5">
-          <div>
-            <span className="font-label-caps text-eyebrow uppercase text-muted">Primary Region</span>
-            <div className="font-mono-code text-body-sm text-on-surface font-medium">
-              {/* DATA HOLE — replace with the workspace API's chosen region. */}
-              —
-            </div>
-          </div>
-          <div>
-            <span className="font-label-caps text-eyebrow uppercase text-muted">Audit Logging</span>
-            <div className="font-mono-code text-body-sm text-secondary font-medium">
-              {/* DATA HOLE — replace with the workspace API's audit-log retention setting. */}
-              —
-            </div>
-          </div>
-        </div>
-        {workspace.imported ? (
-          <div className="mt-3 flex items-center gap-2 font-mono-code text-micro-label text-secondary">
-            <Icon name="download_done" className="text-[14px]" />
-            {/* DATA HOLE — replace with the import API's staged repo/design-space/board counts. */}
-            Import staged
-          </div>
-        ) : null}
       </div>
 
       {/* Connected upstream sources */}
@@ -158,6 +87,7 @@ export function SideRecap({
         </div>
         {sources.map((source) => {
           const isConnected = auth[source.key] === "connected";
+          const status = providers.find((p) => p.provider === source.key);
           return (
             <div
               key={source.key}
@@ -174,10 +104,13 @@ export function SideRecap({
                   <div>
                     <div className="font-body-sm font-semibold text-on-surface">{source.name}</div>
                     <div className="font-mono-code text-micro-label text-muted">
-                      {isConnected ? "Connected to " : "Not connected · "}
-                      {source.handle === "—" ? null : (
-                        <span className="text-on-surface">{source.handle}</span>
-                      )}
+                      {isConnected ? "Connected" : "Not connected"}
+                      {isConnected && status?.accountName ? (
+                        <>
+                          {" to "}
+                          <span className="text-on-surface">{status.accountName}</span>
+                        </>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -190,9 +123,9 @@ export function SideRecap({
                 )}
               </div>
               <div className="flex items-center justify-between pt-2 text-micro-label font-mono-code text-on-surface-variant bg-surface-container-lowest/40 px-2.5 py-1.5 rounded">
-                <span>{isConnected ? source.footLeft : "Awaiting OAuth consent"}</span>
-                <span className={isConnected ? source.footRightTone : "text-muted"}>
-                  {isConnected ? source.footRight : "—"}
+                <span>{isConnected ? `Scopes: ${status?.scopes.length ?? 0}` : "Awaiting OAuth consent"}</span>
+                <span className={isConnected ? "text-secondary" : "text-muted"}>
+                  {isConnected ? lastDelivery(status?.lastDeliveryAt ?? null) : "—"}
                 </span>
               </div>
             </div>
@@ -216,15 +149,16 @@ export function SideRecap({
         <div className="flex flex-col gap-2">
           <div className="font-body-sm text-on-surface font-semibold">{next.title}</div>
         </div>
-        <div className="flex items-center gap-2 mt-3 flex-wrap">
-          {/* DATA HOLE — replace with the workspace API's suggested reviewers. */}
-          <span className="px-2 py-1 rounded bg-surface-container font-mono-code text-micro-label text-muted">
-            No reviewers suggested yet
-          </span>
-          <span className="px-2 py-1 rounded bg-surface-container font-mono-code text-micro-label text-muted">
-            + invite by email...
-          </span>
-        </div>
+        {workspace.created ? (
+          <div className="flex items-center gap-2 mt-3 flex-wrap">
+            <Link
+              href={`/settings/workspace?workspace=${encodeURIComponent(workspace.slug)}`}
+              className="px-2 py-1 rounded bg-surface-container font-mono-code text-micro-label text-primary hover:underline"
+            >
+              + invite by email...
+            </Link>
+          </div>
+        ) : null}
       </div>
     </div>
   );

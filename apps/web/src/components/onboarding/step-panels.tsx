@@ -1,94 +1,71 @@
 "use client";
 
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
-import { useToast } from "@/components/ui/toast";
-import type { Policy, PolicyId } from "@/lib/types";
-
-/**
- * DATA HOLE — replace with the policies API.
- * Empty until the endpoint exists; the policy checklist renders nothing and
- * the staged counter reads zero.
- */
-const policies: Policy[] = [];
+import type { ProviderStatus } from "@/lib/data/integrations";
+import type { RuleView } from "@/lib/data/rules";
 
 export type ConnectKey = "workspace" | "figma" | "github" | "jira";
+export type ProviderKey = Exclude<ConnectKey, "workspace">;
 export type AuthState = "idle" | "authorizing" | "connected";
 
-type Scope = { name: string; tag: string };
-
-const scopes: Record<Exclude<ConnectKey, "workspace">, Scope[]> = {
-  figma: [
-    { name: "files:read", tag: "Non-destructive" },
-    { name: "dev_mode:read", tag: "Read-only" },
-    { name: "webhooks:figma", tag: "Event-driven" },
-  ],
-  github: [
-    { name: "repo:read", tag: "Read-only" },
-    { name: "read:org", tag: "Privacy safe" },
-    { name: "workflow", tag: "Event-driven" },
-  ],
-  jira: [
-    { name: "read:jira-work", tag: "Non-destructive" },
-    { name: "read:jira-user", tag: "Privacy safe" },
-    { name: "manage:jira-webhook", tag: "Event-driven" },
-  ],
-};
-
-const panelMeta: Record<
-  Exclude<ConnectKey, "workspace">,
-  { title: string; icon: string; authLabel: string }
-> = {
+const panelMeta: Record<ProviderKey, { title: string; icon: string; authLabel: string; vendor: string }> = {
   figma: {
     title: "Connect Figma",
     icon: "palette",
     authLabel: "Authorize with Figma",
+    vendor: "Figma",
   },
   github: {
     title: "Connect GitHub Organization",
     icon: "code",
     authLabel: "Authorize with GitHub",
+    vendor: "GitHub",
   },
   jira: {
     title: "Connect Atlassian Jira",
     icon: "task_alt",
     authLabel: "Authorize with Atlassian",
+    vendor: "Atlassian",
   },
 };
 
-function ScopeMatrix({ tool }: { tool: Exclude<ConnectKey, "workspace"> }) {
-  const icons = ["visibility", "badge", "webhook"];
+/** The scopes the provider actually granted, as stored on the connection. */
+function ScopeMatrix({ scopes }: { scopes: string[] }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <span className="font-label-caps text-label-caps uppercase text-muted">
-          Requested Granular Scopes
+          Granted Scopes
         </span>
         <span className="font-mono-code text-micro-label text-secondary flex items-center gap-1">
           <Icon name="lock_reset" className="text-[14px]" />
-          Read-Only Enforced
+          Read-Only Requested
         </span>
       </div>
-      <div className="grid grid-cols-1 gap-3">
-        {scopes[tool].map((scope, index) => (
-          <div
-            key={scope.name}
-            className="bg-surface-container-low p-3.5 rounded flex items-center justify-between gap-3"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <Icon name={icons[index]} className="text-secondary text-[18px] shrink-0" />
-              <div className="min-w-0">
-                <div className="font-mono-code text-[13px] text-on-surface font-medium">
-                  {scope.name}
-                </div>
+      {scopes.length === 0 ? (
+        <p className="bg-surface-container-low p-3.5 rounded font-mono-code text-micro-label text-muted">
+          Scopes appear here once the provider grants them.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-3">
+          {scopes.map((scope) => (
+            <div
+              key={scope}
+              className="bg-surface-container-low p-3.5 rounded flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <Icon name="visibility" className="text-secondary text-[18px] shrink-0" />
+                <div className="font-mono-code text-[13px] text-on-surface font-medium">{scope}</div>
               </div>
+              <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-micro-label text-on-surface-variant shrink-0">
+                Granted
+              </span>
             </div>
-            <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-micro-label text-on-surface-variant shrink-0">
-              {scope.tag}
-            </span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -97,16 +74,18 @@ function AuthBox({
   state,
   callback,
   buttonLabel,
-  authorizingLabel = "Exchanging OAuth code with the identity service...",
+  authorizingLabel = "Redirecting to the provider's consent screen...",
   connectedLabel,
   onAuthorize,
+  disabled = false,
 }: {
   state: AuthState;
-  callback: string;
+  callback?: string;
   buttonLabel: string;
   authorizingLabel?: string;
   connectedLabel: string;
   onAuthorize: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="bg-surface-container-lowest p-4 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -141,19 +120,21 @@ function AuthBox({
                 ? authorizingLabel
                 : connectedLabel}
           </div>
-          <div className="font-mono-code text-micro-label text-muted truncate">Callback: {callback}</div>
+          {callback ? (
+            <div className="font-mono-code text-micro-label text-muted truncate">Callback: {callback}</div>
+          ) : null}
         </div>
       </div>
       <button
         type="button"
-        disabled={state !== "idle"}
+        disabled={state !== "idle" || disabled}
         onClick={onAuthorize}
         className={
           state === "connected"
             ? "px-4 py-2 rounded bg-secondary/20 text-secondary font-label-caps uppercase tracking-wider font-bold flex items-center gap-1.5"
             : state === "authorizing"
               ? "px-4 py-2 rounded bg-surface-container-highest text-muted font-label-caps uppercase tracking-wider font-bold cursor-not-allowed flex items-center gap-2"
-              : "px-4 py-2 rounded bg-secondary text-on-secondary hover:bg-secondary-container transition-colors flex items-center gap-2 font-label-caps uppercase tracking-wider font-bold shadow-sm"
+              : "px-4 py-2 rounded bg-secondary text-on-secondary hover:bg-secondary-container transition-colors flex items-center gap-2 font-label-caps uppercase tracking-wider font-bold shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
         }
       >
         {state === "connected" ? (
@@ -177,24 +158,8 @@ function AuthBox({
   );
 }
 
-function PanelFrame({
-  children,
-  footer,
-}: {
-  children: ReactNode;
-  footer?: ReactNode;
-}) {
-  return (
-    <div className="bg-surface-container rounded-xl shadow-md flex flex-col gap-4">
-      {children}
-      <div className="flex items-center justify-between text-muted text-body-sm px-4 pb-5 pt-2">
-        <button type="button" className="font-mono-code text-[12px] text-primary hover:underline">
-          View OAuth Manifest
-        </button>
-      </div>
-      {footer}
-    </div>
-  );
+function PanelFrame({ children }: { children: ReactNode }) {
+  return <div className="bg-surface-container rounded-xl shadow-md flex flex-col gap-4 pb-5">{children}</div>;
 }
 
 function StepHeader({
@@ -233,30 +198,24 @@ function StepHeader({
 function WorkspacePanel({
   name,
   slug,
-  imported,
+  created,
   onName,
   onSlug,
-  onImported,
   auth,
   onValidate,
 }: {
   name: string;
   slug: string;
-  imported: boolean;
+  created: boolean;
   onName: (value: string) => void;
   onSlug: (value: string) => void;
-  onImported: (value: boolean) => void;
   auth: AuthState;
   onValidate: () => void;
 }) {
   return (
-    <PanelFrame footer={null}>
-      <StepHeader
-        icon="corporate_fare"
-        title="Name Your Workspace"
-        chip="Draft"
-      />
-      <div className="flex flex-col gap-4 px-4 pb-2">
+    <PanelFrame>
+      <StepHeader icon="corporate_fare" title="Name Your Workspace" chip={created ? "Created" : "Draft"} />
+      <div className="flex flex-col gap-4 px-4">
         <div className="flex flex-col gap-2">
           <label
             htmlFor="workspace-name"
@@ -269,6 +228,7 @@ function WorkspacePanel({
             <input
               id="workspace-name"
               value={name}
+              readOnly={created}
               onChange={(event) => onName(event.target.value)}
               placeholder="Workspace display name"
               className="bg-transparent text-on-surface font-mono-code text-mono-code focus:outline-none flex-1 font-semibold"
@@ -290,49 +250,24 @@ function WorkspacePanel({
             <input
               id="workspace-slug"
               value={slug}
+              readOnly={created}
               onChange={(event) => onSlug(event.target.value)}
               placeholder="workspace-slug"
               className="bg-transparent text-on-surface font-mono-code text-mono-code focus:outline-none flex-1 font-semibold"
             />
           </div>
-        </div>
-
-        <div className="flex items-start justify-between gap-3 bg-surface-container-low p-4 rounded">
-          <div className="flex flex-col">
-            <span className="font-body-md text-body-md font-semibold text-on-surface">
-              Import existing workspace
-            </span>
-            {imported ? (
-              <span className="font-mono-code text-micro-label text-secondary mt-1.5">
-                {/* DATA HOLE — replace with the import API's staged export filename and counts. */}
-                Source: — · staged for import
-              </span>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={imported}
-            aria-label="Import existing workspace"
-            onClick={() => onImported(!imported)}
-            className={`w-11 h-6 rounded-full relative p-0.5 transition-colors focus:outline-none flex-shrink-0 cursor-pointer ${
-              imported ? "bg-secondary" : "bg-surface-container-highest"
-            }`}
-          >
-            <span
-              className={`w-5 h-5 rounded-full shadow block transition-transform ${
-                imported ? "translate-x-5 bg-on-secondary" : "translate-x-0 bg-outline"
-              }`}
-            />
-          </button>
+          <span className="font-mono-code text-micro-label text-muted">
+            Lowercase letters, numbers and hyphens.
+          </span>
         </div>
 
         <AuthBox
           state={auth}
-          callback={`https://api.unify.dev/v1/workspaces/${slug || "new"}`}
           buttonLabel="Validate & Create"
-          connectedLabel={`Workspace ${slug || "created"} ready (200 OK)`}
+          authorizingLabel="Creating workspace..."
+          connectedLabel={`Workspace ${slug} created`}
           onAuthorize={onValidate}
+          disabled={!name.trim() || !slug}
         />
       </div>
     </PanelFrame>
@@ -341,94 +276,71 @@ function WorkspacePanel({
 
 function ConnectPanel({
   tool,
+  status,
   auth,
+  origin,
+  slug,
   onAuthorize,
 }: {
-  tool: Exclude<ConnectKey, "workspace">;
+  tool: ProviderKey;
+  status: ProviderStatus | undefined;
   auth: AuthState;
+  origin: string;
+  slug: string;
   onAuthorize: () => void;
 }) {
   const meta = panelMeta[tool];
-  const input =
-    tool === "figma"
-      ? { label: "Figma Team Handle", prefix: "@", placeholder: "your-team" }
-      : tool === "github"
-        ? { label: "GitHub Organization", prefix: "github.com/", placeholder: "your-org" }
-        : { label: "Atlassian Cloud Site / Domain", prefix: "", placeholder: "your-site" };
+  const registered = status?.appRegistered ?? false;
 
   return (
-    <PanelFrame footer={null}>
-      <StepHeader
-        icon={meta.icon}
-        title={meta.title}
-        chip={tool === "jira" ? "OAuth 2.0 (3LO)" : "OAuth 2.0"}
-      />
+    <PanelFrame>
+      <StepHeader icon={meta.icon} title={meta.title} chip={tool === "jira" ? "OAuth 2.0 (3LO)" : "OAuth 2.0"} />
 
-      <div className="flex flex-col gap-4 px-4 pb-2">
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor={`${tool}-target`}
-            className="font-label-caps text-label-caps uppercase text-muted"
-          >
-            {input.label}
-          </label>
-          <div className="flex items-center bg-surface-container-lowest rounded px-3 py-2">
-            <Icon name="dns" className="text-muted text-[18px] mr-2" />
-            <span className="text-muted font-mono-code text-mono-code select-none">
-              {input.prefix}
-            </span>
-            <input
-              id={`${tool}-target`}
-              placeholder={input.placeholder}
-              className="bg-transparent text-on-surface font-mono-code text-mono-code focus:outline-none flex-1 font-semibold"
-            />
-            {tool === "jira" ? (
-              <span className="text-muted font-mono-code text-mono-code select-none">
-                .atlassian.net
-              </span>
-            ) : null}
-          </div>
-        </div>
+      <div className="flex flex-col gap-4 px-4">
+        {!registered && auth !== "connected" ? (
+          <p className="bg-surface-container-low p-3.5 rounded text-body-sm text-on-surface-variant">
+            Register this workspace&apos;s {meta.vendor} OAuth app before authorizing.{" "}
+            <Link
+              href={`/settings/integrations?workspace=${encodeURIComponent(slug)}`}
+              className="text-primary hover:underline"
+            >
+              Open Provider Apps
+            </Link>
+          </p>
+        ) : null}
 
-        <ScopeMatrix tool={tool} />
+        <ScopeMatrix scopes={status?.scopes ?? []} />
 
         <AuthBox
           state={auth}
-          callback={`https://api.unify.dev/v1/auth/${tool}/callback`}
+          callback={`${origin}/api/integrations/${tool}/callback`}
           buttonLabel={meta.authLabel}
-          connectedLabel="Connected (Read-Only Granted)"
+          connectedLabel={status?.accountName ? `Connected as ${status.accountName}` : "Connected"}
           onAuthorize={onAuthorize}
+          disabled={!registered}
         />
       </div>
     </PanelFrame>
   );
 }
 
-function PolicyRunPanel({
-  selected,
-  onToggle,
-  run,
-  onRun,
-}: {
-  selected: Record<PolicyId, boolean>;
-  onToggle: (id: PolicyId) => void;
-  run: "idle" | "running" | "done";
-  onRun: () => void;
-}) {
-  const toast = useToast();
-  const staged = policies.filter((policy) => selected[policy.id]).length;
+const severityChip: Record<string, string> = {
+  critical: "bg-error-container text-error",
+  high: "bg-error-container text-error",
+  medium: "bg-tertiary-container text-on-tertiary-container",
+  low: "bg-surface-container-highest text-on-surface-variant",
+};
+
+function RulesPanel({ rules }: { rules: RuleView[] }) {
+  const active = rules.filter((rule) => rule.active);
 
   return (
-    <PanelFrame footer={null}>
-      <StepHeader
-        icon="gavel"
-        title="First Policy Run"
-        chip={`${staged} staged`}
-      />
-      <div className="flex flex-col gap-4 px-4 pb-2">
+    <PanelFrame>
+      <StepHeader icon="gavel" title="Active Policies" chip={`${active.length} active`} />
+      <div className="flex flex-col gap-4 px-4">
         <div className="flex items-center justify-between">
           <span className="font-label-caps text-label-caps uppercase text-muted">
-            Policies to Evaluate
+            Rules evaluated on incoming events
           </span>
           <span className="font-mono-code text-micro-label text-secondary flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-secondary" />
@@ -437,124 +349,54 @@ function PolicyRunPanel({
         </div>
 
         <div className="grid grid-cols-1 gap-3">
-          {policies.map((policy) => (
-            <label
-              key={policy.id}
-              className={`bg-surface-container-low p-3.5 rounded flex items-start gap-3 cursor-pointer transition-colors hover:bg-surface-container-high ${
-                selected[policy.id] ? "" : "opacity-60"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={selected[policy.id]}
-                onChange={() => onToggle(policy.id)}
-                className="accent-secondary mt-1"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono-code text-[13px] text-on-surface font-semibold">
-                    {policy.id}: {policy.name}
-                  </span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded font-mono-code text-eyebrow font-bold uppercase ${
-                      policy.severity === "critical"
-                        ? "bg-error-container text-error"
-                        : "bg-tertiary-container text-on-tertiary-container"
-                    }`}
-                  >
-                    {policy.severity}
-                  </span>
-                  {!policy.enabled ? (
-                    <span className="px-1.5 py-0.2 rounded bg-surface-container-highest text-muted font-mono-code text-eyebrow uppercase">
-                      disabled by admin
-                    </span>
-                  ) : null}
-                </div>
-                <p className="font-body-sm text-[12px] text-on-surface-variant mt-0.5">
-                  {policy.description}
-                </p>
-                <span className="font-mono-code text-micro-label text-muted block mt-1.5">
-                  trigger: {policy.trigger} · grace {policy.graceMinutes}m
-                </span>
-              </div>
-            </label>
-          ))}
-        </div>
-
-        <div className="bg-surface-container-lowest p-4 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                run === "done" ? "bg-secondary/20" : "bg-surface-container-high"
-              }`}
-            >
-              <Icon
-                name={run === "done" ? "check" : run === "running" ? "sync" : "policy"}
-                className={`text-[18px] ${
-                  run === "done" ? "text-secondary" : "text-muted"
-                } ${run === "running" ? "animate-spin" : ""}`}
-              />
-            </div>
-            <div className="min-w-0">
+          {rules.length === 0 ? (
+            <p className="bg-surface-container-low p-3.5 rounded font-mono-code text-micro-label text-muted">
+              No rules are registered.
+            </p>
+          ) : (
+            rules.map((rule) => (
               <div
-                className={`font-body-sm font-semibold ${
-                  run === "done" ? "text-secondary" : "text-on-surface"
-                }`}
+                key={rule.id}
+                className={`bg-surface-container-low p-3.5 rounded flex items-start gap-3 ${rule.active ? "" : "opacity-60"}`}
               >
-                {run === "idle"
-                  ? `${staged} policies staged for the first run`
-                  : run === "running"
-                    ? "Reconciling links and evaluating evidence…"
-                    : // DATA HOLE — the staged-finding count comes from the policy-run API.
-                      "Run complete"}
+                <Icon
+                  name={rule.active ? "check_circle" : "pause_circle"}
+                  className={`text-[18px] mt-0.5 ${rule.active ? "text-secondary" : "text-muted"}`}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono-code text-[13px] text-on-surface font-semibold">
+                      {rule.id}: {rule.title}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.2 rounded font-mono-code text-eyebrow font-bold uppercase ${severityChip[rule.severity]}`}
+                    >
+                      {rule.severity}
+                    </span>
+                    {!rule.active ? (
+                      <span className="px-1.5 py-0.2 rounded bg-surface-container-highest text-muted font-mono-code text-eyebrow uppercase">
+                        paused
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="font-body-sm text-[12px] text-on-surface-variant mt-0.5">{rule.description}</p>
+                  <span className="font-mono-code text-micro-label text-muted block mt-1.5">
+                    trigger: {rule.trigger.on} · grace {rule.gracePeriodHours}h · v{rule.version}
+                  </span>
+                </div>
               </div>
-              <div className="font-mono-code text-micro-label text-muted truncate">
-                {/* DATA HOLE — replace with the policy-run API's packet URI and resolved citation count. */}
-                packet: —
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            disabled={run !== "idle" || staged === 0}
-            onClick={onRun}
-            className={
-              run === "done"
-                ? "px-4 py-2 rounded bg-secondary/20 text-secondary font-label-caps uppercase tracking-wider font-bold flex items-center gap-1.5"
-                : "px-4 py-2 rounded bg-secondary text-on-secondary hover:bg-secondary-container transition-colors flex items-center gap-2 font-label-caps uppercase tracking-wider font-bold shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-            }
-          >
-            {run === "done" ? (
-              <>
-                <Icon name="check_circle" className="text-[16px]" />
-                View Findings
-              </>
-            ) : run === "running" ? (
-              <>
-                <Icon name="refresh" className="text-[16px] animate-spin" />
-                Running...
-              </>
-            ) : (
-              <>
-                <Icon name="play_arrow" className="text-[16px]" />
-                Run First Policy Check
-              </>
-            )}
-          </button>
+            ))
+          )}
         </div>
 
-        {run === "done" ? (
-          <button
-            type="button"
-            onClick={() => toast("Opening Conflict Inbox for the staged findings…", {
-              icon: "warning",
-              tone: "neutral",
-            })}
-            className="self-start font-mono-code text-[12px] text-primary hover:underline"
-          >
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/policies" className="font-mono-code text-[12px] text-primary hover:underline">
+            Configure policies →
+          </Link>
+          <Link href="/conflicts" className="font-mono-code text-[12px] text-primary hover:underline">
             Open Conflict Inbox →
-          </button>
-        ) : null}
+          </Link>
+        </div>
       </div>
     </PanelFrame>
   );
@@ -565,51 +407,48 @@ export function ActiveStepPanel({
   step,
   auth,
   onAuthorize,
+  origin,
+  providers,
   workspace,
-  policyRun,
+  rules,
 }: {
   step: number;
   auth: Record<ConnectKey, AuthState>;
   onAuthorize: (key: ConnectKey) => void;
+  origin: string;
+  providers: ProviderStatus[];
   workspace: {
     name: string;
     slug: string;
-    imported: boolean;
+    created: boolean;
     setName: (value: string) => void;
     setSlug: (value: string) => void;
-    setImported: (value: boolean) => void;
   };
-  policyRun: {
-    selected: Record<PolicyId, boolean>;
-    onToggle: (id: PolicyId) => void;
-    run: "idle" | "running" | "done";
-    onRun: () => void;
-  };
+  rules: RuleView[];
 }) {
   if (step === 1) {
     return (
       <WorkspacePanel
         name={workspace.name}
         slug={workspace.slug}
-        imported={workspace.imported}
+        created={workspace.created}
         onName={workspace.setName}
         onSlug={workspace.setSlug}
-        onImported={workspace.setImported}
         auth={auth.workspace}
         onValidate={() => onAuthorize("workspace")}
       />
     );
   }
-  if (step === 5) {
-    return (
-      <PolicyRunPanel
-        selected={policyRun.selected}
-        onToggle={policyRun.onToggle}
-        run={policyRun.run}
-        onRun={policyRun.onRun}
-      />
-    );
-  }
+  if (step === 5) return <RulesPanel rules={rules} />;
   const tool = (["figma", "github", "jira"] as const)[step - 2];
-  return <ConnectPanel tool={tool} auth={auth[tool]} onAuthorize={() => onAuthorize(tool)} />;
+  return (
+    <ConnectPanel
+      tool={tool}
+      status={providers.find((p) => p.provider === tool)}
+      auth={auth[tool]}
+      origin={origin}
+      slug={workspace.slug}
+      onAuthorize={() => onAuthorize(tool)}
+    />
+  );
 }

@@ -27,6 +27,7 @@ npm run build     # emits dist/ (ESM + .d.ts)
 | `verdict` | `verifierOutputSchema`, abstention rule, citation resolution, `gatedVerdictSchema` | ERD `verdicts`, §11.4–§11.8, FR-09/FR-10/FR-11 |
 | `finding` | `Finding` (exactly-one-origin), FR-18 lifecycle transitions | ERD `findings`, FR-12/FR-15/FR-18 |
 | `ingestion` | vendor delivery boundary, mock vendor, dedupe, ordering guards, checkpoints and reconciliation | ERD `events`/`checkpoints`, FR-01/FR-02/FR-16, proposal §8.4 |
+| `jira-keys` | `extractJiraKeys`, `findKeysInText`: Jira issue keys in a PR's title, branch, body and commit messages, with provenance | FR-04 |
 
 ## Design stance
 

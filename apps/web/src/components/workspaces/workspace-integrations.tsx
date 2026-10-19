@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import { FigmaPoller } from "@/components/workspaces/figma-poller";
+import { authorizePath } from "@/lib/domain/onboarding";
 import type { IntegrationProvider } from "@/lib/integrations/types";
 import type { ProviderStatus, WorkspaceIntegrations } from "@/lib/data/integrations";
 
@@ -60,7 +61,7 @@ function ProviderCard({
   highlight: boolean;
 }) {
   const meta = META[status.provider];
-  const authorizeHref = `/api/integrations/${status.provider}/authorize?workspace=${encodeURIComponent(slug)}`;
+  const authorizeHref = authorizePath(status.provider, slug);
   const webhookUrl = `${origin}/api/webhooks/${status.provider}/${workspaceId}`;
 
   return (
@@ -80,7 +81,7 @@ function ProviderCard({
               </span>
             ) : (
               <span className="px-1.5 py-0.5 rounded font-mono-code text-eyebrow font-bold uppercase bg-surface-container-highest text-on-surface-variant">
-                Not connected
+                {status.webhookOnly ? "Webhook only" : "Not connected"}
               </span>
             )}
           </div>

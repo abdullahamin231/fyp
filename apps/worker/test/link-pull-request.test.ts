@@ -106,7 +106,7 @@ describe("linkPullRequestEvent", () => {
     const second = await linkPullRequestEvent(link, prEvent(), OPTIONS);
 
     expect(first.status).toBe("processed");
-    expect(second).toEqual({ status: "duplicate_event", eventId: "github:delivery-1" });
+    expect(second).toEqual({ status: "duplicate_event", eventId: `${WORKSPACE_ID}:github:delivery-1` });
     expect(await count(db, "events")).toBe(1);
     expect(await count(db, "edges")).toBe(1);
   });

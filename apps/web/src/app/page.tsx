@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
-import { VERDICTS, type Finding, type Severity, type Verdict } from "@/lib/types";
+import { VERDICTS, type Severity, type Verdict } from "@/lib/types";
 import { listFindings } from "@/lib/data/queries";
 import { loadExplorerGraph } from "@/lib/data/graph";
 import { EvidencePreview } from "@/components/graph/evidence-preview";

@@ -6,7 +6,8 @@
  * repo, not in UNIFY, so this script does the half that lives in UNIFY and
  * prints the half that lives on GitHub:
  *
- *   1. sets (or resets) the GitHub connection's webhook secret for a workspace
+ *   1. rotates the webhook secret on the workspace's GitHub OAuth connection
+ *      (connect GitHub in the app first; the access token is never touched)
  *   2. prints the payload URL to point the repository webhook at
  *   3. prints the exact `gh api` command that creates the hook
  *   4. sends a signed `ping` delivery and asserts the route accepted it
@@ -15,8 +16,8 @@
  * pull_request delivery goes through, end to end, before anyone opens a PR.
  *
  * Usage:
- *   node scripts/github-webhook-setup.mjs <workspace-slug-or-uuid> [repo owner/name]
- *   node scripts/github-webhook-setup.mjs mishals-workspace abdullahamin231/fyp
+ *   node scripts/github-webhook-setup.mjs <workspace-slug-or-uuid> <repo owner/name> --base <https://your-unify-host>
+ *   (or set UNIFY_BASE_URL instead of --base)
  */
 import { createCipheriv, createHash, createHmac, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
@@ -67,8 +68,12 @@ const flag = (name) => {
 };
 const positional = args.filter((a) => !a.startsWith("--"));
 const workspaceArg = positional[0];
-const repo = positional[1] ?? flag("repo") ?? "abdullahamin231/fyp";
-const base = (flag("base") ?? "https://unify-web-weld.vercel.app").replace(/\/$/, "");
+const repo = positional[1] ?? flag("repo");
+const base = (flag("base") ?? process.env.UNIFY_BASE_URL ?? "").replace(/\/$/, "");
+if (!workspaceArg || !repo || !base) {
+  console.error("Usage: node scripts/github-webhook-setup.mjs <workspace> <owner/repo> --base <https://your-unify-host>");
+  process.exit(1);
+}
 
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
@@ -82,31 +87,26 @@ const workspace = ws.data?.[0];
 if (!workspace) die(`No workspace "${workspaceArg}".`);
 console.log(`Workspace: ${workspace.name} (slug ${workspace.slug}, id ${workspace.id})`);
 
-// 2. The connection that holds the webhook secret (created_by must be a real user)
-const member = await db.from("workspace_members").select("user_id, role").eq("workspace_id", workspace.id).in("role", ["owner", "admin"]).limit(1).maybeSingle();
-if (member.error) die(`Could not read workspace members: ${member.error.message}`);
-if (!member.data) die("That workspace has no owner/admin to own the connection.");
+// 2. The workspace's GitHub OAuth connection. Its access token is what the
+//    worker clones with, so this script must never replace it.
+const connection = await db
+  .from("integration_connections")
+  .select("id")
+  .eq("workspace_id", workspace.id)
+  .eq("provider", "github")
+  .maybeSingle();
+if (connection.error) die(`Could not read the GitHub connection: ${connection.error.message}`);
+if (!connection.data) die(`Connect GitHub first: ${base}/workspaces/${workspace.slug}/integrations`);
 
-// 3. Set the webhook secret. A new one invalidates the previous hook config —
-//    there is no way to read the old secret back, so printing it is the point.
+// 3. Rotate the webhook secret. There is no way to read the old one back, so
+//    printing the new one is the point; the old hook config stops verifying.
 const secret = randomBytes(32).toString("hex");
-const { data: owner } = await db.auth.admin.getUserById(member.data.user_id);
-const upsert = await db.from("integration_connections").upsert(
-  {
-    workspace_id: workspace.id,
-    provider: "github",
-    access_token_ciphertext: encrypt("webhook-only-no-oauth"),
-    webhook_secret_ciphertext: encrypt(secret),
-    external_account_name: "webhook delivery (no OAuth)",
-    scopes: [],
-    created_by: member.data.user_id,
-    updated_at: new Date().toISOString(),
-  },
-  { onConflict: "workspace_id,provider" },
-);
-if (upsert.error) die(`Could not set the webhook secret: ${upsert.error.message}`);
-void owner;
-console.log(`GitHub connection: webhook secret set (replaces any previous one).`);
+const update = await db
+  .from("integration_connections")
+  .update({ webhook_secret_ciphertext: encrypt(secret), updated_at: new Date().toISOString() })
+  .eq("id", connection.data.id);
+if (update.error) die(`Could not set the webhook secret: ${update.error.message}`);
+console.log("GitHub connection: webhook secret rotated (access token untouched).");
 
 // 4. Print the GitHub half, verbatim
 const url = `${base}/api/webhooks/github/${workspace.id}`;

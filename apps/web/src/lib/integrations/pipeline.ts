@@ -1,11 +1,11 @@
 /**
  * What happens to a webhook after it has been verified and recorded:
  *
- *   Jira issue event   -> Ticket node (created or updated)
+ *   Jira issue event   -> ingest_jira_issue (migration 00036): Ticket node and its
+ *                         Criterion nodes (created, changed, retired), or a
+ *                         Requirement node for an `nfr`-labelled issue; changed
+ *                         criteria are re-queued on every tracking PR
  *                      -> re-resolve pull requests that named this key before it existed
- *                      -> Criterion nodes for the ticket's acceptance criteria
- *                         (one per criterion, from the configured field or a strict
- *                         description section; none when the ticket states none)
  *   GitHub PR event    -> deterministic linker (link_pull_request_event, migration 00015):
  *                         PullRequest node + TRACKS edge to each ticket it names
  *                      -> verification job per criterion of the linked ticket,
@@ -17,46 +17,13 @@
  * verification work straight away.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { extractJiraKeys } from "@unify/contracts";
 import { asRecord, text } from "./common";
-import { criterionExternalIds, extractCriteria } from "./criteria";
-
-// ---------------------------------------------------------------------------
-// Key extraction. Same rules as apps/worker/src/linking/extract-keys.ts (kept in
-// step with it; see that file for the reasoning behind each part of the pattern).
-// ---------------------------------------------------------------------------
-
-export type KeySource = "title" | "branch" | "body" | `commit:${string}`;
-export interface ExtractedKey {
-  key: string;
-  foundIn: KeySource[];
-}
-
-const KEY_PATTERN = /(?<![A-Za-z0-9])([A-Z][A-Z0-9]+)-([1-9][0-9]*)(?![A-Za-z0-9])/g;
-
-export function findKeysInText(value: string, projectKeys: readonly string[] | null): string[] {
-  const found: string[] = [];
-  for (const match of value.matchAll(KEY_PATTERN)) {
-    if (projectKeys !== null && !projectKeys.includes(match[1]!)) continue;
-    if (!found.includes(match[0])) found.push(match[0]);
-  }
-  return found;
-}
-
-export function extractJiraKeys(
-  sources: [KeySource, string | null | undefined][],
-  projectKeys: readonly string[] | null,
-): ExtractedKey[] {
-  const byKey = new Map<string, KeySource[]>();
-  for (const [source, value] of sources) {
-    if (!value) continue;
-    for (const key of findKeysInText(value, projectKeys)) {
-      const list = byKey.get(key) ?? [];
-      if (!list.includes(source)) list.push(source);
-      byKey.set(key, list);
-    }
-  }
-  return [...byKey].map(([key, foundIn]) => ({ key, foundIn }));
-}
+import { guessCategory, jiraIssueSync } from "./jira-issue";
+import { pullRequestCommits, type GithubCommit } from "./github";
+import type { FigmaRef } from "./figma-design";
+import { linkFigmaRefs, watchReferencedFiles } from "./figma-sync";
+import { getProviderToken } from "./tokens";
 
 /** Project prefixes of the tickets this workspace already has, e.g. ["UNI"]. */
 async function workspaceProjectKeys(db: SupabaseClient, workspaceId: string): Promise<string[] | null> {
@@ -68,68 +35,51 @@ async function workspaceProjectKeys(db: SupabaseClient, workspaceId: string): Pr
   return prefixes.size ? [...prefixes] : null;
 }
 
+export { upsertNormalizedEvents } from "./events";
+
 // ---------------------------------------------------------------------------
 // Jira -> Ticket node
 // ---------------------------------------------------------------------------
 
-export type TicketResult = { ticketNodeId: string; key: string; status: string | null; relinked: number };
+export type TicketResult = {
+  kind: "ticket" | "nfr";
+  nodeId: string;
+  key: string;
+  relinked: number;
+  criteria: { created: string[]; changed: string[]; unchanged: string[]; retired: string[]; jobIds: string[] } | null;
+  figma: { watched: string[]; designLinks: number };
+};
 
-export async function upsertTicketFromJira(
+/**
+ * Bring the graph in line with one Jira issue: Ticket + criteria, or a
+ * Requirement for an `nfr`-labelled issue (see jira-issue.ts and the
+ * `ingest_jira_issue` function, migration 00036). New and changed criteria are
+ * queued for verification on every PR that tracks the ticket, in the same
+ * transaction.
+ */
+export async function ingestJiraIssue(
   db: SupabaseClient,
   workspaceId: string,
-  payload: Record<string, unknown>,
+  eventId: string,
+  body: Record<string, unknown>,
+  criteriaField: string | null,
   occurredAt: string,
 ): Promise<TicketResult | null> {
-  const issue = asRecord(payload.issue);
-  const key = text(issue.key);
-  if (!key) return null;
-  const fields = asRecord(issue.fields);
-  const status = asRecord(fields.status);
-  const changelogItems = Array.isArray(asRecord(payload.changelog).items) ? (asRecord(payload.changelog).items as unknown[]) : [];
-  const statusChange = asRecord(changelogItems.find((item) => text(asRecord(item).field) === "status"));
-  const deleted = text(payload.webhookEvent) === "jira:issue_deleted";
-  const statusName = deleted ? "Deleted" : (text(status.name) ?? text(statusChange.toString));
-  // Jira's own grouping of statuses: "new" (To Do), "indeterminate" (In Progress), "done".
-  const statusCategory = deleted ? "deleted" : (text(asRecord(status.statusCategory).key) ?? guessCategory(statusName));
-  const self = text(issue.self);
-  const browseUrl = self ? `${new URL(self).origin}/browse/${key}` : null;
-
-  const { data, error } = await db
-    .from("nodes")
-    .upsert(
-      {
-        workspace_id: workspaceId,
-        type: "Ticket",
-        external_id: key,
-        version: text(fields.updated) ?? occurredAt,
-        status: statusName,
-        owner: text(asRecord(fields.assignee).displayName),
-        last_modified: occurredAt,
-        payload: {
-          key,
-          summary: text(fields.summary),
-          text: text(fields.summary),
-          status: statusName,
-          statusCategory,
-          url: browseUrl,
-        },
-      },
-      { onConflict: "workspace_id,type,external_id" },
-    )
-    .select("id")
-    .single();
-  if (error) throw new Error(`Could not save ticket ${key}: ${error.message}`);
-
-  const relinked = await relinkUnknownKey(db, workspaceId, key, data.id as string);
-  return { ticketNodeId: data.id as string, key, status: statusName, relinked };
-}
-
-function guessCategory(status: string | null): string | null {
-  if (!status) return null;
-  const s = status.toLowerCase();
-  if (["done", "closed", "resolved", "complete", "completed"].includes(s)) return "done";
-  if (["to do", "todo", "open", "backlog", "new"].includes(s)) return "new";
-  return "indeterminate";
+  const issue = jiraIssueSync(body, criteriaField, occurredAt);
+  if (!issue) return null;
+  const { data, error } = await db.rpc("ingest_jira_issue", {
+    p_workspace_id: workspaceId,
+    p_event_id: eventId,
+    p_issue: issue,
+  });
+  if (error) throw new Error(`Could not ingest Jira issue ${issue.key}: ${error.message}`);
+  const result = data as { kind: "ticket" | "nfr"; nodeId?: string; skipped?: boolean; criteria?: TicketResult["criteria"] };
+  if (result.skipped || !result.nodeId) return null;
+  const relinked = result.kind === "ticket" ? await relinkUnknownKey(db, workspaceId, issue.key, result.nodeId) : 0;
+  const refs = (issue.payload.figmaRefs as FigmaRef[] | undefined) ?? [];
+  const watched = refs.length ? await watchReferencedFiles(db, workspaceId, refs) : [];
+  const designLinks = refs.length ? await linkFigmaRefs(db, workspaceId) : 0;
+  return { kind: result.kind, nodeId: result.nodeId, key: issue.key, relinked, criteria: result.criteria ?? null, figma: { watched, designLinks } };
 }
 
 /**
@@ -170,110 +120,6 @@ async function relinkUnknownKey(db: SupabaseClient, workspaceId: string, key: st
     else if (ins.error.code !== "23505") throw new Error(`edges (re-resolve ${key}): ${ins.error.message}`);
   }
   return linked;
-}
-
-// ---------------------------------------------------------------------------
-// Jira acceptance criteria -> Criterion nodes
-// ---------------------------------------------------------------------------
-
-export interface CriteriaResult {
-  created: number;
-  /** Node ids of every criterion this ticket now has (created or already present). */
-  criterionNodeIds: string[];
-  externalIds: string[];
-}
-
-/**
- * One Criterion node per acceptance criterion, linked from the ticket with a
- * `REFERENCES` edge.
- *
- * The edge values are load-bearing, not cosmetic: the verdict gate only lets a
- * *decisive* status stand when the criterion's incident edges are
- * decisive-eligible, and `eligibilityFor` (packages/contracts) maps a
- * `derived` source to `system-confirmed`. Anything weaker (model_candidate,
- * unresolved) would silently downgrade every verdict built on it.
- */
-export async function upsertCriteriaFromJira(
-  db: SupabaseClient,
-  workspaceId: string,
-  payload: Record<string, unknown>,
-  ticketKey: string,
-  ticketNodeId: string,
-  criteriaField: string | null,
-  occurredAt: string,
-): Promise<CriteriaResult> {
-  const { texts, source } = extractCriteria(payload, criteriaField);
-  const externalIds = criterionExternalIds(ticketKey, texts.length);
-  if (externalIds.length === 0) return { created: 0, criterionNodeIds: [], externalIds };
-
-  const criterionNodeIds: string[] = [];
-  let created = 0;
-  for (const [index, externalId] of externalIds.entries()) {
-    const text_ = texts[index]!;
-    const selectExisting = async () => {
-      const { data } = await db
-        .from("nodes")
-        .select("id")
-        .eq("workspace_id", workspaceId)
-        .eq("type", "Criterion")
-        .eq("external_id", externalId)
-        .maybeSingle();
-      return (data?.id as string | undefined) ?? null;
-    };
-    const existingId = await selectExisting();
-    if (existingId) {
-      criterionNodeIds.push(existingId);
-      continue;
-    }
-    const { data, error } = await db
-      .from("nodes")
-      .insert({
-        workspace_id: workspaceId,
-        type: "Criterion",
-        external_id: externalId,
-        version: occurredAt,
-        last_modified: occurredAt,
-        payload: {
-          text: text_,
-          ticketKey,
-          source,
-          // `loadCriterion` (worker) reads these three; defaults mirror the
-          // fixture bundle so live and dataset paths stay byte-identical.
-          requirementRef: ticketKey,
-          ruleApplicable: true,
-          policyId: null,
-        },
-      })
-      .select("id")
-      .single();
-    if (error) {
-      // A concurrent delivery of the same issue created it first: adopt the
-      // existing row rather than failing the redelivery.
-      if (error.code !== "23505") {
-        throw new Error(`Could not save criterion ${externalId}: ${error.message}`);
-      }
-      const raced = await selectExisting();
-      if (!raced) throw new Error(`Could not save criterion ${externalId}: ${error.message}`);
-      criterionNodeIds.push(raced);
-      continue;
-    }
-    criterionNodeIds.push(data.id as string);
-    created += 1;
-
-    // Ticket -> Criterion, decisive-eligible (see the note above).
-    const edge = await db.from("edges").insert({
-      from_id: ticketNodeId,
-      to_id: data.id as string,
-      type: "REFERENCES",
-      source_class: "derived",
-      confidence: 1.0,
-      resolver: source === "field" ? `jira:customfield:${criteriaField}` : "jira:description",
-    });
-    if (edge.error && edge.error.code !== "23505") {
-      throw new Error(`Could not link criterion ${externalId}: ${edge.error.message}`);
-    }
-  }
-  return { created, criterionNodeIds, externalIds };
 }
 
 // ---------------------------------------------------------------------------
@@ -323,6 +169,7 @@ export async function enqueueVerificationForTickets(
       .select("id")
       .eq("workspace_id", input.workspaceId)
       .eq("type", "Criterion")
+      .is("valid_to", null)
       .like("external_id", `${key}/AC-%`);
     if (error) throw new Error(`Could not load criteria for ${key}: ${error.message}`);
     for (const row of (data ?? []) as { id: string }[]) {
@@ -360,6 +207,7 @@ export async function linkPullRequestFromGithub(
   payload: Record<string, unknown>,
   rawHash: string,
   receivedAt: Date,
+  commits: GithubCommit[] = [],
 ): Promise<LinkResult> {
   const pr = asRecord(payload.pull_request);
   const repo = text(asRecord(payload.repository).full_name) ?? "unknown";
@@ -369,14 +217,7 @@ export async function linkPullRequestFromGithub(
   const title = text(pr.title) ?? "";
   const branch = text(head.ref) ?? "";
   const state = pr.merged === true ? "merged" : (text(pr.state) ?? "open");
-  const keys = extractJiraKeys(
-    [
-      ["title", title],
-      ["branch", branch],
-      ["body", text(pr.body)],
-    ],
-    await workspaceProjectKeys(db, workspaceId),
-  );
+  const keys = extractJiraKeys({ title, branch, body: text(pr.body), commits }, await workspaceProjectKeys(db, workspaceId));
 
   const { data, error } = await db.rpc("link_pull_request_event", {
     p_workspace_id: workspaceId,
@@ -390,6 +231,62 @@ export async function linkPullRequestFromGithub(
   });
   if (error) throw new Error(`Linker failed: ${error.message}`);
   return data as LinkResult;
+}
+
+/**
+ * PR actions whose delivery leaves the code at a state worth verifying: a new
+ * or changed head, or a reopen. Closed/merged deliveries change state, not the
+ * commit pair; the enqueue RPC's (criterion, base, head) key handles the rest.
+ */
+const VERIFIABLE_ACTIONS = new Set(["opened", "synchronize", "reopened"]);
+
+export interface PullRequestOutcome {
+  linking: LinkResult;
+  findingsCreated?: number;
+  verification?: EnqueueResult;
+  commitsRead: number | "unavailable";
+}
+
+/**
+ * Everything a pull-request delivery does, for a webhook and a reconciliation
+ * replay alike: read the PR's commits (best effort, with the workspace token),
+ * link it, evaluate Rule 2, and queue verification for the linked criteria.
+ */
+export async function processPullRequestDelivery(
+  db: SupabaseClient,
+  input: { workspaceId: string; deliveryId: string; payload: Record<string, unknown>; rawHash: string; receivedAt: Date },
+  deps: { commits?: (repo: string, number: number) => Promise<GithubCommit[]> } = {},
+): Promise<PullRequestOutcome> {
+  const { workspaceId, deliveryId, payload } = input;
+  const pr = asRecord(payload.pull_request);
+  const repo = text(asRecord(payload.repository).full_name);
+  const number = Number(payload.number ?? pr.number);
+  let commits: GithubCommit[] = [];
+  let commitsRead: number | "unavailable" = "unavailable";
+  if (repo && number) {
+    try {
+      const read =
+        deps.commits ?? (async (r: string, n: number) => pullRequestCommits((await getProviderToken(workspaceId, "github")).accessToken, r, n));
+      commits = await read(repo, number);
+      commitsRead = commits.length;
+    } catch {
+      // Without a token or with the API down, the title, branch and body still link.
+    }
+  }
+
+  const linking = await linkPullRequestFromGithub(db, workspaceId, deliveryId, payload, input.rawHash, input.receivedAt, commits);
+  const outcome: PullRequestOutcome = { linking, commitsRead };
+  if (linking.prNodeId) outcome.findingsCreated = await evaluateWorkflowRule(db, linking.prNodeId);
+  const action = text(payload.action) ?? "unknown";
+  if (linking.prNodeId && VERIFIABLE_ACTIONS.has(action) && linking.keys) {
+    outcome.verification = await enqueueVerificationForTickets(db, {
+      workspaceId,
+      ticketKeys: linking.keys.map((key) => key.key),
+      baseCommit: text(asRecord(pr.base).sha) ?? text(payload.base_sha),
+      headCommit: text(asRecord(pr.head).sha) ?? text(payload.head_sha),
+    });
+  }
+  return outcome;
 }
 
 // ---------------------------------------------------------------------------
@@ -410,9 +307,11 @@ type NodeRow = { id: string; type: string; external_id: string; status: string |
  * The grace period is RULE_2_GRACE_HOURS (0) for now; see the note in the body.
  */
 export async function evaluateWorkflowRule(db: SupabaseClient, nodeId: string): Promise<number> {
-  const rule = await db.from("rules").select("id, version, grace_period_hours, severity").eq("id", "RULE_2").eq("active", true).order("version", { ascending: false }).limit(1).maybeSingle();
+  // The latest version decides, including whether the rule is paused: filtering
+  // on active first would fall back to an older version after a pause.
+  const rule = await db.from("rules").select("id, version, grace_period_hours, severity, active").eq("id", "RULE_2").order("version", { ascending: false }).limit(1).maybeSingle();
   if (rule.error) throw new Error(`rules: ${rule.error.message}`);
-  if (!rule.data) return 0;
+  if (!rule.data?.active) return 0;
   // Fixed for now: the RULE_2 record specifies a grace period (4 h), but nothing
   // re-evaluates later yet, so a finding could never appear after the event.
   // Until a scheduled re-check exists, findings are raised as soon as the

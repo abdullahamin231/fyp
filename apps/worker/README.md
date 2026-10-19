@@ -20,12 +20,21 @@ claim_verification_job ── FOR UPDATE SKIP LOCKED, attempts ≤ 3
         └── persist → context_packets, verifier_passes, verdicts, findings
                 │
                 ▼
-        finish_verification_job (succeeded | failed)
+        complete_verification_job (succeeded | cancelled)
+        finish_verification_job   (failed | cancelled before execution)
 ```
 
 Everything the loop produces is recorded per pass in `verifier_passes`, so a
 reviewer can re-read *why* a verdict stopped where it did — and the stored
 verdict is only ever written by `gate()`, never by the model directly.
+
+Jobs pin the criterion's version/text in addition to the base/head pair. An
+edit queues a distinct job, including while an older one is running. Completion
+locks the criterion and atomically writes the gated verdict, its finding,
+supersession and successful job state. An obsolete or retired criterion cancels
+the run without publishing a verdict; its packet and passes remain readable.
+Apply migration 00039 before starting this worker; see the
+[deployment order](../../supabase/README.md#deploying-0003700039-to-the-existing-live-project).
 
 ## Evidence graph walk bound
 
@@ -79,7 +88,7 @@ the graph, the worker
 1. walks criterion → Ticket → PullRequest to find the change (the exact
    `owner/repo#number` id the webhook created),
 2. refuses to proceed unless the workspace has an `analysis_targets` row for
-   that repository (migration 00019) — an analysis run is never silent,
+   that repository (migration 00025) — an analysis run is never silent,
 3. clones/fetches the repository into the cache dir and verifies both commits
    are present,
 4. runs the analyser (read-only git objects; the test command runs only in a
@@ -91,7 +100,10 @@ Any failure throws and fails the **job** — enrichment that cannot run must
 never become a verdict. An existing commit node for the head skips the whole
 path, so a re-enqueued job is a no-op. The repository cache lives in
 `WORKER_SETTINGS.repoCacheDir` (under the worker user's home); private
-repositories need `ANALYSIS_GIT_TOKEN` in `.env`.
+repositories are read with the workspace's GitHub OAuth token, which needs
+`INTEGRATION_ENCRYPTION_KEY` (the web app's value) in `.env`; `ANALYSIS_GIT_TOKEN` is
+the fallback for workspaces without a GitHub connection. The token is passed as a
+per-command git header and never written into the cached clone.
 
 ## Model providers
 
@@ -148,18 +160,18 @@ verification pipeline above; it does not touch the queue.
 
 | Piece | What it does |
 |---|---|
-| `src/linking/extract-keys.ts` | Finds keys such as `UNI-123` in the PR title, branch name and commit messages. Pure TypeScript. A project allow-list rejects lookalikes like `UTF-8`. |
+| `extractJiraKeys` (`packages/contracts/src/jira-keys.ts`) | Finds keys such as `UNI-123` in the PR title, branch name, description and commit messages. Pure TypeScript, shared with the web ingestion path. A project allow-list rejects lookalikes like `UTF-8`. |
 | `supabase/migrations/00015_link_pull_request_event.sql` | `link_pull_request_event(...)` RPC, one transaction: records the event (stops if this delivery was seen before), upserts the `PullRequest` node, looks up each key's `Ticket` node, inserts a `TRACKS` edge (`observed`, confidence 1.0, resolver `explicit-reference`). `service_role` only, like the queue RPCs. |
 | `src/linking/link-pull-request.ts` | Extracts the keys, then makes the one RPC call. |
 | `src/linking/callers.ts` | `viaSupabase(client)` calls the RPC through supabase-js; `viaSql(db)` calls the same function over plain SQL (tests). |
-| `src/linking/local-db.ts` | In-process Postgres (PGlite) loaded with migrations 00001–00003, 00005, 00010 and 00015. Tests only. |
+| `src/linking/local-db.ts` | In-process Postgres (PGlite) loaded with migrations 00001–00003, 00005, 00015, 00016 and 00023. Tests only. |
 
 Outcomes: `linked`; `no_key`; `unknown_key` (no edge and no invented node;
 the key stays in `events.references`); `duplicate_event` (via
 `UNIQUE (source_tool, vendor_delivery_id)`); `already_linked` (via
 `edges_current_identity_uidx`, so a dismissed link stays dismissed and a
 revoked one can be re-created). The RPC's `ON CONFLICT` names the predicate
-`where link_state <> 'revoked'`, which must match 00010 exactly.
+`where link_state <> 'revoked'`, which must match 00023 exactly.
 
 The steps live in SQL because they must commit together, and supabase-js sends
 each call as its own transaction.
