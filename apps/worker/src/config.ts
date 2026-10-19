@@ -76,6 +76,8 @@ const secretSchema = z.object({
   supabaseUrl: z.string().url(),
   serviceRoleKey: z.string().min(1),
   gitToken: z.string().optional(),
+  /** Same passphrase as the web app, to read a workspace's stored GitHub token. */
+  encryptionKey: z.string().optional(),
 });
 
 export const configSchema = z.object({
@@ -122,6 +124,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     supabaseUrl: env.SUPABASE_URL ?? env.NEXT_PUBLIC_SUPABASE_URL,
     serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY ?? env.SUPABASE_SECRET_KEY,
     gitToken: env.ANALYSIS_GIT_TOKEN?.trim() || undefined,
+    encryptionKey: env.INTEGRATION_ENCRYPTION_KEY?.trim() || undefined,
     ...WORKER_SETTINGS,
   });
 }

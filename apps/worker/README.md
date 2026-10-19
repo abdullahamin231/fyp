@@ -91,7 +91,10 @@ Any failure throws and fails the **job** — enrichment that cannot run must
 never become a verdict. An existing commit node for the head skips the whole
 path, so a re-enqueued job is a no-op. The repository cache lives in
 `WORKER_SETTINGS.repoCacheDir` (under the worker user's home); private
-repositories need `ANALYSIS_GIT_TOKEN` in `.env`.
+repositories are read with the workspace's GitHub OAuth token, which needs
+`INTEGRATION_ENCRYPTION_KEY` (the web app's value) in `.env`; `ANALYSIS_GIT_TOKEN` is
+the fallback for workspaces without a GitHub connection. The token is passed as a
+per-command git header and never written into the cached clone.
 
 ## Model providers
 

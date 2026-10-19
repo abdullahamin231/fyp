@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { decryptSecret } from "@unify/contracts/secret-box";
 import type { Config } from "../config.js";
 import { analyse } from "./analyse.js";
 import { toGraph } from "./payloads.js";
@@ -50,7 +51,7 @@ export interface EnrichDeps {
   config: Config;
   logger?: (message: string, fields?: Record<string, unknown>) => void;
   /** Test seam: resolve (repo) → a local git directory. Default: clone/fetch cache. */
-  resolveRepoDir?: (repo: string, config: Config) => Promise<string>;
+  resolveRepoDir?: (repo: string, config: Config, token: string | null) => Promise<string>;
 }
 
 interface NodeRow {
@@ -118,7 +119,21 @@ async function findPullRequest(
   const atHead = pullRequests.find(
     (node) => node.version === headCommit || node.payload?.headSha === headCommit,
   );
-  return { ticket, pullRequest: atHead ?? null };
+  if (atHead) return { ticket, pullRequest: atHead };
+
+  // The PR has moved on since this job was queued. Its delivery history still
+  // records which PR was at this head (00015 writes the head as the event's
+  // version), so an older job keeps its evidence instead of starving.
+  const { data: history, error: historyError } = await client
+    .from("events")
+    .select("entity_id")
+    .eq("entity_type", "PullRequest")
+    .eq("version", headCommit)
+    .in("entity_id", pullRequests.map((node) => node.external_id))
+    .limit(1);
+  if (historyError) throw new Error(`enrich: pull request history: ${historyError.message}`);
+  const wasAtHead = (history ?? [])[0] as { entity_id: string } | undefined;
+  return { ticket, pullRequest: pullRequests.find((node) => node.external_id === wasAtHead?.entity_id) ?? null };
 }
 
 /** Repo name recorded on the PR node by ingestion (`owner/name`). */
@@ -165,6 +180,32 @@ async function analysisTarget(
 }
 
 /**
+ * The token to read this workspace's repositories: its GitHub OAuth
+ * connection, or the worker-wide ANALYSIS_GIT_TOKEN when it has none.
+ */
+async function workspaceGitToken(client: SupabaseClient, workspaceId: string, config: Config): Promise<string | null> {
+  if (config.encryptionKey) {
+    const { data, error } = await client
+      .from("integration_connections")
+      .select("access_token_ciphertext")
+      .eq("workspace_id", workspaceId)
+      .eq("provider", "github")
+      .maybeSingle();
+    if (error) throw new Error(`enrich: github connection: ${error.message}`);
+    const sealed = (data as { access_token_ciphertext: string } | null)?.access_token_ciphertext;
+    if (sealed) return decryptSecret(sealed, config.encryptionKey);
+  }
+  return config.gitToken ?? null;
+}
+
+/** git's own auth header for one command, so the token is never written to .git/config. */
+export function gitAuthArgs(token: string | null): string[] {
+  if (!token) return [];
+  const basic = Buffer.from(`x-access-token:${token}`).toString("base64");
+  return ["-c", `http.https://github.com/.extraheader=AUTHORIZATION: basic ${basic}`];
+}
+
+/**
  * Make the repository available locally with both commits present.
  *
  * A non-bare clone in a stable cache dir: the analyser reads only git objects,
@@ -172,17 +213,16 @@ async function analysisTarget(
  * (which a bare clone forbids). Fetching by SHA is what GitHub allows via
  * `allowTipSHA1InWant`; if that ever fails the fallback is a full fetch.
  */
-async function ensureRepoDir(repo: string, config: Config): Promise<string> {
+async function ensureRepoDir(repo: string, config: Config, token: string | null): Promise<string> {
   const dir = join(config.repoCacheDir, repo.replace("/", "__"));
-  const url = config.gitToken
-    ? `https://x-access-token:${config.gitToken}@github.com/${repo}.git`
-    : `https://github.com/${repo}.git`;
+  const url = `https://github.com/${repo}.git`;
+  const auth = gitAuthArgs(token);
 
   if (existsSync(join(dir, ".git"))) {
     // Best-effort refresh; the per-SHA fetch in ensureCommits is the gate, so a
     // failure here is not fatal — the commit verification decides.
     try {
-      execFileSync("git", ["-C", dir, "fetch", "--quiet", "--no-tags", "origin"], {
+      execFileSync("git", [...auth, "-C", dir, "fetch", "--quiet", "--no-tags", "origin"], {
         encoding: "utf8",
         maxBuffer: 256 * 1024 * 1024,
         env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
@@ -194,7 +234,7 @@ async function ensureRepoDir(repo: string, config: Config): Promise<string> {
   }
 
   mkdirSync(config.repoCacheDir, { recursive: true });
-  execFileSync("git", ["clone", "--quiet", "--no-tags", url, dir], {
+  execFileSync("git", [...auth, "clone", "--quiet", "--no-tags", url, dir], {
     encoding: "utf8",
     maxBuffer: 256 * 1024 * 1024,
     env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
@@ -202,9 +242,10 @@ async function ensureRepoDir(repo: string, config: Config): Promise<string> {
   return dir;
 }
 
-function ensureCommits(dir: string, shas: string[]): void {
+function ensureCommits(dir: string, shas: string[], token: string | null): void {
+  const auth = gitAuthArgs(token);
   const git = (args: string[]) =>
-    execFileSync("git", ["-C", dir, ...args], {
+    execFileSync("git", [...auth, "-C", dir, ...args], {
       encoding: "utf8",
       maxBuffer: 256 * 1024 * 1024,
       stdio: ["ignore", "pipe", "pipe"],
@@ -264,9 +305,10 @@ export async function ensureEvidence(
   const target = await analysisTarget(client, job.workspace_id, repo);
   if (!target) return { status: "no-target", repo };
 
+  const token = await workspaceGitToken(client, job.workspace_id, config);
   const resolve = deps.resolveRepoDir ?? ensureRepoDir;
-  const dir = await resolve(repo, config);
-  ensureCommits(dir, [job.base_commit, job.head_commit]);
+  const dir = await resolve(repo, config, token);
+  ensureCommits(dir, [job.base_commit, job.head_commit], token);
 
   const analysis = analyse(dir, job.base_commit, job.head_commit, {
     repo,

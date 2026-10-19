@@ -1,4 +1,5 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
+import { decryptSecret as unseal, encryptSecret as seal } from "@unify/contracts/secret-box";
 import { admin } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { IntegrationProvider } from "./types";
@@ -9,26 +10,10 @@ export type ProviderAppCredentials = {
   webhookSecret: string;
 };
 
-function encryptionKey() {
-  const value = process.env.INTEGRATION_ENCRYPTION_KEY;
-  if (!value) throw new Error("INTEGRATION_ENCRYPTION_KEY is required for integrations");
-  return createHash("sha256").update(value).digest();
-}
+const passphrase = () => process.env.INTEGRATION_ENCRYPTION_KEY ?? "";
 
-export function encryptSecret(value: string): string {
-  const iv = randomBytes(12);
-  const cipher = createCipheriv("aes-256-gcm", encryptionKey(), iv);
-  const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
-  return `${iv.toString("base64url")}.${cipher.getAuthTag().toString("base64url")}.${encrypted.toString("base64url")}`;
-}
-
-export function decryptSecret(value: string): string {
-  const [iv, tag, ciphertext] = value.split(".");
-  if (!iv || !tag || !ciphertext) throw new Error("Malformed encrypted integration secret");
-  const decipher = createDecipheriv("aes-256-gcm", encryptionKey(), Buffer.from(iv, "base64url"));
-  decipher.setAuthTag(Buffer.from(tag, "base64url"));
-  return Buffer.concat([decipher.update(Buffer.from(ciphertext, "base64url")), decipher.final()]).toString("utf8");
-}
+export const encryptSecret = (value: string) => seal(value, passphrase());
+export const decryptSecret = (value: string) => unseal(value, passphrase());
 
 export async function providerAppCredentials(
   workspaceId: string,

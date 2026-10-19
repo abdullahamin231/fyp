@@ -12,7 +12,8 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ensureEvidence } from "../src/analyser/enrich.js";
+import { encryptSecret } from "@unify/contracts/secret-box";
+import { ensureEvidence, gitAuthArgs } from "../src/analyser/enrich.js";
 import type { Config } from "../src/config.js";
 import type { CriterionInfo } from "../src/graph/nodes.js";
 
@@ -92,6 +93,7 @@ class QueryBuilder implements PromiseLike<{ data: unknown; error: unknown }> {
   like(column: string, pattern: string) { this.filters.push([column, `like:${pattern}`]); return this; }
   in(column: string, values: string[]) { this.inFilters.push([column, values]); return this; }
   or(_value: string) { return this; }
+  limit(_n: number) { return this; }
   maybeSingle() { return this.settle().then((r) => ({ ...r, data: firstRow(r.data) })); }
   single() { return this.settle().then((r) => ({ ...r, data: firstRow(r.data) })); }
   then<TResult1 = { data: unknown; error: unknown }, TResult2 = never>(
@@ -170,7 +172,7 @@ const NODES = {
  * the PR node at this head is the one the evidence is published for.
  */
 function graphRoutes(
-  overrides: { commitExists?: boolean; hasPR?: boolean; hasTarget?: boolean; headSha?: string } = {},
+  overrides: { commitExists?: boolean; hasPR?: boolean; hasTarget?: boolean; headSha?: string; historyAt?: string; sealedToken?: string } = {},
 ): Route[] {
   const headSha = overrides.headSha ?? "b".repeat(40);
   const prs = overrides.hasPR === false
@@ -193,6 +195,9 @@ function graphRoutes(
     // analysis target (workspace + repo). `null`/`[]` through maybeSingle means
     // "no row", which is the no-target case — not a query error.
     { table: "analysis_targets", data: overrides.hasTarget === false ? [] : [{ test_command: "exit 1" }] },
+    // Delivery history: which PR was at a given head before it moved on.
+    { table: "events", data: overrides.historyAt ? [{ entity_id: overrides.historyAt }] : [] },
+    { table: "integration_connections", data: overrides.sealedToken ? [{ access_token_ciphertext: overrides.sealedToken }] : [] },
   ];
 }
 
@@ -243,6 +248,47 @@ describe("ensureEvidence", () => {
     expect(outcome.testRunPassed).toBe(false);
     const runNode = args.p_nodes.find((n) => n.externalId === `acme/store:test-run:${head.slice(0, 12)}`);
     expect(runNode?.payload.passed).toBe(false);
+  });
+
+  it("still publishes for a job whose PR has moved on, found through the PR's delivery history", async () => {
+    const { dir, base, head } = repo();
+    const client = new FakeClient(graphRoutes({ headSha: "e".repeat(40), historyAt: "acme/store#42" }));
+    const outcome = await ensureEvidence(
+      { client: client as unknown as SupabaseClient, config, resolveRepoDir: async () => dir },
+      { workspace_id: "ws-1", base_commit: base, head_commit: head },
+      CRITERION,
+    );
+    expect(outcome.status).toBe("published");
+    const args = client.rpcCalls.find((call) => call.name === "publish_analysis")!.args as { p_edges: { from: string; to: string; type: string }[] };
+    expect(args.p_edges).toContainEqual(expect.objectContaining({ from: `commit:${head.slice(0, 12)}`, to: "acme/store#42", type: "PART_OF" }));
+  });
+
+  it("reads the repository with the workspace's own GitHub token", async () => {
+    const { dir, base, head } = repo();
+    const sealed = encryptSecret("gho_workspace", "passphrase");
+    const client = new FakeClient(graphRoutes({ headSha: head, sealedToken: sealed }));
+    let used: string | null | undefined;
+    await ensureEvidence(
+      {
+        client: client as unknown as SupabaseClient,
+        config: { ...config, encryptionKey: "passphrase", gitToken: "fallback" } as Config,
+        resolveRepoDir: async (_repo, _config, token) => {
+          used = token;
+          return dir;
+        },
+      },
+      { workspace_id: "ws-1", base_commit: base, head_commit: head },
+      CRITERION,
+    );
+    expect(used).toBe("gho_workspace");
+  });
+
+  it("passes the token as a one-command auth header, never in the remote URL", () => {
+    expect(gitAuthArgs(null)).toEqual([]);
+    expect(gitAuthArgs("t0k")).toEqual([
+      "-c",
+      `http.https://github.com/.extraheader=AUTHORIZATION: basic ${Buffer.from("x-access-token:t0k").toString("base64")}`,
+    ]);
   });
 
   it("skips everything when the graph already has evidence for this head", async () => {
