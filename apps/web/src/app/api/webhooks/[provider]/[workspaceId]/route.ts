@@ -9,6 +9,7 @@ import {
   evaluateWorkflowRule,
   ingestJiraIssue,
   processPullRequestDelivery,
+  upsertNormalizedEvents,
 } from "@/lib/integrations/pipeline";
 import { admin } from "@/lib/supabase/admin";
 
@@ -56,25 +57,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
         eventTime: firstEvent!.occurredAt,
       });
     } else if (events.length > 0) {
-      const { error } = await db.from("events").upsert(events.map((event) => ({
-        event_id: event.eventId,
-        vendor_delivery_id: event.vendorDeliveryId,
-        workspace_id: workspaceId,
-        source_tool: rawProvider,
-        entity_type: event.entityType,
-        entity_id: event.entityId,
-        version: event.version,
-        action: event.action,
-        state_before: event.stateBefore,
-        state_after: event.stateAfter,
-        actor: event.actor,
-        occurred_at: event.occurredAt,
-        received_at: event.receivedAt,
-        references: event.references,
-        raw_hash: rawHash(rawBody),
-        schema_version: 1,
-      })), { onConflict: "event_id", ignoreDuplicates: true });
-      if (error) throw new Error(`Could not persist normalized event: ${error.message}`);
+      await upsertNormalizedEvents(db, workspaceId, rawProvider, events, rawHash(rawBody));
     }
     if (rawProvider === "jira" && firstEvent) {
       const ticket = await ingestJiraIssue(

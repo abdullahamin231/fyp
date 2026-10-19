@@ -5,7 +5,7 @@
  * observable effect of a query function).
  *
  * Supported: select (column list ignored, `{ count, head }` honoured), eq, neq,
- * in, is, gte, lte, like, ilike, or (comma-joined `col.op.value` terms with op
+ * in, is, gte, lte, like, ilike, filter (cs), or (comma-joined `col.op.value` terms with op
  * in/eq/ilike), order, limit, range, maybeSingle, single, insert, update,
  * delete, upsert, rpc, auth.getUser.
  */
@@ -181,6 +181,15 @@ export function fakeSupabase(options: FakeOptions = {}) {
         add(c, "lte", v, (r) => String(readPath(r, c)) <= String(v)),
       ilike: (c: string, v: string) => add(c, "ilike", v, (r) => ilikeMatch(readPath(r, c), v)),
       like: (c: string, v: string) => add(c, "like", v, (r) => ilikeMatch(readPath(r, c), v, "s")),
+      filter(c: string, op: string, v: string) {
+        if (op !== "cs") throw new Error(`fake-supabase: unsupported filter op ${op}`);
+        const want = JSON.parse(v) as Row[];
+        // jsonb @>: every wanted element is contained in some element of the column's array.
+        return add(c, "cs", v, (r) => {
+          const have = readPath(r, c);
+          return Array.isArray(have) && want.every((w) => have.some((h) => Object.entries(w).every(([k, val]) => (h as Row)?.[k] === val)));
+        });
+      },
       or(expression: string) {
         const terms = expression.split(/,(?![^(]*\))/).map(orTerm);
         return add("or", "or", expression, (r) => terms.some((t) => t(r)));

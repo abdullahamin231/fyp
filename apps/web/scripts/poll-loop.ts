@@ -1,7 +1,8 @@
 /**
  * Local poll loop: on an interval, polls every watched Figma file (the same
  * `pollFigmaWorkspace` as the "Poll now" button) and reconciles every
- * GitHub-connected workspace's open pull requests against the graph, from a
+ * GitHub-connected workspace's open pull requests and every Jira-connected
+ * workspace's recently updated issues against the graph, from a
  * machine with the app's environment (`.env`: Supabase URL, secret key,
  * INTEGRATION_ENCRYPTION_KEY).
  *
@@ -19,6 +20,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { figmaWatchedWorkspaces, pollFigmaWorkspace } from "../src/lib/integrations/figma-poll.js";
 import { githubConnectedWorkspaces, reconcileGithubWorkspace } from "../src/lib/integrations/github-reconcile.js";
+import { jiraConnectedWorkspaces, reconcileJiraWorkspace } from "../src/lib/integrations/jira-reconcile.js";
 
 // Same convention as the wire-up scripts: read whichever env file exists.
 // Shell exports win over the file, so a one-off override still works.
@@ -56,8 +58,20 @@ async function githubPass(): Promise<void> {
   }
 }
 
+async function jiraPass(): Promise<void> {
+  for (const workspace of await jiraConnectedWorkspaces()) {
+    try {
+      const result = await reconcileJiraWorkspace(workspace.id);
+      log("jira reconciled", { workspace: workspace.slug, seen: result.seen, replayed: result.replayed.map((r) => r.key) });
+    } catch (error) {
+      log("jira reconcile failed", { workspace: workspace.slug, error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+}
+
 async function pass(): Promise<void> {
   await githubPass();
+  await jiraPass();
   const workspaces = await figmaWatchedWorkspaces();
   if (workspaces.length === 0) {
     log("no watched Figma files yet — add one on the workspace page");

@@ -70,7 +70,24 @@ Vendor webhook delivery is best effort. For GitHub, reconciliation lists the
 open pull requests of every repository in `analysis_targets` and replays any
 whose head the graph has not seen through the same path a webhook takes, with
 the delivery id `reconcile:<repo>#<n>@<head>` so a late real delivery dedupes.
-Run it with `POST /api/integrations/github/reconcile?workspace=<slug>` or the
-local loop `npm run poll` in `apps/web`, which also polls watched Figma files.
-Jira has no reconciliation yet: a missed Jira delivery is recovered by the next
-edit of that issue.
+Run it with `POST /api/integrations/github/reconcile?workspace=<slug>`.
+
+For Jira, reconciliation runs an enhanced JQL search (`/rest/api/3/search/jql`)
+for issues updated in the last day on the connected site and replays, through
+the same ingest as a webhook, every issue whose `updated` time the graph has
+not recorded (delivery id `reconcile:<key>@<updated>`). Run it with
+`POST /api/integrations/jira/reconcile?workspace=<slug>`.
+
+The local loop `npm run poll` in `apps/web` runs both reconciliations and polls
+watched Figma files on an interval.
+
+## Figma design nodes
+
+Each poll that baselines a file or sees a new version fetches the file
+(`GET /v1/files/:key?depth=3`) and writes a `DesignArtifact` for the file and a
+`DesignConstraint` per top-level frame or component, stating its size,
+auto-layout, spacing, padding and direct text. Those statements are the
+evidence the worker puts in the DESIGN_CONSTRAINTS packet slot. A Jira ticket
+whose summary or description links a Figma file or frame gets a `CONSTRAINS`
+edge from that design, whichever arrives first, and a linked file nobody
+watches is added to the watch list.
