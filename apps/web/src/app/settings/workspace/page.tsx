@@ -7,6 +7,7 @@ import { WorkspaceAdmin } from "@/components/settings/workspace-admin";
 import { PipelineSettings } from "@/components/settings/pipeline-settings";
 import { AdminRequired, ChooseWorkspace } from "@/components/settings/workspace-gate";
 import { listMyWorkspaces, workspaceAccess } from "@/lib/data/workspaces";
+import { getWorkspaceIntegrations } from "@/lib/data/integrations";
 import {
   deleteAnalysisTarget,
   listAnalysisTargets,
@@ -47,9 +48,10 @@ export default async function WorkspaceAdministrationPage({
   }
 
   const workspaceId = access.workspace.id;
-  const [criteriaField, targets] = await Promise.all([
+  const [criteriaField, targets, integrations] = await Promise.all([
     loadJiraCriteriaField(workspaceId),
     listAnalysisTargets(workspaceId),
+    getWorkspaceIntegrations(access.workspace.slug),
   ]);
 
   async function saveCriteria(_previous: { error?: string; saved?: string }, formData: FormData) {
@@ -116,7 +118,12 @@ export default async function WorkspaceAdministrationPage({
         </div>
       </div>
 
-      <WorkspaceAdmin telemetry={null} />
+      <WorkspaceAdmin
+        slug={access.workspace.slug}
+        workspaceId={workspaceId}
+        me={{ userId: access.userId, role: access.workspace.role }}
+        providers={integrations?.providers ?? []}
+      />
 
       {pipeline}
     </AppShell>
