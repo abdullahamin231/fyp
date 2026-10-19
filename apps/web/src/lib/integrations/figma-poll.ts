@@ -4,6 +4,8 @@ import { rawHash } from "./common";
 import { recordCheckpoint } from "./checkpoints";
 import { persistDelivery } from "./server";
 import { getProviderToken, ReconnectRequired } from "./tokens";
+import { projectFigmaFile } from "./figma-design";
+import { syncFigmaDesign, type DesignSyncResult } from "./figma-sync";
 
 type WatchedFile = {
   id: string;
@@ -29,6 +31,7 @@ export type FilePollResult = {
   status: "up_to_date" | "ingested" | "baselined" | "error";
   versionsIngested: number;
   newestVersionId: string | null;
+  design?: DesignSyncResult;
   error?: string;
 };
 
@@ -71,55 +74,74 @@ function responseError(status: number, body: unknown): string {
   const message = body && typeof body === "object" && "message" in body && typeof body.message === "string"
     ? body.message
     : "Figma returned an error";
-  return `Figma versions request failed (${status}): ${message}`;
+  return `Figma request failed (${status}): ${message}`;
+}
+
+const FIGMA = "https://api.figma.com/v1";
+const MAX_VERSION_PAGES = 10;
+
+async function figmaGet(token: string, url: string): Promise<Record<string, unknown>> {
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+  const body: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(responseError(response.status, body));
+  if (!body || typeof body !== "object") throw new Error("Figma returned a non-JSON body");
+  return body as Record<string, unknown>;
+}
+
+/**
+ * Versions newer than the mark, newest first, following `pagination.next_page`
+ * until the mark appears. With no mark, only the first page is read (the
+ * newest version is all a baseline needs).
+ */
+async function versionsSince(token: string, fileKey: string, mark: string | null): Promise<{ versions: FigmaVersion[]; foundMark: boolean }> {
+  const out: FigmaVersion[] = [];
+  let url: string | null = `${FIGMA}/files/${encodeURIComponent(fileKey)}/versions`;
+  for (let page = 0; url && page < MAX_VERSION_PAGES; page++) {
+    const body = await figmaGet(token, url);
+    if (!Array.isArray(body.versions)) throw new Error("Figma versions response did not contain a versions array");
+    for (const version of body.versions as Partial<FigmaVersion>[]) {
+      if (typeof version.id !== "string" || typeof version.created_at !== "string") continue;
+      if (mark && version.id === mark) return { versions: out, foundMark: true };
+      out.push(version as FigmaVersion);
+    }
+    if (!mark) break;
+    const next = (body.pagination as { next_page?: unknown } | undefined)?.next_page;
+    url = typeof next === "string" && next.startsWith(FIGMA) ? next : null;
+  }
+  return { versions: out, foundMark: mark === null };
+}
+
+/** Fetch the file at its current version and write its design nodes. */
+async function projectDesign(workspaceId: string, token: string, fileKey: string, versionId: string, eventId: string | null) {
+  const file = await figmaGet(token, `${FIGMA}/files/${encodeURIComponent(fileKey)}?depth=3`);
+  const sync = await syncFigmaDesign(admin(), workspaceId, fileKey, projectFigmaFile(fileKey, file, versionId), eventId);
+  return { fileName: typeof file.name === "string" ? file.name : null, sync };
 }
 
 async function pollFile(workspaceId: string, token: string, file: WatchedFile): Promise<FilePollResult> {
   const now = new Date().toISOString();
   try {
-    const response = await fetch(`https://api.figma.com/v1/files/${encodeURIComponent(file.file_key)}/versions`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
-    const body: unknown = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(responseError(response.status, body));
-    if (!body || typeof body !== "object" || !Array.isArray((body as { versions?: unknown }).versions)) {
-      throw new Error("Figma versions response did not contain a versions array");
-    }
-    const versions = (body as { versions: unknown[] }).versions.filter((version): version is FigmaVersion => {
-      if (!version || typeof version !== "object") return false;
-      const candidate = version as Partial<FigmaVersion>;
-      return typeof candidate.id === "string" && typeof candidate.created_at === "string";
-    });
-    if (!versions[0]) throw new Error("Figma returned no versions to use as a high-water mark");
+    const { versions, foundMark } = await versionsSince(token, file.file_key, file.last_seen_version_id);
 
-    if (!file.last_seen_version_id) {
+    if (!file.last_seen_version_id || !foundMark) {
+      if (!versions[0]) throw new Error("Figma returned no versions to use as a high-water mark");
+      // First poll, or the mark fell out of the history Figma still returns:
+      // baseline at the newest version rather than import (or loop over) history.
+      const design = await projectDesign(workspaceId, token, file.file_key, versions[0].id, null);
       const { error } = await admin().from("figma_watched_files").update({
         last_seen_version_id: versions[0].id,
+        file_name: design.fileName,
         last_polled_at: now,
         last_poll_error: null,
       }).eq("id", file.id).eq("workspace_id", workspaceId);
       if (error) throw new Error(`Could not baseline Figma file: ${error.message}`);
-      // Baseline deliberately avoids ingesting the file's entire existing history.
-      return { fileKey: file.file_key, status: "baselined", versionsIngested: 0, newestVersionId: versions[0].id };
+      return { fileKey: file.file_key, status: "baselined", versionsIngested: 0, newestVersionId: versions[0].id, design: design.sync };
     }
 
-    const newer: FigmaVersion[] = [];
-    let foundHighWaterMark = false;
-    for (const version of versions) {
-      if (version.id === file.last_seen_version_id) {
-        foundHighWaterMark = true;
-        break;
-      }
-      newer.push(version);
-    }
-    if (!foundHighWaterMark) {
-      throw new Error("Figma high-water mark was not found in the returned versions page");
-    }
-
+    const newer = versions;
     const receivedAt = new Date();
     const ingestedEventIds: string[] = [];
-    for (const version of newer.reverse()) {
+    for (const version of [...newer].reverse()) {
       const payload = {
         event_type: "FILE_VERSION_UPDATE",
         file_key: file.file_key,
@@ -165,8 +187,12 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
     }
 
     const newestVersionId = newer.length > 0 ? newer[0].id : file.last_seen_version_id;
+    const design = newer.length > 0
+      ? await projectDesign(workspaceId, token, file.file_key, newestVersionId, ingestedEventIds[ingestedEventIds.length - 1] ?? null)
+      : null;
     const { error } = await admin().from("figma_watched_files").update({
       last_seen_version_id: newestVersionId,
+      ...(design ? { file_name: design.fileName } : {}),
       last_polled_at: now,
       last_poll_error: null,
     }).eq("id", file.id).eq("workspace_id", workspaceId);
@@ -189,6 +215,7 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
       status: newer.length > 0 ? "ingested" : "up_to_date",
       versionsIngested: newer.length,
       newestVersionId,
+      ...(design ? { design: design.sync } : {}),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Figma polling failed";

@@ -13,6 +13,7 @@
  */
 import { asRecord, text } from "./common";
 import { extractCriteria } from "./criteria";
+import { figmaRefsIn } from "./figma-design";
 
 export const NFR_LABEL = "nfr";
 
@@ -90,10 +91,11 @@ export function jiraIssueSync(
   }
 
   const extracted = extractCriteria(body, criteriaField);
+  const figmaRefs = "description" in fields ? figmaRefsIn(`${summary ?? ""}\n${plainText(fields.description)}`) : undefined;
   return {
     ...common,
     kind,
-    payload: { key, summary, text: summary, status, statusCategory, url },
+    payload: { key, summary, text: summary, status, statusCategory, url, ...(figmaRefs ? { figmaRefs } : {}) },
     criteria: extracted && {
       texts: extracted.texts,
       source: extracted.source,

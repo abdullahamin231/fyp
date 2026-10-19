@@ -21,6 +21,8 @@ import { extractJiraKeys } from "@unify/contracts";
 import { asRecord, text } from "./common";
 import { guessCategory, jiraIssueSync } from "./jira-issue";
 import { pullRequestCommits, type GithubCommit } from "./github";
+import type { FigmaRef } from "./figma-design";
+import { linkFigmaRefs, watchReferencedFiles } from "./figma-sync";
 import { getProviderToken } from "./tokens";
 
 /** Project prefixes of the tickets this workspace already has, e.g. ["UNI"]. */
@@ -43,6 +45,7 @@ export type TicketResult = {
   key: string;
   relinked: number;
   criteria: { created: string[]; changed: string[]; unchanged: string[]; retired: string[]; jobIds: string[] } | null;
+  figma: { watched: string[]; designLinks: number };
 };
 
 /**
@@ -71,7 +74,10 @@ export async function ingestJiraIssue(
   const result = data as { kind: "ticket" | "nfr"; nodeId?: string; skipped?: boolean; criteria?: TicketResult["criteria"] };
   if (result.skipped || !result.nodeId) return null;
   const relinked = result.kind === "ticket" ? await relinkUnknownKey(db, workspaceId, issue.key, result.nodeId) : 0;
-  return { kind: result.kind, nodeId: result.nodeId, key: issue.key, relinked, criteria: result.criteria ?? null };
+  const refs = (issue.payload.figmaRefs as FigmaRef[] | undefined) ?? [];
+  const watched = refs.length ? await watchReferencedFiles(db, workspaceId, refs) : [];
+  const designLinks = refs.length ? await linkFigmaRefs(db, workspaceId) : 0;
+  return { kind: result.kind, nodeId: result.nodeId, key: issue.key, relinked, criteria: result.criteria ?? null, figma: { watched, designLinks } };
 }
 
 /**
