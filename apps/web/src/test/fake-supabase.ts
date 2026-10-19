@@ -5,7 +5,7 @@
  * observable effect of a query function).
  *
  * Supported: select (column list ignored, `{ count, head }` honoured), eq, neq,
- * in, is, gte, lte, ilike, or (comma-joined `col.op.value` terms with op
+ * in, is, gte, lte, like, ilike, or (comma-joined `col.op.value` terms with op
  * in/eq/ilike), order, limit, range, maybeSingle, single, insert, update,
  * delete, upsert, rpc, auth.getUser.
  */
@@ -31,14 +31,14 @@ export interface FakeOptions {
   errors?: Record<string, string>;
 }
 
-function ilikeMatch(value: unknown, pattern: string): boolean {
+function ilikeMatch(value: unknown, pattern: string, flags = "is"): boolean {
   if (value === null || value === undefined) return false;
   const re = new RegExp(
     `^${pattern
       .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
       .replace(/%/g, ".*")
       .replace(/_/g, ".")}$`,
-    "is",
+    flags,
   );
   return re.test(typeof value === "string" ? value : JSON.stringify(value));
 }
@@ -180,6 +180,7 @@ export function fakeSupabase(options: FakeOptions = {}) {
       lte: (c: string, v: string | number) =>
         add(c, "lte", v, (r) => String(readPath(r, c)) <= String(v)),
       ilike: (c: string, v: string) => add(c, "ilike", v, (r) => ilikeMatch(readPath(r, c), v)),
+      like: (c: string, v: string) => add(c, "like", v, (r) => ilikeMatch(readPath(r, c), v, "s")),
       or(expression: string) {
         const terms = expression.split(/,(?![^(]*\))/).map(orTerm);
         return add("or", "or", expression, (r) => terms.some((t) => t(r)));

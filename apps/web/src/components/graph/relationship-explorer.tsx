@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { createManualLinkAction } from "@/lib/actions/links";
 import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
 import { Panel } from "@xyflow/react";
@@ -100,7 +101,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
     }
   }
 
-  function handleNodeClick(node: ExplorerNode) {
+  async function handleNodeClick(node: ExplorerNode) {
     if (!linkMode) {
       setSelectedId(node.id);
       return;
@@ -125,6 +126,13 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
       return;
     }
     const source = graph.nodes.find((entry) => entry.id === linkSource);
+    setNotice(`Saving link ${source?.label ?? linkSource} → ${node.label}…`);
+    const result = await createManualLinkAction(linkSource, node.id);
+    if (!result.ok) {
+      setNotice(`Link not saved: ${result.error}`);
+      setLinkSource(null);
+      return;
+    }
     setEdges((previous) => [
       ...previous,
       {
@@ -135,13 +143,10 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
         eligibility: "confirmed",
         confidence: 1,
         provenance: "manual",
-        // DATA HOLE — set to the signed-in user's display name once the session API exists.
-        confirmedBy: undefined,
+        confirmedBy: result.confirmedBy,
       },
     ]);
-    setNotice(
-      `Manual link recorded: ${source?.label ?? linkSource} → ${node.label} · reversible, provenance attached.`,
-    );
+    setNotice(`Link saved: ${source?.label ?? linkSource} → ${node.label}, confirmed by ${result.confirmedBy}.`);
     setLinkSource(null);
     setLinkMode(false);
   }
@@ -304,7 +309,7 @@ export function RelationshipExplorer({ graph }: { graph: ExplorerGraph }) {
               return;
             }
             const node = graph.nodes.find((entry) => entry.id === id);
-            if (node) handleNodeClick(node);
+            if (node) void handleNodeClick(node);
           }}
         >
           <Panel position="top-left">

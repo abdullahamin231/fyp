@@ -20,9 +20,9 @@ import { guessArtifact, linkToRecord, type ProvenanceRecord } from "./present";
  * moves optimistically so the queue feels immediate; if the write is refused,
  * the suggestion comes back and the refusal is shown rather than lost.
  *
- * The manual-link wizard is still local-only: it drafts a link from free-text
- * endpoints, and persisting one needs the analyser's node resolution (Slice D),
- * so a draft here is a draft, not a stored edge.
+ * The manual-link wizard resolves each free-text endpoint to one graph node on
+ * the server and writes a reviewer-confirmed edge; only a saved link is added
+ * to the directory.
  */
 export function LinkManager({
   initialLinks,
@@ -129,29 +129,27 @@ export function LinkManager({
     );
   }
 
-  function establish(draft: LinkDraft) {
+  function establish(draft: LinkDraft, confirmedBy: string) {
     const id = `LNK-${sequence.current}`;
     sequence.current += 1;
     const sourceArtifact = guessArtifact(draft.source);
     const targetArtifact = guessArtifact(draft.target);
-    // Local draft only: it renders in the directory for review, but the edge is
-    // not written. Persisting it needs the analyser's node resolution (Slice D),
-    // so it stays `unconfirmed` rather than pretending to be a stored link.
     setLinks((prev) => [
       {
         id,
         source: {
           tool: sourceArtifact.tool,
-          label: `${sourceArtifact.kind} · draft, not saved`,
+          label: sourceArtifact.kind,
           ref: draft.source,
         },
         target: {
           tool: targetArtifact.tool,
-          label: `${targetArtifact.kind} · draft, not saved`,
+          label: targetArtifact.kind,
           ref: draft.target,
         },
         relation: draft.relation,
-        eligibility: "unconfirmed",
+        eligibility: "confirmed",
+        confirmedBy,
         confidence: 1,
         provenance: "manual",
         changedAt: new Date().toISOString(),

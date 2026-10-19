@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { createManualLinkByRefAction } from "@/lib/actions/links";
 import { Icon } from "@/components/ui/icon";
 import { RELATIONS, guessArtifact, relationMeta, toolIcon, type Relation } from "./present";
 
@@ -19,11 +20,6 @@ function PreviewCard({
 }: {
   value: string;
   placeholder: string;
-  /**
-   * DATA HOLE — workspace/branch context and last-modified attribution come
-   * from the artifact API once a node resolves; both render as an em dash
-   * until then.
-   */
   meta?: string;
   footer?: string;
 }) {
@@ -36,7 +32,7 @@ function PreviewCard({
           {artifact.kind}
         </span>
         <span className="font-mono-code text-micro-label text-muted">
-          {value.trim() ? "Resolved node" : "Awaiting input"}
+          {value.trim() ? "Resolved on save" : "Awaiting input"}
         </span>
       </div>
       <div className="font-body-md text-body-md font-semibold text-on-surface truncate">
@@ -51,12 +47,12 @@ function PreviewCard({
   );
 }
 
-export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) => void }) {
-  /**
-   * DATA HOLE — the wizard starts empty.
-   * Source/target are supplied by the user (or, later, preselected from the
-   * graph API); nothing is prefilled until then.
-   */
+export function LinkWizard({
+  onEstablish,
+}: {
+  onEstablish: (draft: LinkDraft, confirmedBy: string) => void;
+}) {
+  const [pending, startTransition] = useTransition();
   const [source, setSource] = useState("");
   const [target, setTarget] = useState("");
   const [relation, setRelation] = useState<Relation>("IMPLEMENTS");
@@ -68,11 +64,16 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
       setStatus({ tone: "warn", text: "Define both source and target artifacts before linking." });
       return;
     }
-    onEstablish({ source: source.trim(), target: target.trim(), relation, notes: notes.trim() });
-    setNotes("");
-    setStatus({
-      tone: "ok",
-      text: "Link committed to the live knowledge graph with manual provenance.",
+    const draft = { source: source.trim(), target: target.trim(), relation, notes: notes.trim() };
+    startTransition(async () => {
+      const result = await createManualLinkByRefAction(draft.source, draft.target, draft.relation, draft.notes);
+      if (!result.ok) {
+        setStatus({ tone: "warn", text: result.error ?? "The link was not saved." });
+        return;
+      }
+      onEstablish(draft, result.confirmedBy ?? "you");
+      setNotes("");
+      setStatus({ tone: "ok", text: `Link saved and confirmed by ${result.confirmedBy}.` });
     });
   }
 
@@ -241,6 +242,7 @@ export function LinkWizard({ onEstablish }: { onEstablish: (draft: LinkDraft) =>
           <button
             type="button"
             onClick={establish}
+            disabled={pending}
             className="flex items-center gap-2 px-4 py-2 rounded bg-secondary text-on-secondary hover:bg-secondary/90 transition-all font-body-sm font-semibold shadow-md shadow-secondary/20"
           >
             <Icon name="link" className="text-[18px]" />
