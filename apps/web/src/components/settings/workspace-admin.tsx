@@ -4,113 +4,19 @@ import { useState, type ReactNode } from "react";
 import { Icon } from "@/components/ui/icon";
 import { IntegrationConnections } from "@/components/settings/integration-connections";
 import { MembersRbac } from "@/components/settings/members-rbac";
-import { WorkflowStateMap } from "@/components/settings/workflow-state-map";
 
-type TabId = "sources" | "members" | "workflow" | "retention" | "danger";
+type TabId = "sources" | "members" | "danger";
 
 const tabs: {
   id: TabId;
   label: string;
   icon: string;
-  count?: string;
-  dot?: boolean;
   danger?: boolean;
 }[] = [
   { id: "sources", label: "Connected Sources", icon: "hub" },
   { id: "members", label: "Members & RBAC", icon: "badge" },
-  { id: "workflow", label: "Workflow State Map", icon: "account_tree" },
-  { id: "retention", label: "Data Retention & Audit", icon: "policy", dot: true },
   { id: "danger", label: "Danger Zone", icon: "warning", danger: true },
 ];
-
-const retentionRows = [
-  { icon: "storage", label: "Raw Payload Retention", value: "30 Days (Purge)", valueClass: "" },
-  { icon: "cloud_upload", label: "Graph Conflict History", value: "365 Days", valueClass: "" },
-  {
-    icon: "visibility_off",
-    label: "PII Masking Engine",
-    value: "Enabled (Regex)",
-    valueClass: "text-secondary bg-secondary/10",
-  },
-];
-
-type AuditExport = { icon: string; label: string; meta?: string };
-
-/** DATA HOLE — last-export timestamps come from the audit API. */
-const auditExports: AuditExport[] = [
-  { icon: "fact_check", label: "Immutable audit trail", meta: "append-only · SHA-256 chained" },
-  { icon: "download", label: "Conflict evidence packet (CSV)", meta: "per-finding citations" },
-  { icon: "verified", label: "Compliance Audit (SOC2/ISO)" },
-];
-
-function RetentionAudit() {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-gutter items-start">
-      <section className="p-stack-comfortable rounded-lg bg-surface-container shadow-md flex flex-col gap-stack-comfortable">
-        <div className="flex items-center justify-between pb-1">
-          <div className="flex items-center gap-2">
-            <Icon name="auto_delete" className="text-tertiary text-[20px]" />
-            <span className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-              Retention &amp; Sanitation
-            </span>
-          </div>
-          <button className="px-2 py-0.5 rounded hover:bg-surface-container-high text-primary font-mono-code text-body-sm">
-            Edit
-          </button>
-        </div>
-        <div className="flex flex-col gap-2 font-mono-code text-body-sm">
-          {retentionRows.map((row) => (
-            <div
-              key={row.label}
-              className="flex items-center justify-between p-2 rounded bg-surface-container-lowest"
-            >
-              <div className="flex items-center gap-2 text-on-surface-variant">
-                <Icon name={row.icon} className="text-[16px] text-muted" />
-                <span>{row.label}</span>
-              </div>
-              <span
-                className={`text-on-surface font-semibold bg-surface-container px-2 py-0.5 rounded ${row.valueClass}`}
-              >
-                {row.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="p-stack-comfortable rounded-lg bg-surface-container shadow-md flex flex-col gap-stack-comfortable">
-        <div className="flex items-center justify-between pb-1">
-          <div className="flex items-center gap-2">
-            <Icon name="download" className="text-primary text-[20px]" />
-            <span className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-              Audit Exports
-            </span>
-          </div>
-          <span className="px-2 py-0.5 rounded bg-surface-container-high text-muted text-micro-label font-mono-code">
-            Retention: 365d
-          </span>
-        </div>
-        <div className="flex flex-col gap-2">
-          {auditExports.map((item) => (
-            <button
-              key={item.label}
-              className="flex items-center justify-between p-3 rounded bg-surface-container-lowest hover:bg-surface-container-high transition-colors text-left"
-            >
-              <span className="flex items-center gap-2.5 text-body-sm text-on-surface font-medium">
-                <Icon name={item.icon} className="text-[18px] text-primary" />
-                {item.label}
-              </span>
-              <span className="font-mono-code text-micro-label text-muted flex items-center gap-1">
-                {item.meta}
-                <Icon name="arrow_forward" className="text-[14px]" />
-              </span>
-            </button>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
-}
 
 const dangerActions = [
   {
@@ -225,18 +131,6 @@ export function WorkspaceAdmin({ telemetry }: { telemetry: ReactNode }) {
             >
               <Icon name={tab.icon} className="text-[18px]" />
               <span>{tab.label}</span>
-              {tab.count ? (
-                <span
-                  className={`px-1.5 py-0.2 rounded text-micro-label font-mono-code ${
-                    isActive
-                      ? "bg-surface-container-lowest text-on-surface"
-                      : "bg-surface-container text-muted"
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              ) : null}
-              {tab.dot ? <span className="w-2 h-2 rounded-full bg-secondary" /> : null}
             </button>
           );
         })}
@@ -249,8 +143,6 @@ export function WorkspaceAdmin({ telemetry }: { telemetry: ReactNode }) {
         </div>
       ) : null}
       {active === "members" ? <MembersRbac /> : null}
-      {active === "workflow" ? <WorkflowStateMap /> : null}
-      {active === "retention" ? <RetentionAudit /> : null}
       {active === "danger" ? <DangerZone /> : null}
     </>
   );

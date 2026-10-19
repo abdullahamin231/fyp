@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import { Badge } from "@/components/ui/badge";
 import type { Policy, PolicyId, Severity } from "@/lib/types";
@@ -716,13 +715,6 @@ function PolicyEditor({
           >
             Discard Changes
           </button>
-          <Link
-            href="/policies/simulation"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded bg-surface-container-high hover:bg-surface-container-highest text-secondary font-body-sm text-body-sm font-semibold transition-colors"
-          >
-            <Icon name="science" className="text-[16px]" />
-            <span>Preview on Historical Events</span>
-          </Link>
           <button
             type="button"
             onClick={() => {
@@ -877,25 +869,6 @@ export function PolicyWorkbench() {
           }
         />
 
-        {/* Simulation insight ribbon */}
-        <div className="p-4 rounded-xl bg-surface-container flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
-              <Icon name="verified" className="text-[18px]" />
-            </div>
-            <div>
-              <span className="font-headline-sm text-body-sm font-semibold text-on-surface">
-                Offline Replay Test
-              </span>
-            </div>
-          </div>
-          <Link
-            href="/policies/simulation"
-            className="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-mono-code text-[12px] transition-colors shrink-0"
-          >
-            Inspect Replay Log
-          </Link>
-        </div>
         </>
         ) : (
           <div className="rounded-xl border border-dashed border-outline-variant p-10 text-center">

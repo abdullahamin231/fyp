@@ -12,16 +12,7 @@ export const metadata: Metadata = {
 
 export default function PoliciesPage() {
   return (
-    <AppShell
-      action={
-        <Link
-          href="/policies/simulation"
-          className="bg-primary text-on-primary px-4 py-1.5 rounded-lg font-bold text-body-sm hover:opacity-90 active:scale-95 transition-all"
-        >
-          Open Test Lab
-        </Link>
-      }
-    >
+    <AppShell>
       {/* Top ambient glow & title section */}
       <div className="relative overflow-hidden pt-2">
         <div className="absolute -top-12 -left-12 w-96 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
@@ -40,13 +31,6 @@ export default function PoliciesPage() {
               <Icon name="history_edu" className="text-[18px]" />
               <span>Global Audit</span>
             </Link>
-            <button
-              type="button"
-              className="flex items-center gap-2 px-4 py-2 rounded bg-primary-container hover:bg-primary-container/90 text-on-primary-container font-body-sm text-body-sm font-semibold transition-all shadow-md active:scale-95"
-            >
-              <Icon name="add" className="text-[18px]" />
-              <span>Create New Policy</span>
-            </button>
           </div>
         </div>
       </div>
