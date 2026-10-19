@@ -35,6 +35,20 @@ provider signature/passcode, persists an immutable delivery receipt, and
 upserts normalized rows into `events`. Duplicate deliveries are safe because
 both the receipt and event have database uniqueness constraints.
 
+New event IDs include the workspace UUID. The same vendor delivery can reach
+several workspaces without sharing an event row; replays of legacy deliveries
+keep their stored IDs so snapshot and checkpoint references remain valid.
+
+Jira ingestion compares the incoming issue version as a timestamp with the
+current Ticket or Requirement. An older delivery is recorded but cannot
+restore old criteria or undo an NFR relabelling.
+
+Verification jobs pin the criterion's version and text as well as the commit
+pair. A criteria edit queues new work even when an earlier revision is running.
+The worker publishes its verdict, finding, supersession and successful job state
+in one transaction under the criterion lock. A changed or retired criterion
+cancels obsolete work while preserving its packet and pass logs.
+
 Supported event mapping:
 
 - GitHub: `pull_request` and `push`; PR payloads preserve repository identity,

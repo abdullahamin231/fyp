@@ -1,4 +1,5 @@
 import { admin } from "@/lib/supabase/admin";
+import { upsertNormalizedEvents } from "./events";
 import { figmaAdapter } from "./adapters";
 import { rawHash } from "./common";
 import { recordCheckpoint } from "./checkpoints";
@@ -153,7 +154,8 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
         description: version.description ?? null,
       };
       // Polling calls Figma directly, so there is no inbound request to verify.
-      const events = figmaAdapter.normalise(payload, receivedAt, new Headers());
+      const events = await upsertNormalizedEvents(admin(), workspaceId, "figma",
+        figmaAdapter.normalise(payload, receivedAt, new Headers()), rawHash(Buffer.from(JSON.stringify(payload))));
       const event = events[0];
       await persistDelivery({
         workspaceId,
@@ -164,25 +166,6 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
       });
       if (event) {
         ingestedEventIds.push(event.eventId);
-        const { error } = await admin().from("events").upsert({
-          event_id: event.eventId,
-          vendor_delivery_id: event.vendorDeliveryId,
-          workspace_id: workspaceId,
-          source_tool: "figma",
-          entity_type: event.entityType,
-          entity_id: event.entityId,
-          version: event.version,
-          action: event.action,
-          state_before: event.stateBefore,
-          state_after: event.stateAfter,
-          actor: event.actor,
-          occurred_at: event.occurredAt,
-          received_at: event.receivedAt,
-          references: event.references,
-          raw_hash: rawHash(Buffer.from(JSON.stringify(payload))),
-          schema_version: 1,
-        }, { onConflict: "event_id", ignoreDuplicates: true });
-        if (error) throw new Error(`Could not persist normalized Figma event: ${error.message}`);
       }
     }
 

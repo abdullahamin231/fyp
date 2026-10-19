@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { admin } from "@/lib/supabase/admin";
 import { asRecord, text } from "./common";
+import { githubDeliveryEventId } from "./events";
 import { openPullRequests } from "./github";
 import { processPullRequestDelivery, type PullRequestOutcome } from "./pipeline";
 import { persistDelivery } from "./server";
@@ -53,7 +54,7 @@ export async function reconcileGithubWorkspace(
         const payload = { action: "synchronize", number, pull_request: pr, repository: { full_name: repo }, sender: { login: "unify-reconcile" } };
         const deliveryId = `reconcile:${repo}#${number}@${head}`;
         const body = JSON.stringify(payload);
-        await persistDelivery({ workspaceId, provider: "github", deliveryId, eventId: `github:${deliveryId}`, payload });
+        await persistDelivery({ workspaceId, provider: "github", deliveryId, eventId: await githubDeliveryEventId(db, workspaceId, deliveryId), payload });
         const outcome = await processPullRequestDelivery(db, {
           workspaceId,
           deliveryId,

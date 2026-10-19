@@ -19,7 +19,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { extractJiraKeys } from "@unify/contracts";
 import { asRecord, text } from "./common";
-import type { NormalizedIntegrationEvent } from "./types";
 import { guessCategory, jiraIssueSync } from "./jira-issue";
 import { pullRequestCommits, type GithubCommit } from "./github";
 import type { FigmaRef } from "./figma-design";
@@ -36,38 +35,7 @@ async function workspaceProjectKeys(db: SupabaseClient, workspaceId: string): Pr
   return prefixes.size ? [...prefixes] : null;
 }
 
-/** Normalised provider events, recorded once per (workspace, provider, delivery). */
-export async function upsertNormalizedEvents(
-  db: SupabaseClient,
-  workspaceId: string,
-  provider: string,
-  events: NormalizedIntegrationEvent[],
-  hash: string,
-): Promise<void> {
-  if (events.length === 0) return;
-  const { error } = await db.from("events").upsert(
-    events.map((event) => ({
-      event_id: event.eventId,
-      vendor_delivery_id: event.vendorDeliveryId,
-      workspace_id: workspaceId,
-      source_tool: provider,
-      entity_type: event.entityType,
-      entity_id: event.entityId,
-      version: event.version,
-      action: event.action,
-      state_before: event.stateBefore,
-      state_after: event.stateAfter,
-      actor: event.actor,
-      occurred_at: event.occurredAt,
-      received_at: event.receivedAt,
-      references: event.references,
-      raw_hash: hash,
-      schema_version: 1,
-    })),
-    { onConflict: "event_id", ignoreDuplicates: true },
-  );
-  if (error) throw new Error(`Could not persist normalized event: ${error.message}`);
-}
+export { upsertNormalizedEvents } from "./events";
 
 // ---------------------------------------------------------------------------
 // Jira -> Ticket node

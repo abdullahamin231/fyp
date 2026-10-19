@@ -11,6 +11,7 @@ import {
   processPullRequestDelivery,
   upsertNormalizedEvents,
 } from "@/lib/integrations/pipeline";
+import { githubDeliveryEventId } from "@/lib/integrations/events";
 import { admin } from "@/lib/supabase/admin";
 
 const MAX_BODY_BYTES = 10 * 1024 * 1024;
@@ -27,25 +28,30 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
     adapter.verify(rawBody, headers, secret);
     const payload = JSON.parse(rawBody.toString("utf8")) as Record<string, unknown>;
     const receivedAt = new Date();
-    const events = adapter.normalise(payload, receivedAt, headers);
+    const db = admin();
+    let events = adapter.normalise(payload, receivedAt, headers);
     const deliveryId = events[0]?.vendorDeliveryId
       ?? headers.get("x-github-delivery")
       ?? headers.get("x-atlassian-webhook-identifier")
       ?? `${rawProvider}:${rawHash(rawBody)}`;
-    const firstEvent = events[0];
+    let firstEvent = events[0];
     // A GitHub pull-request event is recorded by the linker itself (one
     // transaction: event, PR node, TRACKS edges), so the plain insert below is
     // skipped for it. Inserting it here first would make the linker see its own
     // delivery as a duplicate and link nothing.
     const isPullRequest = rawProvider === "github" && firstEvent?.entityType === "pull_request";
+    if (!isPullRequest) {
+      events = await upsertNormalizedEvents(db, workspaceId, rawProvider, events, rawHash(rawBody));
+      firstEvent = events[0];
+    }
+    const githubEventId = isPullRequest ? await githubDeliveryEventId(db, workspaceId, deliveryId) : null;
     await persistDelivery({
       workspaceId,
       provider: rawProvider,
       deliveryId,
-      eventId: isPullRequest ? `github:${deliveryId}` : (firstEvent?.eventId ?? null),
+      eventId: isPullRequest ? githubEventId : (firstEvent?.eventId ?? null),
       payload,
     });
-    const db = admin();
     const pipeline: Record<string, unknown> = {};
     if (isPullRequest) {
       Object.assign(pipeline, await processPullRequestDelivery(db, { workspaceId, deliveryId, payload, rawHash: rawHash(rawBody), receivedAt }));
@@ -53,11 +59,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
         workspaceId,
         provider: rawProvider,
         resource: { provider: "github", repositoryFullName: text(asRecord(payload.repository).full_name) ?? "" },
-        eventId: `github:${deliveryId}`,
+        eventId: githubEventId!,
         eventTime: firstEvent!.occurredAt,
       });
-    } else if (events.length > 0) {
-      await upsertNormalizedEvents(db, workspaceId, rawProvider, events, rawHash(rawBody));
     }
     if (rawProvider === "jira" && firstEvent) {
       const ticket = await ingestJiraIssue(

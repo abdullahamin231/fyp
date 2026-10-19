@@ -144,6 +144,7 @@ const CRITERION: CriterionInfo = {
   workspaceId: "ws-1",
   externalId: "UNI-7/AC-1",
   text: "The checkout total includes the discount.",
+  version: null,
   requirementRef: "UNI-7",
   ruleApplicable: true,
   policyId: null,

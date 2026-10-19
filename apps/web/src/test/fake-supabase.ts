@@ -81,6 +81,8 @@ export function fakeSupabase(options: FakeOptions = {}) {
     let countMode = false;
     let head = false;
     let columns: string | undefined;
+    let conflictColumns: string[] = [];
+    let ignoreDuplicates = false;
 
     const add = (column: string, kind: string, value: unknown, predicate: Predicate) => {
       filters.push({ column, op: kind, value });
@@ -107,8 +109,19 @@ export function fakeSupabase(options: FakeOptions = {}) {
 
       if (op === "insert" || op === "upsert") {
         const list = (Array.isArray(payload) ? payload : [payload]) as Row[];
-        const inserted = list.map((r) => ({ id: `${table}-${rows.length + 1}`, ...r }));
-        rows.push(...inserted);
+        const inserted: Row[] = [];
+        for (const row of list) {
+          const existing = op === "upsert" && conflictColumns.length > 0
+            ? rows.find((candidate) => conflictColumns.every((column) => candidate[column] === row[column]))
+            : undefined;
+          if (existing) {
+            if (!ignoreDuplicates) { Object.assign(existing, row); inserted.push(existing); }
+          } else {
+            const added = { id: `${table}-${rows.length + 1}`, ...row };
+            rows.push(added);
+            inserted.push(added);
+          }
+        }
         return finish(inserted);
       }
       if (op === "update") {
@@ -157,9 +170,11 @@ export function fakeSupabase(options: FakeOptions = {}) {
         payload = value;
         return api;
       },
-      upsert(value: unknown) {
+      upsert(value: unknown, opts?: { onConflict?: string; ignoreDuplicates?: boolean }) {
         op = "upsert";
         payload = value;
+        conflictColumns = opts?.onConflict?.split(",") ?? [];
+        ignoreDuplicates = opts?.ignoreDuplicates ?? false;
         return api;
       },
       update(value: unknown) {

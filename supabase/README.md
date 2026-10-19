@@ -38,10 +38,33 @@ the remote project (applied via the Supabase MCP `apply_migration`). Order:
 | `00024_workspace_invitations.sql` | `workspace_invitations` table + `invite_to_workspace` / `accept_workspace_invitation` / `decline_workspace_invitation` RPCs |
 | `00025_ingestion_pipeline.sql` | `integration_apps.criteria_field` and `analysis_targets` |
 | `00026_figma_watched_files_converge.sql` | Brings a fresh database's `figma_watched_files` to the live shape |
+| `00035_events_delivery_per_workspace.sql` | Vendor delivery uniqueness scoped to a workspace |
+| `00036_ingest_jira_issue.sql` | Jira criteria lifecycle, NFR ingestion and re-verification |
+| `00037_workspace_event_identity.sql` | Workspace-scoped GitHub event IDs; preserves legacy event identities on replay |
+| `00038_jira_version_order.sql` | Rejects Jira deliveries older than the issue already stored |
+| `00039_verification_criterion_revision.sql` | Pins verification work to criterion version/text; publishes results atomically |
 
 The live project applied these by hand under timestamped versions, so the file
 numbers only govern fresh setups. `apps/worker/test/migrations.test.ts` applies
 the whole chain in order on an empty Postgres and fails on a reused version.
+
+### Deploying 00037–00039 to the existing live project
+
+The live project already has 00026, 00035 and 00036. These follow-up migrations
+do not modify those applied files or rewrite immutable event history.
+
+1. Stop the worker: `sudo systemctl stop unify-worker`.
+2. Apply **00037, 00038, then 00039** using the SQL editor or `psql -f`, each
+   migration in a transaction. Do not use `supabase db push`: the live history
+   uses timestamped versions and would attempt to replay the earlier chain.
+3. Deploy the updated web app and start the updated worker:
+   `sudo systemctl start unify-worker`. Check `systemctl status unify-worker`
+   and `journalctl -u unify-worker` for startup/job errors.
+
+00039 replaces any jobs left running by the old worker with queued jobs pinned
+to the current criterion. Queued jobs adopt the current revision; finished
+jobs, packets, passes and verdicts remain historical records. The new worker
+requires 00039's columns and `complete_verification_job` RPC before it starts.
 
 Schema highlights:
 

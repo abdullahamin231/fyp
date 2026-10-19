@@ -87,11 +87,12 @@ export async function reconcileJiraWorkspace(
     const receivedAt = deps.now?.() ?? new Date();
     const payload = { webhookEvent: "jira:issue_updated", timestamp: Date.parse(updated) || receivedAt.getTime(), issue, user: { displayName: "unify-reconcile" } };
     const deliveryId = `reconcile:${key}@${updated}`;
-    const events = jiraAdapter.normalise(payload, receivedAt, new Headers({ "x-atlassian-webhook-identifier": deliveryId }));
+    const events = await upsertNormalizedEvents(db, workspaceId, "jira",
+      jiraAdapter.normalise(payload, receivedAt, new Headers({ "x-atlassian-webhook-identifier": deliveryId })),
+      createHash("sha256").update(JSON.stringify(payload)).digest("hex"));
     const event = events[0];
     if (!event) continue;
     await persistDelivery({ workspaceId, provider: "jira", deliveryId, eventId: event.eventId, payload });
-    await upsertNormalizedEvents(db, workspaceId, "jira", events, createHash("sha256").update(JSON.stringify(payload)).digest("hex"));
     const result = await ingestJiraIssue(db, workspaceId, event.eventId, payload, criteriaField, event.occurredAt);
     if (result?.kind === "ticket") await evaluateWorkflowRule(db, result.nodeId);
     replayed.push({ key, updated, result });

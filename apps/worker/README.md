@@ -20,12 +20,21 @@ claim_verification_job ── FOR UPDATE SKIP LOCKED, attempts ≤ 3
         └── persist → context_packets, verifier_passes, verdicts, findings
                 │
                 ▼
-        finish_verification_job (succeeded | failed)
+        complete_verification_job (succeeded | cancelled)
+        finish_verification_job   (failed | cancelled before execution)
 ```
 
 Everything the loop produces is recorded per pass in `verifier_passes`, so a
 reviewer can re-read *why* a verdict stopped where it did — and the stored
 verdict is only ever written by `gate()`, never by the model directly.
+
+Jobs pin the criterion's version/text in addition to the base/head pair. An
+edit queues a distinct job, including while an older one is running. Completion
+locks the criterion and atomically writes the gated verdict, its finding,
+supersession and successful job state. An obsolete or retired criterion cancels
+the run without publishing a verdict; its packet and passes remain readable.
+Apply migration 00039 before starting this worker; see the
+[deployment order](../../supabase/README.md#deploying-0003700039-to-the-existing-live-project).
 
 ## Evidence graph walk bound
 

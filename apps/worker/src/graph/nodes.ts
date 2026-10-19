@@ -12,6 +12,7 @@ export interface CriterionInfo {
   workspaceId: string;
   externalId: string;
   text: string;
+  version: string | null;
   requirementRef: string | null;
   ruleApplicable: boolean;
   /** Deterministic rule governing this criterion, when it has one. */
@@ -56,6 +57,7 @@ export async function loadCriterion(
     workspaceId: row.workspace_id,
     externalId: row.external_id,
     text: payload.text,
+    version: row.version,
     requirementRef: typeof payload.requirementRef === "string" ? payload.requirementRef : null,
     ruleApplicable: payload.ruleApplicable !== false,
     policyId: typeof payload.policyId === "string" ? payload.policyId : null,
