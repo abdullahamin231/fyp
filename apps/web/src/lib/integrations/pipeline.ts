@@ -165,7 +165,7 @@ export async function upsertCriteriaFromJira(
   criteriaField: string | null,
   occurredAt: string,
 ): Promise<CriteriaResult> {
-  const { texts, source } = extractCriteria(payload, criteriaField);
+  const { texts, source } = extractCriteria(payload, criteriaField) ?? { texts: [], source: null };
   const externalIds = criterionExternalIds(ticketKey, texts.length);
   if (externalIds.length === 0) return { created: 0, criterionNodeIds: [], externalIds };
 
