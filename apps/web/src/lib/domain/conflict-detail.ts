@@ -504,7 +504,7 @@ export function auditTrailFor(finding: Finding, activity: ActivityEvent[]): Audi
       title: `Finding marked ${finding.status}`,
       detail: last
         ? last.detail
-        : `Recorded by ${finding.assignedTo[0] ?? "unify-rules"} in the immutable ledger.`,
+        : `Recorded by ${finding.assignedTo[0] ?? "unify-rules"} in the audit log.`,
     });
   }
 

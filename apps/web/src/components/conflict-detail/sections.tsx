@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import { ToolPill } from "@/components/ui/badge";
 import { AffectedArtifactCard } from "@/components/conflict-detail/artifact-card";
@@ -458,7 +459,7 @@ export function AuditTrailSection({
             <Icon name="history" className="text-primary text-[22px]" />
             <h2 className="font-headline-sm text-headline-sm text-on-surface">Audit Trail</h2>
           </div>
-          <span className="font-mono-code text-muted text-micro-label">Immutable ledger</span>
+          <span className="font-mono-code text-muted text-micro-label">Append-only ledger</span>
         </div>
         <div className="space-y-stack-comfortable relative pl-4 border-l-2 border-surface-container-highest">
           {entries.map((entry) => (
@@ -478,10 +479,10 @@ export function AuditTrailSection({
       </div>
       <div className="mt-gutter pt-stack-comfortable border-t border-surface-container-highest/60 flex items-center justify-between font-mono-code text-micro-label text-muted">
         <span>Packet SHA: {finding.id.toLowerCase()}</span>
-        <span className="text-primary flex items-center gap-1">
+        <Link href="/audit" className="text-primary flex items-center gap-1 hover:underline">
           <span>Full ledger</span>
           <Icon name="arrow_forward" className="text-[13px]" />
-        </span>
+        </Link>
       </div>
     </div>
   );

@@ -18,7 +18,8 @@ import {
 import { policyForFinding } from "@/lib/domain/policy-for-finding";
 import { formatUtcFull } from "@/lib/domain/conflict-detail";
 import { getFindingDetail } from "@/lib/data/queries";
-import type { ActivityEvent, FindingStatus, Severity, Verdict } from "@/lib/types";
+import { loadFindingTimeline } from "@/lib/data/audit";
+import type { FindingStatus, Severity, Verdict } from "@/lib/types";
 
 /**
  * Conflict detail — a server component over the RLS client.
@@ -27,9 +28,6 @@ import type { ActivityEvent, FindingStatus, Severity, Verdict } from "@/lib/type
  * evidence case: the screen below is driven entirely by those rows, so what a
  * reviewer reads here is what the worker actually stored, hash included.
  */
-
-/** Activity events for a finding — supplied by the activity feed. */
-const activity: ActivityEvent[] = [];
 
 const severityMeta: Record<Severity, { chip: string; tone: Tone; bar: string }> = {
   critical: { chip: "CRITICAL SEV-1", tone: "critical", bar: "bg-error" },
@@ -100,6 +98,7 @@ export default async function ConflictDetailPage({
   }
 
   const { finding, passes } = detail;
+  const activity = await loadFindingTimeline(finding.id);
   const policy = policyForFinding(finding);
   const severity = severityMeta[finding.severity];
   const verdict: Verdict = finding.verdict ?? "INSUFFICIENT_EVIDENCE";
