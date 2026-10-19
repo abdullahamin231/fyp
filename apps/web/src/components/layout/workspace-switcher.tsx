@@ -31,22 +31,25 @@ function writeActiveCookie(workspaceId: string) {
   document.cookie = `${COOKIE}=${encodeURIComponent(workspaceId)}; path=/; max-age=31536000; samesite=lax`;
 }
 
+export type Workspaces = {
+  memberships: Membership[];
+  active: Membership | null;
+  loaded: boolean;
+  switchTo: (workspaceId: string) => void;
+};
+
 /**
- * Top-bar workspace switcher. The user may belong to several workspaces (one
- * per team); the "active" choice is persisted in the `unify-workspace` cookie
- * so server components can scope to it later. Today the data pages read via
- * RLS across all memberships, so switching just records the choice and
- * refreshes the shell.
+ * The caller's workspaces and the "active" one. The choice is persisted in the
+ * `unify-workspace` cookie; the shell uses the active slug for the
+ * workspace-scoped settings links, and data pages read via RLS across all
+ * memberships.
  */
-export function WorkspaceSwitcher() {
+export function useWorkspaces(): Workspaces {
   const router = useRouter();
   const supabase = createClient();
-
-  const [open, setOpen] = useState(false);
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const rootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,6 +103,25 @@ export function WorkspaceSwitcher() {
     };
   }, [supabase]);
 
+  return {
+    memberships,
+    active: memberships.find((m) => m.workspaceId === activeId) ?? null,
+    loaded,
+    switchTo(workspaceId: string) {
+      setActiveId(workspaceId);
+      writeActiveCookie(workspaceId);
+      router.refresh();
+    },
+  };
+}
+
+/** Top-bar workspace switcher over `useWorkspaces()`. */
+export function WorkspaceSwitcher({ workspaces }: { workspaces: Workspaces }) {
+  const { memberships, active, loaded } = workspaces;
+  const activeId = active?.workspaceId ?? null;
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: MouseEvent) => {
@@ -117,13 +139,9 @@ export function WorkspaceSwitcher() {
   }, [open]);
 
   function switchTo(workspaceId: string) {
-    setActiveId(workspaceId);
-    writeActiveCookie(workspaceId);
     setOpen(false);
-    router.refresh();
+    workspaces.switchTo(workspaceId);
   }
-
-  const active = memberships.find((m) => m.workspaceId === activeId) ?? null;
 
   if (loaded && memberships.length === 0) {
     return (

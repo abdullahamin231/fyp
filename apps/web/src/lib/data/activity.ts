@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { ActivityEvent, ToolKind } from "@/lib/types";
+import { selectInChunks } from "./chunk";
 
 /**
  * Activity feed, built from what the evidence graph already records: nodes
@@ -94,9 +95,10 @@ export async function listActivity(limit = 40): Promise<ActivityEvent[]> {
   const lookup = new Map<string, NodeLite>(nodes.map((node) => [node.id, node]));
   const missing = referenced.filter((id) => !lookup.has(id));
   if (missing.length > 0) {
-    const extra = await client.from("nodes").select("id, type, external_id, last_modified").in("id", missing);
-    if (extra.error) throw new Error(`nodes: ${extra.error.message}`);
-    for (const node of (extra.data ?? []) as NodeLite[]) lookup.set(node.id, node);
+    const extra = await selectInChunks<NodeLite>("nodes", missing, (chunk) =>
+      client.from("nodes").select("id, type, external_id, last_modified").in("id", chunk),
+    );
+    for (const node of extra) lookup.set(node.id, node);
   }
   const nameOf = (id: string) => lookup.get(id)?.external_id ?? id;
   const toolOf = (id: string): ToolKind => TOOL_BY_TYPE[lookup.get(id)?.type ?? ""] ?? "git";

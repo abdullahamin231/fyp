@@ -10,6 +10,8 @@ export type NavItem = {
   badge?: NavBadge;
   /** Matches the reference screens' data-path attribute. */
   path: string;
+  /** The page reads `?workspace=<slug>`; the shell appends the active one. */
+  workspaceScoped?: true;
 };
 
 /**
@@ -39,9 +41,8 @@ export const operationsNav: NavItem[] = [
 ];
 
 export const settingsNav: NavItem[] = [
-  { label: "Settings", href: "/settings/workspace", icon: "settings", path: "settings" },
-  { label: "Provider Apps", href: "/settings/integrations", icon: "key", path: "provider-app-registrations" },
-  { label: "Notifications", href: "/settings/notifications", icon: "notifications", path: "notification-preferences" },
+  { label: "Settings", href: "/settings/workspace", icon: "settings", path: "settings", workspaceScoped: true },
+  { label: "Provider Apps", href: "/settings/integrations", icon: "key", path: "provider-app-registrations", workspaceScoped: true },
   { label: "Slack Delivery", href: "/settings/slack", icon: "chat", path: "slack-configuration" },
 ];
 
@@ -49,6 +50,11 @@ export const navGroups: Array<{ label?: string; items: NavItem[] }> = [
   { label: "Intelligence & Rules", items: intelligenceNav },
   { label: "Review & Operations", items: operationsNav },
 ];
+
+/** The link target for `item` while `slug` is the active workspace. */
+export function navHref(item: NavItem, slug: string | null): string {
+  return item.workspaceScoped && slug ? `${item.href}?workspace=${encodeURIComponent(slug)}` : item.href;
+}
 
 /**
  * Longest-prefix match so `/policies/simulation` activates Policy Simulation

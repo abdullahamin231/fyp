@@ -10,12 +10,17 @@ import {
 import {
   activeHref,
   navGroups,
+  navHref,
   settingsNav,
   type NavItem,
   type NavBadge,
 } from "@/lib/nav";
 import { NotificationsBell } from "@/components/layout/notifications-bell";
-import { WorkspaceSwitcher } from "@/components/layout/workspace-switcher";
+import {
+  WorkspaceSwitcher,
+  useWorkspaces,
+  type Workspaces,
+} from "@/components/layout/workspace-switcher";
 
 const STORAGE_KEY = "unify:sidebar";
 /** Fired when this tab changes the rail so `useSyncExternalStore` re-reads it. */
@@ -55,10 +60,12 @@ function NavEntry({
   item,
   active,
   open,
+  slug = null,
 }: {
   item: NavItem;
   active: boolean;
   open: boolean;
+  slug?: string | null;
 }) {
   const base = active
     ? "bg-surface-container-highest text-on-surface font-medium"
@@ -66,7 +73,7 @@ function NavEntry({
 
   return (
     <Link
-      href={item.href}
+      href={navHref(item, slug)}
       data-path={item.path}
       aria-current={active ? "page" : undefined}
       aria-label={open ? undefined : item.label}
@@ -154,12 +161,14 @@ function GroupLabel({
  */
 function SideNav({
   active,
+  slug,
   collapsed,
   hovering,
   onHoverChange,
   onToggle,
 }: {
   active: string | null;
+  slug: string | null;
   collapsed: boolean;
   hovering: boolean;
   onHoverChange: (value: boolean) => void;
@@ -238,6 +247,7 @@ function SideNav({
               item={item}
               active={active === item.href}
               open={open}
+              slug={slug}
             />
           ))}
         </nav>
@@ -253,10 +263,12 @@ function SideNav({
  */
 function TopBar({
   action,
+  workspaces,
   collapsed,
   onToggle,
 }: {
   action?: ReactNode;
+  workspaces: Workspaces;
   collapsed: boolean;
   onToggle: () => void;
 }) {
@@ -293,7 +305,7 @@ function TopBar({
         </kbd>
       </div>
 
-      <WorkspaceSwitcher />
+      <WorkspaceSwitcher workspaces={workspaces} />
 
       <div className="flex items-center gap-2 ml-auto">
         {action}
@@ -343,6 +355,7 @@ export function AppShell({
   // no mismatch and no cascading render. Default is the 64px rail.
   const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => true);
   const [hovering, setHovering] = useState(false);
+  const workspaces = useWorkspaces();
   const toggleCollapsed = () => writeCollapsed(!collapsed);
 
   const active =
@@ -355,6 +368,7 @@ export function AppShell({
     <div className="min-h-screen bg-background text-on-surface font-body-md text-body-md">
       <SideNav
         active={active}
+        slug={workspaces.active?.slug ?? null}
         collapsed={collapsed}
         hovering={hovering}
         onHoverChange={setHovering}
@@ -365,6 +379,7 @@ export function AppShell({
       >
         <TopBar
           action={action}
+          workspaces={workspaces}
           collapsed={collapsed}
           onToggle={toggleCollapsed}
         />

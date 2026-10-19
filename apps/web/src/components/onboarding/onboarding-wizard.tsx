@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 import {
@@ -10,141 +10,75 @@ import {
   type ConnectKey,
 } from "@/components/onboarding/step-panels";
 import { SideRecap } from "@/components/onboarding/side-recap";
-import type { Policy, PolicyId } from "@/lib/types";
+import { createWorkspace, slugify } from "@/lib/data/create-workspace";
+import { authorizePath, resumeStep } from "@/lib/domain/onboarding";
+import type { ProviderStatus } from "@/lib/data/integrations";
+import type { RuleView } from "@/lib/data/rules";
+import { createClient } from "@/lib/supabase/client";
 
-/**
- * DATA HOLE — replace with the policies API.
- * Empty until the endpoint exists; the policy checklist renders nothing and
- * the staged counter reads zero.
- */
-const policies: Policy[] = [];
-
-type StepDef = {
-  key: ConnectKey | "policy";
-  label: string;
-  value: () => string;
-};
-
-type IntegrationProvider = Exclude<ConnectKey, "workspace">;
-
-function isIntegrationProvider(value: string | null): value is IntegrationProvider {
-  return value === "figma" || value === "github" || value === "jira";
-}
-
-/**
- * DATA HOLE — replace with each connector's live account/org handle from its
- * API. Idle copy until then; `stepValue` overrides once wizard state says
- * otherwise.
- */
-const steps: StepDef[] = [
-  { key: "workspace", label: "Workspace", value: () => "Not created" },
-  { key: "figma", label: "Figma", value: () => "Not connected" },
-  { key: "github", label: "GitHub", value: () => "Not connected" },
-  { key: "jira", label: "Jira Cloud", value: () => "Not connected" },
-  { key: "policy", label: "Policy Run", value: () => "Not staged" },
+const STEPS: { key: ConnectKey | "policy"; label: string }[] = [
+  { key: "workspace", label: "Workspace" },
+  { key: "figma", label: "Figma" },
+  { key: "github", label: "GitHub" },
+  { key: "jira", label: "Jira Cloud" },
+  { key: "policy", label: "Policies" },
 ];
 
-const initialPolicies = Object.fromEntries(
-  policies.map((policy) => [policy.id, policy.enabled]),
-) as Record<PolicyId, boolean>;
-
-/** Mono sub-label under each stepper item, reflecting live wizard state. */
-function isStepConnected(key: ConnectKey | "policy", auth: Record<ConnectKey, AuthState>) {
-  return key !== "policy" && auth[key] === "connected";
-}
-
-function stepValue(
-  definition: StepDef,
-  state: { auth: Record<ConnectKey, AuthState>; run: "idle" | "running" | "done"; slug: string },
-): string {
-  if (definition.key === "workspace") return state.slug || "—";
-  if (definition.key === "figma" || definition.key === "github" || definition.key === "jira") {
-    return state.auth[definition.key] === "connected" ? "Connected" : definition.value();
-  }
-  if (definition.key === "policy") {
-    return state.run === "done"
-      ? "Run complete"
-      : state.run === "running"
-        ? "Reconciling…"
-        : definition.value();
-  }
-  return definition.value();
+export interface OnboardingWorkspace {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 /**
- * Multi-step workspace onboarding wizard: connect Figma / GitHub / Jira,
- * import the workspace and run the first policy check.
+ * Workspace onboarding: create the workspace (`create_workspace` RPC), connect
+ * Figma / GitHub / Jira through the real OAuth routes, then review the rules
+ * that will run. Connection state comes from the server (`?workspace=<slug>`),
+ * so a reload shows what is actually stored.
  */
-export function OnboardingWizard() {
+export function OnboardingWizard({
+  origin,
+  workspace,
+  providers,
+  rules,
+}: {
+  origin: string;
+  workspace: OnboardingWorkspace | null;
+  providers: ProviderStatus[];
+  rules: RuleView[];
+}) {
   const toast = useToast();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const integration = searchParams.get("integration");
-  const connectedProvider = isIntegrationProvider(integration) ? integration : null;
-  const initialStep = connectedProvider === "figma" ? 2 : connectedProvider === "github" ? 3 : connectedProvider === "jira" ? 4 : 1;
-  const [step, setStep] = useState(initialStep);
-  const [maxReached, setMaxReached] = useState(initialStep);
-  const [auth, setAuth] = useState<Record<ConnectKey, AuthState>>({
-    workspace: "idle",
-    figma: connectedProvider === "figma" ? "connected" : "idle",
-    github: connectedProvider === "github" ? "connected" : "idle",
-    jira: connectedProvider === "jira" ? "connected" : "idle",
-  });
-  /**
-   * DATA HOLE — replace with the workspace API's created-workspace record
-   * (name, slug, import status). The wizard starts with nothing created.
-   */
-  const [workspace, setWorkspace] = useState({
-    name: "",
-    slug: "",
-    imported: false,
-  });
-  const [selectedPolicies, setSelectedPolicies] = useState<Record<PolicyId, boolean>>(
-    initialPolicies,
-  );
-  const [run, setRun] = useState<"idle" | "running" | "done">("idle");
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const supabase = createClient();
 
-  useEffect(() => {
-    const pending = timers.current;
-    return () => {
-      pending.forEach(clearTimeout);
-    };
-  }, []);
+  const [step, setStep] = useState(() => resumeStep(workspace, providers));
+  const [maxReached, setMaxReached] = useState(() => (workspace ? STEPS.length : 1));
+  const [draft, setDraft] = useState({ name: "", slug: "", slugTouched: false });
+  const [pending, setPending] = useState<ConnectKey | null>(null);
 
-  useEffect(() => {
-    if (connectedProvider) {
-      if (searchParams.get("connected") === "1") {
-        toast(`${connectedProvider[0].toUpperCase()}${connectedProvider.slice(1)} connected — read-only scopes granted`, {
-          icon: "cloud_done",
-        });
-      }
-      router.replace(`${window.location.pathname}${window.location.hash}`);
-    } else if (searchParams.get("error")) {
-      toast(`Integration authorization failed: ${searchParams.get("error")}`, { icon: "error", tone: "neutral" });
-    }
-  }, [connectedProvider, router, searchParams, toast]);
+  const name = workspace?.name ?? draft.name;
+  const slug = workspace?.slug ?? (draft.slugTouched ? draft.slug : slugify(draft.name));
 
-  const current = steps[step - 1];
-  const pct = Math.round((step / steps.length) * 100);
+  const stateOf = (key: ConnectKey): AuthState => {
+    const done = key === "workspace" ? !!workspace : !!providers.find((p) => p.provider === key)?.connected;
+    if (done) return "connected";
+    return pending === key ? "authorizing" : "idle";
+  };
+  const auth: Record<ConnectKey, AuthState> = {
+    workspace: stateOf("workspace"),
+    figma: stateOf("figma"),
+    github: stateOf("github"),
+    jira: stateOf("jira"),
+  };
 
-  function authorize(key: ConnectKey) {
-    if (auth[key] !== "idle") return;
-    if (key !== "workspace") {
-      router.push(
-        `/api/integrations/${key}/authorize?workspace=${encodeURIComponent(workspace.slug)}`,
-      );
-      return;
-    }
-    setAuth((prev) => ({ ...prev, [key]: "authorizing" }));
-    timers.current.push(
-      setTimeout(() => {
-        setAuth((prev) => ({ ...prev, [key]: "connected" }));
-        toast(`Workspace ${workspace.slug || "created"} created (200 OK)`, {
-          icon: "cloud_done",
-        });
-      }, 1500),
-    );
+  const current = STEPS[step - 1];
+  const pct = Math.round((step / STEPS.length) * 100);
+
+  function stepValue(key: ConnectKey | "policy"): string {
+    if (key === "workspace") return slug || "Not created";
+    if (key === "policy") return `${rules.filter((rule) => rule.active).length} active`;
+    const status = providers.find((p) => p.provider === key);
+    return status?.connected ? (status.accountName ?? "Connected") : "Not connected";
   }
 
   function goTo(next: number) {
@@ -152,25 +86,43 @@ export function OnboardingWizard() {
     setMaxReached((prev) => Math.max(prev, next));
   }
 
+  async function create() {
+    if (pending || !name.trim() || !slug) return;
+    setPending("workspace");
+    const result = await createWorkspace(supabase, name, slug);
+    if (!result.ok) {
+      setPending(null);
+      toast(result.error, { icon: "error", tone: "error" });
+      return;
+    }
+    toast(`Workspace ${result.workspace.name} created`, { icon: "cloud_done" });
+    // The page re-renders with the stored workspace and remounts the wizard
+    // (keyed by workspace id) on the first connect step.
+    router.replace(`/onboarding?workspace=${encodeURIComponent(result.workspace.slug)}`);
+  }
+
+  function authorize(key: ConnectKey) {
+    if (key === "workspace") {
+      void create();
+      return;
+    }
+    if (!workspace || auth[key] !== "idle") return;
+    if (!providers.find((p) => p.provider === key)?.appRegistered) {
+      toast(`Register the ${key} OAuth app first`, { icon: "key", tone: "neutral" });
+      router.push(`/settings/integrations?workspace=${encodeURIComponent(workspace.slug)}`);
+      return;
+    }
+    setPending(key);
+    window.location.assign(authorizePath(key, workspace.slug));
+  }
+
   function next() {
-    if (step === 5) {
-      if (run !== "done") {
-        toast("Run the first policy check before finishing setup", {
-          icon: "gavel",
-          tone: "neutral",
-        });
-        if (run === "idle") runFirstPolicy();
-        return;
-      }
-      toast("Workspace ready — opening the Conflict Inbox", { icon: "rocket_launch" });
+    if (step === STEPS.length) {
+      router.push("/conflicts");
       return;
     }
     if (current.key !== "policy" && auth[current.key] !== "connected") {
       authorize(current.key);
-      toast("Awaiting OAuth consent", {
-        icon: "lock_reset",
-        tone: "neutral",
-      });
       return;
     }
     goTo(step + 1);
@@ -181,34 +133,11 @@ export function OnboardingWizard() {
   }
 
   function skip() {
-    if (step >= 5) {
-      toast("Setup finished", {
-        icon: "skip_next",
-        tone: "neutral",
-      });
+    if (step === STEPS.length) {
+      router.push("/conflicts");
       return;
     }
-    toast("Step skipped", {
-      icon: "skip_next",
-      tone: "neutral",
-    });
     goTo(step + 1);
-  }
-
-  function runFirstPolicy() {
-    if (run !== "idle") return;
-    setRun("running");
-    timers.current.push(
-      setTimeout(() => {
-        setRun("done");
-        // DATA HOLE — the staged finding count comes from the policy-run API.
-        toast("First run complete", { icon: "fact_check" });
-      }, 1800),
-    );
-  }
-
-  function togglePolicy(id: PolicyId) {
-    setSelectedPolicies((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
   return (
@@ -225,11 +154,6 @@ export function OnboardingWizard() {
               <span className="px-2 py-0.5 rounded bg-surface-container-highest font-mono-code text-eyebrow text-primary tracking-wider uppercase">
                 Pipeline Provisioning
               </span>
-              <span className="text-muted text-body-sm font-mono-code">/</span>
-              <span className="font-mono-code text-micro-label text-on-surface-variant">
-                {/* DATA HOLE — replace with the onboarding session's id once the API mints one. */}
-                Setup Wizard ID: —
-              </span>
             </div>
             <h1 className="font-headline-lg text-headline-lg text-on-surface tracking-tight">
               Connect Workspace Ecosystem
@@ -239,7 +163,7 @@ export function OnboardingWizard() {
             <div className="text-right">
               <div className="font-label-caps text-label-caps uppercase text-muted">Progress</div>
               <div className="font-mono-code text-[15px] font-semibold text-secondary">
-                Step {step} of {steps.length} ({pct}%)
+                Step {step} of {STEPS.length} ({pct}%)
               </div>
             </div>
             <div className="relative w-10 h-10 flex items-center justify-center">
@@ -262,7 +186,7 @@ export function OnboardingWizard() {
                 />
               </svg>
               <span className="absolute font-mono-code text-micro-label text-on-surface font-bold">
-                {step}/5
+                {step}/{STEPS.length}
               </span>
             </div>
           </div>
@@ -270,18 +194,18 @@ export function OnboardingWizard() {
 
         {/* Stepper navigation bar */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 bg-surface-container-lowest p-2 rounded-xl">
-          {steps.map((definition, index) => {
+          {STEPS.map((definition, index) => {
             const position = index + 1;
             const isActive = position === step;
             const isDone = position < step;
             const isLocked = position > maxReached;
-            const accessible = !isLocked;
+            const connected = definition.key !== "policy" && auth[definition.key] === "connected";
             return (
               <button
                 key={definition.key}
                 type="button"
-                disabled={!accessible}
-                onClick={() => accessible && setStep(position)}
+                disabled={isLocked}
+                onClick={() => setStep(position)}
                 className={[
                   "flex flex-col gap-1 p-2.5 rounded text-left transition-all group",
                   isActive
@@ -301,7 +225,7 @@ export function OnboardingWizard() {
                   </span>
                   {isActive ? (
                     <span className="w-2 h-2 rounded-full bg-secondary animate-ping" />
-                  ) : isDone || (!isLocked && isStepConnected(definition.key, auth)) ? (
+                  ) : connected ? (
                     <Icon name="check_circle" className="text-secondary text-[16px]" />
                   ) : isLocked ? (
                     <Icon name="lock" className="text-muted text-[16px]" />
@@ -331,7 +255,7 @@ export function OnboardingWizard() {
                           : "text-on-surface-variant"
                   }`}
                 >
-                  {stepValue(definition, { auth, run, slug: workspace.slug })}
+                  {stepValue(definition.key)}
                 </span>
               </button>
             );
@@ -346,68 +270,23 @@ export function OnboardingWizard() {
             step={step}
             auth={auth}
             onAuthorize={authorize}
+            origin={origin}
+            providers={providers}
             workspace={{
-              name: workspace.name,
-              slug: workspace.slug,
-              imported: workspace.imported,
-              setName: (value) => setWorkspace((prev) => ({ ...prev, name: value })),
-              setSlug: (value) => setWorkspace((prev) => ({ ...prev, slug: value })),
-              setImported: (value) => setWorkspace((prev) => ({ ...prev, imported: value })),
+              name,
+              slug,
+              created: !!workspace,
+              setName: (value) => setDraft((prev) => ({ ...prev, name: value })),
+              setSlug: (value) => setDraft((prev) => ({ ...prev, slug: value, slugTouched: true })),
             }}
-            policyRun={{
-              selected: selectedPolicies,
-              onToggle: togglePolicy,
-              run,
-              onRun: runFirstPolicy,
-            }}
+            rules={rules}
           />
-
-          {/* Live sync diagnostic preview */}
-          <div className="bg-surface-container-low rounded-xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-label-caps text-label-caps uppercase text-muted">
-                Ecosystem Pipeline Telemetry
-              </span>
-              <span className="font-mono-code text-micro-label text-secondary">
-                {["figma", "github", "jira"].filter((key) => auth[key as ConnectKey] === "connected")
-                  .length === 3
-                  ? "All systems operational"
-                  : "Provisioning sources"}
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-surface-container p-3 rounded">
-                <div className="font-mono-code text-eyebrow text-muted uppercase">
-                  Egress Region
-                </div>
-                <div className="font-mono-code text-on-surface font-semibold mt-0.5">
-                  {/* DATA HOLE — replace with the provisioning API's egress region. */}
-                  —
-                </div>
-              </div>
-              <div className="bg-surface-container p-3 rounded">
-                <div className="font-mono-code text-eyebrow text-muted uppercase">
-                  Handshake Latency
-                </div>
-                <div className="font-mono-code text-secondary font-semibold mt-0.5">
-                  {/* DATA HOLE — replace with measured handshake latency from the connector API. */}
-                  —
-                </div>
-              </div>
-              <div className="bg-surface-container p-3 rounded">
-                <div className="font-mono-code text-eyebrow text-muted uppercase">Rate Reserve</div>
-                <div className="font-mono-code text-on-surface font-semibold mt-0.5">
-                  {/* DATA HOLE — replace with the connector API's remaining rate budget. */}
-                  —
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <SideRecap
           auth={auth}
-          workspace={workspace}
+          workspace={{ name, slug, created: !!workspace }}
+          providers={providers}
           onEdit={() => setStep(1)}
           step={step}
         />
@@ -419,13 +298,14 @@ export function OnboardingWizard() {
           <button
             type="button"
             onClick={skip}
-            className="px-3.5 py-2 rounded text-muted hover:text-on-surface font-body-sm transition-colors"
+            disabled={!workspace}
+            className="px-3.5 py-2 rounded text-muted hover:text-on-surface font-body-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Skip {current.label} for now
           </button>
           <span className="text-muted/40">|</span>
           <span className="font-mono-code text-[12px] text-muted">
-            Step {step} of {steps.length} ({pct}% complete)
+            Step {step} of {STEPS.length} ({pct}% complete)
           </span>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
@@ -442,7 +322,7 @@ export function OnboardingWizard() {
             onClick={next}
             className="px-4 py-2 rounded bg-primary-container hover:bg-inverse-primary text-on-primary-container font-body-sm font-semibold transition-colors flex items-center gap-2 shadow-md"
           >
-            <span>{step === 5 ? "Finish Setup" : "Save & Continue to Next Step"}</span>
+            <span>{step === STEPS.length ? "Finish Setup" : "Save & Continue to Next Step"}</span>
             <Icon name="arrow_forward" className="text-[16px]" />
           </button>
         </div>

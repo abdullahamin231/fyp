@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import { FigmaPoller } from "@/components/workspaces/figma-poller";
+import { authorizePath } from "@/lib/domain/onboarding";
 import type { IntegrationProvider } from "@/lib/integrations/types";
 import type { ProviderStatus, WorkspaceIntegrations } from "@/lib/data/integrations";
 
@@ -60,7 +61,7 @@ function ProviderCard({
   highlight: boolean;
 }) {
   const meta = META[status.provider];
-  const authorizeHref = `/api/integrations/${status.provider}/authorize?workspace=${encodeURIComponent(slug)}`;
+  const authorizeHref = authorizePath(status.provider, slug);
   const webhookUrl = `${origin}/api/webhooks/${status.provider}/${workspaceId}`;
 
   return (
