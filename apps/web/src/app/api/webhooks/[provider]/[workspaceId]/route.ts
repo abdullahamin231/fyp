@@ -32,7 +32,7 @@ function admin() {
   });
 }
 
-/** Which Jira field holds this workspace's acceptance criteria (00019). */
+/** Which Jira field holds this workspace's acceptance criteria (00025). */
 async function jiraCriteriaField(db: ReturnType<typeof admin>, workspaceId: string): Promise<string | null> {
   const { data, error } = await db
     .from("integration_apps")
