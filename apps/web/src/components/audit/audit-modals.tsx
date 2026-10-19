@@ -62,7 +62,7 @@ export function InspectModal({ event, onClose }: { event: AuditEvent | null; onC
 
         <div className="flex items-center justify-between bg-surface-container-lowest px-3 py-2 rounded font-mono-code text-micro-label gap-3">
           <span className="text-muted">VERIFICATION HASH:</span>
-          <span className="text-secondary font-medium truncate">0x{event.hash}</span>
+          <span className="text-secondary font-medium truncate">{event.digest}</span>
         </div>
 
         <div className="bg-surface-container-lowest p-3.5 rounded font-mono-code text-[12px] text-on-surface-variant max-h-72 overflow-y-auto leading-relaxed">
@@ -93,7 +93,8 @@ export function InspectModal({ event, onClose }: { event: AuditEvent | null; onC
 export function DiffModal({ event, onClose }: { event: AuditEvent | null; onClose: () => void }) {
   useEscape(Boolean(event), onClose);
 
-  if (!event) return null;
+  if (!event?.diff) return null;
+  const diff = event.diff;
 
   return (
     <div
@@ -126,16 +127,16 @@ export function DiffModal({ event, onClose }: { event: AuditEvent | null; onClos
         <div className="space-y-2 font-mono-code text-[12px]">
           <div className="p-3 rounded bg-error-container/20 text-error flex items-start gap-2">
             <span className="font-bold select-none">-</span>
-            <div className="break-all font-mono-code">{event.diff.removed}</div>
+            <div className="break-all font-mono-code">{diff.removed}</div>
           </div>
           <div className="p-3 rounded bg-secondary-container/20 text-secondary flex items-start gap-2">
             <span className="font-bold select-none">+</span>
-            <div className="break-all font-mono-code">{event.diff.added}</div>
+            <div className="break-all font-mono-code">{diff.added}</div>
           </div>
         </div>
 
         <div className="flex items-center justify-between gap-3 flex-wrap pt-stack-compact">
-          <span className="font-mono-code text-micro-label text-muted truncate">{event.hash}</span>
+          <span className="font-mono-code text-micro-label text-muted truncate">{event.digest}</span>
           <button
             type="button"
             onClick={onClose}

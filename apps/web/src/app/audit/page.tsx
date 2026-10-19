@@ -1,23 +1,19 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
-import { AuditHeaderActions } from "@/components/audit/audit-header-actions";
 import { AuditConsole } from "@/components/audit/audit-console";
-import { emptyAuditTotals } from "@/lib/domain/audit";
+import { loadAuditTrail } from "@/lib/data/audit";
 
-/**
- * DATA HOLE — replace with the audit API's ledger header.
- * Zeroed until the endpoint exists; the status bar renders zeros meanwhile.
- */
-const auditTotals = emptyAuditTotals;
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Audit Trail",
   description:
-    "Immutable, hash-chained record of every link mutation, conflict verdict and policy change — with a compliance export panel.",
+    "Append-only record of every reviewer decision on findings, links and rules, with CSV and JSON export.",
 };
 
-export default function AuditPage() {
+export default async function AuditPage() {
+  const trail = await loadAuditTrail();
   return (
     <AppShell>
       {/* Header */}
@@ -29,41 +25,14 @@ export default function AuditPage() {
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-secondary/10 text-secondary">
             <Icon name="verified_user" className="text-[15px]" fill />
             <span className="font-label-caps text-label-caps uppercase tracking-wider">
-              Immutable Ledger SHA-256
+              Append-only Ledger
             </span>
           </div>
         </div>
-        <AuditHeaderActions totalEvents={auditTotals.events} />
       </div>
 
-      <AuditConsole />
+      <AuditConsole events={trail.events} actors={trail.actors} total={trail.total} />
 
-      {/* Integrity ledger status bar */}
-      <div className="p-gutter rounded bg-surface-container-lowest shadow-md flex flex-wrap items-center gap-stack-comfortable">
-        <div className="flex items-center gap-2 font-mono-code text-micro-label text-on-surface-variant">
-          <span className="text-muted">Total Audit Events:</span>
-          <span className="text-on-surface font-semibold">
-            {auditTotals.events.toLocaleString("en-US")}
-          </span>
-        </div>
-        <div className="h-4 w-px bg-surface-container-highest hidden md:block" />
-        <div className="flex items-center gap-2 font-mono-code text-micro-label text-on-surface-variant">
-          <span className="text-muted">Block Height:</span>
-          <span className="text-on-surface font-semibold">
-            {auditTotals.blockHeight.toLocaleString("en-US")}
-          </span>
-        </div>
-        <div className="h-4 w-px bg-surface-container-highest hidden md:block" />
-        <div className="flex items-center gap-2 font-mono-code text-micro-label text-on-surface-variant">
-          <span className="text-muted">Merkle Root:</span>
-          <span className="text-primary font-medium">{auditTotals.merkleRoot}</span>
-        </div>
-        <div className="h-4 w-px bg-surface-container-highest hidden md:block" />
-        <div className="flex items-center gap-2 font-mono-code text-micro-label text-on-surface-variant">
-          <span className="text-muted">Latency:</span>
-          <span className="text-on-surface font-semibold">{auditTotals.latencyMs}ms</span>
-        </div>
-      </div>
     </AppShell>
   );
 }

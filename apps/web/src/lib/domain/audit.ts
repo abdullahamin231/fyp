@@ -1,40 +1,39 @@
 import type { ToolKind } from "@/lib/types";
 
 /**
- * Immutable audit ledger types.
- *
- * Append-only records of everything UNIFY did: link mutations, conflict
- * verdicts, policy bumps and token scope audits. Each event carries the
- * SHA-256 digest of its canonicalised payload so the export panel can prove
- * integrity end-to-end.
+ * The audit trail as the reviewer reads it: one row per `audit_log` record,
+ * which is append-only (UPDATE/DELETE revoked and trigger-locked, migrations
+ * 00004/00005). `digest` is the SHA-256 of the record's canonical JSON, so an
+ * exported row can be checked against the database later; it is a per-record
+ * fingerprint, not a chain.
  */
 
-export type AuditActionType =
-  | "CONFLICT_RESOLVED"
-  | "CONFLICT_SUPPRESSED"
-  | "LINK_MANUAL_ASSERTION"
-  | "LINK_SUGGESTION_REJECTED"
-  | "POLICY_VERSION_BUMP"
-  | "TOKEN_SCOPE_AUDIT";
+/** The `audit_action` enum, exactly as 00001_enums.sql defines it. */
+export const auditActions = [
+  "finding_acknowledged",
+  "finding_resolved",
+  "finding_disputed",
+  "finding_suppressed",
+  "finding_reopened",
+  "link_confirmed",
+  "link_dismissed",
+  "rule_activated",
+  "rule_deactivated",
+] as const;
+
+export type AuditActionType = (typeof auditActions)[number];
 
 export interface AuditActor {
-  /** Stable filter key — `system` for every service identity. */
+  /** The actor's `Person` node id. */
   id: string;
-  /** Monospace handle shown on the row. */
   handle: string;
   name: string;
-  role: string;
-  kind: "system" | "user";
-  /** Two-letter avatar for people; empty for system actors (icon instead). */
   initials: string;
-  /** Material Symbol rendered for system actors. */
-  icon?: string;
 }
 
 export interface AuditArtifact {
   tool: ToolKind;
   label: string;
-  /** Secondary mono context, e.g. repo or branch. */
   context?: string;
 }
 
@@ -47,62 +46,139 @@ export interface AuditEvent {
   id: string;
   /** `YYYY-MM-DD HH:MM:SS` in UTC. */
   timestamp: string;
-  /** Compact relative label shown under the timestamp. */
   relative: string;
-  /** Hours since the event — drives the date-range filter. */
   hoursAgo: number;
   actorId: string;
-  /** Overrides the actor's default role line (subsystem that acted). */
-  actorTag?: string;
   action: AuditActionType;
   artifact: AuditArtifact;
   reason: string;
-  /** Full SHA-256 hex digest of the canonical payload. */
-  hash: string;
-  /** Canonical event payload rendered by the JSON inspector. */
+  digest: string;
+  /** The stored record, shown by the JSON inspector and exported as-is. */
   payload: Record<string, unknown>;
-  diff: AuditDiff;
+  /** Present when the record carries a state change (`from` → `to`). */
+  diff: AuditDiff | null;
 }
 
-/** Every action type, for the filter dropdown. */
-export const auditActions: AuditActionType[] = [
-  "CONFLICT_RESOLVED",
-  "CONFLICT_SUPPRESSED",
-  "LINK_MANUAL_ASSERTION",
-  "LINK_SUGGESTION_REJECTED",
-  "POLICY_VERSION_BUMP",
-  "TOKEN_SCOPE_AUDIT",
-];
-
-/** Preset window options for the date-range filter. */
 export const auditDateRanges: { id: string; label: string; hours: number }[] = [
   { id: "24h", label: "Last 24 Hours", hours: 24 },
   { id: "7d", label: "Last 7 Days", hours: 24 * 7 },
   { id: "30d", label: "Last 30 Days", hours: 24 * 30 },
+  { id: "all", label: "All Time", hours: Number.POSITIVE_INFINITY },
 ];
 
-/** Saved filter preset — a named actor / action / query combination. */
-export interface AuditPreset {
+/** One `audit_log` row as the loader selects it. */
+export interface AuditRow {
   id: string;
-  label: string;
-  dot: "secondary" | "primary" | "tertiary";
-  actor?: string;
-  action?: AuditActionType;
-  query?: string;
+  finding_id: string | null;
+  actor_id: string;
+  action: AuditActionType;
+  reason: string | null;
+  evidence_snapshot: Record<string, unknown> | null;
+  at: string;
 }
 
-/** Ledger header totals — supplied by the audit API. */
-export interface AuditTotals {
-  events: number;
-  blockHeight: number;
-  merkleRoot: string;
-  latencyMs: number;
+export interface AuditActorRow {
+  id: string;
+  external_id: string;
+  payload: { name?: string | null; email?: string | null } | null;
 }
 
-/** Empty ledger header until the audit API returns a payload. */
-export const emptyAuditTotals: AuditTotals = {
-  events: 0,
-  blockHeight: 0,
-  merkleRoot: "—",
-  latencyMs: 0,
+export interface AuditFindingRow {
+  id: string;
+  annotation: string | null;
+  subject: { type: string; external_id: string } | null;
+}
+
+function initialsOf(name: string): string {
+  const parts = name.replace(/@.*/, "").split(/[\s._-]+/).filter(Boolean);
+  return ((parts[0]?.[0] ?? "?") + (parts[1]?.[0] ?? "")).toUpperCase();
+}
+
+export function toAuditActor(row: AuditActorRow): AuditActor {
+  const name = row.payload?.name ?? row.payload?.email ?? row.external_id;
+  const handle = row.payload?.email?.replace(/@.*/, "") ?? name;
+  return { id: row.id, handle, name, initials: initialsOf(name) };
+}
+
+function relativeLabel(hours: number): string {
+  if (hours < 1) return `${Math.max(1, Math.round(hours * 60))}m ago`;
+  if (hours < 48) return `${Math.round(hours)}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+}
+
+const TOOL_BY_SUBJECT: Record<string, ToolKind> = {
+  Ticket: "jira",
+  Criterion: "jira",
+  Requirement: "jira",
+  DesignArtifact: "figma",
+  DesignConstraint: "figma",
+  PullRequest: "github",
+  Commit: "git",
+  CodeSymbol: "github",
+  TestCase: "test",
 };
+
+function artifactOf(row: AuditRow, finding: AuditFindingRow | undefined): AuditArtifact {
+  if (finding) {
+    return {
+      tool: TOOL_BY_SUBJECT[finding.subject?.type ?? ""] ?? "git",
+      label: finding.subject?.external_id ?? `finding ${finding.id.slice(0, 8)}`,
+      context: finding.annotation ?? undefined,
+    };
+  }
+  const edgeId = row.evidence_snapshot?.edgeId;
+  if (typeof edgeId === "string") return { tool: "git", label: `link ${edgeId.slice(0, 8)}` };
+  return { tool: "git", label: row.action.replace(/_.*/, "") };
+}
+
+function diffOf(snapshot: Record<string, unknown> | null): AuditDiff | null {
+  const from = snapshot?.from;
+  const to = snapshot?.to;
+  if (typeof from !== "string" || typeof to !== "string") return null;
+  return { removed: `state: ${from}`, added: `state: ${to}` };
+}
+
+export function toAuditEvent(
+  row: AuditRow,
+  finding: AuditFindingRow | undefined,
+  digest: string,
+  now: Date,
+): AuditEvent {
+  const at = new Date(row.at);
+  const hoursAgo = Math.max(0, (now.getTime() - at.getTime()) / 3_600_000);
+  return {
+    id: row.id,
+    timestamp: at.toISOString().slice(0, 19).replace("T", " "),
+    relative: relativeLabel(hoursAgo),
+    hoursAgo,
+    actorId: row.actor_id,
+    action: row.action,
+    artifact: artifactOf(row, finding),
+    reason: row.reason ?? "",
+    digest,
+    payload: { ...row },
+    diff: diffOf(row.evidence_snapshot),
+  };
+}
+
+/** Canonical JSON (keys sorted at every level) so a digest is reproducible. */
+export function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b));
+    return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${canonicalJson(v)}`).join(",")}}`;
+  }
+  return JSON.stringify(value ?? null);
+}
+
+/** CSV of the events as shown, one row each. */
+export function auditCsv(events: AuditEvent[], actors: Map<string, AuditActor>): string {
+  const cell = (value: string) => (/[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value);
+  const header = ["timestamp_utc", "actor", "action", "artifact", "reason", "sha256"];
+  const lines = events.map((e) =>
+    [e.timestamp, actors.get(e.actorId)?.name ?? e.actorId, e.action, e.artifact.label, e.reason, e.digest]
+      .map(cell)
+      .join(","),
+  );
+  return [header.join(","), ...lines].join("\n");
+}

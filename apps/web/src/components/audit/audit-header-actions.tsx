@@ -2,26 +2,26 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
-
-type VerifyState = "idle" | "running" | "done";
+import { auditCsv, type AuditActor, type AuditEvent } from "@/lib/domain/audit";
 
 const EXPORT_OPTIONS = [
-  { id: "csv", icon: "table_chart", label: "Delimited CSV (.csv)", tag: "Cleaned", iconClass: "text-primary" },
-  { id: "json", icon: "data_object", label: "Full Merkle JSON (.jsonl)", tag: "Signed", iconClass: "text-secondary" },
+  { id: "csv", icon: "table_chart", label: "Delimited CSV (.csv)", iconClass: "text-primary" },
+  { id: "jsonl", icon: "data_object", label: "Stored records (.jsonl)", iconClass: "text-secondary" },
 ] as const;
 
-/** "Verify Integrity" button + "Export Filtered Records" dropdown (header row). */
-export function AuditHeaderActions({ totalEvents }: { totalEvents: number }) {
-  const [verify, setVerify] = useState<VerifyState>("idle");
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const timers = useRef<number[]>([]);
+function download(name: string, type: string, body: string) {
+  const url = URL.createObjectURL(new Blob([body], { type }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
-  useEffect(() => {
-    const pending = timers.current;
-    return () => pending.forEach((timer) => window.clearTimeout(timer));
-  }, []);
+/** Exports exactly the rows the console currently shows. */
+export function AuditExportMenu({ events, actors }: { events: AuditEvent[]; actors: AuditActor[] }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -39,102 +39,49 @@ export function AuditHeaderActions({ totalEvents }: { totalEvents: number }) {
     };
   }, [menuOpen]);
 
-  function runIntegrityCheck() {
-    if (verify !== "idle") return;
-    setVerify("running");
-    timers.current.push(
-      window.setTimeout(() => {
-        setVerify("done");
-        timers.current.push(window.setTimeout(() => setVerify("idle"), 3000));
-      }, 900),
-    );
-  }
-
-  function startExport(format: "csv" | "json") {
+  function startExport(format: "csv" | "jsonl") {
     setMenuOpen(false);
-    setNotice(
-      `Preparing ${format.toUpperCase()} export…`,
-    );
-    timers.current.push(window.setTimeout(() => setNotice(null), 5000));
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (format === "csv") {
+      download(`unify-audit-${stamp}.csv`, "text/csv", auditCsv(events, new Map(actors.map((a) => [a.id, a]))));
+    } else {
+      const lines = events.map((e) => JSON.stringify({ ...e.payload, sha256: e.digest }));
+      download(`unify-audit-${stamp}.jsonl`, "application/x-ndjson", lines.join("\n"));
+    }
   }
 
   return (
-    <div className="flex flex-col items-end gap-2 shrink-0">
-      <div className="flex items-center gap-2 self-start sm:self-auto">
-        <button
-          type="button"
-          onClick={runIntegrityCheck}
-          disabled={verify === "running"}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface text-body-sm font-medium shadow-sm transition-all active:scale-95 disabled:opacity-70"
-        >
-          <Icon
-            name={verify === "running" ? "refresh" : verify === "done" ? "verified" : "security_update_good"}
-            className={`text-[18px] text-secondary ${verify === "running" ? "animate-spin" : ""}`}
-          />
-          <span>
-            {verify === "running"
-              ? "Verifying SHA-256 Tree…"
-              : verify === "done"
-                ? `${totalEvents.toLocaleString("en-US")} Blocks Validated`
-                : "Verify Integrity"}
-          </span>
-        </button>
+    <div className="relative inline-block text-left" ref={menuRef}>
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={menuOpen}
+        disabled={events.length === 0}
+        onClick={() => setMenuOpen((open) => !open)}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded bg-primary-container hover:bg-primary-container/90 text-on-primary-container text-body-sm font-semibold shadow-md transition-all active:scale-95 disabled:opacity-50"
+      >
+        <Icon name="download" className="text-[18px]" />
+        <span>Export {events.length.toLocaleString("en-US")} Records</span>
+        <Icon name="expand_more" className="text-[16px]" />
+      </button>
 
-        <div className="relative inline-block text-left" ref={menuRef}>
-          <button
-            type="button"
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded bg-primary-container hover:bg-primary-container/90 text-on-primary-container text-body-sm font-semibold shadow-md transition-all active:scale-95"
-          >
-            <Icon name="download" className="text-[18px]" />
-            <span>Export Filtered Records</span>
-            <Icon name="expand_more" className="text-[16px]" />
-          </button>
-
-          {menuOpen ? (
-            <div
-              role="menu"
-              className="absolute right-0 mt-2 w-72 rounded bg-surface-container-high shadow-xl p-3 z-30"
-            >
-              <div className="px-2 py-1 mb-2">
-                <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider block">
-                  Cryptographic Export
-                </span>
-              </div>
-              <div className="flex flex-col gap-1">
-                {EXPORT_OPTIONS.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="menuitem"
-                    onClick={() => startExport(option.id)}
-                    className="flex items-center justify-between px-3 py-2 rounded hover:bg-surface-bright text-on-surface text-left transition-colors"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Icon name={option.icon} className={`text-[18px] ${option.iconClass}`} />
-                      <span className="font-body-sm text-body-sm font-medium">{option.label}</span>
-                    </span>
-                    <span className="font-mono-code text-micro-label text-on-surface-variant">
-                      {option.tag}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
+      {menuOpen ? (
+        <div role="menu" className="absolute right-0 mt-2 w-72 rounded bg-surface-container-high shadow-xl p-3 z-30">
+          <div className="flex flex-col gap-1">
+            {EXPORT_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="menuitem"
+                onClick={() => startExport(option.id)}
+                className="flex items-center gap-2 px-3 py-2 rounded hover:bg-surface-bright text-on-surface text-left transition-colors"
+              >
+                <Icon name={option.icon} className={`text-[18px] ${option.iconClass}`} />
+                <span className="font-body-sm text-body-sm font-medium">{option.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-
-      {notice ? (
-        <p
-          aria-live="polite"
-          className="max-w-md text-right font-mono-code text-micro-label text-secondary flex items-start gap-1.5 justify-end"
-        >
-          <Icon name="encrypted" className="text-[13px] mt-0.5" />
-          <span>{notice}</span>
-        </p>
       ) : null}
     </div>
   );
