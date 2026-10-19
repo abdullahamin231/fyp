@@ -8,9 +8,8 @@ import { loadJiraCriteriaField } from "@/lib/integrations/pipeline-settings";
 import {
   enqueueVerificationForTickets,
   evaluateWorkflowRule,
+  ingestJiraIssue,
   linkPullRequestFromGithub,
-  upsertCriteriaFromJira,
-  upsertTicketFromJira,
 } from "@/lib/integrations/pipeline";
 import { admin } from "@/lib/supabase/admin";
 
@@ -104,27 +103,22 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
       if (error) throw new Error(`Could not persist normalized event: ${error.message}`);
     }
     if (rawProvider === "jira" && firstEvent) {
-      const issue = asRecord(payload.issue);
-      const ticketKey = text(issue.key);
-      const ticket = ticketKey ? await upsertTicketFromJira(db, workspaceId, payload, firstEvent.occurredAt) : null;
+      const ticket = await ingestJiraIssue(
+        db,
+        workspaceId,
+        firstEvent.eventId,
+        payload,
+        await loadJiraCriteriaField(workspaceId, db),
+        firstEvent.occurredAt,
+      );
       if (ticket) {
         pipeline.ticket = ticket;
-        pipeline.findingsCreated = await evaluateWorkflowRule(db, ticket.ticketNodeId);
-        const criteria = await upsertCriteriaFromJira(
-          db,
-          workspaceId,
-          payload,
-          ticket.key,
-          ticket.ticketNodeId,
-          await loadJiraCriteriaField(workspaceId, db),
-          firstEvent.occurredAt,
-        );
-        pipeline.criteria = criteria;
+        if (ticket.kind === "ticket") pipeline.findingsCreated = await evaluateWorkflowRule(db, ticket.nodeId);
       }
       await recordCheckpoint(db, {
         workspaceId,
         provider: rawProvider,
-        resource: { provider: "jira", projectKey: ticket ? ticket.key.split("-")[0]! : "" },
+        resource: { provider: "jira", projectKey: firstEvent.entityId.split("-")[0]! },
         eventId: firstEvent.eventId,
         eventTime: firstEvent.occurredAt,
       });

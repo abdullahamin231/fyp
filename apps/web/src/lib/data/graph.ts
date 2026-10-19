@@ -39,7 +39,7 @@ const KIND_BY_TYPE: Partial<Record<string, GraphNodeKind>> = {
 };
 
 const LABEL_BY_TYPE: Record<string, string> = {
-  Requirement: "Requirement",
+  Requirement: "NFR",
   Ticket: "Jira Ticket",
   Criterion: "Criterion",
   DesignArtifact: "Figma Frame",
@@ -107,6 +107,7 @@ export async function loadExplorerGraph(): Promise<ExplorerGraph> {
     .from("nodes")
     .select(NODE_COLUMNS)
     .in("workspace_id", workspaceIds)
+    .is("valid_to", null)
     .limit(1000);
   if (nodeRes.error) throw new Error(`nodes: ${nodeRes.error.message}`);
   const rows = ((nodeRes.data ?? []) as NodeRow[]).filter((row) => KIND_BY_TYPE[row.type]);

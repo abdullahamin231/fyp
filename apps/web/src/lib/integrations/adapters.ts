@@ -88,7 +88,9 @@ export const jiraAdapter: IntegrationAdapter = {
   },
   normalise(payload, receivedAt, headers) {
     const body = asRecord(payload);
-    const delivery = text(headers.get("x-atlassian-webhook-identifier")) ?? text(body.webhookEvent) ?? "unknown";
+    // Without Jira's identifier header, the body itself is the identity: a true
+    // replay dedupes, and two different events can never share an id.
+    const delivery = text(headers.get("x-atlassian-webhook-identifier")) ?? `body:${rawHash(Buffer.from(JSON.stringify(payload)))}`;
     const issue = asRecord(body.issue);
     const fields = asRecord(issue.fields);
     const key = text(issue.key);
