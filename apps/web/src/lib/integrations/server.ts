@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { admin } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { IntegrationProvider } from "./types";
 
@@ -8,14 +8,6 @@ export type ProviderAppCredentials = {
   clientSecret: string;
   webhookSecret: string;
 };
-
-function admin() {
-  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) throw new Error("SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) is required for integrations");
-  return createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
 
 function encryptionKey() {
   const value = process.env.INTEGRATION_ENCRYPTION_KEY;
