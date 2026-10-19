@@ -1,14 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createHmac } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { providerAppCredentials, saveConnection, type ProviderAppCredentials } from "@/lib/integrations/server";
 import { isProvider, type IntegrationProvider } from "@/lib/integrations/types";
+import { fetchProviderIdentity } from "@/lib/integrations/tokens";
 
 function verifyState(state: string, expectedProvider: IntegrationProvider) {
   const [encoded, signature] = state.split(".");
   const secret = process.env.OAUTH_STATE_SECRET;
   if (!encoded || !signature || !secret) throw new Error("Invalid OAuth state");
   const expected = createHmac("sha256", secret).update(encoded).digest("base64url");
-  if (signature !== expected) throw new Error("Invalid OAuth state signature");
+  const given = Buffer.from(signature);
+  const want = Buffer.from(expected);
+  if (given.length !== want.length || !timingSafeEqual(given, want)) throw new Error("Invalid OAuth state signature");
   const value = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as {
     provider: IntegrationProvider; workspace: string; workspaceId?: string; userId: string; exp: number;
   };
@@ -91,6 +94,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
     const redirectUri = `${request.nextUrl.origin}/api/integrations/${provider}/callback`;
     const token = await exchange(provider, code, redirectUri, credentials);
     if (!token.access_token) throw new Error("Provider returned no access token");
+    // Jira needs the site's cloudId for every REST call; the others record who connected.
+    const account = await fetchProviderIdentity(provider, token.access_token);
+    if (provider === "jira" && !account.id) throw new Error("This Atlassian account has no Jira site the app can access");
     await saveConnection({
       workspaceId,
       provider,
@@ -98,6 +104,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
       accessToken: token.access_token,
       refreshToken: token.refresh_token,
       expiresAt: token.expires_in ? new Date(Date.now() + token.expires_in * 1000).toISOString() : undefined,
+      externalAccountId: account.id ?? undefined,
+      externalAccountName: account.name ?? undefined,
       scopes: token.scope?.split(/[ ,]+/).filter(Boolean) ?? [],
       webhookSecret: credentials.webhookSecret,
     });

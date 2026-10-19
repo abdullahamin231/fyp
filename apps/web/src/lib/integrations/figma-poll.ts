@@ -2,7 +2,8 @@ import { admin } from "@/lib/supabase/admin";
 import { figmaAdapter } from "./adapters";
 import { rawHash } from "./common";
 import { recordCheckpoint } from "./checkpoints";
-import { connectionAccessToken, persistDelivery } from "./server";
+import { persistDelivery } from "./server";
+import { getProviderToken, ReconnectRequired } from "./tokens";
 
 type WatchedFile = {
   id: string;
@@ -206,9 +207,12 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
  */
 export async function pollFigmaWorkspace(workspaceId: string): Promise<FilePollResult[]> {
   const files = await watchedFiles(workspaceId);
-  const { token, expiresAt } = await connectionAccessToken(workspaceId, "figma");
-  if (expiresAt && Date.parse(expiresAt) <= Date.now()) {
-    const error = "Figma access token has expired; reconnect Figma for this workspace";
+  let token: string;
+  try {
+    token = (await getProviderToken(workspaceId, "figma")).accessToken;
+  } catch (cause) {
+    if (!(cause instanceof ReconnectRequired)) throw cause;
+    const error = cause.message;
     const now = new Date().toISOString();
     const results: FilePollResult[] = [];
     for (const file of files) {

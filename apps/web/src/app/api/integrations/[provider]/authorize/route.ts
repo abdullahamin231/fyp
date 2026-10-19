@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
     const config = {
       github: {
         url: "https://github.com/login/oauth/authorize",
-        scope: process.env.GITHUB_OAUTH_SCOPE ?? "read:org read:user",
+        scope: process.env.GITHUB_OAUTH_SCOPE ?? "repo read:org read:user",
       },
       jira: {
         url: "https://auth.atlassian.com/authorize",
