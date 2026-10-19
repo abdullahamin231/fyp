@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { providerAppStatus } from "@/lib/integrations/server";
+import { isOAuthGrant } from "@/lib/integrations/tokens";
 import type { IntegrationProvider } from "@/lib/integrations/types";
 import type { WorkspaceRole } from "@/lib/types";
 
@@ -18,7 +19,10 @@ export type ProviderStatus = {
   provider: IntegrationProvider;
   /** An OAuth app (client ID + secret) is registered for this provider in this workspace. */
   appRegistered: boolean;
+  /** A real OAuth grant: the app can read the provider on the workspace's behalf. */
   connected: boolean;
+  /** Only a webhook secret is stored (no OAuth grant): deliveries verify, nothing can be read. */
+  webhookOnly: boolean;
   accountName: string | null;
   scopes: string[];
   connectedAt: string | null;
@@ -82,7 +86,8 @@ export async function getWorkspaceIntegrations(slug: string): Promise<WorkspaceI
       return {
         provider,
         appRegistered: apps.some((a: { provider: string }) => a.provider === provider),
-        connected: !!conn,
+        connected: !!conn && isOAuthGrant(conn.scopes),
+        webhookOnly: !!conn && !isOAuthGrant(conn.scopes),
         accountName: conn?.external_account_name ?? null,
         scopes: conn?.scopes ?? [],
         connectedAt: conn?.updated_at ?? null,

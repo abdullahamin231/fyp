@@ -74,6 +74,15 @@ export function fetchProviderIdentity(provider: IntegrationProvider, token: stri
   return IDENTITY[provider](token, fetchImpl);
 }
 
+/**
+ * A real OAuth grant always carries scopes. A row without any holds only a
+ * webhook secret (an older setup script stored a placeholder token beside
+ * it), and its token must never be sent anywhere.
+ */
+export function isOAuthGrant(scopes: string[] | null | undefined): boolean {
+  return (scopes ?? []).length > 0;
+}
+
 /** Refresh this long before expiry, so a token never dies mid-request. */
 const SKEW_MS = 60_000;
 
@@ -92,12 +101,13 @@ export async function getProviderToken(
   const db = admin();
   const { data, error } = await db
     .from("integration_connections")
-    .select("access_token_ciphertext, refresh_token_ciphertext, token_expires_at, external_account_id, external_account_name")
+    .select("access_token_ciphertext, refresh_token_ciphertext, token_expires_at, external_account_id, external_account_name, scopes")
     .eq("workspace_id", workspaceId)
     .eq("provider", provider)
     .maybeSingle();
   if (error) throw new Error(`Could not load ${provider} connection: ${error.message}`);
   if (!data?.access_token_ciphertext) throw new ReconnectRequired(provider, "not connected");
+  if (!isOAuthGrant(data.scopes)) throw new ReconnectRequired(provider, "only a webhook secret is stored; connect with OAuth");
   const account = { id: data.external_account_id ?? null, name: data.external_account_name ?? null };
 
   const expiresAt = data.token_expires_at ? Date.parse(data.token_expires_at) : null;

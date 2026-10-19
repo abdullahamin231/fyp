@@ -18,7 +18,7 @@ function setup(provider: "jira" | "figma", connection: Record<string, unknown>) 
         { workspace_id: WS, provider, client_id: "cid", client_secret_ciphertext: encryptSecret("csecret"), webhook_secret_ciphertext: encryptSecret("w") },
       ],
       integration_connections: [
-        { workspace_id: WS, provider, access_token_ciphertext: encryptSecret("old-access"), external_account_id: "cloud-1", external_account_name: "Acme", ...connection },
+        { workspace_id: WS, provider, access_token_ciphertext: encryptSecret("old-access"), external_account_id: "cloud-1", external_account_name: "Acme", scopes: ["read:jira-work"], ...connection },
       ],
     },
   });
@@ -66,6 +66,13 @@ describe("getProviderToken", () => {
     expect((calls[0]!.init.headers as Record<string, string>).authorization).toBe(`Basic ${Buffer.from("cid:csecret").toString("base64")}`);
     expect(String(calls[0]!.init.body)).toBe("refresh_token=rt-f");
     expect(decryptSecret(stored().refresh_token_ciphertext)).toBe("rt-f");
+  });
+
+  it("never hands out the placeholder token of a webhook-only row", async () => {
+    setup("jira", { scopes: [], token_expires_at: null });
+    const { impl, calls } = fakeFetch({ body: {} });
+    await expect(getProviderToken(WS, "jira", { fetch: impl, now: () => NOW })).rejects.toThrow("only a webhook secret is stored");
+    expect(calls).toEqual([]);
   });
 
   it("asks for a reconnect when the token expired with no refresh token, or the refresh is refused", async () => {

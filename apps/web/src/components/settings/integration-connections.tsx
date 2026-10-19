@@ -25,7 +25,7 @@ export function IntegrationConnections({ slug, providers }: { slug: string; prov
                 </div>
                 <div>
                   <span className="font-headline-sm text-headline-sm text-on-surface font-semibold">{meta.name}</span>
-                  <p className="font-mono-code text-micro-label text-muted">{status.accountName ?? (status.connected ? "account unnamed" : "not connected")}</p>
+                  <p className="font-mono-code text-micro-label text-muted">{status.accountName && status.connected ? status.accountName : status.connected ? "account unnamed" : status.webhookOnly ? "webhooks verify; connect OAuth to read" : "not connected"}</p>
                 </div>
               </div>
               <span
@@ -33,7 +33,7 @@ export function IntegrationConnections({ slug, providers }: { slug: string; prov
                   status.connected ? "bg-secondary/10 text-secondary" : "bg-surface-container-high text-muted"
                 }`}
               >
-                {status.connected ? "Connected" : status.appRegistered ? "App registered" : "Not set up"}
+                {status.connected ? "Connected" : status.webhookOnly ? "Webhook only" : status.appRegistered ? "App registered" : "Not set up"}
               </span>
             </div>
             <dl className="grid grid-cols-2 gap-2 font-mono-code text-micro-label">

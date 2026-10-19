@@ -81,7 +81,7 @@ function ProviderCard({
               </span>
             ) : (
               <span className="px-1.5 py-0.5 rounded font-mono-code text-eyebrow font-bold uppercase bg-surface-container-highest text-on-surface-variant">
-                Not connected
+                {status.webhookOnly ? "Webhook only" : "Not connected"}
               </span>
             )}
           </div>
