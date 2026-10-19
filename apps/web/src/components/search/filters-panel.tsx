@@ -4,12 +4,6 @@ import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { kindLabels, toolFilters, type SearchKind } from "@/lib/domain/search";
 
-/**
- * DATA HOLE — replace with the workspace/squad API.
- * Empty until the endpoint exists; the squad scope section renders its
- * empty copy.
- */
-const squads: string[] = [];
 import type { FindingStatus, Severity } from "@/lib/types";
 
 export interface SearchFilters {
@@ -19,7 +13,6 @@ export interface SearchFilters {
   states: FindingStatus[];
   horizon: "24h" | "7d" | "30d";
   confidence: number;
-  squads: string[];
 }
 
 export interface FacetCounts {
@@ -100,13 +93,6 @@ export function FiltersPanel({
         ? filters.states.filter((value) => value !== state)
         : [...filters.states, state],
     });
-  const toggleSquad = (squad: string) =>
-    onChange({
-      squads: filters.squads.includes(squad)
-        ? filters.squads.filter((value) => value !== squad)
-        : [...filters.squads, squad],
-    });
-
   return (
     <div className="col-span-12 lg:col-span-3 bg-surface-container-low rounded-xl p-stack-comfortable flex flex-col gap-stack-comfortable shadow-md lg:sticky lg:top-16">
       <div className="flex items-center justify-between pb-stack-compact bg-surface-container-lowest/40 -mx-stack-comfortable px-stack-comfortable pt-2 rounded-t-xl">
@@ -329,37 +315,6 @@ export function FiltersPanel({
         </div>
       </div>
 
-      {/* Squad scope */}
-      <div className="flex flex-col gap-stack-comfortable pt-stack-comfortable bg-surface-container-lowest/30 p-3.5 rounded-lg">
-        <span className="text-muted font-label-caps text-label-caps uppercase tracking-wider">
-          Squad scope
-        </span>
-        <div className="space-y-1.5">
-          {squads.length === 0 ? (
-            <p className="font-body-sm text-body-sm text-muted">
-              No squads indexed yet
-            </p>
-          ) : (
-            squads.map((squad) => (
-            <label key={squad} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.squads.includes(squad)}
-                onChange={() => toggleSquad(squad)}
-                className="rounded accent-primary cursor-pointer"
-              />
-              <span
-                className={`font-body-sm text-body-sm ${
-                  filters.squads.includes(squad) ? "text-on-surface" : "text-on-surface-variant"
-                }`}
-              >
-                {squad}
-              </span>
-            </label>
-            ))
-          )}
-        </div>
-      </div>
     </div>
   );
 }
