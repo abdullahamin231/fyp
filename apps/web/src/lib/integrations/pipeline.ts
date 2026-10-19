@@ -240,9 +240,11 @@ type NodeRow = { id: string; type: string; external_id: string; status: string |
  * The grace period is RULE_2_GRACE_HOURS (0) for now; see the note in the body.
  */
 export async function evaluateWorkflowRule(db: SupabaseClient, nodeId: string): Promise<number> {
-  const rule = await db.from("rules").select("id, version, grace_period_hours, severity").eq("id", "RULE_2").eq("active", true).order("version", { ascending: false }).limit(1).maybeSingle();
+  // The latest version decides, including whether the rule is paused: filtering
+  // on active first would fall back to an older version after a pause.
+  const rule = await db.from("rules").select("id, version, grace_period_hours, severity, active").eq("id", "RULE_2").order("version", { ascending: false }).limit(1).maybeSingle();
   if (rule.error) throw new Error(`rules: ${rule.error.message}`);
-  if (!rule.data) return 0;
+  if (!rule.data?.active) return 0;
   // Fixed for now: the RULE_2 record specifies a grace period (4 h), but nothing
   // re-evaluates later yet, so a finding could never appear after the event.
   // Until a scheduled re-check exists, findings are raised as soon as the

@@ -3,6 +3,9 @@ import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { PolicyWorkbench } from "@/components/policies/policy-workbench";
+import { listRules } from "@/lib/data/rules";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Policy Configuration",
@@ -10,7 +13,8 @@ export const metadata: Metadata = {
     "Define cross-tool consistency rules, trigger conditions, temporal thresholds, and recipient escalation policies.",
 };
 
-export default function PoliciesPage() {
+export default async function PoliciesPage() {
+  const rules = await listRules();
   return (
     <AppShell>
       {/* Top ambient glow & title section */}
@@ -36,7 +40,7 @@ export default function PoliciesPage() {
       </div>
 
       {/* Master / detail grid — list + rule builder */}
-      <PolicyWorkbench />
+      <PolicyWorkbench rules={rules} />
     </AppShell>
   );
 }
