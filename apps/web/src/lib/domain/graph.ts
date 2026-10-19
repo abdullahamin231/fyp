@@ -4,7 +4,6 @@ import type {
   GraphModel,
   GraphNode,
   LinkEligibility,
-  ToolKind,
 } from "@/lib/types";
 
 /**
@@ -108,15 +107,30 @@ export function graphStats(graph: ExplorerGraph): GraphStats {
 /** Empty graph handed to the explorers until the graph API returns a payload. */
 export const emptyExplorerGraph: ExplorerGraph = { nodes: [], edges: [] };
 
-/** A pending Slack-surfaced link proposal awaiting human confirmation. */
-export interface LinkProposal {
-  id: string;
-  from: string;
-  offsetX: number;
-  offsetY: number;
-  channel: string;
-  quote: string;
-  confidence: number;
-  relation: EdgeRelation;
-  tool: ToolKind;
+/** Why a node is in a drift blast radius: the open finding and the node carrying it. */
+export interface DriftCause {
+  findingId: string;
+  sourceId: string;
+  sourceLabel: string;
+}
+
+/**
+ * Every node that carries an open finding, plus every node one link away
+ * from one. A node near several findings keeps the first one found; a node
+ * carrying its own finding always reports that one.
+ */
+export function driftBlastRadius(graph: ExplorerGraph): Map<string, DriftCause> {
+  const radius = new Map<string, DriftCause>();
+  const sources = graph.nodes.filter((node) => node.findingId);
+  for (const node of sources) {
+    radius.set(node.id, { findingId: node.findingId!, sourceId: node.id, sourceLabel: node.label });
+  }
+  for (const node of sources) {
+    const cause = radius.get(node.id)!;
+    for (const edge of graph.edges) {
+      const other = edge.from === node.id ? edge.to : edge.to === node.id ? edge.from : null;
+      if (other && !radius.has(other)) radius.set(other, cause);
+    }
+  }
+  return radius;
 }

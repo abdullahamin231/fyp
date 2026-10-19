@@ -12,9 +12,8 @@ import type {
   ExplorerEdge,
   ExplorerGraph,
   ExplorerNode,
-  LinkProposal,
 } from "@/lib/domain/graph";
-import { graphStats, isDecisive } from "@/lib/domain/graph";
+import { driftBlastRadius, graphStats, isDecisive } from "@/lib/domain/graph";
 import type { GraphNodeKind, LinkEligibility } from "@/lib/types";
 
 const LAYOUTS: { id: LayoutMode; label: string; icon: string }[] = [
@@ -62,15 +61,7 @@ function eligibilityCaption(edge: ExplorerEdge): string {
  * `/graph/artifacts` — the three-pane artefact explorer: filter & provenance
  * drawer, pan-and-zoom topology canvas with three layouts, node inspector.
  */
-export function ArtifactGraphExplorer({
-  graph,
-  proposal,
-  driftAffected,
-}: {
-  graph: ExplorerGraph;
-  proposal: LinkProposal | null;
-  driftAffected: string[];
-}) {
+export function ArtifactGraphExplorer({ graph }: { graph: ExplorerGraph }) {
   const [layout, setLayout] = useState<LayoutMode>("layered");
   const [showFilters, setShowFilters] = useState(true);
   const [focusQuery, setFocusQuery] = useState("");
@@ -84,27 +75,10 @@ export function ArtifactGraphExplorer({
   );
   const [preset, setPreset] = useState<Preset | null>(null);
   const [selectedId, setSelectedId] = useState<string>("");
-  const [proposalState, setProposalState] = useState<"pending" | "confirmed" | "dismissed">(
-    "pending",
-  );
 
   const stats = useMemo(() => graphStats(graph), [graph]);
-  /** Base edge list = graph edges + the (stateful) Slack link proposal. */
-  const allEdges = useMemo<ExplorerEdge[]>(() => {
-    if (!proposal || proposalState === "dismissed") return graph.edges;
-    const confirmed = proposalState === "confirmed";
-    const proposalEdge: ExplorerEdge = {
-      from: proposal.from,
-      to: proposal.id,
-      label: proposal.relation,
-      eligible: confirmed,
-      eligibility: confirmed ? "confirmed" : "inferred",
-      confidence: confirmed ? 1 : proposal.confidence,
-      provenance: confirmed ? "manual" : "inferred",
-      confirmedBy: undefined,
-    };
-    return [...graph.edges, proposalEdge];
-  }, [graph, proposal, proposalState]);
+  const allEdges = graph.edges;
+  const drift = useMemo(() => driftBlastRadius(graph), [graph]);
 
   /** Node ids a quick-focus preset keeps: a node and everything one hop from it. */
   const presetIds = useMemo(() => {
@@ -139,21 +113,17 @@ export function ArtifactGraphExplorer({
   const visibleEdges = useMemo(
     () =>
       allEdges.filter((edge) => {
-        const proposalEndpoint =
-          proposal !== null && (edge.to === proposal.id || edge.from === proposal.id);
-        const endpointsVisible = proposalEndpoint
-          ? proposalState !== "dismissed" && visibleNodeIds.has(proposal.from)
-          : visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to);
+        const endpointsVisible = visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to);
         return (
           endpointsVisible &&
           enabledEligibility.has(edge.eligibility) &&
           edge.confidence * 100 >= cutoff
         );
       }),
-    [allEdges, visibleNodeIds, enabledEligibility, cutoff, proposal, proposalState],
+    [allEdges, visibleNodeIds, enabledEligibility, cutoff],
   );
 
-  /** Edges between two canvas nodes (the Slack proposal floats as a panel). */
+  /** Edges between two canvas nodes. */
   const canvasEdges = useMemo(
     () =>
       visibleEdges.filter((edge) => visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to)),
@@ -198,7 +168,7 @@ export function ArtifactGraphExplorer({
     return entries;
   }, [visibleEdges, selected, graph]);
 
-  const inDrift = selected !== null && driftAffected.includes(selected.id);
+  const driftCause = selected ? drift.get(selected.id) : undefined;
   const relationCounts = RELATIONS.map((relation) => ({
     relation,
     count: allEdges.filter((edge) => edge.label === relation).length,
@@ -305,7 +275,7 @@ export function ArtifactGraphExplorer({
                     Edges
                   </span>
                   <span className="font-headline-sm text-headline-sm text-secondary font-bold">
-                    {stats.edges + (proposal && proposalState !== "dismissed" ? 1 : 0)}
+                    {stats.edges}
                   </span>
                 </div>
                 <div className="flex flex-col pt-1 border-t border-outline-variant/20">
@@ -568,59 +538,6 @@ export function ArtifactGraphExplorer({
               </div>
             </Panel>
 
-            {/* Inferred Slack link proposal */}
-            {proposal && proposalState !== "dismissed" && visibleNodeIds.has(proposal.from) ? (
-              <Panel position="top-right">
-                <div className="w-56 p-3 rounded-lg border shadow-xl backdrop-blur-md">
-                  {proposalState === "confirmed" ? (
-                    <div className="bg-surface-container-highest/90 border border-secondary">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="flex items-center gap-1 text-secondary font-mono-code text-micro-label font-bold">
-                          <Icon name="check_circle" className="text-[13px]" />
-                          Confirmed Link
-                        </span>
-                        <span className="text-muted font-mono-code text-micro-label">You</span>
-                      </div>
-                      <div className="font-body-sm text-[12px] text-on-surface truncate">
-                        {proposal.channel}: {proposal.quote}
-                      </div>
-                      <div className="mt-1.5 font-mono-code text-micro-label text-on-surface-variant">
-                        manual · reversible · provenance recorded
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-surface-container-highest/90 border border-tertiary">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="flex items-center gap-1 text-tertiary font-mono-code text-micro-label font-bold">
-                          <Icon name="cyclone" className="text-[13px] animate-spin" />
-                          Inferred Link: {Math.round(proposal.confidence * 100)}%
-                        </span>
-                        <span className="text-muted font-mono-code text-micro-label">
-                          NLP Heuristic
-                        </span>
-                      </div>
-                      <div className="font-body-sm text-[12px] text-on-surface truncate">
-                        {proposal.channel}: {proposal.quote}
-                      </div>
-                      <div className="mt-2 flex items-center gap-1.5">
-                        <button
-                          onClick={() => setProposalState("confirmed")}
-                          className="flex-1 py-1 rounded bg-secondary-container text-on-secondary font-mono-code text-micro-label font-bold hover:brightness-110 transition-all flex items-center justify-center gap-0.5"
-                        >
-                          <Icon name="check" className="text-[12px]" /> Confirm
-                        </button>
-                        <button
-                          onClick={() => setProposalState("dismissed")}
-                          className="flex-1 py-1 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 text-muted hover:text-on-surface font-mono-code text-micro-label flex items-center justify-center gap-0.5 transition-all"
-                        >
-                          <Icon name="close" className="text-[12px]" /> Dismiss
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </Panel>
-            ) : null}
           </GraphCanvas>
         </main>
 
@@ -674,28 +591,25 @@ export function ArtifactGraphExplorer({
                 </div>
 
                 {/* Blast radius / eligibility summary */}
-                {inDrift ? (
+                {driftCause ? (
                   <div className="space-y-3">
                     <span className="font-label-caps text-label-caps text-muted uppercase tracking-wider flex items-center justify-between">
                       Blast Radius Impact
-                      <span className="text-error font-mono-code text-micro-label">
-                        DRIFT ACTIVE
-                      </span>
+                      <span className="text-error font-mono-code text-micro-label">DRIFT ACTIVE</span>
                     </span>
                     <div className="bg-error-container/20 border border-error/30 rounded-lg p-3.5">
                       <div className="flex items-center gap-2 text-error font-semibold text-[12px]">
                         <Icon name="crisis_alert" className="text-[16px]" />
-                        Affected artifacts pending.
+                        {driftCause.sourceId === selected.id ? "This artifact carries an open finding." : `Linked to ${driftCause.sourceLabel}, which carries an open finding.`}
                       </div>
                       <p className="font-body-sm text-micro-label text-on-surface-variant mt-1.5">
-                        {/* DATA HOLE — replace with the drift API's affected field, source artifact, and conflicting revision. */}
-                        Impact details unavailable.
+                        {drift.size} artifacts sit within one link of an open finding.
                       </p>
                       <div className="mt-3 pt-3 border-t border-error/20 flex items-center justify-between">
-                        <span className="font-mono-code text-micro-label text-muted">
-                          Conflict Reference:
-                        </span>
-                        <span className="font-mono-code text-micro-label text-muted">—</span>
+                        <span className="font-mono-code text-micro-label text-muted">Conflict Reference:</span>
+                        <a href={`/conflicts/${driftCause.findingId}`} className="font-mono-code text-micro-label text-primary hover:underline">
+                          {driftCause.findingId.slice(0, 8)}
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -765,9 +679,7 @@ export function ArtifactGraphExplorer({
                               onClick={() => other && setSelectedId(other.id)}
                               className="text-on-surface truncate font-medium hover:text-primary transition-colors text-left"
                             >
-                              {other
-                                ? `${other.kindLabel} ${other.label}`
-                                : (proposal?.channel ?? "—")}
+                              {other ? `${other.kindLabel} ${other.label}` : "—"}
                             </button>
                             <Icon
                               name={

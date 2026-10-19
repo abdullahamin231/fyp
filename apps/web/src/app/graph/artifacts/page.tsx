@@ -1,15 +1,7 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/layout/app-shell";
 import { ArtifactGraphExplorer } from "@/components/graph/artifact-explorer";
-import type { LinkProposal } from "@/lib/domain/graph";
 import { loadExplorerGraph } from "@/lib/data/graph";
-
-/**
- * DATA HOLE — drift blast radius and Slack link proposals are not wired yet,
- * so they stay empty. The graph itself comes from the evidence graph.
- */
-const driftAffected: string[] = [];
-const slackProposal: LinkProposal | null = null;
 
 export const metadata: Metadata = {
   title: "Artifact Graph",
@@ -22,11 +14,7 @@ export default async function ArtifactGraphPage() {
 
   return (
     <AppShell>
-      <ArtifactGraphExplorer
-        graph={artifactGraph}
-        proposal={slackProposal}
-        driftAffected={driftAffected}
-      />
+      <ArtifactGraphExplorer graph={artifactGraph} />
     </AppShell>
   );
 }
