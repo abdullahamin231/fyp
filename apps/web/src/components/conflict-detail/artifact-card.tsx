@@ -92,8 +92,9 @@ function Specimen({
   }
 
   if (artifact.tool === "jira") {
-    // DATA HOLE — replace with the ticket API's real completion percentage.
-    const pct = 0;
+    const supported = finding.criteria.filter((c) => c.verdict === "SUPPORTED").length;
+    const total = finding.criteria.length;
+    const pct = total === 0 ? 0 : Math.round((supported / total) * 100);
     return (
       <div className="w-full min-h-28 rounded bg-surface-container-lowest p-stack-comfortable mb-stack-comfortable flex flex-col justify-between">
         <div className="flex items-center justify-between text-micro-label font-mono-code text-muted">
@@ -104,7 +105,9 @@ function Specimen({
           <div className="w-full bg-surface-container-highest rounded-full h-2">
             <div className="bg-tertiary h-2 rounded-full" style={{ width: `${pct}%` }} />
           </div>
-          <span className="text-tertiary font-mono-code text-micro-label">{pct}%</span>
+          <span className="text-tertiary font-mono-code text-micro-label" title="acceptance criteria with a SUPPORTED verdict">
+            {supported}/{total} criteria
+          </span>
         </div>
         <div className="text-micro-label text-on-surface-variant truncate font-body-sm">
           {gap}

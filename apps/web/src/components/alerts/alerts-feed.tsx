@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { transitionFindingAction } from "@/lib/actions/findings";
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import {
@@ -45,7 +47,22 @@ const verdictChip: Record<string, string> = {
 };
 
 function AlertCard({ finding }: { finding: Finding }) {
-  const [queued, setQueued] = useState(false);
+  const router = useRouter();
+  const [resolving, setResolving] = useState(false);
+  const [reason, setReason] = useState("");
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function resolve() {
+    startTransition(async () => {
+      const outcome = await transitionFindingAction(finding.id, "resolve", reason);
+      setResult(outcome.ok ? { ok: true, text: "Resolved" } : { ok: false, text: outcome.error ?? "Not resolved" });
+      if (outcome.ok) {
+        setResolving(false);
+        router.refresh();
+      }
+    });
+  }
   const title = finding.title;
   const isCritical = finding.severity === "critical";
   const category = policyCategory[finding.policy ?? "criterion_verification"];
@@ -142,17 +159,42 @@ function AlertCard({ finding }: { finding: Finding }) {
           >
             Review Change
           </Link>
-          <button
-            type="button"
-            onClick={() => setQueued(true)}
-            className={`w-full py-2 border border-outline-variant font-bold rounded-lg active:scale-95 transition-transform ${
-              queued
-                ? "bg-secondary/10 border-secondary/40 text-secondary"
-                : "bg-transparent text-on-surface hover:bg-surface-container-high"
-            }`}
-          >
-            {queued ? "Queued ✓" : "Resolve"}
-          </button>
+          {result?.ok ? (
+            <span className="w-full py-2 border border-secondary/40 bg-secondary/10 text-secondary font-bold rounded-lg text-center">Resolved ✓</span>
+          ) : resolving ? (
+            <form
+              className="w-full flex flex-col gap-1.5"
+              onSubmit={(event) => {
+                event.preventDefault();
+                resolve();
+              }}
+            >
+              <input
+                autoFocus
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                placeholder="Why is this resolved?"
+                className="w-full px-2 py-1.5 rounded bg-surface-container-lowest text-on-surface text-body-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <button
+                type="submit"
+                disabled={pending || !reason.trim()}
+                className="w-full py-2 border border-outline-variant font-bold rounded-lg text-on-surface hover:bg-surface-container-high disabled:opacity-50"
+              >
+                {pending ? "Resolving…" : "Confirm resolve"}
+              </button>
+              {result && !result.ok ? <span className="text-error text-micro-label">{result.text}</span> : null}
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setResolving(true)}
+              disabled={finding.status === "resolved" || finding.status === "superseded"}
+              className="w-full py-2 border border-outline-variant font-bold rounded-lg active:scale-95 transition-transform bg-transparent text-on-surface hover:bg-surface-container-high disabled:opacity-50"
+            >
+              Resolve
+            </button>
+          )}
         </div>
       </div>
     </article>
