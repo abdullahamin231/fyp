@@ -181,19 +181,21 @@ async function analysisTarget(
 
 /**
  * The token to read this workspace's repositories: its GitHub OAuth
- * connection, or the worker-wide ANALYSIS_GIT_TOKEN when it has none.
+ * connection, or the worker-wide ANALYSIS_GIT_TOKEN when it has none. A row
+ * with no scopes is not an OAuth grant (an older setup script stored a
+ * placeholder there), and sending it would fail even public clones.
  */
 async function workspaceGitToken(client: SupabaseClient, workspaceId: string, config: Config): Promise<string | null> {
   if (config.encryptionKey) {
     const { data, error } = await client
       .from("integration_connections")
-      .select("access_token_ciphertext")
+      .select("access_token_ciphertext, scopes")
       .eq("workspace_id", workspaceId)
       .eq("provider", "github")
       .maybeSingle();
     if (error) throw new Error(`enrich: github connection: ${error.message}`);
-    const sealed = (data as { access_token_ciphertext: string } | null)?.access_token_ciphertext;
-    if (sealed) return decryptSecret(sealed, config.encryptionKey);
+    const row = data as { access_token_ciphertext: string; scopes: string[] | null } | null;
+    if (row?.access_token_ciphertext && (row.scopes ?? []).length > 0) return decryptSecret(row.access_token_ciphertext, config.encryptionKey);
   }
   return config.gitToken ?? null;
 }

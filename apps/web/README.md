@@ -95,18 +95,20 @@ the database. The OAuth callback stores access and refresh tokens encrypted
 with AES-256-GCM; the webhook endpoint never accepts a token from the browser.
 
 ```
-SUPABASE_SERVICE_ROLE_KEY
-INTEGRATION_ENCRYPTION_KEY
+SUPABASE_SERVICE_ROLE_KEY   (or SUPABASE_SECRET_KEY)
+INTEGRATION_ENCRYPTION_KEY  (the worker needs the same value)
 OAUTH_STATE_SECRET
+CRON_SECRET                 (only for /api/cron/figma-poll)
+GITHUB_OAUTH_SCOPE, JIRA_OAUTH_SCOPE, FIGMA_OAUTH_SCOPE   (optional overrides)
 ```
 
 Register each provider app and webhook from the workspace settings page.
 GitHub sends `X-Hub-Signature-256`, Jira sends
 `X-Hub-Signature`, and Figma v2 sends its creation passcode in the payload.
 Webhook requests are verified against the raw body, persisted idempotently,
-and then normalized into `events`. Apply migration
-`supabase/migrations/00010_integrations.sql` and
-`supabase/migrations/00018_integration_apps.sql` before enabling live delivery.
+and then normalized into `events`. Apply every migration in `supabase/migrations` in order before enabling
+live delivery (see `supabase/README.md`). `npm run poll` runs the local loop
+that polls watched Figma files and reconciles GitHub pull requests.
 
 **Creating a workspace:** call `supabase.rpc("create_workspace", { p_name, p_slug })`,
 not a direct `.insert().select()` — the latter hits a PostgREST
@@ -116,6 +118,7 @@ with-check. Full explanation in `supabase/README.md`.
 ## Status
 
 Auth is wired end-to-end (signup → session → guarded routes → sign-out).
-Screens still render typed mock data (`src/lib/mock/`); the next step is
-swapping those modules for the real API/contracts layer
-(`packages/contracts`, Zod) without touching the screens.
+Every screen reads Supabase through `src/lib/data/**` under the caller's RLS
+session, and every write goes through a server action in `src/lib/actions/**`
+that appends an `audit_log` row. Controls with no backend were removed rather
+than left as placeholders.

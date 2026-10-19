@@ -20,6 +20,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { extractJiraKeys } from "@unify/contracts";
 import { asRecord, text } from "./common";
 import { guessCategory, jiraIssueSync } from "./jira-issue";
+import { pullRequestCommits, type GithubCommit } from "./github";
+import { getProviderToken } from "./tokens";
 
 /** Project prefixes of the tickets this workspace already has, e.g. ["UNI"]. */
 async function workspaceProjectKeys(db: SupabaseClient, workspaceId: string): Promise<string[] | null> {
@@ -197,6 +199,7 @@ export async function linkPullRequestFromGithub(
   payload: Record<string, unknown>,
   rawHash: string,
   receivedAt: Date,
+  commits: GithubCommit[] = [],
 ): Promise<LinkResult> {
   const pr = asRecord(payload.pull_request);
   const repo = text(asRecord(payload.repository).full_name) ?? "unknown";
@@ -206,7 +209,7 @@ export async function linkPullRequestFromGithub(
   const title = text(pr.title) ?? "";
   const branch = text(head.ref) ?? "";
   const state = pr.merged === true ? "merged" : (text(pr.state) ?? "open");
-  const keys = extractJiraKeys({ title, branch, body: text(pr.body) }, await workspaceProjectKeys(db, workspaceId));
+  const keys = extractJiraKeys({ title, branch, body: text(pr.body), commits }, await workspaceProjectKeys(db, workspaceId));
 
   const { data, error } = await db.rpc("link_pull_request_event", {
     p_workspace_id: workspaceId,
@@ -220,6 +223,62 @@ export async function linkPullRequestFromGithub(
   });
   if (error) throw new Error(`Linker failed: ${error.message}`);
   return data as LinkResult;
+}
+
+/**
+ * PR actions whose delivery leaves the code at a state worth verifying: a new
+ * or changed head, or a reopen. Closed/merged deliveries change state, not the
+ * commit pair; the enqueue RPC's (criterion, base, head) key handles the rest.
+ */
+const VERIFIABLE_ACTIONS = new Set(["opened", "synchronize", "reopened"]);
+
+export interface PullRequestOutcome {
+  linking: LinkResult;
+  findingsCreated?: number;
+  verification?: EnqueueResult;
+  commitsRead: number | "unavailable";
+}
+
+/**
+ * Everything a pull-request delivery does, for a webhook and a reconciliation
+ * replay alike: read the PR's commits (best effort, with the workspace token),
+ * link it, evaluate Rule 2, and queue verification for the linked criteria.
+ */
+export async function processPullRequestDelivery(
+  db: SupabaseClient,
+  input: { workspaceId: string; deliveryId: string; payload: Record<string, unknown>; rawHash: string; receivedAt: Date },
+  deps: { commits?: (repo: string, number: number) => Promise<GithubCommit[]> } = {},
+): Promise<PullRequestOutcome> {
+  const { workspaceId, deliveryId, payload } = input;
+  const pr = asRecord(payload.pull_request);
+  const repo = text(asRecord(payload.repository).full_name);
+  const number = Number(payload.number ?? pr.number);
+  let commits: GithubCommit[] = [];
+  let commitsRead: number | "unavailable" = "unavailable";
+  if (repo && number) {
+    try {
+      const read =
+        deps.commits ?? (async (r: string, n: number) => pullRequestCommits((await getProviderToken(workspaceId, "github")).accessToken, r, n));
+      commits = await read(repo, number);
+      commitsRead = commits.length;
+    } catch {
+      // Without a token or with the API down, the title, branch and body still link.
+    }
+  }
+
+  const linking = await linkPullRequestFromGithub(db, workspaceId, deliveryId, payload, input.rawHash, input.receivedAt, commits);
+  const outcome: PullRequestOutcome = { linking, commitsRead };
+  if (linking.prNodeId) outcome.findingsCreated = await evaluateWorkflowRule(db, linking.prNodeId);
+  const action = text(payload.action) ?? "unknown";
+  if (linking.prNodeId && VERIFIABLE_ACTIONS.has(action) && linking.keys) {
+    outcome.verification = await enqueueVerificationForTickets(db, {
+      workspaceId,
+      ticketKeys: linking.keys.map((key) => key.key),
+      baseCommit: text(asRecord(pr.base).sha) ?? text(payload.base_sha),
+      headCommit: text(asRecord(pr.head).sha) ?? text(payload.head_sha),
+    });
+  }
+  return outcome;
 }
 
 // ---------------------------------------------------------------------------

@@ -38,7 +38,9 @@ both the receipt and event have database uniqueness constraints.
 Supported event mapping:
 
 - GitHub: `pull_request` and `push`; PR payloads preserve repository identity,
-  base SHA, head SHA, merge state, and ticket/URL references.
+  base SHA, head SHA, merge state, and ticket/URL references. Jira keys are read
+  from the PR title, branch, body and every commit message. A push is recorded;
+  its commits reach linking through the PR's `synchronize` delivery.
 - Jira: `jira:issue_created`, `jira:issue_updated`, and
   `jira:issue_deleted`; status transitions come from `changelog.items`, not
   from a second issue read.
@@ -47,5 +49,28 @@ Supported event mapping:
 
 GitHub uses `X-Hub-Signature-256`, Jira uses `X-Hub-Signature`, and Figma v2
 uses the passcode in the event payload. Secrets must match the values used when
-the provider webhook was created. Reconciliation remains the mechanism of
-record for gaps because vendor webhook delivery is best effort.
+the provider webhook was created.
+
+## Tokens
+
+`getProviderToken` (`apps/web/src/lib/integrations/tokens.ts`) is the only way
+code reads a provider token. It refreshes a token within a minute of expiry,
+stores Atlassian's rotated refresh token (Figma's does not rotate), and raises
+`ReconnectRequired` when a person has to reconnect. The OAuth callback records
+the connected account: the GitHub login, the Figma handle, and for Jira the
+site's cloudId, which every Jira REST call needs.
+
+GitHub asks for the `repo` scope by default. OAuth apps have no read-only
+scope for private repository contents. The worker clones with the workspace's
+token, passed per git command and never written to disk.
+
+## Reconciliation
+
+Vendor webhook delivery is best effort. For GitHub, reconciliation lists the
+open pull requests of every repository in `analysis_targets` and replays any
+whose head the graph has not seen through the same path a webhook takes, with
+the delivery id `reconcile:<repo>#<n>@<head>` so a late real delivery dedupes.
+Run it with `POST /api/integrations/github/reconcile?workspace=<slug>` or the
+local loop `npm run poll` in `apps/web`, which also polls watched Figma files.
+Jira has no reconciliation yet: a missed Jira delivery is recovered by the next
+edit of that issue.

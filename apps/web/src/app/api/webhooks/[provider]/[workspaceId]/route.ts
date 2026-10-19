@@ -6,23 +6,13 @@ import { isProvider } from "@/lib/integrations/types";
 import { recordCheckpoint } from "@/lib/integrations/checkpoints";
 import { loadJiraCriteriaField } from "@/lib/integrations/pipeline-settings";
 import {
-  enqueueVerificationForTickets,
   evaluateWorkflowRule,
   ingestJiraIssue,
-  linkPullRequestFromGithub,
+  processPullRequestDelivery,
 } from "@/lib/integrations/pipeline";
 import { admin } from "@/lib/supabase/admin";
 
 const MAX_BODY_BYTES = 10 * 1024 * 1024;
-
-/**
- * PR actions whose delivery leaves the code at a state worth verifying:
- * a new/changed head, or a reopen. Closed/merged deliveries change state, not
- * the commit pair — the enqueue RPC's (criterion, base, head) idempotency key
- * handles the rest.
- */
-const VERIFIABLE_ACTIONS = new Set(["opened", "synchronize", "reopened"]);
-const SHA40 = /^[0-9a-f]{40}$/;
 
 export async function POST(request: NextRequest, context: { params: Promise<{ provider: string; workspaceId: string }> }) {
   const { provider: rawProvider, workspaceId } = await context.params;
@@ -57,23 +47,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
     const db = admin();
     const pipeline: Record<string, unknown> = {};
     if (isPullRequest) {
-      const pr = asRecord(payload.pull_request);
-      const action = text(payload.action) ?? "unknown";
-      const link = await linkPullRequestFromGithub(db, workspaceId, deliveryId, payload, rawHash(rawBody), receivedAt);
-      pipeline.linking = link;
-      if (link.prNodeId) pipeline.findingsCreated = await evaluateWorkflowRule(db, link.prNodeId);
-      if (link.prNodeId && VERIFIABLE_ACTIONS.has(action) && link.keys) {
-        const baseCommit = text(asRecord(pr.base).sha) ?? text(payload.base_sha);
-        const headCommit = text(asRecord(pr.head).sha) ?? text(payload.head_sha);
-        if (baseCommit && headCommit && SHA40.test(baseCommit) && SHA40.test(headCommit)) {
-          pipeline.verification = await enqueueVerificationForTickets(db, {
-            workspaceId,
-            ticketKeys: link.keys.map((key) => key.key),
-            baseCommit,
-            headCommit,
-          });
-        }
-      }
+      Object.assign(pipeline, await processPullRequestDelivery(db, { workspaceId, deliveryId, payload, rawHash: rawHash(rawBody), receivedAt }));
       await recordCheckpoint(db, {
         workspaceId,
         provider: rawProvider,

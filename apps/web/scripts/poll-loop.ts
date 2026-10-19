@@ -1,15 +1,16 @@
 /**
- * Local Figma poll loop — runs the same `pollFigmaWorkspace` the workspace
- * surface's "Poll now" button runs, on an interval, from a machine that has the
- * app's environment (`.env`: Supabase URL, secret key, INTEGRATION_ENCRYPTION_KEY).
+ * Local poll loop: on an interval, polls every watched Figma file (the same
+ * `pollFigmaWorkspace` as the "Poll now" button) and reconciles every
+ * GitHub-connected workspace's open pull requests against the graph, from a
+ * machine with the app's environment (`.env`: Supabase URL, secret key,
+ * INTEGRATION_ENCRYPTION_KEY).
  *
- * Vercel Hobby only allows daily cron jobs, so the scheduled half of Figma
- * polling lives here instead of in `vercel.json`. The route
- * `/api/cron/figma-poll` still exists for a Pro schedule or a manual call;
- * this loop is the hobby-plan answer.
+ * Vercel Hobby only allows daily cron jobs, so the scheduled half lives here
+ * instead of in `vercel.json`. `/api/cron/figma-poll` still exists for a Pro
+ * schedule or a manual call.
  *
- *   terminal:  cd apps/web && npx tsx scripts/figma-poll-loop.ts
- *   interval:  FIGMA_POLL_INTERVAL_MS=60000 (default) npx tsx scripts/...
+ *   terminal:  cd apps/web && npm run poll   (add -- --once for a single pass)
+ *   interval:  POLL_INTERVAL_MS=60000 (default)
  *
  * One loop per workspace-set is enough: it walks every workspace with at least
  * one watched file. Ctrl-C stops it; a crash exits non-zero so a supervisor can
@@ -17,6 +18,7 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { figmaWatchedWorkspaces, pollFigmaWorkspace } from "../src/lib/integrations/figma-poll.js";
+import { githubConnectedWorkspaces, reconcileGithubWorkspace } from "../src/lib/integrations/github-reconcile.js";
 
 // Same convention as the wire-up scripts: read whichever env file exists.
 // Shell exports win over the file, so a one-off override still works.
@@ -29,14 +31,33 @@ for (const name of [".env.local", ".env"]) {
   break;
 }
 
-const INTERVAL_MS = Number(process.env.FIGMA_POLL_INTERVAL_MS ?? 60_000);
+const INTERVAL_MS = Number(process.env.POLL_INTERVAL_MS ?? process.env.FIGMA_POLL_INTERVAL_MS ?? 60_000);
 const ONCE = process.argv.includes("--once");
 
 function log(message: string, fields: Record<string, unknown> = {}): void {
   console.log(JSON.stringify({ at: new Date().toISOString(), message, ...fields }));
 }
 
+async function githubPass(): Promise<void> {
+  for (const workspace of await githubConnectedWorkspaces()) {
+    try {
+      for (const result of await reconcileGithubWorkspace(workspace.id)) {
+        log("github reconciled", {
+          workspace: workspace.slug,
+          repo: result.repo,
+          open: result.open,
+          replayed: result.replayed.map((r) => r.number),
+          ...(result.error ? { error: result.error } : {}),
+        });
+      }
+    } catch (error) {
+      log("github reconcile failed", { workspace: workspace.slug, error: error instanceof Error ? error.message : String(error) });
+    }
+  }
+}
+
 async function pass(): Promise<void> {
+  await githubPass();
   const workspaces = await figmaWatchedWorkspaces();
   if (workspaces.length === 0) {
     log("no watched Figma files yet — add one on the workspace page");

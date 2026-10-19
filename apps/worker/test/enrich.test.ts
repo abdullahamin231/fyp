@@ -172,7 +172,7 @@ const NODES = {
  * the PR node at this head is the one the evidence is published for.
  */
 function graphRoutes(
-  overrides: { commitExists?: boolean; hasPR?: boolean; hasTarget?: boolean; headSha?: string; historyAt?: string; sealedToken?: string } = {},
+  overrides: { commitExists?: boolean; hasPR?: boolean; hasTarget?: boolean; headSha?: string; historyAt?: string; sealedToken?: string; scopes?: string[] } = {},
 ): Route[] {
   const headSha = overrides.headSha ?? "b".repeat(40);
   const prs = overrides.hasPR === false
@@ -197,7 +197,7 @@ function graphRoutes(
     { table: "analysis_targets", data: overrides.hasTarget === false ? [] : [{ test_command: "exit 1" }] },
     // Delivery history: which PR was at a given head before it moved on.
     { table: "events", data: overrides.historyAt ? [{ entity_id: overrides.historyAt }] : [] },
-    { table: "integration_connections", data: overrides.sealedToken ? [{ access_token_ciphertext: overrides.sealedToken }] : [] },
+    { table: "integration_connections", data: overrides.sealedToken ? [{ access_token_ciphertext: overrides.sealedToken, scopes: overrides.scopes ?? ["repo"] }] : [] },
   ];
 }
 
@@ -281,6 +281,25 @@ describe("ensureEvidence", () => {
       CRITERION,
     );
     expect(used).toBe("gho_workspace");
+  });
+
+  it("falls back to the worker token when the stored GitHub row is not an OAuth grant", async () => {
+    const { dir, base, head } = repo();
+    const client = new FakeClient(graphRoutes({ headSha: head, sealedToken: encryptSecret("webhook-only-no-oauth", "passphrase"), scopes: [] }));
+    let used: string | null | undefined;
+    await ensureEvidence(
+      {
+        client: client as unknown as SupabaseClient,
+        config: { ...config, encryptionKey: "passphrase", gitToken: "fallback" } as Config,
+        resolveRepoDir: async (_repo, _config, token) => {
+          used = token;
+          return dir;
+        },
+      },
+      { workspace_id: "ws-1", base_commit: base, head_commit: head },
+      CRITERION,
+    );
+    expect(used).toBe("fallback");
   });
 
   it("passes the token as a one-command auth header, never in the remote URL", () => {
