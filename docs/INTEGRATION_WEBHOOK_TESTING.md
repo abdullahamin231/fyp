@@ -74,7 +74,7 @@ OAUTH_STATE_SECRET=generate-another-long-random-secret
 # Optional scope overrides:
 # GITHUB_OAUTH_SCOPE=repo read:org read:user
 # JIRA_OAUTH_SCOPE=read:jira-work read:jira-user offline_access
-# FIGMA_OAUTH_SCOPE=file_content:read file_metadata:read current_user:read
+# FIGMA_OAUTH_SCOPE=file_content:read file_metadata:read file_versions:read current_user:read
 
 # Scheduled Figma poll route (/api/cron/figma-poll), if you call it
 CRON_SECRET=generate-a-third-random-secret
@@ -180,7 +180,7 @@ https://YOUR-TUNNEL.example.com/api/integrations/figma/callback
 The default read-only scopes are:
 
 ```text
-file_content:read file_metadata:read current_user:read
+file_content:read file_metadata:read file_versions:read current_user:read
 ```
 
 The Figma account must be able to read the test file.
