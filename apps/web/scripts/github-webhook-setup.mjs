@@ -19,7 +19,7 @@
  *   node scripts/github-webhook-setup.mjs <workspace-slug-or-uuid> <repo owner/name> --base <https://your-unify-host>
  *   (or set UNIFY_BASE_URL instead of --base)
  */
-import { createCipheriv, createHash, createHmac, randomBytes } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
@@ -37,7 +37,6 @@ if (!envFile) {
     "Neither apps/web/.env.local nor apps/web/.env was found. Create one with the\n" +
     "values from the Vercel project (Project Settings -> Environment Variables):\n" +
     "NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY),\n" +
-    "INTEGRATION_ENCRYPTION_KEY.",
   );
   process.exit(1);
 }
@@ -46,17 +45,12 @@ for (const line of envFile.split(/\r?\n/)) {
   if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
 }
 process.env.SUPABASE_SERVICE_ROLE_KEY ??= process.env.SUPABASE_SECRET_KEY;
-const need = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "INTEGRATION_ENCRYPTION_KEY"];
+const need = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 const missing = need.filter((k) => !process.env[k]);
 if (missing.length) { console.error("Missing in apps/web/.env.local:", missing.join(", ")); process.exit(1); }
 
-const key = createHash("sha256").update(process.env.INTEGRATION_ENCRYPTION_KEY).digest();
-const encrypt = (v) => {
-  const iv = randomBytes(12);
-  const c = createCipheriv("aes-256-gcm", key, iv);
-  const enc = Buffer.concat([c.update(v, "utf8"), c.final()]);
-  return `${iv.toString("base64url")}.${c.getAuthTag().toString("base64url")}.${enc.toString("base64url")}`;
-};
+// Secrets are stored as plain text (encryption dropped for the mid evaluation).
+const encrypt = (v) => v;
 
 function die(msg) { console.error(msg); process.exitCode = 1; throw new Error("__stop__"); }
 process.on("uncaughtException", (e) => { if (e?.message !== "__stop__") { console.error(e); process.exitCode = 1; } });

@@ -20,3 +20,5 @@ docs/F26 FYP1 Mid Report LaTeX/diagrams/.build/
 *.synctex.gz
 # report build output (the diagram renders under diagrams/rendered/ ARE tracked)
 docs/F26 FYP1 Mid Report LaTeX/main.pdf
+
+.claude/

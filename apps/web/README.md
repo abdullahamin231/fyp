@@ -96,7 +96,6 @@ with AES-256-GCM; the webhook endpoint never accepts a token from the browser.
 
 ```
 SUPABASE_SERVICE_ROLE_KEY   (or SUPABASE_SECRET_KEY)
-INTEGRATION_ENCRYPTION_KEY  (the worker needs the same value)
 OAUTH_STATE_SECRET
 CRON_SECRET                 (only for /api/cron/figma-poll)
 GITHUB_OAUTH_SCOPE, JIRA_OAUTH_SCOPE, FIGMA_OAUTH_SCOPE   (optional overrides)

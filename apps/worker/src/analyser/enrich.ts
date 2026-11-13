@@ -186,7 +186,7 @@ async function analysisTarget(
  * placeholder there), and sending it would fail even public clones.
  */
 async function workspaceGitToken(client: SupabaseClient, workspaceId: string, config: Config): Promise<string | null> {
-  if (config.encryptionKey) {
+  {
     const { data, error } = await client
       .from("integration_connections")
       .select("access_token_ciphertext, scopes")
@@ -195,7 +195,7 @@ async function workspaceGitToken(client: SupabaseClient, workspaceId: string, co
       .maybeSingle();
     if (error) throw new Error(`enrich: github connection: ${error.message}`);
     const row = data as { access_token_ciphertext: string; scopes: string[] | null } | null;
-    if (row?.access_token_ciphertext && (row.scopes ?? []).length > 0) return decryptSecret(row.access_token_ciphertext, config.encryptionKey);
+    if (row?.access_token_ciphertext && (row.scopes ?? []).length > 0) return decryptSecret(row.access_token_ciphertext);
   }
   return config.gitToken ?? null;
 }

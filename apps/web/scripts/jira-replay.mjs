@@ -29,7 +29,7 @@
  *                --summary "Discount codes at checkout" \
  *                --criteria "the total drops by the code percentage;;the receipt shows the discounted total"
  */
-import { createDecipheriv, createHash, createHmac } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
@@ -47,7 +47,6 @@ if (!envFile) {
     "Neither apps/web/.env.local nor apps/web/.env was found. Create one with the\n" +
     "values from the Vercel project (Project Settings -> Environment Variables):\n" +
     "NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY),\n" +
-    "INTEGRATION_ENCRYPTION_KEY.",
   );
   process.exit(1);
 }
@@ -56,17 +55,12 @@ for (const line of envFile.split(/\r?\n/)) {
   if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
 }
 process.env.SUPABASE_SERVICE_ROLE_KEY ??= process.env.SUPABASE_SECRET_KEY;
-const need = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "INTEGRATION_ENCRYPTION_KEY"];
+const need = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"];
 const missing = need.filter((k) => !process.env[k]);
 if (missing.length) { console.error("Missing in apps/web/.env.local:", missing.join(", ")); process.exitCode = 1; throw new Error("__stop__"); }
 
-const key = createHash("sha256").update(process.env.INTEGRATION_ENCRYPTION_KEY).digest();
-const decrypt = (v) => {
-  const [iv, tag, ct] = v.split(".");
-  const d = createDecipheriv("aes-256-gcm", key, Buffer.from(iv, "base64url"));
-  d.setAuthTag(Buffer.from(tag, "base64url"));
-  return Buffer.concat([d.update(Buffer.from(ct, "base64url")), d.final()]).toString("utf8");
-};
+// Secrets are stored as plain text (encryption dropped for the mid evaluation).
+const decrypt = (v) => v;
 
 function die(msg) { console.error(msg); process.exitCode = 1; throw new Error("__stop__"); }
 process.on("uncaughtException", (e) => { if (e?.message !== "__stop__") { console.error(e); process.exitCode = 1; } });
@@ -114,7 +108,7 @@ let secret;
 try {
   secret = decrypt(conn.data.webhook_secret_ciphertext);
 } catch {
-  die("The Jira webhook secret could not be decrypted (INTEGRATION_ENCRYPTION_KEY mismatch?). Reconnect Jira or run where the key is present.");
+  die("The Jira webhook secret could not be read. Reconnect Jira.");
 }
 
 // 3. The payload: built here, or a captured file for the venue fallback

@@ -10,10 +10,8 @@ export type ProviderAppCredentials = {
   webhookSecret: string;
 };
 
-const passphrase = () => process.env.INTEGRATION_ENCRYPTION_KEY ?? "";
-
-export const encryptSecret = (value: string) => seal(value, passphrase());
-export const decryptSecret = (value: string) => unseal(value, passphrase());
+export const encryptSecret = (value: string) => seal(value);
+export const decryptSecret = (value: string) => unseal(value);
 
 export async function providerAppCredentials(
   workspaceId: string,
