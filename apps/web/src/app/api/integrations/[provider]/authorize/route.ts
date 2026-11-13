@@ -33,7 +33,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
       },
       figma: {
         url: "https://www.figma.com/oauth",
-        scope: process.env.FIGMA_OAUTH_SCOPE ?? "file_content:read file_metadata:read",
+        scope: process.env.FIGMA_OAUTH_SCOPE ?? "file_content:read file_metadata:read current_user:read",
       },
     }[provider];
     const url = new URL(config.url);
