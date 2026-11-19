@@ -46,7 +46,7 @@ if (!envFile) {
   console.error(
     "Neither apps/web/.env.local nor apps/web/.env was found. Create one with the\n" +
     "values from the Vercel project (Project Settings -> Environment Variables):\n" +
-    "NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY),\n" +
+    "NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SECRET_KEY)."
   );
   process.exit(1);
 }
