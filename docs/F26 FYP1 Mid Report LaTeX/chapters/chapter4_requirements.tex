@@ -235,8 +235,22 @@ Requirements & #8 \\
 
 Requirements are grouped by the module that implements them. The owner column
 names the team member accountable for each requirement (A~=~Abdullah,
-H~=~Haaniah, M~=~Mishal). FR-01 to FR-21 carry over from the proposal;
-FR-22 to FR-29 are new since the defence.
+H~=~Haaniah, M~=~Mishal). Seventeen requirements carry over from the proposal, in several cases
+renumbered: proposal FR-01 and FR-02 become FR-01 and FR-02; proposal FR-03
+becomes FR-04; FR-04 becomes FR-05; FR-05 and FR-06 become FR-12 and FR-13;
+FR-07 becomes FR-14; FR-08 becomes FR-15; FR-09 becomes FR-17; FR-10 becomes
+FR-18, with dispute added; FR-11 becomes FR-19 and FR-29; FR-12 becomes FR-21;
+and FR-14 becomes FR-20, without the fine-tuning round it originally fed. FR-03,
+FR-06 to FR-11 and FR-16 are new since the proposal and arose from the
+verification design rather than from panel feedback. Proposal FR-13, a
+confidence-gated prediction from a fine-tuned classifier, has no counterpart: it
+was replaced by the deterministic provenance gate (FR-10), which is a different
+mechanism rather than a renumbering. FR-22 to FR-29 are new since the defence.
+Because identifiers were reused with different meanings --- proposal FR-04 was
+``prevent unconfirmed inferred links from triggering rules'', whereas FR-04 here
+is ``link artifacts across tools and record resolver provenance'' --- anyone
+cross-referencing the two documents by identifier would reach the wrong
+requirement; the mapping above is the reference.
 
 \paragraph{Implementation status of the new requirements (11 October).}
 FR-25 is built in part: the change analyser (Chapter~6,
@@ -247,10 +261,25 @@ indexing a whole repository is not built yet. FR-28 is built in part: the
 verdict gate reads the workspace's two-threshold band and will not let a
 verdict rest on a link below it, but automatic confirmation above the band and
 routing of uncertain links to the code owner are not implemented. FR-22,
-FR-23 and FR-24 (requirement anchors, re-anchoring, policy P4), FR-26
-(comment--code contradictions), FR-27 (documentation score) and FR-29
-(proposed state map) are designed but not implemented; their acceptance checks
-in Table~\ref{tab:acceptance} are planned for FYP-II.
+FR-23 and FR-24 are built only as far as the requirement entity: requirement
+nodes exist, since the Jira ingestion function upserts a Requirement node for an
+\texttt{nfr}-labelled issue, with retirement and revival. The commit-pinned
+\texttt{SATISFIES} anchor, the re-anchoring pass and policy P4 do not exist;
+\texttt{SATISFIES} appears only in graph queries and interface presentation, and
+nothing creates it. FR-26 (comment--code contradictions), FR-27 (documentation
+score) and FR-29 (proposed state map) are designed but not implemented; their
+acceptance checks in Table~\ref{tab:acceptance} are planned for FYP-II.
+
+\paragraph{Implementation status of FR-12, FR-14 and FR-21 (17 November).}
+FR-12 is split by rule. Rule~2 (workflow-state inconsistency) is implemented and
+fires on live Jira transitions; it is the only rule with an evaluator in the
+codebase. Rules~1 and~3 are defined in the contracts package, seeded in the
+rules migration and designed, but have no evaluator at the reporting date.
+FR-14 is not implemented: the \texttt{OWNS}, \texttt{ASSIGNED\_TO} and
+\texttt{WATCHES} edge types are declared in the schema and documented in the
+contracts package, but nothing creates or traverses them. FR-21 is built in
+part: audit export to CSV and JSONL exists in the reviewer interface, whereas
+the benchmark export does not.
 
 \newcommand{\frhead}{%
   \hline \textbf{ID} & \textbf{The system shall\ldots} & \textbf{Actor} & \textbf{Owner} \\ \hline}
@@ -472,8 +501,10 @@ FR-12 & Scenario-matrix cases for Rules 1--3 produce the expected findings,
         logged with timestamps, and cosmetic or mapped-acceptable cases do not
         fire. \\
 FR-13 & Incremental and full-rescan outputs match on the benchmark. \\
-FR-14 & In a controlled test, the finding reaches the correct role and the
-        delivery is logged. \\
+FR-14 & In a controlled test, a finding on a node with an \texttt{ASSIGNED\_TO}
+        edge reaches that assignee and the delivery is logged; a node with no
+        role edge yields a recorded unroutable outcome rather than silence; and
+        the notify set is resolved within a bounded hop count. \\
 FR-15 & Replaying the same event does not create a second finding. \\
 FR-16 & A simulated outage yields \texttt{SOURCE\_STALE} rather than a stale
         decisive finding. \\

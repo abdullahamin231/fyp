@@ -5,7 +5,40 @@
 % and supabase/migrations/00015-00016. Every number below was produced by the
 % commands shown, on 11 October 2026.
 % ---------------------------------------------------------------------------
-\section{Evidence Graph Linking and Change Analysis (Mishal Fatima)}
+\section{Iteration Objectives}
+
+Iteration~1 set out to establish the foundations on which every later component
+depends and to retire the two external unknowns that could still change the
+architecture (Chapter~3): vendor access to the three source systems, and local
+inference on the team's hardware. The first is closed; the second remains open
+(Section~\ref{sec:ch6-outcome}). Three members each owned one part of that
+objective, and each part has something its owner alone defends.
+
+\section{Selected Use Cases and Features}
+
+The features selected for the iteration were: deterministic linking of a pull
+request to the Jira issues it names (FR-04) and change analysis down to
+function level (FR-06, FR-25), owned by Mishal; source ingestion with
+idempotency, ordering and reconciliation (FR-01, FR-02, FR-16) and deterministic
+rules held as versioned records (FR-12), owned by Haaniah; and the verification
+pipeline with the provenance gate and the reviewer surface (FR-10, FR-11,
+FR-17, FR-18), owned by Abdullah. Requirement numbering follows Chapter~4.
+
+\section{Design}
+
+The design these features implement is the one in Chapter~5: the layered
+architecture, the evidence-graph schema of Figure~\ref{fig:erd}, the pipeline of
+Figure~\ref{fig:dfd} and the bounded verifier loop of
+Figure~\ref{fig:verifier-loop}. Design decisions specific to a single module are
+recorded under that module in Section~\ref{sec:ch6-implementation}.
+
+\section{Implementation}
+\label{sec:ch6-implementation}
+
+The implementation is described per member, so that each member's contribution
+can be read and defended on its own.
+
+\subsection{Evidence Graph Linking and Change Analysis (Mishal Fatima)}
 \label{sec:impl-linking-analyser}
 
 This part of the iteration fills the evidence graph from two directions. The
@@ -17,7 +50,7 @@ Figure~\ref{fig:erd} (\texttt{events}, \texttt{nodes}, \texttt{edges}), which
 Abdullah implemented as Supabase migrations; both live in the worker
 (\texttt{apps/\allowbreak{}worker}) beside his verification pipeline.
 
-\subsection{Deterministic pull-request to issue linking}
+\subsubsection{Deterministic pull-request to issue linking}
 
 \paragraph{Rule.} A link is created only from an explicit reference: a Jira key
 such as \texttt{UNI-123} written in the pull request's title, branch name or a
@@ -88,7 +121,7 @@ Same delivery twice & \texttt{duplicate\_event}: nothing written & unique constr
 New event, link exists & \texttt{already\_linked}, with its state & partial unique index, 00010 \\
 \hline\end{longtable}
 
-\subsection{Change analyser}
+\subsubsection{Change analyser}
 
 \paragraph{Input and output.} The analyser takes a git repository and two
 commits, base and head. It reads only git's stored objects
@@ -174,7 +207,7 @@ Nodes are updated in place when the same change is analysed again, and an edge
 whose other end is not yet in the graph (for example, a pull request not yet
 ingested) is reported as skipped, never invented.
 
-\subsection{Demonstration evidence}
+\subsubsection{Demonstration evidence}
 
 \paragraph{Linking, live.} With migration 00015 applied to the hosted Supabase
 project, \texttt{npm run demo:\allowbreak{}linking -- -{}-live} plays five
@@ -232,7 +265,7 @@ every changed symbol and test file (\texttt{IMPLEMENTS}), and those links are
 what bring symbol cards and tests into a packet; without them only the diff
 hunks arrive. The worker suite passes 76 of 76.
 
-\subsection{Limitations}
+\subsubsection{Limitations}
 \begin{itemize}
   \item No GitHub webhook endpoint yet: the linker has run on the hosted
         database only with scripted demo events.
@@ -255,7 +288,7 @@ hunks arrive. The worker suite passes 76 of 76.
 % Haaniah Ismail: source ingestion (FR-01), event reliability (FR-02, FR-16)
 % and the deterministic rules (FR-12). Evidence below is limited to committed
 % implementation and repository history; unrun measurements are not claimed.
-\section{Source Ingestion and Event Reliability (Haaniah Ismail)}
+\subsection{Source Ingestion and Event Reliability (Haaniah Ismail)}
 \label{sec:impl-ingestion}
 
 This part of the iteration is everything between an external tool and the
@@ -275,7 +308,7 @@ to build a dependable record of what happened out of three services that
 version their data on independent clocks, deliver notifications on a
 best-effort basis, and occasionally do not deliver them at all.
 
-\subsection{The normalised event envelope}
+\subsubsection{The normalised event envelope}
 
 Every adapter produces the same record, defined once in
 \texttt{packages/\allowbreak{}contracts} so that the database, the tests, the
@@ -305,7 +338,7 @@ reliability guarantees and are worth stating individually.
 bytes, because a finding cites evidence and that evidence must remain readable
 after the source record changes.
 
-\subsection{Source adapters}
+\subsubsection{Source adapters}
 
 \paragraph{One interface, three implementations.} Each adapter exposes
 \texttt{verify}, \texttt{normalise} and \texttt{poll}. The interface is defined
@@ -353,7 +386,7 @@ recorded together with where it was found, because a key in a branch name and a
 key in a comment do not carry the same confidence. Filtering and ranking are
 not done here; they belong to the linker, which decides what becomes an edge.
 
-\subsection{Reliability: three mechanisms, not one}
+\subsubsection{Reliability: three mechanisms, not one}
 
 The most common way to get this wrong is to assume a queue with retries covers
 it. It does not, and the reason is worth stating precisely: a queue can only
@@ -409,7 +442,7 @@ concurrency. Each of these is a reason the reconciliation path is not optional:
 webhooks are treated as an optimisation over polling, never as the mechanism of
 record.
 
-\subsection{Deterministic rules as versioned records}
+\subsubsection{Deterministic rules as versioned records}
 
 Rules 1--3 are stored as declarative records rather than written as code in a
 handler, each carrying an identifier and version, the edge type it attaches to,
@@ -425,7 +458,7 @@ has mapped as an acceptable post-merge state. Without guards both rules would
 be technically correct and practically useless, because the finding that is
 always raised is the finding that is always dismissed.
 
-\subsection{The replay harness, kept permanently}
+\subsubsection{The replay harness, kept permanently}
 
 The mock vendor is not scaffolding awaiting removal. It is the conformance
 harness every adapter passes before it is given live credentials, and it is
@@ -442,7 +475,7 @@ tests normalisation and reliability together on the production code path. Which
 driver feeds the pipeline is an environment setting; no adapter contains a
 branch on whether it is being tested.
 
-\subsection{Demonstration evidence}
+\subsubsection{Demonstration evidence}
 
 \paragraph{Reliability scenarios.} The controlled scenarios are implemented in
 the ingestion contract tests and replay harness. A fresh execution output was
@@ -464,13 +497,9 @@ outage -> SOURCE_STALE then recovery
 implemented in commit \texttt{c95df34}, with raw-body verification and
 idempotent delivery persistence. A reproducible run against external GitHub,
 Jira and Figma accounts was not present in the repository history at the
-reporting date, so no live event count is claimed here.
-{\small
-\begin{verbatim}
-live provider execution pending at reporting date;
-the testing guide specifies the signed fixtures and database queries
-\end{verbatim}
-}
+reporting date of Iteration~1, so no live event count is claimed for it. That
+gap has since been closed: GitHub was exercised live on 12~October and Jira and
+Figma on 16~November (Chapter~8, Section~\ref{sec:live-integration}).
 
 \paragraph{Rules firing on live data.} Rules~1--3 are implemented as versioned
 records in \texttt{048ceaa}. Their deterministic replay path is available, but
@@ -490,7 +519,7 @@ HTTP layer: the adapters' signature verification and provider-specific payload
 handling are exercised only against fixtures, so the live-provider path remains
 as in the limitation below.
 
-\subsection{Limitations}
+\subsubsection{Limitations}
 \begin{itemize}
   \item All three adapters are implemented, but the committed evidence is
         currently code and documented fixtures rather than a reproducible
@@ -514,7 +543,7 @@ as in the limitation below.
 % gate, reviewer surface and architecture diagrams. The evidence below is
 % limited to committed artefacts and the completed mid-evaluation worksheet.
 % ---------------------------------------------------------------------------
-\section{Verification Pipeline and Reviewer Surface (Abdullah Amin)}
+\subsection{Verification Pipeline and Reviewer Surface (Abdullah Amin)}
 \label{sec:impl-verification}
 
 The verification module addresses the central iteration question: how can a
@@ -526,7 +555,7 @@ through a pure provenance gate, and persists both the result and the evidence
 needed for a reviewer to reconstruct it. This is the implemented verification
 slice, rather than a claim of general program correctness.
 
-\subsection{Completed features and module boundary}
+\subsubsection{Completed features and module boundary}
 
 The completed module contains four connected parts:
 
@@ -556,7 +585,7 @@ well-cited supported verdict is retained as evidence without creating an
 unnecessary queue item, while contradictions, partial results, abstentions
 and gate failures create review findings.
 
-\subsection{Technical implementation details}
+\subsubsection{Technical implementation details}
 
 \paragraph{Deterministic packet builder.}
 \texttt{assemble} fills the packet slots in a fixed order and admits evidence
@@ -611,7 +640,7 @@ when the verdict explicitly requires review. A newer live finding supersedes
 an older live finding for the same criterion, while a human-closed finding is
 not silently reopened.
 
-\subsection{Algorithms and technical decisions}
+\subsubsection{Algorithms and technical decisions}
 
 The main design decision was to make evidence admission and verdict admission
 separate deterministic boundaries. The packet builder answers ``what was the
@@ -635,7 +664,7 @@ The worksheet records the analyser pilot as matching the labelled cases except
 for one known miss, which remains a limitation rather than being hidden by a
 fallback.
 
-\subsection{Tools, frameworks and architecture evidence}
+\subsubsection{Tools, frameworks and architecture evidence}
 
 The implementation uses TypeScript in the worker and shared contract
 packages, Vitest for worker and contract tests, Zod-backed contract schemas,
@@ -652,7 +681,7 @@ The consolidated diagram build system renders the project diagrams from one
 directory, making the architecture artefacts reproducible alongside the
 implementation.
 
-\subsection{Demonstration evidence}
+\subsubsection{Demonstration evidence}
 
 The completed worksheet records the verification worker and contract suites as
 passing for the evaluation slice, with 76 worker tests and 115 contract tests
@@ -678,7 +707,7 @@ records the packet-builder integration as the resolution of the Supabase queue
 packet-format problem. The resulting evidence is observable in the test
 assertions and in the packet, pass, verdict and finding persistence code.
 
-\subsection{Iteration outcome and limitations}
+\subsubsection{Iteration outcome and limitations}
 
 This contribution completes the deterministic verification slice for Iteration
 1: a change can be converted into bounded evidence, checked through a
@@ -696,6 +725,70 @@ exercised live. Additional verifier edge cases and final evaluation
 rehearsal remain planned work. These boundaries are consistent with the
 worksheet's recorded next action: complete the final report, add verifier edge
 case tests, and prepare the evaluation demonstration.
+
+\section{Completed Features and Modules}
+
+Completed in Iteration~1, each with its evidence in the module section above:
+deterministic pull-request to issue linking and the change analyser (Mishal);
+the normalised event envelope, source adapters, the three reliability mechanisms,
+versioned rule records and the permanent replay harness (Haaniah); and the
+context packet, bounded verifier loop, provenance gate and reviewer surface
+(Abdullah). What the iteration did not deliver is recorded as a variance in
+Chapter~3: ingestion, linking and the local-inference spike were not complete at
+its close, and were finished in the work described in
+Section~\ref{sec:ch6-iter2}.
+
+\section{Technical Implementation Details}
+
+The technical detail lives with the module that owns it: the linker and analyser
+in Section~\ref{sec:impl-linking-analyser}, ingestion and reliability in
+Section~\ref{sec:impl-ingestion}, and the verification pipeline in
+Section~\ref{sec:impl-verification}. All three write to the tables of the schema
+in Figure~\ref{fig:erd} through Supabase migrations, and all three share the
+typed contracts package, so that a change to an event, node or verdict shape is
+a compile error in every consumer rather than a runtime surprise.
+
+\section{Algorithms and Technical Decisions}
+
+The decisions that shape the iteration are made explicit in the module sections:
+linking only from explicit references and never from similarity; idempotent
+ingestion keyed on the provider delivery identifier; and a verifier loop with a
+fixed pass cap, whose output is admitted only through a deterministic gate. The
+rationale for each, and the alternatives rejected, are in Chapter~5.
+
+\section{Tools, Frameworks and Technologies}
+
+TypeScript throughout; a Next.js web application; a background worker; Zod-backed
+shared contracts; Supabase (PostgreSQL) with migrations as the only schema
+authority; Vitest for tests; GitHub Actions for continuous integration. The
+model boundary is a typed client interface exercised by a deterministic stub.
+Section~\ref{sec:impl-verification} gives the details for the verification
+modules.
+
+\section{Demonstration Evidence}
+
+Each module section carries its own demonstration evidence, produced by the
+commands shown there. Live-provider evidence for ingestion is reported
+separately, with the observed outcomes and what was and was not captured, in
+Chapter~8 and Section~\ref{sec:ch6-iter2}.
+
+\section{Iteration Outcome}
+\label{sec:ch6-outcome}
+
+The Iteration~1 objective was achieved for the deterministic foundation and
+source access; the local-inference hardware question remains unresolved. The
+module-level outcomes and their limitations are stated at the end of each module
+section.
+
+\paragraph{Known limitation: Rule~2 has no grace period.} Rule~2 is evaluated
+with a grace period of zero hours (\texttt{RULE\_2\_GRACE\_HOURS = 0} in the
+pipeline). The rule record specifies four hours, but nothing re-evaluates on a
+schedule, so a finding deferred by a grace period could never appear after the
+event. Rule~2 therefore fires on any qualifying transition with no grace at all,
+which is exactly the failure that the proposal's correction of its original
+draft was written to avoid: a rule that fires on any edit, a typo fix included.
+The grace period must not be described as working. The fix is a scheduled
+re-check, after which the record's own value is restored.
 
 \section{Reproducing This Iteration}
 \label{sec:ch6-repro}
@@ -887,3 +980,37 @@ reproduction procedure has to pass is whether someone who does not --- with
 only this section, the evaluation commit and their own database --- can reach
 the results in the table above. That run is scheduled before the FYP-1 final
 evaluation and is listed in Chapter~9 as a remaining deliverable.
+
+\section{Iteration 2: Completion and Live Integration}
+\label{sec:ch6-iter2}
+
+This section is a clearly delimited second iteration, covering the completion
+run of 19~October and the live integration work to 16~November. It is
+recorded here rather than in a chapter of its own for report v2.0.
+
+\paragraph{What was built.}
+\begin{itemize}
+  \item \textbf{Ingestion live for three providers.} GitHub, Jira and Figma
+    ingest into the same normalised envelope. GitHub and Jira are
+    webhook-driven; Figma is polled, because Figma gates webhook creation behind
+    a paid team plan, and reconciliation polling is part of the design.
+  \item \textbf{The Jira criteria lifecycle.} An issue's acceptance criteria are
+    ingested as Criterion nodes, and a Requirement node is upserted for an
+    \texttt{nfr}-labelled issue, with retirement and revival.
+  \item \textbf{Figma design projection into the graph.} \texttt{DesignArtifact}
+    and \texttt{DesignConstraint} nodes, with \texttt{CONSTRAINS} edges to
+    tickets.
+  \item \textbf{The token layer with refresh}, so provider credentials renew
+    without manual reconnection.
+  \item \textbf{Migration hygiene with an ordering test}, so that migrations
+    apply in a single defined order. The migrations are numbered through
+    \texttt{00039}.
+  \item \textbf{The reviewer surface bound to real tables} rather than
+    fixtures, including audit export to CSV and JSONL.
+\end{itemize}
+
+\paragraph{What was not built.} The Rule~2 evaluator is the only rule
+evaluator; Rules~1 and~3 are defined and seeded but have none. Role-aware
+routing, the commit-pinned \texttt{SATISFIES} anchor and policy P4 do not exist
+(Chapter~4). There is no local model and no link-suggestion producer. The
+Rule~2 grace period is zero (Section~\ref{sec:ch6-outcome}).

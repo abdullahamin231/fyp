@@ -264,7 +264,7 @@ which measurements drop.
 
 \section{Design Evolution}
 
-The architecture has changed in four material ways since the proposal was
+The architecture has changed in six material ways since the proposal was
 baselined. Each change is recorded with the reason, because the differences are
 visible to anyone reading the two documents together.
 
@@ -273,8 +273,11 @@ hosted model for link suggestion and summarisation alongside a local model for
 detection. That split was removed. It created two incompatible positions on
 privacy within one system, and it made the strongest property of the
 architecture, that artifact content never leaves the deployment, conditional on
-which feature was running. Summarisation left the committed scope entirely and
-link suggestion is now either deterministic or served by the same local stack.
+which feature was running. Summarisation left the committed scope entirely. At the reporting date there is
+no local model and no link-suggestion producer: linking is deterministic plus
+manual confirmation. The interface already presents inferred links and states
+the eligibility policy that governs them, but nothing generates them, and the
+suggestion tier is deferred behind the model decision described in Chapter~10.
 
 \textbf{The unit of verification narrowed.} The proposal described a
 classifier producing an ordinal fidelity score for a change. That framing
@@ -296,6 +299,24 @@ relational and graph storage open pending measurement. The measurement question
 remains valid but the decision no longer blocks implementation: relational
 storage is committed, with migration treated as future work contingent on a
 query requirement that does not currently exist.
+
+\textbf{The model contribution was reclassified.} Proposal \S7 lists
+``Model-based detection (committed core)'' and states that the fine-tuned
+classifier ``adds a training/fine-tuning pipeline, a local inference host, and
+calibration evaluation as committed, not optional, work''. Chapter~10 now places
+it at weeks 16--18 as an adaptation experiment with a go/no-go decision that may
+legitimately return ``no''. That is a move from committed core to a gated
+experiment. The reason is that the verification design made the deterministic
+gate, not a trained model, the component the guarantees rest on, so a model is
+justified only if measurement shows it improves on the deterministic baseline;
+the gate that decides this is defined in Chapter~10.
+
+\textbf{Ingestion is no longer purely event-driven.} Proposal \S9.5 is titled
+``Pipeline (event-driven, not polling)''. Figma ingestion is poll-based because
+Figma gates webhook creation behind a paid team plan (observed: HTTP 400,
+``Upgrade to professional team to enable webhooks''), and reconciliation is
+poll-based by design. The normalised envelope is identical on both transports,
+so the abstraction is what absorbs the difference.
 
 \section{Domain Model}
 
@@ -452,8 +473,41 @@ reported metric of the system rather than an internal detail.
            rather than left silently wrong.}
   {fig:anchor}
 
+\subsection*{Rule 1: design-version drift}
+
+Rule~1 is specified in the trigger, evidence, guards, outputs and resolution form
+used for the other rules. It is designed and seeded but has no evaluator at the
+reporting date (Chapter~4, FR-12).
+\begin{description}
+  \item[Trigger] A \texttt{FILE\_VERSION\_UPDATE} or
+    \texttt{DEV\_MODE\_STATUS\_UPDATE} event on a design file, not the noisier
+    generic file-update event.
+  \item[Evidence] The \texttt{DesignArtifact} and \texttt{DesignConstraint}
+    nodes for the new version, the \texttt{CONSTRAINS} edges from those
+    constraints to tickets, and the version the ticket was last reconciled
+    against. These nodes exist in the graph as of 16 November, so the rule has
+    real inputs to fire on.
+  \item[Guards] Cosmetic changes and changes mapped as acceptable do not fire;
+    an unconfirmed inferred link cannot make the finding decisive.
+  \item[Outputs] One finding per ticket and design version, carrying the rule
+    version and the evidence that triggered it.
+  \item[Resolution] The finding resolves when the ticket is reconciled against
+    the new design version or the change is marked acceptable by a reviewer.
+\end{description}
+
+\subsection*{Role-edge derivation}
+
+The \texttt{ASSIGNED\_TO} and \texttt{OWNS} edges used for routing are derived
+from each tool's native assignee or owner field at ingestion --- the GitHub
+assignee, the Jira assignee and the Figma file owner --- rather than configured
+by hand, because manual re-entry is itself a source of drift. \texttt{WATCHES}
+is opt-in. The edge types are declared in the schema; the derivation itself is
+not implemented at the reporting date (Chapter~4, FR-14).
+
 Two further behaviours are described in the reliability design rather than shown
-here, and are covered by the sequence and state diagrams in the appendix: the
+here, and are covered by the sequence and state diagrams of
+Appendix~\ref{app:diagrams}, Figures~\ref{fig:ingestion-sequence}
+and~\ref{fig:state-machines}: the
 convergence of duplicate and out-of-order delivery to a single final state, and
 the transition of a source into a stale condition when it cannot be reached,
 which downgrades every finding that depends on it rather than allowing stale

@@ -57,10 +57,11 @@ only the layers that can honestly be exercised now are reported:
 \end{enumerate}
 
 Two layers of the plan are declared but not yet runnable, and are listed as
-such rather than implied: system-level acceptance tests against live GitHub,
-Jira and Figma sources (the adapters are not connected yet), and comparative
-baselines with a real local model (the pipeline currently runs with a
-deterministic stub model).
+such rather than implied: comparative baselines with a real local model (the
+verifier's model client is a deterministic stub, and no local model has been
+evaluated), and automated system-level acceptance tests against live sources.
+GitHub, Jira and Figma have each been exercised live as manual integration
+checks, reported in Section~\ref{sec:live-integration}.
 
 % ---------------------------------------------------------------------------
 \section{Test Levels and Techniques}
@@ -82,13 +83,17 @@ Build & Production compilation and static generation of all routes &
   \texttt{npm run build} (\texttt{next build}) & Running \\
 Unit (contracts) & Schema and behaviour tests for the shared Zod contracts
   (event envelope, graph, rules, packets, verdicts, findings) &
-  \texttt{npm test} in \texttt{packages/\allowbreak{}contracts} & Running; 115 of
-  115 pass \\
+  \texttt{npm test} in \texttt{packages/\allowbreak{}contracts} & Running; 123 of
+  123 pass (17 November) \\
 Unit + integration (worker) & Packet assembly, bounded verifier loop, gate
   end to end with a stub model; linking and publishing against PGlite with the
   project's migrations; the analyser on throwaway git repositories &
-  \texttt{npm test} in \texttt{apps/\allowbreak{}worker} & Running; 76 of 76
-  pass (40 pipeline, 16 linking, 20 analyser) \\
+  \texttt{npm test} in \texttt{apps/\allowbreak{}worker} & Running; 114 of 114
+  pass (17 November) \\
+Unit + integration (web) & Integration pipeline, rule evaluation and web
+  library code &
+  \texttt{npm test} in \texttt{apps/\allowbreak{}web} & Running; 98 of 98 pass
+  (17 November) \\
 Analyser evaluation & The analyser on the 15 pilot cases, scored against the
   committed case files &
   \texttt{npm run analyse:\allowbreak{}evaluate} & Complete; 11 of 11 changed
@@ -108,8 +113,8 @@ External review (pilot of the review instrument) & Ten industry engineers,
   Complete; inconclusive at this sample size; re-run planned (D-08) \\
 System / end-to-end & Scenario matrix T1--T11 from Chapter~4 &
   \texttt{npm test} in \texttt{apps/\allowbreak{}worker} & Partly: T10 and
-  the stale-source case run end to end through the gate with a stub model; no
-  live sources yet \\
+  the stale-source case run end to end through the gate with a stub model; live
+  sources exercised manually, not by an automated suite \\
 Performance & Latency and memory measurement & -- & Analyser time only
   (median 0.3\,s per case); model not measured \\
 \hline\end{longtable}
@@ -160,9 +165,8 @@ TC-08 & Type-level check: assign a non-vocabulary string to a
   \texttt{Verdict} & Compile error & Compile error by construction
   (\texttt{VERDICTS} is a const tuple) & \texttt{src/\allowbreak{}lib/\allowbreak{}types.\allowbreak{}ts} \\
 TC-09 & \texttt{npm test} in \texttt{packages/\allowbreak{}contracts}; ten suites
-  over the shared contracts & All tests pass & 115 of 115 pass; the typecheck
-  reports 6 errors in one test file (\texttt{rule-\allowbreak{}meta.\allowbreak{}test.\allowbreak{}ts}),
-  reported to its owner & Command output \\
+  over the shared contracts & All tests pass & 123 of 123 pass (17 November,
+  commit \texttt{30a75e7}) & Command output \\
 TC-10 & Key extraction: PR titles, branch names and commit messages with and
   without keys, including \texttt{feature/\allowbreak{}UNI-123-login},
   \texttt{[UNI-7]}, \texttt{uni-123}, \texttt{XUNI-1}, \texttt{UNI-0123},
@@ -196,10 +200,8 @@ TC-15 & Atomicity and access: database failure injected (by a trigger) on the
   the refusal comes from the grant & same file \\
 TC-16 & \texttt{agreement\_\allowbreak{}multi.\allowbreak{}py} over the ten external
   sheets & Alpha per field, agreement with the reference, panel summary &
-  30 rows, 15 of 15 cases with two labels each; 19 of 22 judgements on
-  decisive cases match the reference; verdict $\alpha = 0.48$ (95\% CI
-  0.08--0.80); values match the \texttt{krippendorff} package to three
-  decimals & Command output (\S\ref{sec:external-agreement}) \\
+  Ten external reviewers; verdict $\alpha = 0.64$ against a gate of 0.70,
+  reported as inconclusive; interval not computed for this run & Command output (\S\ref{sec:external-agreement}) \\
 TC-17 & \texttt{npm run analyse:\allowbreak{}evaluate}: the change analyser on
   the 15 pilot cases, head patches applied, scored against the committed case
   files (FR-06) & Every changed file, test and changed symbol reported; no
@@ -267,12 +269,13 @@ link downgrades the verdict (FR-05), and an unreachable model abstains instead
 of returning a clean result. These tests use the stub model; no real local
 model has been evaluated yet.
 
-\paragraph{Contracts and ingestion.} The shared contracts suite passes 115 of
-115 tests, including Haaniah's ingestion engine with a mock vendor: a
+\paragraph{Contracts and ingestion.} The shared contracts suite passed 115 of
+115 tests when this paragraph was first written (12 October), and passes 123 of
+123 on 17 November; it includes Haaniah's ingestion engine with a mock vendor: a
 redelivered event changes nothing, out-of-order deliveries converge, a missed
 delivery is reconciled as a system event, and an outage marks checkpoints stale
-(TC-21). The engine is not yet connected to live sources. The contracts
-typecheck reports 6 errors in one test file (TC-09); the tests themselves pass.
+(TC-21). The engine has since been connected to live sources
+(Section~\ref{sec:live-integration}).
 
 \paragraph{Linking.} The 16 linking tests pass against the same migrations as
 the hosted Supabase project, covering the normal, no-key, unknown-key and
@@ -300,11 +303,10 @@ is $\kappa = 0.90$ against a pre-declared gate of 0.70, so the pilot passed
 without a re-run. All seven disagreements were adjudicated, and two of them led to
 rules being added to the annotation manual (Section~\ref{sec:agreement}).
 
-\paragraph{External review.} Ten industry engineers labelled the same 15 cases,
-two per case, as a pilot of the review instrument. On the cases where the
-evidence is decisive they agreed with the adjudicated labels on 19 of 22
-judgements. Overall agreement was $\alpha = 0.48$ with a 95\% interval of
-0.08--0.80, too wide at this sample size to say whether the gate is met
+\paragraph{External review.} Ten industry engineers labelled the same 15 cases
+as a pilot of the review instrument. Overall verdict agreement was
+$\alpha = 0.64$ against a gate of 0.70. The result is inconclusive rather than a
+pass or a fail, and no interval has been computed for it
 (Section~\ref{sec:external-agreement}). It is reported separately from the
 internal result and does not replace it.
 
@@ -384,19 +386,42 @@ protocol, is still pending. The external review in the next section was run to
 test the first of these limits.
 
 % ---------------------------------------------------------------------------
+\section{Live Integration Evidence}
+\label{sec:live-integration}
+
+Three live executions against real provider accounts are recorded here. They
+are manual integration checks, not automated tests.
+
+\paragraph{GitHub, 12 October.} Two distinct delivery identifiers were each
+stored as one row after redelivery. The provider's ping was receipted without
+creating an event, which is the intended handling of an unsupported event type.
+
+\paragraph{Jira, 16 November.} OAuth 3LO was connected; a webhook was created
+with the generated secret and the issue-created and issue-updated events; an
+issue was edited; and Ticket and Criterion nodes were observed in the graph.
+
+\paragraph{Figma, 16 November.} OAuth was connected. Two missing scopes were
+diagnosed from their symptoms and fixed: \texttt{current\_user:read} (commit
+\texttt{85dd18e}) and \texttt{file\_versions:read} (commit \texttt{7449762}). A
+file was then watched and polled, and \texttt{DesignArtifact} and
+\texttt{DesignConstraint} nodes with a \texttt{CONSTRAINS} edge to the ticket
+were observed.
+
+\paragraph{What was and was not captured.} For Jira and Figma the graph outcome
+was \textbf{observed by a team member and not captured} as a transcript,
+screenshot or SQL readout. Capturing that evidence is outstanding and should be
+done before the report is submitted.
+
 \section{External Review Agreement}
 \label{sec:external-agreement}
 
-\paragraph{Summary.} Ten industry engineers labelled the 15 cases, two per case,
-as a pilot of the review instrument. On the cases where the evidence is
-decisive, they agreed with the adjudicated labels on 19 of 22 judgements.
-Overall verdict agreement was $\alpha = 0.48$ (95\% CI 0.08--0.80). With two
-labels per case, the interval is too wide to say whether external agreement
-meets the 0.70 gate, so the result is inconclusive rather than a pass or a
-fail. None of the reviewers used the abstention label. Since the gold labels
-come from trained annotators with adjudication, we treat this as a finding
-about the short web guide, and the review will be re-run with a revised page
-and more reviewers per case before the final evaluation.
+\paragraph{Summary.} Ten industry engineers labelled the 15 cases as a pilot of
+the review instrument. Overall verdict agreement was $\alpha = 0.64$ against the
+0.70 gate. That is below the gate, but no confidence interval has been computed
+for this run, so it is reported as \textbf{inconclusive} rather than as a pass
+or a fail. The review will be
+re-run with a revised page and more reviewers per case before the final
+evaluation, and no case is frozen into the gold set before then.
 
 \paragraph{Why.} The internal result above has one obvious weakness: both
 annotators belong to the project team, wrote or read its documents, and might
@@ -430,50 +455,21 @@ by name.
 
 \paragraph{Method.} Because each case was labelled by a different pair of
 people, Cohen's kappa does not apply. Krippendorff's alpha (nominal) allows any
-set of raters per item and is used instead~\cite{krippendorff2018}. A bootstrap
-over cases (5{,}000 resamples) gives the interval. Each external label is also
+set of raters per item and is used instead~\cite{krippendorff2018}. An interval
+over cases by bootstrap is planned but is not computed for the current run. Each external label is also
 compared with the \emph{adjudicated reference}: the two internal annotators'
 agreed label, or the adjudicated label where they disagreed. The reference uses
 only committed files. The constructor's answer key is not read. For comparison,
 the internal pair's alpha is computed with the same function.
 
-\begin{verbatim}
-$ python3 docs/dataset/tools/agreement_multi.py docs/dataset \
-    <ten external CSV files>
-External reviewers: 10; labelled rows: 30; cases covered: 15/15
-| Field           | Ext. alpha | 95% CI        | Int. alpha (A,B) |
-| verdict         | 0.48       | [0.08, 0.80]  | 0.91             |
-| freshness_state | -0.07      | [-0.21, 0.00] | 1.00             |
-Cases where both external reviewers chose the same verdict: 10/15
-External rows matching the reference: verdict 19/30, freshness 25/30
-Verdict confusion (rows = reference, columns = external)
-        SUP  CON  PAR  INS
-  SUP    11    0    1    0
-  CON     1    6    1    0
-  PAR     0    0    2    0
-  INS     3    1    4    0
-Evidence spans: 18/30 rows marked spans; mean IoU 0.78; exact 11/18
-\end{verbatim}
 
-\paragraph{Reading the result.} The interval is the important number. With
-15 cases and two labels each, a single changed label moves alpha visibly, so
-0.48 is an estimate with a range of 0.08 to 0.80 around it, not a measured
-failure. The script was checked against the \texttt{krippendorff} Python
-package, which gives the same values to three decimals.
-
-Where the reference label is SUPPORTED, CONTRADICTED or PARTIAL (eleven cases),
-the external engineers matched it on 19 of 22 judgements, and each of the three
-misses (P01, P04, P09) is one reviewer against a second who matched. The
-remaining disagreement sits on the four cases whose reference is
-INSUFFICIENT\_EVIDENCE: no reviewer used that label, choosing PARTIAL,
-SUPPORTED or CONTRADICTED instead. These are the cases governed by the
-manual's abstention rules (an untested runtime claim, a requirement edited
-after the merge). The page stated those rules in a two-minute guide, whereas
-the internal annotators worked from the full manual; with most time on case
-screens under two minutes, the guide is the likeliest place for the gap. The
-freshness alpha is reported but not interpreted: 25 of 30 answers were
-``current'', which is also the page's default, and alpha is not informative
-when one category dominates like this.
+\paragraph{Reading the result.} The figure of $\alpha = 0.64$ is below the 0.70
+gate, but a single changed label moves alpha visibly at 15 cases, and no
+interval has been computed for this run, so it is reported as inconclusive
+rather than as a pass or a fail. The transcript of the script output for the
+current run has not yet been committed to the report; the transcript from a
+superseded run has been removed. Per-field agreement, the confusion matrix and the span-overlap figures must be
+regenerated from the current run before they are quoted.
 
 \paragraph{What changes before the final evaluation.} The review page will
 give each abstention rule a worked example and ask for the reason before the
@@ -651,9 +647,8 @@ D-07 & Constructor answer key marked a relevant span (P11-S3) as a hard
   negative; found by both annotators independently. & Low (data correctness) &
   Mishal & \textbf{Closed 9 Oct:} key corrected; recorded in the adjudication
   log. \\
-D-08 & External review pilot inconclusive ($\alpha = 0.48$, 95\% CI
-  0.08--0.80); the abstention label was not used through the two-minute web
-  guide. & Medium & Mishal & Revise the review page (worked abstention examples,
+D-08 & External review pilot inconclusive ($\alpha = 0.64$ against a gate of
+  0.70; interval not computed). & Medium & Mishal & Revise the review page (worked abstention examples,
   reason asked first, no freshness default, justification required) and
   re-run with at least three reviewers per case before the final evaluation;
   no case is frozen into the gold set before then. \\
@@ -689,10 +684,12 @@ Every open defect can be reproduced from the commands above.
   \textbf{Next validation action} \\
 \hline\endhead
 Functional correctness & Typecheck and lint pass on the current web code;
-  contracts 115 of 115; worker 76 of 76 (pipeline, linking, analyser); the
+  contracts 123, worker 114 and web 98, 335 passing with no failures (17
+  November 2026, commit \texttt{30a75e7}); the
   analyser matches the pilot cases (TC-17); the linker ran live on Supabase.
-  & No front-end tests; no live GitHub, Jira or Figma source yet; Rules 1--3
-    are records, not yet evaluated.
+  & Live Jira and Figma graph outcomes were observed and not captured
+    (Section~\ref{sec:live-integration}); Rules 1 and 3 are records with no
+    evaluator.
   & Front-end tests (D-04); webhook and adapters (D-09); scenario matrix
     T1--T11 against live sources \\
 Performance / resource use & Analyser: median 0.3\,s, max 4\,s per pilot
@@ -723,10 +720,12 @@ Security / privacy & No external requests at run time: fonts are downloaded
   The linking and publishing functions are callable only with the service-role
   key, tested (TC-15). The analyser runs repository code only on explicit
   request, in a throwaway checkout.
-  & The claims that matter most (read-only scopes, encrypted tokens, egress
-    inspection) belong to adapters that are not connected yet.
-  & Egress-inspection test and credential handling review when the adapters are
-    written \\
+  & The claims that matter most (read-only scopes, token handling, egress
+    inspection) belong to the adapters, which are now connected but not yet
+    reviewed for these claims. At-rest encryption of tokens was turned off, and
+    the suite now asserts the pass-through, which is a smaller claim.
+  & Egress-inspection test and credential handling review of the connected
+    adapters \\
 \hline\end{longtable}
 
 The summary position is this: the components built in this iteration (the
