@@ -17,12 +17,34 @@ it at an evaluation.
 \section{Remaining Scope}
 \label{sec:remaining-scope}
 
-Of the committed scope in Chapter~1, the reviewer surface, the requirements and
-design baseline, the diagram set and the evaluation-data pilot exist. Everything
-that turns the system from a described design into a running system remains:
-ingestion and reliability, the evidence graph and its rules, and the
-verification layer with its gate. Those are three work packages, they are
-ordered by dependency, and nothing new has been added to them.
+Of the committed scope in Chapter~1, most of the construction is done. The
+reviewer surface, the requirements and design baseline, the diagram set and the
+evaluation-data pilot exist. Between 19~October and 16~November the ingestion,
+the evidence graph, the change analyser, the context packet, the verifier, the
+verdict gate and the API binding were built, and Jira and Figma were verified
+live end to end alongside GitHub (Chapter~6, Section~\ref{sec:ch6-iter2}). What
+remains of construction is specific: the evaluators for Rules~1 and~3, the
+role-edge derivation and routing (FR-14), the commit-pinned \texttt{SATISFIES}
+anchor and policy P4, a scheduled re-check so that Rule~2's grace period works,
+and the single-host deployment. The remaining shape of FYP-2 is therefore
+\emph{measurement} rather than construction: the system exists, and what is left
+is proving it.
+
+\paragraph{Model contribution reclassified.} The proposal listed model-based
+detection as committed core, with a training pipeline, a local inference host
+and calibration evaluation ``as committed, not optional, work''. It is now a
+gated experiment at weeks 16--18, with a go/no-go decision that may legitimately
+return ``no''. The reason is that the deterministic provenance gate, not a
+trained model, carries the guarantees; a model is justified only if measurement
+shows it improves on the deterministic baseline. If the answer is ``no'', the
+project delivers the deterministic pipeline, the gate, the benchmark and the
+negative result, reported as such, and the link-suggestion tier stays deferred.
+
+\paragraph{Rule~1 is pulled forward.} Rule~1 (design-version drift) is the first
+rule of the proposal's MVP. Its inputs, the \texttt{DesignArtifact} and
+\texttt{DesignConstraint} nodes, exist in the graph, and the Rule~2 evaluator is
+a working template, so Rule~1 is moved into current work rather than left in
+Iteration~3.
 
 \subsection*{Frozen --- recorded so it cannot creep back}
 
@@ -127,11 +149,13 @@ Iteration 2 & Ingestion that survives real delivery behaviour; the evidence
   graph and the analyser; criterion decomposition; the context-packet builder;
   the frozen evaluation set & Reliability demonstrated rather than asserted,
   and the evaluation set frozen before any component is tuned against it
-  & Not started \\
+  & Largely done: ingestion live for three providers, the graph and the
+  analyser exist; the evaluation set is not frozen \\
 Iteration 3 & The bounded verifier, the verdict gate, deterministic rules and
   notification routing end to end; the front end bound to the real API &
   Scenario matrix T1--T11 passing, degraded mode demonstrated, hard gates 1 and
-  2 enforced & Not started \\
+  2 enforced & Partial: the packet, verifier, gate and API binding exist and
+  are tested; Rules~1 and~3 and routing are not built \\
 Iteration 4 & Evaluation: benchmark against every baseline, the adaptation
   experiment with its pre-committed go/no-go rule, the crossover workflow study
   & Per-class results reported whether favourable or not; provisional targets
@@ -204,7 +228,11 @@ the answer is that the feature does not help.
 
 \paragraph{Dataset phases still to run.}
 Complete the annotation round and compute agreement (gate: Cohen's
-$\kappa \geq 0.70$, otherwise revise the manual and re-pilot); adjudicate every
+$\kappa \geq 0.70$ internally, otherwise revise the manual and re-pilot; the
+internal $\kappa = 0.90$ already passes it, whereas the external Krippendorff's
+$\alpha = 0.64$ against 0.70 is inconclusive and is \emph{not} gated by that
+rule, so the re-run of the external review is a separate condition that must be
+met before any case is frozen); adjudicate every
 disagreement; expand from the 15-case pilot toward a development set of 20--30
 cases and a gold oracle of 30--50, with a training pool of 200--500 for the
 adaptation experiment; run the audit and freeze phase (integrity report,
@@ -221,13 +249,17 @@ The target footprint has not changed: one self-hosted host running Docker Compos
 with the web frontend, the API service, the worker, PostgreSQL, Redis and a local
 model-serving container, with read-only connections to the three source systems
 and an optional Slack delivery adapter. Two properties are acceptance criteria
-rather than aspirations: artifact content does not leave the deployment boundary,
-and the deployment must be reproducible by a person who did not write it.
+of that target deployment rather than aspirations: artifact content does not
+leave the deployment boundary, and the deployment must be reproducible by a
+person who did not write it. Neither holds of the development deployment used
+during FYP-1, which hosts the web application on Vercel and the database on
+managed Supabase; bringing the single-host composition up is Slice A work and is
+what makes both criteria testable.
 
 The front end is already deployable as a static bundle today, which is what
 makes the mid-evaluation demonstration independent of any back-end availability.
-The composition file, the migrations and the container definitions are part of
-Slice A's bootstrap and do not exist yet.
+The migrations exist, numbered through \texttt{00039}. The composition file and
+the container definitions are part of Slice A's bootstrap and do not exist yet.
 
 % ---------------------------------------------------------------------------
 \section{Tentative Timeline}
@@ -236,7 +268,10 @@ Slice A's bootstrap and do not exist yet.
 Dates below are relative to the start of FYP-2, because no calendar dates have
 been agreed with the supervisor; they are stated as a sequence with rough
 proportions rather than as commitments, and will be replaced with calendar
-dates once the supervisor confirms the FYP-2 schedule.
+dates once the supervisor confirms the FYP-2 schedule. Much of the weeks 3--12
+block is already delivered (Section~\ref{sec:remaining-scope}); what it still
+contains is the remaining construction listed there, and the checkpoints below
+are to be read as measurement checkpoints over a system that exists.
 
 \begin{longtable}{>{\raggedright\arraybackslash}p{0.20\textwidth} >{\raggedright\arraybackslash}p{0.41\textwidth} >{\raggedright\arraybackslash}p{0.32\textwidth}}
 \caption{Tentative FYP-2 timeline of phases and deliverables.}\label{tab:timeline}\\

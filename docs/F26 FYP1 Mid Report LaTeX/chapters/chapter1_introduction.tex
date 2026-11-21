@@ -23,7 +23,11 @@ was derived from. A finding that cannot cite its evidence is not shown as a
 finding.
 
 All model inference runs on infrastructure the team owns. No repository content,
-ticket text or design data is transmitted to a third-party model interface.
+ticket text or design data is transmitted to a third-party model interface. The
+model boundary and the deployment boundary are separate claims: during this
+iteration the web application and the database run on managed services, so the
+deployment boundary described in Chapter~10 is a committed target rather than an
+achieved property.
 
 \section{Problem Statement}
 
@@ -132,7 +136,8 @@ change source. Deterministic and manually confirmed linking across those
 sources. An immutable, versioned artifact store. A typed evidence graph carrying
 provenance on every relationship. Deterministic policies covering design-version
 drift, workflow-state inconsistency, overlapping change scope and
-requirement--implementation divergence. Code and test analysis for the declared
+requirement--implementation divergence (at the reporting date only the
+workflow-state rule has an evaluator; see FR-12 in Chapter~4). Code and test analysis for the declared
 languages. Criterion decomposition and deterministic context assembly. A bounded
 local verification loop. A deterministic verdict and provenance gate. A reviewer
 interface presenting evidence cases with resolution and audit history.
