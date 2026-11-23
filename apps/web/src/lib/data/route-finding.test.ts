@@ -23,7 +23,7 @@ describe("routeFinding (FR-14)", () => {
   it("queues a pending notification for the assignee on each channel", async () => {
     const fake = world({ tables: { edges: [edge("ada", "pr1", "ASSIGNED_TO")] } });
     const result = await routeFinding(fake.client as never, "f1", rule);
-    expect(result.outcome).toBe("routed");
+    expect(result?.outcome).toBe("routed");
     expect(fake.tables.notifications).toEqual([
       expect.objectContaining({ finding_id: "f1", recipient_id: "ada", channel: "slack", delivery_status: "pending" }),
       expect.objectContaining({ finding_id: "f1", recipient_id: "ada", channel: "in_app", delivery_status: "pending" }),
@@ -44,8 +44,15 @@ describe("routeFinding (FR-14)", () => {
   it("is idempotent: re-routing an unroutable finding keeps one outcome row", async () => {
     const fake = world();
     await routeFinding(fake.client as never, "f1", rule);
-    await routeFinding(fake.client as never, "f1", rule);
+    expect(await routeFinding(fake.client as never, "f1", rule)).toBeNull();
     expect(fake.tables.routing_outcomes).toHaveLength(1);
+  });
+
+  it("does not queue notifications twice when replayed after a successful route", async () => {
+    const fake = world({ tables: { edges: [edge("ada", "pr1", "ASSIGNED_TO")] } });
+    await routeFinding(fake.client as never, "f1", rule);
+    expect(await routeFinding(fake.client as never, "f1", rule)).toBeNull();
+    expect(fake.tables.notifications).toHaveLength(2);
   });
 
   it("finds an owner one hop away only when the rule allows it", async () => {
@@ -54,9 +61,11 @@ describe("routeFinding (FR-14)", () => {
     expect(await routeFinding(near.client as never, "f1", { ...rule, hops: 1 })).toMatchObject({ outcome: "routed" });
     expect(near.tables.notifications).toEqual([expect.objectContaining({ recipient_id: "grace", channel: "in_app" })]);
 
-    const far = world({ tables: { edges: [edge("pr1", "a", "PART_OF"), edge("a", "frame1", "PART_OF"), edge("grace", "frame1", "OWNS")] } });
-    expect(await routeFinding(far.client as never, "f1", { ...rule, hops: 1 })).toMatchObject({ outcome: "unroutable" });
-    expect(await routeFinding(far.client as never, "f1", { ...rule, hops: 2 })).toMatchObject({ outcome: "routed" });
+    const farEdges = [edge("pr1", "a", "PART_OF"), edge("a", "frame1", "PART_OF"), edge("grace", "frame1", "OWNS")];
+    const one = world({ tables: { edges: farEdges } });
+    expect(await routeFinding(one.client as never, "f1", { ...rule, hops: 1 })).toMatchObject({ outcome: "unroutable" });
+    const two = world({ tables: { edges: farEdges } });
+    expect(await routeFinding(two.client as never, "f1", { ...rule, hops: 2 })).toMatchObject({ outcome: "routed" });
   });
 
   it("ignores dismissed and expired edges", async () => {
@@ -69,6 +78,6 @@ describe("routeFinding (FR-14)", () => {
       tables: { findings: [{ id: "f1", subject_node_id: "pr1" }], edges: [], nodes: [] },
       errors: { routing_outcomes: "permission denied" },
     });
-    await expect(routeFinding(fake.client as never, "f1", rule)).rejects.toThrow(/record unroutable outcome: permission denied/);
+    await expect(routeFinding(fake.client as never, "f1", rule)).rejects.toThrow(/permission denied/);
   });
 });

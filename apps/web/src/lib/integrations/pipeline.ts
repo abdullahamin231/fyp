@@ -353,21 +353,29 @@ export async function evaluateWorkflowRule(db: SupabaseClient, nodeId: string): 
       kase === "merged_not_done"
         ? `${pr.external_id} was merged but ${ticket.external_id} is still "${ticketStatus}".`
         : `${ticket.external_id} is marked "${ticketStatus}" but its pull request ${pr.external_id} is still open.`;
+    const idempotencyKey = `RULE_2:${rule.data.version}:${pr.id}:${ticket.id}:${kase}`;
     const ins = await db.from("findings").insert({
       subject_node_id: ticket.id,
       origin: "rule",
       rule_id: rule.data.id,
       rule_version: rule.data.version,
       kind: "workflow_state_inconsistency",
-      idempotency_key: `RULE_2:${rule.data.version}:${pr.id}:${ticket.id}:${kase}`,
+      idempotency_key: idempotencyKey,
       annotation,
       severity: rule.data.severity,
     }).select("id").single();
+    let findingId: string | undefined;
     if (!ins.error) {
       created++;
-      // FR-14: every new finding is routed or recorded as unroutable, never silent.
-      await routeFinding(db, (ins.data as { id: string }).id, rule.data.notify);
-    } else if (ins.error.code !== "23505") throw new Error(`findings (rule 2): ${ins.error.message}`);
+      findingId = (ins.data as { id: string }).id;
+    } else if (ins.error.code === "23505") {
+      // Replay: the finding exists, but an earlier attempt may have died before routing it.
+      const existing = await db.from("findings").select("id").eq("idempotency_key", idempotencyKey).maybeSingle();
+      if (existing.error) throw new Error(`findings (rule 2): ${existing.error.message}`);
+      findingId = (existing.data as { id: string } | null)?.id;
+    } else throw new Error(`findings (rule 2): ${ins.error.message}`);
+    // FR-14: every finding is routed or recorded as unroutable, never silent. Idempotent on replay.
+    if (findingId) await routeFinding(db, findingId, rule.data.notify);
   }
   return created;
 }

@@ -43,10 +43,19 @@ async function edgesAround(db: SupabaseClient, ids: string[]): Promise<EdgeRow[]
  * Resolve and record the routing of one finding (FR-14): load only the
  * neighbourhood the hop bound allows, resolve the notify set, then either queue
  * a notification per recipient channel or record the unroutable outcome.
- * Idempotent per finding.
+ * Idempotent per finding: returns null when it was already routed.
  */
-export async function routeFinding(db: SupabaseClient, findingId: string, rule: RouteRule): Promise<NotifyResolution> {
+export async function routeFinding(db: SupabaseClient, findingId: string, rule: RouteRule): Promise<NotifyResolution | null> {
   const hops = Math.min(Math.max(Math.trunc(rule.hops), 1), MAX_HOPS);
+
+  // Already routed (a replay after a partial failure): nothing to do, nothing to duplicate.
+  const [queued, recorded] = await Promise.all([
+    db.from("notifications").select("id").eq("finding_id", findingId).limit(1),
+    db.from("routing_outcomes").select("id").eq("finding_id", findingId).limit(1),
+  ]);
+  if (queued.error) fail("check notifications", queued.error);
+  if (recorded.error) fail("check routing outcomes", recorded.error);
+  if ((queued.data?.length ?? 0) > 0 || (recorded.data?.length ?? 0) > 0) return null;
 
   const finding = await db.from("findings").select("subject_node_id").eq("id", findingId).single();
   if (finding.error || !finding.data) fail("load finding", finding.error);
