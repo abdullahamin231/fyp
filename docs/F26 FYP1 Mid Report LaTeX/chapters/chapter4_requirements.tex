@@ -275,9 +275,15 @@ FR-12 is split by rule. Rule~2 (workflow-state inconsistency) is implemented and
 fires on live Jira transitions; it is the only rule with an evaluator in the
 codebase. Rules~1 and~3 are defined in the contracts package, seeded in the
 rules migration and designed, but have no evaluator at the reporting date.
-FR-14 is not implemented: the \texttt{OWNS}, \texttt{ASSIGNED\_TO} and
-\texttt{WATCHES} edge types are declared in the schema and documented in the
-contracts package, but nothing creates or traverses them. FR-21 is built in
+FR-14 is implemented in part (updated 24 November). Bounded notify-set
+resolution exists: a one-to-two hop walk from the changed node over the
+\texttt{OWNS}, \texttt{ASSIGNED\_TO} and \texttt{WATCHES} edge types, followed by
+per-user filtering by role and channel, with an unroutable outcome recorded
+when no recipient resolves. Rule~2 findings are routed through it, and each
+finding either queues a pending notification or is recorded as unroutable. What
+is not built is the creation of the role edges at ingestion from the GitHub
+assignee, Jira assignee and Figma file owner, and notification delivery, so
+until the edges exist findings are recorded as unroutable. FR-21 is built in
 part: audit export to CSV and JSONL exists in the reviewer interface, whereas
 the benchmark export does not.
 
