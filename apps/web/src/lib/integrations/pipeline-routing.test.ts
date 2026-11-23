@@ -27,7 +27,7 @@ describe("FR-14: a new finding is routed or recorded as unroutable", () => {
     const fake = world([edge("ada", "tk", "ASSIGNED_TO")]);
     expect(await evaluateWorkflowRule(fake.client as never, "pr")).toBe(1);
     expect(fake.tables.notifications).toEqual([
-      expect.objectContaining({ recipient_id: "ada", channel: "in_app", delivery_status: "pending", finding_id: expect.any(String) }),
+      expect.objectContaining({ recipient_id: "ada", channel: "in_app", delivery_status: "sent", finding_id: expect.any(String) }),
     ]);
     expect(fake.tables.routing_outcomes).toEqual([]);
   });
@@ -95,7 +95,7 @@ describe("FR-14 end to end: Jira assignee -> role edge -> routed finding", () =>
     const person = fake.tables.nodes.find((n) => n.external_id === "user:auth-1")!;
     expect(fake.tables.edges).toContainEqual(expect.objectContaining({ from_id: person.id, to_id: "tk", type: "ASSIGNED_TO", resolver: "jira:assignee" }));
     expect(fake.tables.notifications).toEqual([
-      expect.objectContaining({ recipient_id: person.id, channel: "in_app", delivery_status: "pending" }),
+      expect.objectContaining({ recipient_id: person.id, channel: "in_app", delivery_status: "sent" }),
     ]);
     expect(fake.tables.routing_outcomes).toEqual([]);
   });

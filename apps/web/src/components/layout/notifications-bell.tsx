@@ -1,10 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Icon } from "@/components/ui/icon";
 import { useToast } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
+import { inboxFor, markDelivered, type InboxItem } from "@/lib/data/notification-delivery";
 import type { WorkspaceInvitation } from "@/lib/types";
 
 type InvitationRow = {
@@ -24,7 +27,8 @@ function embedOne<T>(value: T | T[] | null): T | null {
 }
 
 /**
- * Top-bar notifications bell: a dropdown listing the signed-in user's pending
+ * Top-bar notifications bell: a dropdown listing findings routed to the signed-in
+ * user (FR-14; opening it records them as delivered) and their pending
  * workspace invitations with inline Accept / Decline. The badge counts only
  * invitations addressed to the user's own email — invites they *sent* for
  * workspaces they admin are also readable under RLS, but are not notifications
@@ -39,6 +43,23 @@ export function NotificationsBell() {
   const [invitations, setInvitations] = useState<WorkspaceInvitation[]>([]);
   const [inviterNames, setInviterNames] = useState<Map<string, string>>(new Map());
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [inbox, setInbox] = useState<InboxItem[]>([]);
+  /** Inbox rows this session has already shown (and recorded as delivered). */
+  const [shown, setShown] = useState<Set<string>>(new Set());
+  const unseen = inbox.filter((item) => item.status === "sent" && !shown.has(item.id));
+  const badge = invitations.length + unseen.length;
+
+  const fetchInbox = useCallback(async (): Promise<InboxItem[]> => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return [];
+    try {
+      return await inboxFor(supabase as unknown as SupabaseClient, user.id);
+    } catch {
+      return [];
+    }
+  }, [supabase]);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   /** Pure fetch — no setState, so callers decide when to apply the result. */
@@ -102,16 +123,17 @@ export function NotificationsBell() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const result = await fetchInvitations();
+      const [result, items] = await Promise.all([fetchInvitations(), fetchInbox()]);
       if (!cancelled) {
         setInvitations(result.invitations);
         setInviterNames(result.inviters);
+        setInbox(items);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [fetchInvitations]);
+  }, [fetchInvitations, fetchInbox]);
 
   useEffect(() => {
     if (!open) return;
@@ -157,7 +179,7 @@ export function NotificationsBell() {
     <div ref={rootRef} className="relative">
       <button
         type="button"
-        aria-label={`Notifications${invitations.length > 0 ? ` (${invitations.length} pending)` : ""}`}
+        aria-label={`Notifications${badge > 0 ? ` (${badge} new)` : ""}`}
         aria-expanded={open}
         onClick={() => {
           setOpen((prev) => !prev);
@@ -166,6 +188,18 @@ export function NotificationsBell() {
               setInvitations(result.invitations);
               setInviterNames(result.inviters);
             });
+            void fetchInbox().then(async (items) => {
+              setInbox(items);
+              const fresh = items.filter((item) => item.status === "sent").map((item) => item.id);
+              if (fresh.length === 0) return;
+              // Showing them is what delivery means: record it, keep the "new" marker for this view.
+              try {
+                await markDelivered(supabase as unknown as SupabaseClient, fresh);
+                setShown((prev) => new Set([...prev, ...fresh]));
+              } catch {
+                // Leave them as sent; the next open tries again.
+              }
+            });
           }
         }}
         className="relative p-1.5 rounded-md hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors"
@@ -173,9 +207,9 @@ export function NotificationsBell() {
         <span className="material-symbols-outlined text-[19px] leading-none">
           notifications
         </span>
-        {invitations.length > 0 ? (
+        {badge > 0 ? (
           <span className="absolute -top-1 -right-1 min-w-4 h-4 px-0.5 rounded-full bg-error text-on-primary font-mono-code text-[10px] font-bold flex items-center justify-center ring-2 ring-background">
-            {invitations.length}
+            {badge}
           </span>
         ) : null}
       </button>
@@ -187,18 +221,42 @@ export function NotificationsBell() {
               Notifications
             </span>
             <span className="font-mono-code text-micro-label text-muted">
-              {invitations.length} pending
+              {inbox.length + invitations.length} total
             </span>
           </div>
 
-          {invitations.length === 0 ? (
+          {inbox.length > 0 ? (
+            <div className="divide-y divide-outline-variant max-h-60 overflow-y-auto border-b border-outline-variant">
+              {inbox.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/conflicts/${item.findingId}`}
+                  onClick={() => setOpen(false)}
+                  className="p-4 flex items-start gap-3 hover:bg-surface-container-high transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center shrink-0">
+                    <Icon name="warning" className="text-primary text-[18px]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-body-sm text-body-sm text-on-surface">{item.annotation}</p>
+                    <p className="font-mono-code text-micro-label text-muted mt-0.5">
+                      {item.severity} · {new Date(item.createdAt).toLocaleDateString()}
+                      {item.status === "sent" ? " · new" : ""}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : null}
+
+          {invitations.length === 0 && inbox.length === 0 ? (
             <div className="p-6 flex flex-col items-center text-center gap-2">
               <Icon name="notifications_off" className="text-muted text-[26px]" />
               <p className="font-body-sm text-body-sm text-on-surface-variant">
-                No pending invitations
+                No notifications
               </p>
             </div>
-          ) : (
+          ) : invitations.length === 0 ? null : (
             <div className="divide-y divide-outline-variant max-h-80 overflow-y-auto">
               {invitations.map((invite) => (
                 <div key={invite.id} className="p-4 flex flex-col gap-3">
