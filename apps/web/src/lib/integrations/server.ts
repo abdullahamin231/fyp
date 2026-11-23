@@ -98,6 +98,8 @@ export async function saveConnection(input: {
   refreshToken?: string;
   expiresAt?: string;
   externalAccountId?: string;
+  /** The authorising user's own provider account id (see tokens.fetchConnectedUserId). Never a secret. */
+  connectedAccountId?: string;
   externalAccountName?: string;
   scopes: string[];
   webhookSecret?: string;
@@ -109,6 +111,7 @@ export async function saveConnection(input: {
     refresh_token_ciphertext: input.refreshToken ? encryptSecret(input.refreshToken) : null,
     token_expires_at: input.expiresAt ?? null,
     external_account_id: input.externalAccountId ?? null,
+    connected_account_id: input.connectedAccountId ?? null,
     external_account_name: input.externalAccountName ?? null,
     scopes: input.scopes,
     webhook_secret_ciphertext: input.webhookSecret ? encryptSecret(input.webhookSecret) : null,
