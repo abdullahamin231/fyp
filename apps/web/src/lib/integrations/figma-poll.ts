@@ -1,6 +1,7 @@
 import { admin } from "@/lib/supabase/admin";
 import { upsertNormalizedEvents } from "./events";
 import { figmaAdapter } from "./adapters";
+import { figmaEventActors } from "./actors";
 import { rawHash } from "./common";
 import { recordCheckpoint } from "./checkpoints";
 import { persistDelivery } from "./server";
@@ -113,9 +114,19 @@ async function versionsSince(token: string, fileKey: string, mark: string | null
 }
 
 /** Fetch the file at its current version and write its design nodes. */
-async function projectDesign(workspaceId: string, token: string, fileKey: string, versionId: string, eventId: string | null) {
+async function projectDesign(
+  workspaceId: string,
+  token: string,
+  fileKey: string,
+  versionId: string,
+  eventId: string | null,
+  author: FigmaVersion["user"],
+) {
   const file = await figmaGet(token, `${FIGMA}/files/${encodeURIComponent(fileKey)}?depth=3`);
-  const sync = await syncFigmaDesign(admin(), workspaceId, fileKey, projectFigmaFile(fileKey, file, versionId), eventId);
+  const sync = await syncFigmaDesign(
+    admin(), workspaceId, fileKey, projectFigmaFile(fileKey, file, versionId), eventId,
+    figmaEventActors({ user: author ?? null }),
+  );
   return { fileName: typeof file.name === "string" ? file.name : null, sync };
 }
 
@@ -128,7 +139,7 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
       if (!versions[0]) throw new Error("Figma returned no versions to use as a high-water mark");
       // First poll, or the mark fell out of the history Figma still returns:
       // baseline at the newest version rather than import (or loop over) history.
-      const design = await projectDesign(workspaceId, token, file.file_key, versions[0].id, null);
+      const design = await projectDesign(workspaceId, token, file.file_key, versions[0].id, null, versions[0].user);
       const { error } = await admin().from("figma_watched_files").update({
         last_seen_version_id: versions[0].id,
         file_name: design.fileName,
@@ -171,7 +182,7 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
 
     const newestVersionId = newer.length > 0 ? newer[0].id : file.last_seen_version_id;
     const design = newer.length > 0
-      ? await projectDesign(workspaceId, token, file.file_key, newestVersionId, ingestedEventIds[ingestedEventIds.length - 1] ?? null)
+      ? await projectDesign(workspaceId, token, file.file_key, newestVersionId, ingestedEventIds[ingestedEventIds.length - 1] ?? null, newer[0]?.user)
       : null;
     const { error } = await admin().from("figma_watched_files").update({
       last_seen_version_id: newestVersionId,

@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Icon } from "@/components/ui/icon";
 import { Badge, type Tone } from "@/components/ui/badge";
 import { CopyLinkButton } from "@/components/conflict-detail/copy-link-button";
+import { WatchToggle } from "@/components/conflict-detail/watch-toggle";
 import { CriterionResults } from "@/components/conflict-detail/criterion-results";
 import { ExplanationBox } from "@/components/conflict-detail/explanation-box";
 import { ResolutionDock } from "@/components/conflict-detail/resolution-dock";
@@ -19,6 +20,7 @@ import { policyForFinding } from "@/lib/domain/policy-for-finding";
 import { formatUtcFull } from "@/lib/domain/conflict-detail";
 import { getFindingDetail } from "@/lib/data/queries";
 import { loadFindingTimeline } from "@/lib/data/audit";
+import { loadWatchState } from "@/lib/data/watch";
 import type { FindingStatus, Severity, Verdict } from "@/lib/types";
 
 /**
@@ -99,6 +101,7 @@ export default async function ConflictDetailPage({
 
   const { finding, passes } = detail;
   const activity = await loadFindingTimeline(finding.id);
+  const watch = await loadWatchState(finding.id);
   const policy = policyForFinding(finding);
   const severity = severityMeta[finding.severity];
   const verdict: Verdict = finding.verdict ?? "INSUFFICIENT_EVIDENCE";
@@ -133,6 +136,7 @@ export default async function ConflictDetailPage({
             <Icon name="arrow_back" className="text-[18px]" />
             <span>Back to Inbox</span>
           </Link>
+          {watch ? <WatchToggle nodeId={watch.nodeId} watching={watch.watching} /> : null}
           <CopyLinkButton path={`/conflicts/${finding.id}`} />
         </div>
       </div>
