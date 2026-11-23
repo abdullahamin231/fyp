@@ -75,6 +75,28 @@ export function fetchProviderIdentity(provider: IntegrationProvider, token: stri
 }
 
 /**
+ * The provider's stable id for the person who authorised the connection — the
+ * id that webhook payloads carry for that same person (Jira `accountId`, GitHub
+ * and Figma user `id`). That is what binds their account to a workspace member.
+ * `null` when it cannot be read (Jira's `/me` needs the `read:me` scope, which
+ * older grants lack): the binding is then skipped rather than guessed.
+ */
+export async function fetchConnectedUserId(
+  provider: IntegrationProvider,
+  token: string,
+  account: ProviderAccount,
+  fetchImpl: typeof fetch = fetch,
+): Promise<string | null> {
+  if (provider !== "jira") return account.id;
+  try {
+    const me = (await getJson(fetchImpl, "https://api.atlassian.com/me", token)) as { account_id?: string };
+    return me.account_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * A real OAuth grant always carries scopes. A row without any holds only a
  * webhook secret (an older setup script stored a placeholder token beside
  * it), and its token must never be sent anywhere.

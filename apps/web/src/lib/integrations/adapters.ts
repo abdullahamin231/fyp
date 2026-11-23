@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { asRecord, rawHash, referencesFromText, text, verifyHmacSha256 } from "./common";
+import { figmaEventActors, githubPullRequestActors, jiraIssueActors } from "./actors";
 import type { IntegrationAdapter, NormalizedIntegrationEvent } from "./types";
 
 function baseEvent(
@@ -66,7 +67,7 @@ export const githubAdapter: IntegrationAdapter = {
         stateBefore: action === "closed" ? "open" : null,
         stateAfter: action === "closed" ? (pr.merged === true ? "merged" : "closed") : action === "opened" ? "open" : null,
         references,
-        payload: { ...body, base_sha: baseSha, head_sha: headSha, repo: repoName },
+        payload: { ...body, base_sha: baseSha, head_sha: headSha, repo: repoName, actors: githubPullRequestActors(body).actors },
       })];
     }
     if (event === "push") {
@@ -97,7 +98,8 @@ export const jiraAdapter: IntegrationAdapter = {
     const key = text(issue.key);
     if (!key) return [];
     const eventName = text(body.webhookEvent) ?? "jira:issue_updated";
-    const actor = text(asRecord(body.user).accountId) ?? text(asRecord(body.user).displayName) ?? "jira";
+    // A display name is not an identity; only the stable accountId is kept.
+    const actor = text(asRecord(body.user).accountId) ?? "jira";
     const timestamp = Number(body.timestamp);
     const occurredAt = Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : receivedAt.toISOString();
     const changelog = asRecord(body.changelog);
@@ -108,6 +110,7 @@ export const jiraAdapter: IntegrationAdapter = {
       version: text(fields.updated) ?? occurredAt,
       stateBefore: text(stateItem.fromString),
       stateAfter: text(stateItem.toString),
+      payload: { ...body, actors: jiraIssueActors(body).actors },
       references: referencesFromText("jira", [
         ["summary", fields.summary],
         ["description", fields.description],
@@ -140,6 +143,7 @@ export const figmaAdapter: IntegrationAdapter = {
       version,
       stateBefore: text(body.previous_status),
       stateAfter: text(body.status),
+      payload: { ...body, actors: figmaEventActors(body) },
       references: referencesFromText("figma", [["payload", JSON.stringify(body)]])
     })];
   },

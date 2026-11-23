@@ -22,7 +22,7 @@ type FigmaVersion = {
   created_at: string;
   label?: string | null;
   description?: string | null;
-  user?: { handle?: string | null } | null;
+  user?: { id?: string | null; handle?: string | null } | null;
 };
 
 export type WatchedFileStatus = WatchedFile;
@@ -149,7 +149,7 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
         version_id: version.id,
         id: `figma:poll:${file.file_key}:${version.id}`,
         timestamp: version.created_at,
-        user: { handle: version.user?.handle ?? null },
+        user: { id: version.user?.id ?? null, handle: version.user?.handle ?? null },
         label: version.label ?? null,
         description: version.description ?? null,
       };

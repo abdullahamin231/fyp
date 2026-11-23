@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { providerAppCredentials, saveConnection, type ProviderAppCredentials } from "@/lib/integrations/server";
 import { isProvider, type IntegrationProvider } from "@/lib/integrations/types";
-import { fetchProviderIdentity } from "@/lib/integrations/tokens";
+import { fetchConnectedUserId, fetchProviderIdentity } from "@/lib/integrations/tokens";
 
 function verifyState(state: string, expectedProvider: IntegrationProvider) {
   const [encoded, signature] = state.split(".");
@@ -105,6 +105,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
       refreshToken: token.refresh_token,
       expiresAt: token.expires_in ? new Date(Date.now() + token.expires_in * 1000).toISOString() : undefined,
       externalAccountId: account.id ?? undefined,
+      connectedAccountId: (await fetchConnectedUserId(provider, token.access_token, account)) ?? undefined,
       externalAccountName: account.name ?? undefined,
       scopes: token.scope?.split(/[ ,]+/).filter(Boolean) ?? [],
       webhookSecret: credentials.webhookSecret,

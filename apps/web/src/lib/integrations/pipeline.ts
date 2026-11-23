@@ -10,6 +10,8 @@
  *                         PullRequest node + TRACKS edge to each ticket it names
  *                      -> verification job per criterion of the linked ticket,
  *                         pinned to the delivery's base/head commit pair
+ *                      -> role edges (people.ts): Jira assignee/reporter, PR author/assignees
+ *                         -> Person nodes, written before Rule 2 so findings can route (FR-14)
  *   either             -> Rule 2, workflow-state inconsistency, on the affected links
  *
  * Everything here runs with the service-role client inside the webhook request,
@@ -25,6 +27,8 @@ import type { FigmaRef } from "./figma-design";
 import { linkFigmaRefs, watchReferencedFiles } from "./figma-sync";
 import { getProviderToken } from "./tokens";
 import { routeFinding } from "@/lib/data/route-finding";
+import { githubPullRequestActors, jiraIssueActors } from "./actors";
+import { syncRoleEdges } from "./people";
 
 /** Project prefixes of the tickets this workspace already has, e.g. ["UNI"]. */
 async function workspaceProjectKeys(db: SupabaseClient, workspaceId: string): Promise<string[] | null> {
@@ -76,6 +80,11 @@ export async function ingestJiraIssue(
   if (error) throw new Error(`Could not ingest Jira issue ${issue.key}: ${error.message}`);
   const result = data as { kind: "ticket" | "nfr"; nodeId?: string; skipped?: boolean; criteria?: TicketResult["criteria"] };
   if (result.skipped || !result.nodeId) return null;
+  if (result.kind === "ticket") {
+    // FR-14: role edges must exist before Rule 2 runs, or its findings route as unroutable.
+    const { actors, assigneeKnown } = jiraIssueActors(body);
+    await syncRoleEdges(db, workspaceId, result.nodeId, actors, assigneeKnown, "jira:assignee");
+  }
   const relinked = result.kind === "ticket" ? await relinkUnknownKey(db, workspaceId, issue.key, result.nodeId) : 0;
   const refs = (issue.payload.figmaRefs as FigmaRef[] | undefined) ?? [];
   const watched = refs.length ? await watchReferencedFiles(db, workspaceId, refs) : [];
@@ -277,6 +286,10 @@ export async function processPullRequestDelivery(
 
   const linking = await linkPullRequestFromGithub(db, workspaceId, deliveryId, payload, input.rawHash, input.receivedAt, commits);
   const outcome: PullRequestOutcome = { linking, commitsRead };
+  if (linking.prNodeId) {
+    const { actors, assigneesKnown } = githubPullRequestActors(payload);
+    await syncRoleEdges(db, workspaceId, linking.prNodeId, actors, assigneesKnown, "github:pr-assignee");
+  }
   if (linking.prNodeId) outcome.findingsCreated = await evaluateWorkflowRule(db, linking.prNodeId);
   const action = text(payload.action) ?? "unknown";
   if (linking.prNodeId && VERIFIABLE_ACTIONS.has(action) && linking.keys) {

@@ -71,7 +71,8 @@ export async function ensureActorNode(
       workspace_id: workspaceId,
       type: "Person",
       external_id: externalId,
-      payload: { name, email: user.email ?? null, userId: user.id },
+      // `role` is required by FR-14 routing: a Person without one is silently dropped.
+      payload: { name, email: user.email ?? null, userId: user.id, role: "developer", role_source: "default" },
     })
     .select("id")
     .single();

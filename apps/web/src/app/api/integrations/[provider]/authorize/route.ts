@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pro
       },
       jira: {
         url: "https://auth.atlassian.com/authorize",
-        scope: process.env.JIRA_OAUTH_SCOPE ?? "read:jira-work read:jira-user offline_access",
+        scope: process.env.JIRA_OAUTH_SCOPE ?? "read:jira-work read:jira-user read:me offline_access",
       },
       figma: {
         url: "https://www.figma.com/oauth",

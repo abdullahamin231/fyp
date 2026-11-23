@@ -30,7 +30,7 @@ export async function searchUpdatedIssues(
   input: { windowMinutes: number; extraFields: string[] },
   fetchImpl: typeof fetch = fetch,
 ): Promise<Record<string, unknown>[]> {
-  const fields = ["summary", "description", "labels", "status", "assignee", "updated", ...input.extraFields].join(",");
+  const fields = ["summary", "description", "labels", "status", "assignee", "reporter", "updated", ...input.extraFields].join(",");
   const jql = `updated >= -${input.windowMinutes}m ORDER BY updated ASC`;
   const issues: Record<string, unknown>[] = [];
   const tokens = new Set<string>();
