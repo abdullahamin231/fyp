@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fakeSupabase } from "@/test/fake-supabase";
-import { routeFinding } from "./route-finding";
+import { rerouteUnroutableAround, routeAndDeliver, routeFinding, type RouteRule } from "./route-finding";
 
 const rule = { roles: ["developer" as const, "designer" as const], channels: ["slack" as const, "in_app" as const], hops: 1 };
 const edge = (from_id: string, to_id: string, type: string) => ({ from_id, to_id, type, valid_to: null, link_state: "active" });
@@ -79,5 +79,56 @@ describe("routeFinding (FR-14)", () => {
       errors: { routing_outcomes: "permission denied" },
     });
     await expect(routeFinding(fake.client as never, "f1", rule)).rejects.toThrow(/permission denied/);
+  });
+});
+
+describe("re-routing findings that were unroutable (FR-14)", () => {
+  const notify: RouteRule = { roles: ["developer"], channels: ["in_app"], hops: 1 };
+  const reroute = () =>
+    fakeSupabase({
+      tables: {
+        findings: [{ id: "f1", subject_node_id: "pr1", rule_id: "RULE_2", rule_version: 1, state: "open" }],
+        rules: [{ id: "RULE_2", version: 1, notify }],
+        nodes: [person("ada", "developer")],
+        edges: [],
+        notifications: [],
+        routing_outcomes: [],
+      },
+    });
+
+  it("routes, delivers and clears the unroutable record once a role edge appears", async () => {
+    const fake = reroute();
+    expect(await routeAndDeliver(fake.client as never, "f1", notify)).toMatchObject({ outcome: "unroutable" });
+    expect(fake.tables.routing_outcomes).toHaveLength(1);
+
+    fake.tables.edges.push(edge("ada", "pr1", "ASSIGNED_TO"));
+    expect(await rerouteUnroutableAround(fake.client as never, "pr1")).toBe(1);
+    expect(fake.tables.notifications).toEqual([expect.objectContaining({ recipient_id: "ada", channel: "in_app", delivery_status: "sent" })]);
+    expect(fake.tables.routing_outcomes).toEqual([]);
+  });
+
+  it("leaves a finding recorded as unroutable when there is still nobody to notify", async () => {
+    const fake = reroute();
+    await routeAndDeliver(fake.client as never, "f1", notify);
+    expect(await rerouteUnroutableAround(fake.client as never, "pr1")).toBe(0);
+    expect(fake.tables.routing_outcomes).toHaveLength(1);
+  });
+
+  it("does not re-route a finding that is no longer open", async () => {
+    const fake = reroute();
+    await routeAndDeliver(fake.client as never, "f1", notify);
+    fake.tables.findings[0]!.state = "resolved";
+    fake.tables.edges.push(edge("ada", "pr1", "ASSIGNED_TO"));
+    expect(await rerouteUnroutableAround(fake.client as never, "pr1")).toBe(0);
+    expect(fake.tables.notifications).toEqual([]);
+  });
+
+  it("does not notify twice when re-run after it routed", async () => {
+    const fake = reroute();
+    await routeAndDeliver(fake.client as never, "f1", notify);
+    fake.tables.edges.push(edge("ada", "pr1", "ASSIGNED_TO"));
+    await rerouteUnroutableAround(fake.client as never, "pr1");
+    await rerouteUnroutableAround(fake.client as never, "pr1");
+    expect(fake.tables.notifications).toHaveLength(1);
   });
 });

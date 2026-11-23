@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { NotificationChannel, PersonRole } from "@unify/contracts";
+import { deliverInApp } from "./notification-delivery";
 import {
   MAX_HOPS,
   resolveNotifySet,
@@ -39,29 +40,8 @@ async function edgesAround(db: SupabaseClient, ids: string[]): Promise<EdgeRow[]
   return (data ?? []) as EdgeRow[];
 }
 
-/**
- * Resolve and record the routing of one finding (FR-14): load only the
- * neighbourhood the hop bound allows, resolve the notify set, then either queue
- * a notification per recipient channel or record the unroutable outcome.
- * Idempotent per finding: returns null when it was already routed.
- */
-export async function routeFinding(db: SupabaseClient, findingId: string, rule: RouteRule): Promise<NotifyResolution | null> {
-  const hops = Math.min(Math.max(Math.trunc(rule.hops), 1), MAX_HOPS);
-
-  // Already routed (a replay after a partial failure): nothing to do, nothing to duplicate.
-  const [queued, recorded] = await Promise.all([
-    db.from("notifications").select("id").eq("finding_id", findingId).limit(1),
-    db.from("routing_outcomes").select("id").eq("finding_id", findingId).limit(1),
-  ]);
-  if (queued.error) fail("check notifications", queued.error);
-  if (recorded.error) fail("check routing outcomes", recorded.error);
-  if ((queued.data?.length ?? 0) > 0 || (recorded.data?.length ?? 0) > 0) return null;
-
-  const finding = await db.from("findings").select("subject_node_id").eq("id", findingId).single();
-  if (finding.error || !finding.data) fail("load finding", finding.error);
-  const nodeId = (finding.data as { subject_node_id: string }).subject_node_id;
-
-  // Bounded expansion over structural edges: one query per hop, never the whole graph.
+/** Bounded expansion over structural edges: one query per hop, never the whole graph. */
+async function neighbourhood(db: SupabaseClient, nodeId: string, hops: number): Promise<{ seen: Set<string>; nodeEdges: NodeEdge[] }> {
   const nodeEdges: NodeEdge[] = [];
   const seen = new Set<string>([nodeId]);
   let frontier = [nodeId];
@@ -74,6 +54,40 @@ export async function routeFinding(db: SupabaseClient, findingId: string, rule: 
     }
     frontier = [...next];
   }
+  return { seen, nodeEdges };
+}
+
+/**
+ * Resolve and record the routing of one finding (FR-14): load only the
+ * neighbourhood the hop bound allows, resolve the notify set, then either queue
+ * a notification per recipient channel or record the unroutable outcome.
+ * Idempotent per finding: returns null when it was already routed.
+ *
+ * `retry` re-resolves a finding recorded as unroutable (its edges may have
+ * arrived since); a finding that already has notifications is never re-routed.
+ */
+export async function routeFinding(
+  db: SupabaseClient,
+  findingId: string,
+  rule: RouteRule,
+  options: { retry?: boolean } = {},
+): Promise<NotifyResolution | null> {
+  const hops = Math.min(Math.max(Math.trunc(rule.hops), 1), MAX_HOPS);
+
+  // Already routed (a replay after a partial failure): nothing to do, nothing to duplicate.
+  const [queued, recorded] = await Promise.all([
+    db.from("notifications").select("id").eq("finding_id", findingId).limit(1),
+    db.from("routing_outcomes").select("id").eq("finding_id", findingId).limit(1),
+  ]);
+  if (queued.error) fail("check notifications", queued.error);
+  if (recorded.error) fail("check routing outcomes", recorded.error);
+  if ((queued.data?.length ?? 0) > 0 || ((recorded.data?.length ?? 0) > 0 && !options.retry)) return null;
+
+  const finding = await db.from("findings").select("subject_node_id").eq("id", findingId).single();
+  if (finding.error || !finding.data) fail("load finding", finding.error);
+  const nodeId = (finding.data as { subject_node_id: string }).subject_node_id;
+
+  const { seen, nodeEdges } = await neighbourhood(db, nodeId, hops);
 
   const roleRows = (await edgesAround(db, [...seen])).filter((edge) => ROLE_EDGES.includes(edge.type) && seen.has(edge.to_id));
   const roleEdges: RoleEdge[] = roleRows.map((edge) => ({ type: edge.type as RoleEdgeType, userId: edge.from_id, nodeId: edge.to_id }));
@@ -109,5 +123,43 @@ export async function routeFinding(db: SupabaseClient, findingId: string, rule: 
     ),
   );
   if (error) fail("queue notifications", error);
+  // The finding found its recipients: the earlier unroutable record no longer describes it.
+  const cleared = await db.from("routing_outcomes").delete().eq("finding_id", findingId);
+  if (cleared.error) fail("clear the unroutable outcome", cleared.error);
   return resolution;
+}
+
+/** Route a finding and, when it reaches someone, make its in-app notifications available. */
+export async function routeAndDeliver(
+  db: SupabaseClient,
+  findingId: string,
+  rule: RouteRule,
+  options: { retry?: boolean } = {},
+): Promise<NotifyResolution | null> {
+  const resolution = await routeFinding(db, findingId, rule, options);
+  if (resolution?.outcome === "routed") await deliverInApp(db, findingId);
+  return resolution;
+}
+
+/**
+ * Role edges just appeared near `nodeId`: give every open finding recorded as
+ * unroutable within reach another chance. Returns how many now route.
+ */
+export async function rerouteUnroutableAround(db: SupabaseClient, nodeId: string): Promise<number> {
+  const { seen } = await neighbourhood(db, nodeId, MAX_HOPS);
+  const outcomes = await db.from("routing_outcomes").select("finding_id").in("node_id", [...seen]);
+  if (outcomes.error) fail("load unroutable findings", outcomes.error);
+  let routed = 0;
+  for (const { finding_id } of (outcomes.data ?? []) as { finding_id: string }[]) {
+    const finding = await db.from("findings").select("rule_id, rule_version, state").eq("id", finding_id).maybeSingle();
+    if (finding.error) fail("load finding", finding.error);
+    const row = finding.data as { rule_id: string | null; rule_version: number | null; state: string } | null;
+    if (!row?.rule_id || row.rule_version === null || row.state !== "open") continue;
+    const rule = await db.from("rules").select("notify").eq("id", row.rule_id).eq("version", row.rule_version).maybeSingle();
+    if (rule.error) fail("load rule", rule.error);
+    const notify = (rule.data as { notify: RouteRule } | null)?.notify;
+    if (!notify) continue;
+    if ((await routeAndDeliver(db, finding_id, notify, { retry: true }))?.outcome === "routed") routed++;
+  }
+  return routed;
 }

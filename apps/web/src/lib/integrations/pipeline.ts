@@ -26,7 +26,7 @@ import { pullRequestCommits, type GithubCommit } from "./github";
 import type { FigmaRef } from "./figma-design";
 import { linkFigmaRefs, watchReferencedFiles } from "./figma-sync";
 import { getProviderToken } from "./tokens";
-import { routeFinding } from "@/lib/data/route-finding";
+import { rerouteUnroutableAround, routeAndDeliver } from "@/lib/data/route-finding";
 import { githubPullRequestActors, jiraIssueActors } from "./actors";
 import { syncRoleEdges } from "./people";
 
@@ -83,7 +83,9 @@ export async function ingestJiraIssue(
   if (result.kind === "ticket") {
     // FR-14: role edges must exist before Rule 2 runs, or its findings route as unroutable.
     const { actors, assigneeKnown } = jiraIssueActors(body);
-    await syncRoleEdges(db, workspaceId, result.nodeId, actors, assigneeKnown, "jira:assignee");
+    const sync = await syncRoleEdges(db, workspaceId, result.nodeId, actors, assigneeKnown, "jira:assignee");
+    // New edges may give an earlier unroutable finding someone to notify.
+    if (sync.created > 0) await rerouteUnroutableAround(db, result.nodeId);
   }
   const relinked = result.kind === "ticket" ? await relinkUnknownKey(db, workspaceId, issue.key, result.nodeId) : 0;
   const refs = (issue.payload.figmaRefs as FigmaRef[] | undefined) ?? [];
@@ -288,7 +290,8 @@ export async function processPullRequestDelivery(
   const outcome: PullRequestOutcome = { linking, commitsRead };
   if (linking.prNodeId) {
     const { actors, assigneesKnown } = githubPullRequestActors(payload);
-    await syncRoleEdges(db, workspaceId, linking.prNodeId, actors, assigneesKnown, "github:pr-assignee");
+    const sync = await syncRoleEdges(db, workspaceId, linking.prNodeId, actors, assigneesKnown, "github:pr-assignee");
+    if (sync.created > 0) await rerouteUnroutableAround(db, linking.prNodeId);
   }
   if (linking.prNodeId) outcome.findingsCreated = await evaluateWorkflowRule(db, linking.prNodeId);
   const action = text(payload.action) ?? "unknown";
@@ -388,7 +391,7 @@ export async function evaluateWorkflowRule(db: SupabaseClient, nodeId: string): 
       findingId = (existing.data as { id: string } | null)?.id;
     } else throw new Error(`findings (rule 2): ${ins.error.message}`);
     // FR-14: every finding is routed or recorded as unroutable, never silent. Idempotent on replay.
-    if (findingId) await routeFinding(db, findingId, rule.data.notify);
+    if (findingId) await routeAndDeliver(db, findingId, rule.data.notify);
   }
   return created;
 }
