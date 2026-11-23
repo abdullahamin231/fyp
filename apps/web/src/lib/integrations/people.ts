@@ -216,7 +216,8 @@ const SIGNALS: Record<string, { type: RoleEdgeKind; resolver: string }> = {
   "jira:reporter": { type: "OWNS", resolver: "jira:reporter" },
   "github:assignee": { type: "ASSIGNED_TO", resolver: "github:pr-assignee" },
   "github:author": { type: "OWNS", resolver: "github:pr-author" },
-  "figma:owner": { type: "OWNS", resolver: "figma:owner" },
+  // Figma exposes no file owner; the person who published a version is who the drift traces back to.
+  "figma:author": { type: "OWNS", resolver: "figma:version-author" },
 };
 
 function signalFor(actor: PayloadActor) {

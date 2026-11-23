@@ -280,10 +280,17 @@ resolution exists: a one-to-two hop walk from the changed node over the
 \texttt{OWNS}, \texttt{ASSIGNED\_TO} and \texttt{WATCHES} edge types, followed by
 per-user filtering by role and channel, with an unroutable outcome recorded
 when no recipient resolves. Rule~2 findings are routed through it, and each
-finding either queues a pending notification or is recorded as unroutable. What
-is not built is the creation of the role edges at ingestion from the GitHub
-assignee, Jira assignee and Figma file owner, and notification delivery, so
-until the edges exist findings are recorded as unroutable. FR-21 is built in
+finding either queues a pending notification or is recorded as unroutable. Role
+edges are derived at ingestion from each tool's own field rather than
+configured by hand: the Jira assignee and reporter, and the GitHub pull-request
+author and assignees. The Figma relation is the author of the versions the
+poller records, not ownership, because polling cannot see a file's owner or
+creator; a version with no recorded author creates no edge and its findings are
+recorded as unroutable, by design rather than by omission, and an author who
+matches no workspace member is held as an unresolved person until a reviewer
+merges them. 	exttt{WATCHES} is opt-in only: a member watches or unwatches an
+artefact from the conflict view, and nothing derives it from a provider. What is
+not built is notification delivery, so queued notifications stay pending. FR-21 is built in
 part: audit export to CSV and JSONL exists in the reviewer interface, whereas
 the benchmark export does not.
 

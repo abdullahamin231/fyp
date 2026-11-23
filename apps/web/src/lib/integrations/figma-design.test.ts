@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { evidenceItemSchema, NODE_TYPE_META } from "@unify/contracts";
 import { fakeSupabase } from "@/test/fake-supabase";
 import { figmaRefsIn, projectFigmaFile } from "./figma-design";
+import { routeFinding } from "@/lib/data/route-finding";
 import { linkFigmaRefs, syncFigmaDesign, watchReferencedFiles } from "./figma-sync";
 
 /** `GET /v1/files/:key?depth=3`, trimmed to the fields the projection reads. */
@@ -132,5 +133,65 @@ describe("design sync", () => {
     ]);
     expect(added).toEqual([KEY]);
     expect(fake.tables.figma_watched_files).toContainEqual({ workspace_id: WS, file_key: KEY, created_by: "u-owner", id: expect.any(String) });
+  });
+});
+
+describe("design sync: the version author is who a design finding routes to (FR-14)", () => {
+  const WS = "ws-1";
+  const KEY = "AbCdEf1234567890";
+  const AUTHOR = [{ tool: "figma" as const, accountId: "fig-77", handle: "dana", displayName: null, email: null, relation: "author" as const }];
+  const world = () =>
+    fakeSupabase({
+      tables: {
+        integration_connections: [{ workspace_id: WS, provider: "figma", external_account_id: "fig-1", connected_account_id: "fig-1", created_by: "u-connector" }],
+      },
+    });
+  const artifact = (fake: ReturnType<typeof world>) => fake.tables.nodes!.find((n) => n.type === "DesignArtifact")!;
+
+  it("attaches an OWNS edge labelled as the version author to the DesignArtifact", async () => {
+    const fake = world();
+    await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-9"), null, AUTHOR);
+    const person = fake.tables.nodes!.find((n) => n.external_id === "figma:fig-77")!;
+    expect(person).toMatchObject({ type: "Person", payload: { role: "developer" } });
+    expect(fake.tables.edges).toContainEqual(
+      expect.objectContaining({ from_id: person.id, to_id: artifact(fake).id, type: "OWNS", resolver: "figma:version-author", source_class: "observed" }),
+    );
+  });
+
+  it("creates no edge when Figma recorded no author, and never falls back to the connecting user", async () => {
+    const fake = world();
+    await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-9"), null, []);
+    expect(fake.tables.edges!.filter((e) => e.type === "OWNS")).toEqual([]);
+    expect(fake.tables.nodes!.some((n) => n.type === "Person")).toBe(false);
+  });
+
+  it("is idempotent across polls of the same version", async () => {
+    const fake = world();
+    for (let i = 0; i < 2; i++) await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-9"), null, AUTHOR);
+    expect(fake.tables.edges!.filter((e) => e.type === "OWNS")).toHaveLength(1);
+  });
+
+  it("routes a finding on a DesignConstraint to the author through the PART_OF hop", async () => {
+    const fake = world();
+    await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-9"), null, AUTHOR);
+    const constraint = fake.tables.nodes!.find((n) => n.type === "DesignConstraint")!;
+    fake.tables.findings = [{ id: "f1", subject_node_id: constraint.id }];
+    for (const edge of fake.tables.edges!) Object.assign(edge, { link_state: "active", valid_to: null });
+    const result = await routeFinding(fake.client as never, "f1", { roles: ["developer"], channels: ["in_app"], hops: 1 });
+    const person = fake.tables.nodes!.find((n) => n.external_id === "figma:fig-77")!;
+    expect(result).toMatchObject({ outcome: "routed", recipients: [{ userId: person.id, via: "OWNS", distance: 1 }] });
+  });
+
+  it("records no_role_edge for a design finding whose version had no author", async () => {
+    const fake = world();
+    await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-9"), null, []);
+    const constraint = fake.tables.nodes!.find((n) => n.type === "DesignConstraint")!;
+    fake.tables.findings = [{ id: "f1", subject_node_id: constraint.id }];
+    for (const edge of fake.tables.edges!) Object.assign(edge, { link_state: "active", valid_to: null });
+    expect(await routeFinding(fake.client as never, "f1", { roles: ["developer"], channels: ["in_app"], hops: 1 })).toMatchObject({
+      outcome: "unroutable",
+      reason: "no_role_edge",
+    });
+    expect(fake.tables.routing_outcomes).toEqual([expect.objectContaining({ reason: "no_role_edge" })]);
   });
 });
