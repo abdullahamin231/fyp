@@ -24,6 +24,7 @@ import { pullRequestCommits, type GithubCommit } from "./github";
 import type { FigmaRef } from "./figma-design";
 import { linkFigmaRefs, watchReferencedFiles } from "./figma-sync";
 import { getProviderToken } from "./tokens";
+import { routeFinding } from "@/lib/data/route-finding";
 
 /** Project prefixes of the tickets this workspace already has, e.g. ["UNI"]. */
 async function workspaceProjectKeys(db: SupabaseClient, workspaceId: string): Promise<string[] | null> {
@@ -309,7 +310,7 @@ type NodeRow = { id: string; type: string; external_id: string; status: string |
 export async function evaluateWorkflowRule(db: SupabaseClient, nodeId: string): Promise<number> {
   // The latest version decides, including whether the rule is paused: filtering
   // on active first would fall back to an older version after a pause.
-  const rule = await db.from("rules").select("id, version, grace_period_hours, severity, active").eq("id", "RULE_2").order("version", { ascending: false }).limit(1).maybeSingle();
+  const rule = await db.from("rules").select("id, version, grace_period_hours, severity, active, notify").eq("id", "RULE_2").order("version", { ascending: false }).limit(1).maybeSingle();
   if (rule.error) throw new Error(`rules: ${rule.error.message}`);
   if (!rule.data?.active) return 0;
   // Fixed for now: the RULE_2 record specifies a grace period (4 h), but nothing
@@ -352,18 +353,29 @@ export async function evaluateWorkflowRule(db: SupabaseClient, nodeId: string): 
       kase === "merged_not_done"
         ? `${pr.external_id} was merged but ${ticket.external_id} is still "${ticketStatus}".`
         : `${ticket.external_id} is marked "${ticketStatus}" but its pull request ${pr.external_id} is still open.`;
+    const idempotencyKey = `RULE_2:${rule.data.version}:${pr.id}:${ticket.id}:${kase}`;
     const ins = await db.from("findings").insert({
       subject_node_id: ticket.id,
       origin: "rule",
       rule_id: rule.data.id,
       rule_version: rule.data.version,
       kind: "workflow_state_inconsistency",
-      idempotency_key: `RULE_2:${rule.data.version}:${pr.id}:${ticket.id}:${kase}`,
+      idempotency_key: idempotencyKey,
       annotation,
       severity: rule.data.severity,
-    });
-    if (!ins.error) created++;
-    else if (ins.error.code !== "23505") throw new Error(`findings (rule 2): ${ins.error.message}`);
+    }).select("id").single();
+    let findingId: string | undefined;
+    if (!ins.error) {
+      created++;
+      findingId = (ins.data as { id: string }).id;
+    } else if (ins.error.code === "23505") {
+      // Replay: the finding exists, but an earlier attempt may have died before routing it.
+      const existing = await db.from("findings").select("id").eq("idempotency_key", idempotencyKey).maybeSingle();
+      if (existing.error) throw new Error(`findings (rule 2): ${existing.error.message}`);
+      findingId = (existing.data as { id: string } | null)?.id;
+    } else throw new Error(`findings (rule 2): ${ins.error.message}`);
+    // FR-14: every finding is routed or recorded as unroutable, never silent. Idempotent on replay.
+    if (findingId) await routeFinding(db, findingId, rule.data.notify);
   }
   return created;
 }
