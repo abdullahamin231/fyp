@@ -8,7 +8,7 @@ import type { ToolKind } from "@/lib/types";
  * fingerprint, not a chain.
  */
 
-/** The `audit_action` enum, exactly as 00001_enums.sql defines it. */
+/** The `audit_action` enum: 00001_enums.sql, extended by 00042 and 00043. */
 export const auditActions = [
   "finding_acknowledged",
   "finding_resolved",
@@ -19,6 +19,10 @@ export const auditActions = [
   "link_dismissed",
   "rule_activated",
   "rule_deactivated",
+  "artefact_watched",
+  "artefact_unwatched",
+  "person_role_changed",
+  "person_identity_merged",
 ] as const;
 
 export type AuditActionType = (typeof auditActions)[number];
@@ -127,7 +131,8 @@ function artifactOf(row: AuditRow, finding: AuditFindingRow | undefined): AuditA
     };
   }
   const edgeId = row.evidence_snapshot?.edgeId;
-  if (typeof edgeId === "string") return { tool: "git", label: `link ${edgeId.slice(0, 8)}` };
+  const watch = row.action === "artefact_watched" || row.action === "artefact_unwatched";
+  if (typeof edgeId === "string") return { tool: "git", label: `${watch ? "watch" : "link"} ${edgeId.slice(0, 8)}` };
   return { tool: "git", label: row.action.replace(/_.*/, "") };
 }
 

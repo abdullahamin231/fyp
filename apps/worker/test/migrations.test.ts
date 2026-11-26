@@ -41,5 +41,9 @@ describe("supabase migrations", () => {
       "select policyname from pg_policies where tablename = 'figma_watched_files'",
     );
     expect(rows.map((r) => r.policyname)).toEqual(["figma_watched_files_select_member"]);
+    const actions = await db.query<{ v: string }>("select unnest(enum_range(null::public.audit_action))::text as v");
+    expect(actions.rows.map((r) => r.v)).toEqual(
+      expect.arrayContaining(["artefact_watched", "artefact_unwatched", "person_role_changed", "person_identity_merged"]),
+    );
   }, 60_000);
 });

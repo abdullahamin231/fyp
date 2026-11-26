@@ -22,6 +22,10 @@ const actionTone: Record<AuditActionType, string> = {
   link_dismissed: "bg-tertiary-container text-on-tertiary-container",
   rule_activated: "bg-primary/20 text-primary",
   rule_deactivated: "bg-surface-variant text-on-surface",
+  artefact_watched: "bg-primary/20 text-primary",
+  artefact_unwatched: "bg-surface-variant text-on-surface",
+  person_role_changed: "bg-tertiary/20 text-tertiary",
+  person_identity_merged: "bg-secondary/15 text-secondary",
 };
 
 const actionIcon: Record<AuditActionType, string> = {
@@ -34,6 +38,10 @@ const actionIcon: Record<AuditActionType, string> = {
   link_dismissed: "link_off",
   rule_activated: "toggle_on",
   rule_deactivated: "toggle_off",
+  artefact_watched: "visibility",
+  artefact_unwatched: "visibility_off",
+  person_role_changed: "badge",
+  person_identity_merged: "merge",
 };
 
 const artifactIconTone: Record<string, string> = {
