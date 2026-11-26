@@ -72,8 +72,8 @@ requires 00039's columns and `complete_verification_job` RPC before it starts.
 
 ### Deploying 00040–00043 to the existing live project
 
-**Whether these are applied on the live project is unconfirmed.** Apply them
-before the web code that uses them is deployed: without 00040 and 00041 role
+**Applied to the live project on 27 November 2026.** For any other existing
+database, apply them before the web code that uses them is deployed: without 00040 and 00041 role
 edges and routing fail, and without 00042 and 00043 a watch, role change or
 merge is saved but its audit row is rejected.
 
