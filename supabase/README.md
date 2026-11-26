@@ -43,6 +43,10 @@ the remote project (applied via the Supabase MCP `apply_migration`). Order:
 | `00037_workspace_event_identity.sql` | Workspace-scoped GitHub event IDs; preserves legacy event identities on replay |
 | `00038_jira_version_order.sql` | Rejects Jira deliveries older than the issue already stored |
 | `00039_verification_criterion_revision.sql` | Pins verification work to criterion version/text; publishes results atomically |
+| `00040_routing_outcomes.sql` | `routing_outcomes`: a finding that reaches nobody is recorded (FR-14) |
+| `00041_person_identities.sql` | `person_identities`, `integration_connections.connected_account_id`, default role on existing Person nodes |
+| `00042_audit_watch_actions.sql` | `audit_action` gains `artefact_watched`, `artefact_unwatched` |
+| `00043_audit_person_actions.sql` | `audit_action` gains `person_role_changed`, `person_identity_merged` |
 
 The live project applied these by hand under timestamped versions, so the file
 numbers only govern fresh setups. `apps/worker/test/migrations.test.ts` applies
@@ -65,6 +69,32 @@ do not modify those applied files or rewrite immutable event history.
 to the current criterion. Queued jobs adopt the current revision; finished
 jobs, packets, passes and verdicts remain historical records. The new worker
 requires 00039's columns and `complete_verification_job` RPC before it starts.
+
+### Deploying 00040–00043 to the existing live project
+
+**Whether these are applied on the live project is unconfirmed.** Apply them
+before the web code that uses them is deployed: without 00040 and 00041 role
+edges and routing fail, and without 00042 and 00043 a watch, role change or
+merge is saved but its audit row is rejected.
+
+1. See what is already there. This only reads; run it in the SQL editor:
+
+   ```sql
+   select
+     to_regproc('public.complete_verification_job') is not null as m00039,
+     to_regclass('public.routing_outcomes') is not null as m00040,
+     to_regclass('public.person_identities') is not null as m00041,
+     exists (select 1 from pg_enum where enumtypid = 'public.audit_action'::regtype
+             and enumlabel = 'artefact_watched') as m00042,
+     exists (select 1 from pg_enum where enumtypid = 'public.audit_action'::regtype
+             and enumlabel = 'person_role_changed') as m00043;
+   ```
+
+2. If `m00039` is false, follow the 00037–00039 steps above first.
+3. Apply each file whose column is false, in number order, **one file per run**.
+   Wrap 00040 and 00041 in `begin; … commit;` (they cannot be re-run once
+   applied). Run 00042 and 00043 on their own. Do not use `supabase db push`.
+4. Run the query again: every column should be true.
 
 Schema highlights:
 
