@@ -4,6 +4,7 @@ import { deliverInApp } from "./notification-delivery";
 import {
   MAX_HOPS,
   resolveNotifySet,
+  unboundPersonIds,
   type NodeEdge,
   type NotifyResolution,
   type NotifyUser,
@@ -97,8 +98,12 @@ export async function routeFinding(
   if (userIds.length > 0) {
     const people = await db.from("nodes").select("id, payload").eq("type", "Person").in("id", userIds);
     if (people.error) fail("load people", people.error);
+    const identities = await db.from("person_identities").select("person_node_id, source_class").in("person_node_id", userIds);
+    if (identities.error) fail("load identities", identities.error);
+    // The role edge stays (the account really is the assignee); it just cannot be a recipient.
+    const unbound = unboundPersonIds((identities.data ?? []) as { person_node_id: string; source_class: string }[]);
     users = ((people.data ?? []) as { id: string; payload: { role?: PersonRole; muted_channels?: NotificationChannel[] } | null }[])
-      .filter((row) => row.payload?.role)
+      .filter((row) => row.payload?.role && !unbound.has(row.id))
       .map((row) => ({
         id: row.id,
         role: row.payload!.role!,

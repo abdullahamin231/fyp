@@ -131,16 +131,29 @@ export async function ensurePersonForProviderActor(
   return record(scoped, "unresolved", "unresolved");
 }
 
-/** An admin states a Person's role; it is workspace configuration, never inferred from a provider. */
-export async function setPersonRole(db: SupabaseClient, workspaceId: string, personNodeId: string, role: PersonRole): Promise<void> {
+/**
+ * An admin states a Person's role; it is workspace configuration, never inferred
+ * from a provider. `changedBy` is the admin's auth user id. Returns what the
+ * role was before, for the audit row.
+ */
+export async function setPersonRole(
+  db: SupabaseClient,
+  workspaceId: string,
+  personNodeId: string,
+  role: PersonRole,
+  changedBy: string,
+): Promise<{ role: string | null; roleSource: string | null }> {
   const { data, error } = await db.from("nodes").select("id, payload")
-    .eq("workspace_id", workspaceId).eq("type", "Person").eq("id", personNodeId).maybeSingle();
+    .eq("workspace_id", workspaceId).eq("type", "Person").eq("id", personNodeId).is("valid_to", null).maybeSingle();
   if (error) fail("load the person", error);
   if (!data) throw new Error("Person not found in this workspace");
+  const payload = (data as { payload: Record<string, unknown> | null }).payload ?? {};
+  const previous = { role: (payload.role as string | undefined) ?? null, roleSource: (payload.role_source as string | undefined) ?? null };
   const update = await db.from("nodes")
-    .update({ payload: { ...((data as { payload: Record<string, unknown> }).payload ?? {}), role, role_source: "admin" } })
+    .update({ payload: { ...payload, role, role_source: "admin", role_changed_by: changedBy, role_changed_at: new Date().toISOString() } })
     .eq("id", personNodeId);
   if (update.error) fail("set the role", update.error);
+  return previous;
 }
 
 /**
@@ -224,15 +237,50 @@ function signalFor(actor: PayloadActor) {
   return SIGNALS[`${actor.tool}:${actor.relation}`] ?? null;
 }
 
+/** The source version a role edge was derived from: the answer to "why did I get this?". */
+export interface SourceVersion {
+  version: string;
+  /** When the provider says it was published (ISO 8601). */
+  at: string;
+}
+
+const FIGMA_AUTHOR_RESOLVER = "figma:version-author";
+
+/**
+ * Authorship accumulates, so a long-lived file would otherwise notify everyone
+ * who ever published it. Only the most recent distinct authors stay eligible.
+ */
+export const MAX_FIGMA_AUTHORS = 3;
+
+const versionMetadata = (source: SourceVersion) => ({ sourceVersion: source.version, sourceVersionAt: source.at });
+
+type HeldEdge = { id: string; resolver: string; metadata: Record<string, unknown> | null };
+
 /**
  * Insert a role edge unless one already holds the slot. A `dismissed` edge
  * holds it too (00023): a reviewer's "no" is not re-asserted by the next webhook.
+ * A held edge from the same signal moves forward to a newer source version.
  */
-async function recordRoleEdge(db: SupabaseClient, personNodeId: string, artefactNodeId: string, type: RoleEdgeKind, resolver: string): Promise<boolean> {
-  const held = await db.from("edges").select("id")
+async function recordRoleEdge(
+  db: SupabaseClient,
+  personNodeId: string,
+  artefactNodeId: string,
+  type: RoleEdgeKind,
+  resolver: string,
+  source?: SourceVersion,
+): Promise<boolean> {
+  const held = await db.from("edges").select("id, resolver, metadata")
     .eq("from_id", personNodeId).eq("to_id", artefactNodeId).eq("type", type).neq("link_state", "revoked").limit(1);
   if (held.error) fail("look up a role edge", held.error);
-  if ((held.data ?? []).length > 0) return false;
+  const existing = ((held.data ?? []) as HeldEdge[])[0];
+  if (existing) {
+    if (source && existing.resolver === resolver && String(existing.metadata?.sourceVersionAt ?? "") < source.at) {
+      const update = await db.from("edges")
+        .update({ metadata: { ...(existing.metadata ?? {}), ...versionMetadata(source) } }).eq("id", existing.id);
+      if (update.error) fail("update a role edge", update.error);
+    }
+    return false;
+  }
   const { error } = await db.from("edges").insert({
     from_id: personNodeId,
     to_id: artefactNodeId,
@@ -241,6 +289,7 @@ async function recordRoleEdge(db: SupabaseClient, personNodeId: string, artefact
     confidence: 1.0,
     resolver,
     link_state: "active",
+    ...(source ? { metadata: versionMetadata(source) } : {}),
   });
   if (!error) return true;
   if (error.code === "23505") return false;
@@ -268,6 +317,26 @@ async function retireStaleAssignments(db: SupabaseClient, artefactNodeId: string
   return retired;
 }
 
+/** Retire version-author edges beyond the `MAX_FIGMA_AUTHORS` most recent; rows are kept. */
+async function retireAgedAuthors(db: SupabaseClient, artefactNodeId: string): Promise<number> {
+  const { data, error } = await db.from("edges").select("id, metadata, created_at")
+    .eq("to_id", artefactNodeId).eq("type", "OWNS").eq("resolver", FIGMA_AUTHOR_RESOLVER).eq("link_state", "active").is("valid_to", null);
+  if (error) fail("load version authors", error);
+  type Row = { id: string; metadata: Record<string, unknown> | null; created_at?: string };
+  const recency = (row: Row) => String(row.metadata?.sourceVersionAt ?? row.created_at ?? "");
+  const aged = ((data ?? []) as Row[]).sort((a, b) => recency(b).localeCompare(recency(a))).slice(MAX_FIGMA_AUTHORS);
+  const now = new Date().toISOString();
+  for (const edge of aged) {
+    const update = await db.from("edges").update({
+      valid_to: now,
+      link_state: "revoked",
+      metadata: { ...(edge.metadata ?? {}), revokedReason: "author_aged_out" },
+    }).eq("id", edge.id);
+    if (update.error) fail("retire an aged-out author", update.error);
+  }
+  return aged.length;
+}
+
 export interface RoleEdgeSync {
   created: number;
   retired: number;
@@ -279,6 +348,7 @@ export interface RoleEdgeSync {
  * Bring the role edges on one artefact in line with the actors a payload names.
  * `assignmentsKnown` is false when the payload says nothing about assignment
  * (a comment webhook, say), in which case existing assignments are left alone.
+ * `source` is recorded on the edges, for providers that publish versions.
  */
 export async function syncRoleEdges(
   db: SupabaseClient,
@@ -287,17 +357,21 @@ export async function syncRoleEdges(
   actors: PayloadActor[],
   assignmentsKnown: boolean,
   assignmentResolver: string,
+  source?: SourceVersion,
 ): Promise<RoleEdgeSync> {
   const result: RoleEdgeSync = { created: 0, retired: 0, unresolved: 0 };
   const assigned = new Set<string>();
+  let versionAuthorSeen = false;
   for (const actor of actors) {
     const signal = signalFor(actor);
     if (!signal) continue;
     const person = await ensurePersonForProviderActor(db, workspaceId, actor);
     if (person.resolution === "unresolved") result.unresolved++;
     if (signal.type === "ASSIGNED_TO") assigned.add(person.personNodeId);
-    if (await recordRoleEdge(db, person.personNodeId, artefactNodeId, signal.type, signal.resolver)) result.created++;
+    if (signal.resolver === FIGMA_AUTHOR_RESOLVER) versionAuthorSeen = true;
+    if (await recordRoleEdge(db, person.personNodeId, artefactNodeId, signal.type, signal.resolver, source)) result.created++;
   }
   if (assignmentsKnown) result.retired = await retireStaleAssignments(db, artefactNodeId, assignmentResolver, assigned);
+  if (versionAuthorSeen) result.retired += await retireAgedAuthors(db, artefactNodeId);
   return result;
 }
