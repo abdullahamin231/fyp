@@ -498,11 +498,17 @@ reporting date (Chapter~4, FR-12).
 \subsection*{Role-edge derivation}
 
 The \texttt{ASSIGNED\_TO} and \texttt{OWNS} edges used for routing are derived
-from each tool's native assignee or owner field at ingestion --- the GitHub
-assignee, the Jira assignee and the Figma file owner --- rather than configured
-by hand, because manual re-entry is itself a source of drift. \texttt{WATCHES}
-is opt-in. The edge types are declared in the schema; the derivation itself is
-not implemented at the reporting date (Chapter~4, FR-14).
+from each tool's own fields at ingestion rather than configured by hand,
+because manual re-entry is itself a source of drift: the Jira assignee and
+reporter, the GitHub pull-request author and assignees, and the author of a
+Figma file version, since polling cannot see a file's owner. An assignment ends
+when the source names someone else. Authorship accumulates; for Figma the three
+most recent authors of a file stay eligible. \texttt{WATCHES} is opt-in. A
+provider account is matched to a member only by the provider's account
+identifier, never by email or name. An unmatched account keeps its edges but is
+not notified until a workspace administrator assigns it to a member. Edge
+derivation and in-application routing are implemented; Slack delivery is not
+(Chapter~4, FR-14).
 
 Two further behaviours are described in the reliability design rather than shown
 here, and are covered by the sequence and state diagrams of
