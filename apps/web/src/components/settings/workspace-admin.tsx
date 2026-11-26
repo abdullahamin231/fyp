@@ -4,14 +4,17 @@ import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { IntegrationConnections } from "@/components/settings/integration-connections";
 import { MembersRbac } from "@/components/settings/members-rbac";
+import { PeopleRoles } from "@/components/settings/people-roles";
+import type { WorkspacePeople } from "@/lib/data/people";
 import type { ProviderStatus } from "@/lib/data/integrations";
 import type { WorkspaceRole } from "@/lib/types";
 
-type TabId = "sources" | "members";
+type TabId = "sources" | "members" | "people";
 
 const tabs: { id: TabId; label: string; icon: string }[] = [
   { id: "sources", label: "Connected Sources", icon: "hub" },
   { id: "members", label: "Members & Roles", icon: "badge" },
+  { id: "people", label: "People & Routing", icon: "alt_route" },
 ];
 
 /** Tab shell for `/settings/workspace`. */
@@ -20,11 +23,13 @@ export function WorkspaceAdmin({
   workspaceId,
   me,
   providers,
+  people,
 }: {
   slug: string;
   workspaceId: string;
   me: { userId: string; role: WorkspaceRole };
   providers: ProviderStatus[];
+  people: WorkspacePeople;
 }) {
   const [active, setActive] = useState<TabId>("sources");
 
@@ -50,6 +55,7 @@ export function WorkspaceAdmin({
 
       {active === "sources" ? <IntegrationConnections slug={slug} providers={providers} /> : null}
       {active === "members" ? <MembersRbac workspaceId={workspaceId} me={me} /> : null}
+      {active === "people" ? <PeopleRoles slug={slug} {...people} /> : null}
     </>
   );
 }
