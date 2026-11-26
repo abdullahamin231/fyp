@@ -293,10 +293,9 @@ reaches only such accounts is recorded as unroutable until a workspace
 administrator assigns the account to a member. Administrators also set each
 person's routing role. \texttt{WATCHES} is opt-in only: a member watches or
 unwatches an artefact from the conflict view, and nothing derives it from a
-provider. Migration 00042, which adds the audit values for watching, was
-applied on 27 November 2026. Watch and unwatch actions taken from 23 November
-until the application code that writes those values is deployed are recorded in
-the audit log as
+provider. Watch and unwatch actions taken between 23~November 2026 at 21:08
+UTC, when watching was deployed, and 26~November 2026 at 19:44 UTC, when its own
+audit values were deployed, are recorded in the audit log as
 \texttt{link\_confirmed} and \texttt{link\_dismissed}, distinguished only by
 \texttt{evidence\_snapshot.kind} (\texttt{watch} or \texttt{unwatch}); the log
 is append-only, so those rows are left as written and counts of link review
