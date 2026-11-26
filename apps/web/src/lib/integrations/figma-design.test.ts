@@ -171,14 +171,86 @@ describe("design sync: the version author is who a design finding routes to (FR-
     expect(fake.tables.edges!.filter((e) => e.type === "OWNS")).toHaveLength(1);
   });
 
+  const publish = (fake: ReturnType<typeof world>, author: string, version: number) =>
+    syncFigmaDesign(
+      fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, `v-${version}`), null,
+      [{ ...AUTHOR[0]!, accountId: author }],
+      { version: `v-${version}`, at: `2026-11-${String(version).padStart(2, "0")}T00:00:00Z` },
+    );
+  /** The fake applies no column defaults, so give new edges the ones the table would. */
+  const settle = (fake: ReturnType<typeof world>) => {
+    for (const edge of fake.tables.edges!) edge.valid_to ??= null;
+  };
+  const authorsOf = (fake: ReturnType<typeof world>) =>
+    fake.tables.edges!.filter((e) => e.type === "OWNS" && e.link_state === "active")
+      .map((e) => fake.tables.nodes!.find((n) => n.id === e.from_id)!.external_id).sort();
+
+  it("records the source version on the edge and moves it forward when the same author publishes again", async () => {
+    const fake = world();
+    await publish(fake, "a", 4);
+    settle(fake);
+    await publish(fake, "a", 5);
+    const owns = fake.tables.edges!.filter((e) => e.type === "OWNS");
+    expect(owns).toHaveLength(1);
+    expect(owns[0]!.metadata).toMatchObject({ sourceVersion: "v-5", sourceVersionAt: "2026-11-05T00:00:00Z" });
+  });
+
+  it("keeps earlier authors, up to the three most recent, and retires the rest without deleting them", async () => {
+    const fake = world();
+    for (const [author, version] of [["a", 1], ["b", 2], ["c", 3], ["a", 4], ["d", 5]] as const) {
+      await publish(fake, author, version);
+      settle(fake);
+    }
+    expect(authorsOf(fake)).toEqual(["figma:a", "figma:c", "figma:d"]);
+    const retired = fake.tables.edges!.filter((e) => e.link_state === "revoked");
+    expect(retired).toEqual([expect.objectContaining({ valid_to: expect.any(String), metadata: expect.objectContaining({ sourceVersion: "v-2", revokedReason: "author_aged_out" }) })]);
+  });
+
+  it("brings an aged-out author back when they publish again", async () => {
+    const fake = world();
+    for (const [author, version] of [["a", 1], ["b", 2], ["c", 3], ["d", 4], ["a", 5]] as const) {
+      await publish(fake, author, version);
+      settle(fake);
+    }
+    expect(authorsOf(fake)).toEqual(["figma:a", "figma:c", "figma:d"]);
+  });
+
+  it("re-routes an unroutable design finding once a version names an author who can be notified", async () => {
+    const fake = world();
+    const notify = { roles: ["developer" as const], channels: ["in_app" as const], hops: 1 };
+    await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-9"), null, []);
+    const constraint = fake.tables.nodes!.find((n) => n.type === "DesignConstraint")!;
+    fake.tables.findings = [{ id: "f1", subject_node_id: constraint.id, rule_id: "RULE_2", rule_version: 1, state: "open" }];
+    fake.tables.rules = [{ id: "RULE_2", version: 1, notify }];
+    for (const edge of fake.tables.edges!) Object.assign(edge, { link_state: "active", valid_to: null });
+    await routeFinding(fake.client as never, "f1", notify);
+    expect(fake.tables.routing_outcomes).toHaveLength(1);
+
+    // The fake applies no column defaults; the new OWNS edge needs valid_to to count as current.
+    const client = fake.client as unknown as { from: (table: string) => { insert: (value: object) => unknown } };
+    const realFrom = client.from.bind(client);
+    client.from = (table) => {
+      const query = realFrom(table);
+      if (table !== "edges") return query;
+      const insert = query.insert.bind(query);
+      query.insert = (value) => insert({ valid_to: null, ...value });
+      return query;
+    };
+    await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-10"), null, [{ ...AUTHOR[0]!, accountId: "fig-1" }]);
+
+    const person = fake.tables.nodes!.find((n) => n.external_id === "user:u-connector")!;
+    expect(fake.tables.notifications).toEqual([expect.objectContaining({ recipient_id: person.id, delivery_status: "sent" })]);
+    expect(fake.tables.routing_outcomes).toEqual([]);
+  });
+
   it("routes a finding on a DesignConstraint to the author through the PART_OF hop", async () => {
     const fake = world();
-    await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-9"), null, AUTHOR);
+    await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-9"), null, [{ ...AUTHOR[0]!, accountId: "fig-1" }]);
     const constraint = fake.tables.nodes!.find((n) => n.type === "DesignConstraint")!;
     fake.tables.findings = [{ id: "f1", subject_node_id: constraint.id }];
     for (const edge of fake.tables.edges!) Object.assign(edge, { link_state: "active", valid_to: null });
     const result = await routeFinding(fake.client as never, "f1", { roles: ["developer"], channels: ["in_app"], hops: 1 });
-    const person = fake.tables.nodes!.find((n) => n.external_id === "figma:fig-77")!;
+    const person = fake.tables.nodes!.find((n) => n.external_id === "user:u-connector")!;
     expect(result).toMatchObject({ outcome: "routed", recipients: [{ userId: person.id, via: "OWNS", distance: 1 }] });
   });
 

@@ -141,8 +141,9 @@ describe("setPersonRole", () => {
   it("records an admin-stated role and its source", async () => {
     const fake = world();
     const { personNodeId } = await ensurePersonForProviderActor(fake.client as never, WS, ada);
-    await setPersonRole(fake.client as never, WS, personNodeId, "designer");
-    expect(fake.tables.nodes[0]!.payload).toMatchObject({ role: "designer", role_source: "admin" });
+    const previous = await setPersonRole(fake.client as never, WS, personNodeId, "designer", "auth-admin");
+    expect(previous).toEqual({ role: "developer", roleSource: "default" });
+    expect(fake.tables.nodes[0]!.payload).toMatchObject({ role: "designer", role_source: "admin", role_changed_by: "auth-admin" });
   });
 });
 

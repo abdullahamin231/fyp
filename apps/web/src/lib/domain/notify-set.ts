@@ -51,6 +51,18 @@ export type NotifyResolution =
 
 export const MAX_HOPS = 2;
 
+/**
+ * People who must not be notified: every provider identity they hold is
+ * unresolved, so no workspace member is behind them and nobody would ever read
+ * the notification. A Person with no provider identity at all (a member known
+ * only by their sign-in) is not affected.
+ */
+export function unboundPersonIds(identities: { person_node_id: string; source_class: string }[]): Set<string> {
+  const unbound = new Set(identities.filter((i) => i.source_class === "unresolved").map((i) => i.person_node_id));
+  for (const identity of identities) if (identity.source_class !== "unresolved") unbound.delete(identity.person_node_id);
+  return unbound;
+}
+
 /** Nodes within `hops` of the start, with their shortest distance. */
 function reachable(start: string, edges: NodeEdge[], hops: number): Map<string, number> {
   const adjacency = new Map<string, string[]>();

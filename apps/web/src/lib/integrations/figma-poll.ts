@@ -118,14 +118,14 @@ async function projectDesign(
   workspaceId: string,
   token: string,
   fileKey: string,
-  versionId: string,
+  version: FigmaVersion,
   eventId: string | null,
-  author: FigmaVersion["user"],
 ) {
   const file = await figmaGet(token, `${FIGMA}/files/${encodeURIComponent(fileKey)}?depth=3`);
   const sync = await syncFigmaDesign(
-    admin(), workspaceId, fileKey, projectFigmaFile(fileKey, file, versionId), eventId,
-    figmaEventActors({ user: author ?? null }),
+    admin(), workspaceId, fileKey, projectFigmaFile(fileKey, file, version.id), eventId,
+    figmaEventActors({ user: version.user ?? null }),
+    { version: version.id, at: version.created_at },
   );
   return { fileName: typeof file.name === "string" ? file.name : null, sync };
 }
@@ -139,7 +139,7 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
       if (!versions[0]) throw new Error("Figma returned no versions to use as a high-water mark");
       // First poll, or the mark fell out of the history Figma still returns:
       // baseline at the newest version rather than import (or loop over) history.
-      const design = await projectDesign(workspaceId, token, file.file_key, versions[0].id, null, versions[0].user);
+      const design = await projectDesign(workspaceId, token, file.file_key, versions[0], null);
       const { error } = await admin().from("figma_watched_files").update({
         last_seen_version_id: versions[0].id,
         file_name: design.fileName,
@@ -182,7 +182,7 @@ async function pollFile(workspaceId: string, token: string, file: WatchedFile): 
 
     const newestVersionId = newer.length > 0 ? newer[0].id : file.last_seen_version_id;
     const design = newer.length > 0
-      ? await projectDesign(workspaceId, token, file.file_key, newestVersionId, ingestedEventIds[ingestedEventIds.length - 1] ?? null, newer[0]?.user)
+      ? await projectDesign(workspaceId, token, file.file_key, newer[0]!, ingestedEventIds[ingestedEventIds.length - 1] ?? null)
       : null;
     const { error } = await admin().from("figma_watched_files").update({
       last_seen_version_id: newestVersionId,

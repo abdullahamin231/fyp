@@ -73,6 +73,33 @@ describe("routeFinding (FR-14)", () => {
     expect(await routeFinding(fake.client as never, "f1", rule)).toMatchObject({ outcome: "unroutable", reason: "no_role_edge" });
   });
 
+  const identity = (person_node_id: string, source_class: string) => ({ person_node_id, source_class });
+
+  it("does not notify an unresolved person: nobody would read it, so the finding is unroutable", async () => {
+    const fake = world({ tables: { edges: [edge("ada", "pr1", "ASSIGNED_TO")], person_identities: [identity("ada", "unresolved")] } });
+    expect(await routeFinding(fake.client as never, "f1", rule)).toMatchObject({ outcome: "unroutable", reason: "no_matching_user" });
+    expect(fake.tables.notifications).toEqual([]);
+    expect(fake.tables.edges).toHaveLength(1);
+  });
+
+  it("still notifies the bound people when an unresolved one shares the artefact", async () => {
+    const fake = world({
+      tables: {
+        edges: [edge("ada", "pr1", "ASSIGNED_TO"), edge("grace", "pr1", "OWNS")],
+        person_identities: [identity("ada", "unresolved"), identity("grace", "observed")],
+      },
+    });
+    await routeFinding(fake.client as never, "f1", rule);
+    expect(fake.tables.notifications!.map((n) => n.recipient_id)).toEqual(["grace"]);
+  });
+
+  it("notifies a person with at least one resolved identity", async () => {
+    const fake = world({
+      tables: { edges: [edge("ada", "pr1", "ASSIGNED_TO")], person_identities: [identity("ada", "unresolved"), identity("ada", "observed")] },
+    });
+    expect(await routeFinding(fake.client as never, "f1", rule)).toMatchObject({ outcome: "routed" });
+  });
+
   it("surfaces a persistence failure instead of swallowing it", async () => {
     const fake = fakeSupabase({
       tables: { findings: [{ id: "f1", subject_node_id: "pr1" }], edges: [], nodes: [] },

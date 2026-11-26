@@ -17,9 +17,10 @@ import type { ActionOutcome } from "./links";
  * would make re-watching impossible; `revoked` frees the slot, and the row
  * stays as history.
  *
- * Audit: `audit_action` has no watch value (and this change adds no enum), so
- * watch is recorded as `link_confirmed` and unwatch as `link_dismissed`, told
- * apart by `evidence_snapshot.kind`.
+ * Audit: `artefact_watched` / `artefact_unwatched` (00042). Rows written before
+ * that migration used `link_confirmed` / `link_dismissed` with
+ * `evidence_snapshot.kind` = watch / unwatch; the log is append-only, so they
+ * stay as written.
  */
 
 const fail = (error: unknown): ActionOutcome => ({
@@ -65,7 +66,7 @@ export async function watchArtefactAction(nodeId: string): Promise<ActionOutcome
     }
     await recordAudit(client, {
       actorId,
-      action: "link_confirmed",
+      action: "artefact_watched",
       reason: "watching this artefact",
       snapshot: { kind: "watch", edgeId: (res.data as { id: string }).id, nodeId },
     });
@@ -91,7 +92,7 @@ export async function unwatchArtefactAction(nodeId: string): Promise<ActionOutco
     if (rows.length === 0) return { ok: false, error: "You are not watching this artefact." };
     await recordAudit(client, {
       actorId,
-      action: "link_dismissed",
+      action: "artefact_unwatched",
       reason: "stopped watching this artefact",
       snapshot: { kind: "unwatch", edgeId: rows[0]!.id, nodeId },
     });

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
-/** The `audit_action` enum as written by `00001_enums.sql`. */
+/** The `audit_action` enum: `00001_enums.sql`, extended by 00042 and 00043. */
 export type AuditAction =
   | "finding_acknowledged"
   | "finding_resolved"
@@ -11,7 +11,11 @@ export type AuditAction =
   | "link_confirmed"
   | "link_dismissed"
   | "rule_activated"
-  | "rule_deactivated";
+  | "rule_deactivated"
+  | "artefact_watched"
+  | "artefact_unwatched"
+  | "person_role_changed"
+  | "person_identity_merged";
 
 /**
  * Shared plumbing for the reviewer's write path.

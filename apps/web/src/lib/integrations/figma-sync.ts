@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { rerouteUnroutableAround } from "@/lib/data/route-finding";
 import { asRecord } from "./common";
 import type { PayloadActor } from "./actors";
 import { designArtifactId, designConstraintId, type DesignNodeSpec, type FigmaRef } from "./figma-design";
-import { syncRoleEdges } from "./people";
+import { syncRoleEdges, type SourceVersion } from "./people";
 
 /**
  * Writes the projected design nodes for one file version and links tickets
@@ -32,6 +33,8 @@ export async function syncFigmaDesign(
   eventId: string | null,
   /** Who published the version being projected (see actors.figmaEventActors). Empty when Figma named no one. */
   actors: PayloadActor[] = [],
+  /** The version those actors published, recorded on their edges. */
+  source?: SourceVersion,
 ): Promise<DesignSyncResult> {
   const now = new Date().toISOString();
   const ids = new Map<string, string>();
@@ -86,8 +89,11 @@ export async function syncFigmaDesign(
   // FR-14: the version's author is who a design finding on this file routes to. Attached to the
   // artefact, not each constraint — constraints are PART_OF it, so the hop expansion reaches it.
   // No author means no edge: falling back to whoever connected Figma would misroute every finding.
-  // Figma has no assignee concept, so nothing is retired on its behalf.
-  if (actors.length > 0) await syncRoleEdges(db, workspaceId, artifactId, actors, false, "figma:version-author");
+  // Figma has no assignee concept. Authorship accumulates and is only capped (see people.ts).
+  if (actors.length > 0) {
+    const sync = await syncRoleEdges(db, workspaceId, artifactId, actors, false, "figma:version-author", source);
+    if (sync.created > 0) await rerouteUnroutableAround(db, artifactId);
+  }
 
   const current = await db
     .from("nodes")

@@ -60,7 +60,7 @@ describe("watching an artefact (FR-14, opt-in)", () => {
       expect.objectContaining({ from_id: me().id, to_id: "t1", source_class: "observed", confidence: 1.0, resolver: "user:u1", link_state: "active" }),
     ]);
     expect(fake.tables.audit_log).toEqual([
-      expect.objectContaining({ actor_id: me().id, action: "link_confirmed", evidence_snapshot: expect.objectContaining({ kind: "watch", nodeId: "t1" }) }),
+      expect.objectContaining({ actor_id: me().id, action: "artefact_watched", evidence_snapshot: expect.objectContaining({ kind: "watch", nodeId: "t1" }) }),
     ]);
   });
 
@@ -93,7 +93,7 @@ describe("unwatching an artefact", () => {
     expect(await unwatchArtefactAction("t1")).toEqual({ ok: true });
     expect(watches()).toHaveLength(1);
     expect(watches()[0]).toMatchObject({ link_state: "revoked", resolution_reason: "unwatched by member", valid_to: expect.any(String) });
-    expect(fake.tables.audit_log!.at(-1)).toMatchObject({ action: "link_dismissed", evidence_snapshot: expect.objectContaining({ kind: "unwatch" }) });
+    expect(fake.tables.audit_log!.at(-1)).toMatchObject({ action: "artefact_unwatched", evidence_snapshot: expect.objectContaining({ kind: "unwatch" }) });
   });
 
   it("stops routing: a fresh finding reaches nobody, as unroutable", async () => {

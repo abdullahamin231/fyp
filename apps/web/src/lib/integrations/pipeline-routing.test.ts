@@ -100,10 +100,12 @@ describe("FR-14 end to end: Jira assignee -> role edge -> routed finding", () =>
     expect(fake.tables.routing_outcomes).toEqual([]);
   });
 
-  it("an unbound assignee still routes: the provider-scoped Person carries a default role", async () => {
+  it("an unbound assignee gets an edge but no notification: nobody would read it", async () => {
     const fake = jiraWorld();
     await ingestThenRule2(fake, withAssignee({ accountId: "acc-stranger", displayName: "Stranger" }));
-    expect(fake.tables.notifications).toEqual([expect.objectContaining({ channel: "in_app" })]);
+    expect(fake.tables.edges).toContainEqual(expect.objectContaining({ to_id: "tk", type: "ASSIGNED_TO" }));
+    expect(fake.tables.notifications).toEqual([]);
+    expect(fake.tables.routing_outcomes).toEqual([expect.objectContaining({ reason: "no_matching_user" })]);
     expect(fake.tables.person_identities).toEqual([expect.objectContaining({ external_account_id: "acc-stranger", source_class: "unresolved" })]);
   });
 
