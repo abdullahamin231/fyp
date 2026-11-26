@@ -3,7 +3,7 @@
 > **Generated file — do not edit by hand.**
 > Source: [`traceability_matrix.csv`](traceability_matrix.csv)  
 > Generator: `python3 docs/traceability/build_matrix.py`  
-> CSV SHA-256 (first 12): `12f16af75f43` · rows: **43** (29 FR + 14 NFR)
+> CSV SHA-256 (first 12): `591a449e4fec` · rows: **43** (29 FR + 14 NFR)
 
 Regenerate and commit at every gate (proposal §18.1 delivery gates and the
 evaluation tag freeze, TODO §7). See [`README.md`](README.md) for column
@@ -12,8 +12,8 @@ definitions, the worksheet §5 mapping and the discrepancy register.
 ## Coverage
 
 - Requirements: **43** = 29 functional (FR-01..FR-29) + 14 non-functional (NFR-01..NFR-14); no gaps, no duplicates (asserted by `build_matrix.py`).
-- Status: `designed` 35, `partially_implemented` 8
-- Empty cells (`--`): design_figure 4, module 6, code_artifact 35, test_case 26, demo_step 36, evidence_link 0
+- Status: `designed` 34, `partially_implemented` 9
+- Empty cells (`--`): design_figure 4, module 6, code_artifact 34, test_case 26, demo_step 36, evidence_link 0
 
 ## Functional requirements (FR-01..FR-29)
 
@@ -32,7 +32,7 @@ definitions, the worksheet §5 mapping and the discrepancy register.
 | FR-11 | Produce a per-criterion evidence case | Evidence case view, UC-01 step 4 (ch4 Detailed Use Cases) | fig:usecase | verify/ (planned) | apps/web/src/components/conflict-detail/criterion-results.tsx | T10 | demo-normal | partially_implemented | apps/web/src/components/conflict-detail/criterion-results.tsx @ 7b411b1 | Abdullah Amin |
 | FR-12 | Evaluate deterministic Rules 1-3 with rule version and grace evidence | Versioned rule records (rules table, ch4 traceability; ERD) | fig:erd | conflicts/ | -- | T2, T3, T4, T5, T6 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/erd.tex | Mishal Fatima |
 | FR-13 | Re-evaluate only the rules and criteria affected by a change | Reverse-index dispatch and incremental-vs-full equivalence decision (ch5 Architecture Decisions) | fig:dfd | conflicts/ | -- | T11 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/chapters/chapter5_design.tex | Mishal Fatima |
-| FR-14 | Route findings to the responsible role through configurable rules and channels | Role-edge resolution over OWNS, ASSIGNED_TO, WATCHES (ch5 Domain Model) | fig:domain-model | notify/ | -- | T9 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/domain-model.tex | Abdullah Amin |
+| FR-14 | Route findings to the responsible role through configurable rules and channels | Role-edge resolution over OWNS, ASSIGNED_TO, WATCHES (ch5 Domain Model) | fig:domain-model | apps/web/src/lib/domain/; apps/web/src/lib/data/; supabase/migrations/00040, 00041 | apps/web/src/lib/domain/notify-set.ts; apps/web/src/lib/data/route-finding.ts; apps/web/src/lib/integrations/people.ts | T9 | -- | partially_implemented | apps/web/src/lib/data/route-finding.ts @ dae3feb | Abdullah Amin |
 | FR-15 | Create exactly one finding per rule/criterion/evidence state | findings.idempotency_key unique constraint (ch5 Data Design) | fig:erd | conflicts/ | -- | T7 | demo-failure | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/erd.tex | Mishal Fatima |
 | FR-16 | Mark artifacts SOURCE_STALE and downgrade dependent findings | Source-freshness state machine and checkpoints | diagrams/06_state_machines.tex (unwired) | ingestion/ | -- | T8 | -- | designed | docs/F26 FYP1 Mid Report LaTeX/diagrams/06_state_machines.tex | Haaniah Ismail |
 | FR-17 | Show one unified view of a change | Reviewer surface; UC-01 select change and read evidence | fig:usecase | ui/ | apps/web/src/app/conflicts/[id]/page.tsx | -- | demo-normal | partially_implemented | apps/web/src/app/conflicts/[id]/page.tsx @ 7b411b1 | Abdullah Amin |
@@ -136,7 +136,7 @@ The six columns of `FYP1 Mid Pre-Evaluation Student Worksheet.docx` §5
 | FR-11 | Evidence case view, UC-01 step 4 (ch4 Detailed Use Cases) · fig:usecase | verify/ (planned) · apps/web/src/components/conflict-detail/criterion-results.tsx | T10 · partially_implemented | demo-normal | Abdullah Amin |
 | FR-12 | Versioned rule records (rules table, ch4 traceability; ERD) · fig:erd | conflicts/ | T2, T3, T4, T5, T6 · designed | -- | Mishal Fatima |
 | FR-13 | Reverse-index dispatch and incremental-vs-full equivalence decision (ch5 Architecture Decisions) · fig:dfd | conflicts/ | T11 · designed | -- | Mishal Fatima |
-| FR-14 | Role-edge resolution over OWNS, ASSIGNED_TO, WATCHES (ch5 Domain Model) · fig:domain-model | notify/ | T9 · designed | -- | Abdullah Amin |
+| FR-14 | Role-edge resolution over OWNS, ASSIGNED_TO, WATCHES (ch5 Domain Model) · fig:domain-model | apps/web/src/lib/domain/; apps/web/src/lib/data/; supabase/migrations/00040, 00041 · apps/web/src/lib/domain/notify-set.ts; apps/web/src/lib/data/route-finding.ts; apps/web/src/lib/integrations/people.ts | T9 · partially_implemented | -- | Abdullah Amin |
 | FR-15 | findings.idempotency_key unique constraint (ch5 Data Design) · fig:erd | conflicts/ | T7 · designed | demo-failure | Mishal Fatima |
 | FR-16 | Source-freshness state machine and checkpoints · diagrams/06_state_machines.tex (unwired) | ingestion/ | T8 · designed | -- | Haaniah Ismail |
 | FR-17 | Reviewer surface; UC-01 select change and read evidence · fig:usecase | ui/ · apps/web/src/app/conflicts/[id]/page.tsx | partially_implemented | demo-normal | Abdullah Amin |
@@ -182,7 +182,7 @@ The six columns of `FYP1 Mid Pre-Evaluation Student Worksheet.docx` §5
 - **FR-11** — Criterion cards render verdict, freshness, citations and missing evidence from typed mock data. Nothing builds or produces an evidence case; the ch4 acceptance check (gold expectation match) cannot run.
 - **FR-12** — T2/T3 = Rule 1 positive/negative, T4/T5 = Rule 2 positive/negative, T6 = Rule 3 (TODO §3.4). A policy simulation screen exists (apps/web/src/components/policies/simulation-lab.tsx) but is mock-driven; no engine.
 - **FR-13** — The DFD draws the criterion-queue path but no diagram shows the reverse index itself; ch4 names the design element without a figure.
-- **FR-14** — Slack dispatch-rule screens exist in the UI (apps/web/src/components/settings/slack-dispatch-rules.tsx, mock only); there is no notification engine or queue.
+- **FR-14** — Role-edge derivation from Jira, GitHub and Figma, opt-in WATCHES, notify-set resolution up to two hops, a recorded unroutable outcome and in-app delivery (web tests: 185 pass, 27 November). Only Rule 2 findings are routed. No Slack adapter: the dispatch-rule screens (apps/web/src/components/settings/slack-dispatch-rules.tsx) are mock only. Not yet verified against the live project.
 - **FR-15** — Duplicate-leg demo case (TODO §7: duplicate event producing no duplicate finding) pairs with T7.
 - **FR-16** — The state-machine diagram is built but not yet input into a chapter (TODO §5), so it has no fig: label; freshness logic exists only on paper.
 - **FR-17** — 19 reviewer routes render typed mock data (apps/web/src/lib/mock/); there is no API client or backend. ch4 leaves the FR-17/18 test cell as --. TODO §5 follow-up: FR-17 is any authenticated user, so the PM should also associate to view-evidence and export.
