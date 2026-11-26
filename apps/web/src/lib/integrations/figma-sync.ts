@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { rerouteUnroutableAround } from "@/lib/data/route-finding";
 import { asRecord } from "./common";
 import type { PayloadActor } from "./actors";
 import { designArtifactId, designConstraintId, type DesignNodeSpec, type FigmaRef } from "./figma-design";
@@ -89,7 +90,10 @@ export async function syncFigmaDesign(
   // artefact, not each constraint — constraints are PART_OF it, so the hop expansion reaches it.
   // No author means no edge: falling back to whoever connected Figma would misroute every finding.
   // Figma has no assignee concept. Authorship accumulates and is only capped (see people.ts).
-  if (actors.length > 0) await syncRoleEdges(db, workspaceId, artifactId, actors, false, "figma:version-author", source);
+  if (actors.length > 0) {
+    const sync = await syncRoleEdges(db, workspaceId, artifactId, actors, false, "figma:version-author", source);
+    if (sync.created > 0) await rerouteUnroutableAround(db, artifactId);
+  }
 
   const current = await db
     .from("nodes")

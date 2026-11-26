@@ -215,6 +215,34 @@ describe("design sync: the version author is who a design finding routes to (FR-
     expect(authorsOf(fake)).toEqual(["figma:a", "figma:c", "figma:d"]);
   });
 
+  it("re-routes an unroutable design finding once a version names an author who can be notified", async () => {
+    const fake = world();
+    const notify = { roles: ["developer" as const], channels: ["in_app" as const], hops: 1 };
+    await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-9"), null, []);
+    const constraint = fake.tables.nodes!.find((n) => n.type === "DesignConstraint")!;
+    fake.tables.findings = [{ id: "f1", subject_node_id: constraint.id, rule_id: "RULE_2", rule_version: 1, state: "open" }];
+    fake.tables.rules = [{ id: "RULE_2", version: 1, notify }];
+    for (const edge of fake.tables.edges!) Object.assign(edge, { link_state: "active", valid_to: null });
+    await routeFinding(fake.client as never, "f1", notify);
+    expect(fake.tables.routing_outcomes).toHaveLength(1);
+
+    // The fake applies no column defaults; the new OWNS edge needs valid_to to count as current.
+    const client = fake.client as unknown as { from: (table: string) => { insert: (value: object) => unknown } };
+    const realFrom = client.from.bind(client);
+    client.from = (table) => {
+      const query = realFrom(table);
+      if (table !== "edges") return query;
+      const insert = query.insert.bind(query);
+      query.insert = (value) => insert({ valid_to: null, ...value });
+      return query;
+    };
+    await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-10"), null, [{ ...AUTHOR[0]!, accountId: "fig-1" }]);
+
+    const person = fake.tables.nodes!.find((n) => n.external_id === "user:u-connector")!;
+    expect(fake.tables.notifications).toEqual([expect.objectContaining({ recipient_id: person.id, delivery_status: "sent" })]);
+    expect(fake.tables.routing_outcomes).toEqual([]);
+  });
+
   it("routes a finding on a DesignConstraint to the author through the PART_OF hop", async () => {
     const fake = world();
     await syncFigmaDesign(fake.client as never, WS, KEY, projectFigmaFile(KEY, FILE, "v-9"), null, [{ ...AUTHOR[0]!, accountId: "fig-1" }]);
