@@ -35,6 +35,7 @@ const RELATIONS: EdgeRelation[] = [
   "IMPLEMENTS",
   "VERIFIES",
   "BLOCKS",
+  "CONSTRAINS",
   "TRIGGERS",
 ];
 

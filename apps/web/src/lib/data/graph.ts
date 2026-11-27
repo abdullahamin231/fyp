@@ -65,6 +65,7 @@ const RELATION_BY_TYPE: Partial<Record<string, EdgeRelation>> = {
   IMPLEMENTS: "IMPLEMENTS",
   COVERS: "VERIFIES",
   BLOCKS: "BLOCKS",
+  CONSTRAINS: "CONSTRAINS",
 };
 
 /** Finding states that still need a human (anything else is closed). */

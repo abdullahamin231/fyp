@@ -11,7 +11,7 @@ import { layeredLayout } from "./layout";
 import type { EdgeRelation, ExplorerEdge, ExplorerGraph, ExplorerNode } from "@/lib/domain/graph";
 import type { GraphNodeKind, LinkEligibility } from "@/lib/types";
 
-const RELATIONS: EdgeRelation[] = ["SATISFIES", "REFERENCES", "IMPLEMENTS", "VERIFIES", "TRIGGERS"];
+const RELATIONS: EdgeRelation[] = ["SATISFIES", "REFERENCES", "IMPLEMENTS", "VERIFIES", "CONSTRAINS", "TRIGGERS"];
 
 const SOURCE_FILTERS: { id: string; label: string; kinds: GraphNodeKind[] }[] = [
   { id: "github", label: "GitHub PRs & Code", kinds: ["pr", "code", "test"] },

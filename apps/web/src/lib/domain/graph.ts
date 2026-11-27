@@ -29,6 +29,7 @@ export type EdgeRelation =
   | "IMPLEMENTS"
   | "VERIFIES"
   | "BLOCKS"
+  | "CONSTRAINS"
   | "TRIGGERS";
 
 export interface NodeField {
