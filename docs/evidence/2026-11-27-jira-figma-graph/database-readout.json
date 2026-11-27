@@ -1,0 +1,158 @@
+{
+  "takenAt": "2026-11-27T08:46:18.577Z",
+  "workspace": "testing",
+  "nodes": [
+    {
+      "type": "DesignArtifact",
+      "external_id": "figma:<figma-file-key>",
+      "version": "2421348996019990023",
+      "status": null
+    },
+    {
+      "type": "DesignConstraint",
+      "external_id": "figma:<figma-file-key>:10:844",
+      "version": "2421348996019990023",
+      "status": null,
+      "text": "FRAME \"Desktop - 1\" on page \"Page 1\"\nsize: 1418x1002\ntext \"text test\": text test"
+    },
+    {
+      "type": "Ticket",
+      "external_id": "SCRUM-5",
+      "version": "2026-11-27T13:45:31.268+0500",
+      "status": "In Progress",
+      "summary": "Test #1: seeing if event detected on unify workspace",
+      "figmaRefs": [
+        {
+          "nodeId": "10:844",
+          "fileKey": "<figma-file-key>"
+        }
+      ]
+    },
+    {
+      "type": "Criterion",
+      "external_id": "SCRUM-5/AC-1",
+      "version": "2026-11-27T13:45:31.268+0500",
+      "status": null,
+      "text": "The Desktop - 1 screen is 1418 pixels wide and 1002 pixels high.",
+      "source": "description"
+    },
+    {
+      "type": "Criterion",
+      "external_id": "SCRUM-5/AC-2",
+      "version": "2026-11-27T13:45:31.268+0500",
+      "status": null,
+      "text": "The Desktop - 1 screen displays the text \"text test\".",
+      "source": "description"
+    }
+  ],
+  "edges": [
+    {
+      "from": "figma:<figma-file-key>:10:844",
+      "type": "PART_OF",
+      "link_state": "active",
+      "source_class": "observed",
+      "confidence": 1,
+      "resolver": "figma:file",
+      "to": "figma:<figma-file-key>"
+    },
+    {
+      "from": "figma:<figma-file-key>:10:844",
+      "type": "CONSTRAINS",
+      "link_state": "active",
+      "source_class": "derived",
+      "confidence": 1,
+      "resolver": "figma:url-in-ticket",
+      "to": "SCRUM-5"
+    },
+    {
+      "from": "SCRUM-5",
+      "type": "REFERENCES",
+      "link_state": "active",
+      "source_class": "derived",
+      "confidence": 1,
+      "resolver": "jira:description",
+      "to": "SCRUM-5/AC-1"
+    },
+    {
+      "from": "SCRUM-5",
+      "type": "REFERENCES",
+      "link_state": "active",
+      "source_class": "derived",
+      "confidence": 1,
+      "resolver": "jira:description",
+      "to": "SCRUM-5/AC-2"
+    }
+  ],
+  "events": [
+    {
+      "source_tool": "figma",
+      "event_id": "<workspace-id>:figma:figma:poll:<figma-file-key>:2421337648201437424:design_artifact:<figma-file-key>:file:FILE_VERSION_UPDATE",
+      "vendor_delivery_id": "figma:poll:<figma-file-key>:2421337648201437424",
+      "entity_type": "design_artifact",
+      "entity_id": "<figma-file-key>:file",
+      "version": "2421337648201437424",
+      "action": "FILE_VERSION_UPDATE",
+      "occurred_at": "2026-11-13T13:17:04+00:00",
+      "received_at": "2026-11-13T13:19:38.471+00:00"
+    },
+    {
+      "source_tool": "figma",
+      "event_id": "<workspace-id>:figma:figma:poll:<figma-file-key>:2421338301006599040:design_artifact:<figma-file-key>:file:FILE_VERSION_UPDATE",
+      "vendor_delivery_id": "figma:poll:<figma-file-key>:2421338301006599040",
+      "entity_type": "design_artifact",
+      "entity_id": "<figma-file-key>:file",
+      "version": "2421338301006599040",
+      "action": "FILE_VERSION_UPDATE",
+      "occurred_at": "2026-11-13T13:22:46+00:00",
+      "received_at": "2026-11-13T13:24:28.229+00:00"
+    },
+    {
+      "source_tool": "figma",
+      "event_id": "<workspace-id>:figma:figma:poll:<figma-file-key>:2421348996019990023:design_artifact:<figma-file-key>:file:FILE_VERSION_UPDATE",
+      "vendor_delivery_id": "figma:poll:<figma-file-key>:2421348996019990023",
+      "entity_type": "design_artifact",
+      "entity_id": "<figma-file-key>:file",
+      "version": "2421348996019990023",
+      "action": "FILE_VERSION_UPDATE",
+      "occurred_at": "2026-11-13T13:29:53+00:00",
+      "received_at": "2026-11-13T13:30:05.792+00:00"
+    },
+    {
+      "source_tool": "jira",
+      "event_id": "<workspace-id>:jira:4870142127299415000:ticket:SCRUM-5:jira:issue_updated",
+      "vendor_delivery_id": "4870142127299415000",
+      "entity_type": "ticket",
+      "entity_id": "SCRUM-5",
+      "version": "2026-11-27T13:45:31.268+0500",
+      "action": "jira:issue_updated",
+      "occurred_at": "2026-11-27T08:45:31.268+00:00",
+      "received_at": "2026-11-27T08:45:34.849+00:00"
+    }
+  ],
+  "integration_deliveries": [
+    {
+      "provider": "figma",
+      "vendor_delivery_id": "figma:poll:<figma-file-key>:2421337648201437424",
+      "event_id": "<workspace-id>:figma:figma:poll:<figma-file-key>:2421337648201437424:design_artifact:<figma-file-key>:file:FILE_VERSION_UPDATE",
+      "received_at": "2026-11-13T13:19:39.970916+00:00"
+    },
+    {
+      "provider": "figma",
+      "vendor_delivery_id": "figma:poll:<figma-file-key>:2421338301006599040",
+      "event_id": "<workspace-id>:figma:figma:poll:<figma-file-key>:2421338301006599040:design_artifact:<figma-file-key>:file:FILE_VERSION_UPDATE",
+      "received_at": "2026-11-13T13:24:28.897469+00:00"
+    },
+    {
+      "provider": "figma",
+      "vendor_delivery_id": "figma:poll:<figma-file-key>:2421348996019990023",
+      "event_id": "<workspace-id>:figma:figma:poll:<figma-file-key>:2421348996019990023:design_artifact:<figma-file-key>:file:FILE_VERSION_UPDATE",
+      "received_at": "2026-11-13T13:30:07.364403+00:00"
+    },
+    {
+      "provider": "jira",
+      "vendor_delivery_id": "4870142127299415000",
+      "event_id": "<workspace-id>:jira:4870142127299415000:ticket:SCRUM-5:jira:issue_updated",
+      "received_at": "2026-11-27T08:45:36.812294+00:00"
+    }
+  ]
+}
