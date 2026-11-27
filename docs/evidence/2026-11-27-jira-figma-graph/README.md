@@ -37,10 +37,21 @@ deliveries (13 November).
 - `events-and-deliveries.sql`: the equivalent query for the SQL editor.
 - `events-and-deliveries-result.csv`: its result, run in the Supabase SQL editor
   on 27 November and exported; the file key is masked.
+- `graph-all-nodes.png`, `graph-scrum-5-selected.png`: `/graph` on the deployed
+  app, taken by hand on 27 November. Grey boxes cover the Figma file key; nothing
+  else was edited.
+
+## Graph view
+
+![The five nodes and four edges](graph-all-nodes.png)
+
+![SCRUM-5 selected, with its edge labels](graph-scrum-5-selected.png)
+
+The screenshots were taken after PR #71 deployed. Before it, the page labelled
+`CONSTRAINS` edges as `REFERENCES`. The frame-to-file `PART_OF` edge still has no
+label of its own on this page.
 
 ## Not shown
 
 - Verification of either criterion: no pull request tracks `SCRUM-5`.
 - A Figma change made during this run.
-- A `/graph` screenshot. The page labelled `CONSTRAINS` edges as `REFERENCES` at
-  the time of this run, so it is taken after that fix is deployed.
