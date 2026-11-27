@@ -87,7 +87,7 @@ Out-of-order (older) deliveries are rejected by migration 00038.
 ### Other ways to feed events
 - **Reconcile:** `POST /api/integrations/jira/reconcile?workspace=<slug>` (admin session) searches issues updated in the last 24h
   and replays any the graph has not recorded. Idempotent (`reconcile:<key>@<updated>`).
-  There is no scheduled Jira reconcile; `jiraConnectedWorkspaces()` exists but nothing calls it.
+  The poll loop (`npm run poll` in `apps/web`) runs the same reconcile for every Jira-connected workspace on each pass.
 - **Replay script:** `node apps/web/scripts/jira-replay.mjs <slug> --base https://unify-web-weld.vercel.app --issue UNI-7`
   signs a synthetic payload and posts it to the real webhook route. Needs `apps/web/.env.local` with the live Supabase URL and service-role key.
   It writes to the live database.
@@ -133,10 +133,12 @@ Figma takes client credentials as HTTP Basic auth at the token endpoint.
 - Constraints that disappear from a newer version are retired (`valid_to` set, status `retired`).
 - **Linking to tickets:** a Figma URL in a Jira ticket becomes `design -CONSTRAINS-> ticket`. A `node-id` in the URL links the specific frame; no `node-id` links the whole file. Order does not matter: linking runs after both Jira ingestion and each Figma sync.
 
-### Scheduled polling is not configured
-`/api/cron/figma-poll` exists (polls every workspace with a watched file) and requires `Authorization: Bearer <CRON_SECRET>`,
-but `apps/web/vercel.json` has **no `crons` entry**, so nothing calls it. Today polling is manual (Poll now). To schedule it:
-set `CRON_SECRET` in Vercel and add a `crons` entry for `/api/cron/figma-poll` in `vercel.json`.
+### Scheduled polling
+Scheduled polling is the loop process, not a Vercel cron: see
+[Unattended operation](INTEGRATIONS.md#unattended-operation). Without a running loop, polling is manual (Poll now).
+`/api/cron/figma-poll` also exists (polls every workspace with a watched file) and requires
+`Authorization: Bearer <CRON_SECRET>`, but `apps/web/vercel.json` has **no `crons` entry**, so nothing calls it;
+Vercel Hobby allows only daily cron jobs.
 
 ---
 

@@ -106,8 +106,10 @@ GitHub sends `X-Hub-Signature-256`, Jira sends
 `X-Hub-Signature`, and Figma v2 sends its creation passcode in the payload.
 Webhook requests are verified against the raw body, persisted idempotently,
 and then normalized into `events`. Apply every migration in `supabase/migrations` in order before enabling
-live delivery (see `supabase/README.md`). `npm run poll` runs the local loop
-that polls watched Figma files and reconciles GitHub pull requests.
+live delivery (see `supabase/README.md`). `npm run poll` runs the loop that
+polls watched Figma files and reconciles GitHub pull requests and Jira issues;
+to run it as a service see
+[Unattended operation](../../docs/INTEGRATIONS.md#unattended-operation).
 
 **Creating a workspace:** call `supabase.rpc("create_workspace", { p_name, p_slug })`,
 not a direct `.insert().select()` — the latter hits a PostgREST

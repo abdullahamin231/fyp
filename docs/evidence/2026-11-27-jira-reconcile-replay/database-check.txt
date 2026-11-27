@@ -1,0 +1,26 @@
+events since run start [
+ {
+  "source_tool": "jira",
+  "vendor_delivery_id": "reconcile:SCRUM-5@2026-11-27T12:55:38.372+0500",
+  "entity_id": "SCRUM-5",
+  "action": "jira:issue_updated",
+  "actor": "jira",
+  "version": "2026-11-27T12:55:38.372+0500",
+  "occurred_at": "2026-11-27T07:55:38.372+00:00",
+  "received_at": "2026-11-27T07:56:42.524+00:00"
+ }
+]
+SCRUM-5 node [
+ {
+  "type": "Ticket",
+  "external_id": "SCRUM-5",
+  "version": "2026-11-27T12:55:38.372+0500",
+  "status": "In Progress",
+  "last_modified": "2026-11-27T07:55:38.372+00:00",
+  "summary": "Test #1: seeing if event detected on unify workspace (reconcile test)",
+  "title": null,
+  "valid_to": null
+ }
+]
+criteria []
+findings detected since []

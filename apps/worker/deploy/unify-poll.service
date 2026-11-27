@@ -1,0 +1,50 @@
+# UNIFY poll loop — systemd unit (template)
+#
+# This file is a template: `@REPO@`, `@USER@`, `@GROUP@`, `@NODE_DIR@` and
+# `@NPM@` are substituted by `deploy/install-poll.sh`. Do not install this file
+# directly — run `./deploy/install-poll.sh` instead.
+#
+# This is the scheduled half of ingestion: `npm run poll` in apps/web
+# (apps/web/scripts/poll-loop.ts). On every pass it reconciles GitHub pull
+# requests and Jira issues that a webhook missed and polls watched Figma files.
+# It runs as a long-lived service, not a timer, because the loop schedules its
+# own passes and never overlaps them. Run exactly one per Supabase project.
+#
+# Like the worker, it opens no port and holds the service-role key.
+
+[Unit]
+Description=UNIFY poll loop (Figma polling, GitHub and Jira reconciliation)
+Documentation=file://@REPO@/docs/INTEGRATIONS.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@USER@
+Group=@GROUP@
+
+# The script reads apps/web/.env.local (or .env) itself: NEXT_PUBLIC_SUPABASE_URL,
+# SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) and
+# INTEGRATION_ENCRYPTION_KEY. Variables set on the unit override the file.
+WorkingDirectory=@REPO@/apps/web
+
+# `npm run` starts tsx through `env node`; systemd's default PATH misses a node
+# installed by nvm or similar.
+Environment=PATH=@NODE_DIR@:/usr/local/bin:/usr/bin:/bin
+
+# Optional (default shown): the pause between the end of one pass and the next.
+# Environment=POLL_INTERVAL_MS=60000
+
+ExecStart=@NPM@ run poll
+
+# A failed first pass exits non-zero (later failures are logged and the loop
+# carries on). Back off so a bad key or an outage doesn't spin.
+Restart=always
+RestartSec=30
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

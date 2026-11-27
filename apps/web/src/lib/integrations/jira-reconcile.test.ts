@@ -32,6 +32,27 @@ describe("Jira reconciliation", () => {
     expect(ingest.args.p_event_id).toEqual(expect.any(String));
     expect(fake.tables.integration_deliveries).toEqual([expect.objectContaining({ vendor_delivery_id: "reconcile:UNI-2@2026-10-19T11:00:00.000+0000" })]);
     expect(fake.tables.events).toEqual([expect.objectContaining({ event_id: ingest.args.p_event_id, entity_id: "UNI-2" })]);
+    expect(fake.tables.checkpoints).toEqual([
+      expect.objectContaining({
+        workspace_id: WS,
+        source_tool: "jira",
+        resource_id: "UNI",
+        last_event_id: ingest.args.p_event_id,
+        last_state_at: "2026-10-19T11:00:00.000Z",
+        source_stale: false,
+      }),
+    ]);
+  });
+
+  it("leaves checkpoints alone when the graph already has every update", async () => {
+    fake = fakeSupabase({
+      tables: {
+        integration_apps: [{ workspace_id: WS, provider: "jira", criteria_field: null }],
+        nodes: [{ id: "t1", workspace_id: WS, type: "Ticket", external_id: "UNI-1", version: "2026-10-19T10:00:00.000+0000", valid_to: null }],
+      },
+    });
+    await reconcileJiraWorkspace(WS, { search: async () => [issue("UNI-1", "2026-10-19T10:00:00.000+0000")] });
+    expect(fake.tables.checkpoints ?? []).toEqual([]);
   });
 });
 
