@@ -389,28 +389,59 @@ test the first of these limits.
 \section{Live Integration Evidence}
 \label{sec:live-integration}
 
-Three live executions against real provider accounts are recorded here. They
+The live executions against real provider accounts are recorded here. They
 are manual integration checks, not automated tests.
 
 \paragraph{GitHub, 12 October.} Two distinct delivery identifiers were each
 stored as one row after redelivery. The provider's ping was receipted without
 creating an event, which is the intended handling of an unsupported event type.
 
-\paragraph{Jira, 16 November.} OAuth 3LO was connected; a webhook was created
-with the generated secret and the issue-created and issue-updated events; an
-issue was edited; and Ticket and Criterion nodes were observed in the graph.
-
-\paragraph{Figma, 16 November.} OAuth was connected. Two missing scopes were
+\paragraph{Figma, 13 November.} OAuth was connected. Two missing scopes were
 diagnosed from their symptoms and fixed: \texttt{current\_user:read} (commit
 \texttt{85dd18e}) and \texttt{file\_versions:read} (commit \texttt{7449762}). A
 file was then watched and polled, and \texttt{DesignArtifact} and
-\texttt{DesignConstraint} nodes with a \texttt{CONSTRAINS} edge to the ticket
-were observed.
+\texttt{DesignConstraint} nodes were observed.
 
-\paragraph{What was and was not captured.} For Jira and Figma the graph outcome
-was \textbf{observed by a team member and not captured} as a transcript,
-screenshot or SQL readout. Capturing that evidence is outstanding and should be
-done before the report is submitted.
+\paragraph{Jira, 16 November.} OAuth 3LO was connected; a webhook was created
+with the generated secret and the issue-created and issue-updated events; an
+issue was edited; and a Ticket node was observed in the graph.
+
+\paragraph{Jira and Figma graph outcome, 27 November.} The description of issue
+\texttt{SCRUM-5} was edited to hold two acceptance criteria and a link to a
+frame of the watched Figma file. Jira's webhook delivered the edit, after which
+the graph held the Ticket, two Criterion nodes, the design nodes and a
+\texttt{CONSTRAINS} edge from the frame to the ticket
+(Figure~\ref{fig:live-graph}). The graph view, a database readout and the
+matching \texttt{events} and \texttt{integration\_deliveries} rows (this Jira
+delivery and the Figma polls of 13~November) are committed under
+\texttt{docs/\allowbreak{}evidence/\allowbreak{}2026-11-27-jira-figma-graph/}.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{ThesisFigs/live-graph-scrum-5.png}
+  \caption{Graph explorer of the deployed application on 27 November with
+  \texttt{SCRUM-5} selected: the \texttt{CONSTRAINS} edge to the Figma frame and
+  the \texttt{REFERENCES} edges to its two criteria. Grey boxes cover the Figma
+  file key.}\label{fig:live-graph}
+\end{figure}
+
+\paragraph{Poll loop, 27 November.} The poll loop (\texttt{npm run poll}) ran
+unattended against the live database at its 60-second interval, on a development
+machine rather than as an installed service. Over four passes the watched Figma
+file's last-polled time advanced on every pass. In a second run the Jira webhook
+was disabled and \texttt{SCRUM-5} was edited: a later pass replayed the issue,
+advanced the project's checkpoint, and subsequent passes did not replay it
+again. This needed a correction first, because reconciliation had not been
+writing checkpoints (commit \texttt{273e98a}). The logs and database snapshots
+are under
+\texttt{docs/\allowbreak{}evidence/\allowbreak{}2026-11-27-unattended-poll/} and
+\texttt{docs/\allowbreak{}evidence/\allowbreak{}2026-11-27-jira-reconcile-replay/}.
+
+\paragraph{What was and was not captured.} The graph outcomes of 13 and
+16~November were observed by a team member and not captured; the evidence above
+is from 27~November. Each is a single manual run. Neither criterion was
+verified, because no pull request tracks the ticket, and no new Figma version
+arrived during the runs of 27~November.
 
 \section{External Review Agreement}
 \label{sec:external-agreement}
@@ -511,8 +542,9 @@ Demonstrated end to end with a stub model
 Demonstrated in the ingestion engine with a mock vendor
   & FR-02, FR-16 (marking half)
   & Redelivery, out-of-order delivery, reconciliation of a missed delivery and
-    stale checkpoints (TC-21), plus duplicate PR events in the linker. Not yet
-    connected to live sources. \\
+    stale checkpoints (TC-21), plus duplicate PR events in the linker. These
+    cases do not use live sources; one manual live reconciliation of a Jira
+    edit is recorded in Section~\ref{sec:live-integration}. \\
 Implemented, not yet covered by automated tests
   & FR-11 (presentation), FR-17, FR-18
   & The reviewer screens read findings, links and verification passes from the
@@ -687,9 +719,9 @@ Functional correctness & Typecheck and lint pass on the current web code;
   contracts 123, worker 114 and web 98, 335 passing with no failures (17
   November 2026, commit \texttt{30a75e7}); the
   analyser matches the pilot cases (TC-17); the linker ran live on Supabase.
-  & Live Jira and Figma graph outcomes were observed and not captured
-    (Section~\ref{sec:live-integration}); Rules 1 and 3 are records with no
-    evaluator.
+  & The live Jira and Figma graph outcome was captured in one manual run
+    (Section~\ref{sec:live-integration}) and its criteria were not verified;
+    Rules 1 and 3 are records with no evaluator.
   & Front-end tests (D-04); webhook and adapters (D-09); scenario matrix
     T1--T11 against live sources \\
 Performance / resource use & Analyser: median 0.3\,s, max 4\,s per pilot

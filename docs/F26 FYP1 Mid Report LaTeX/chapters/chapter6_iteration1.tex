@@ -498,8 +498,9 @@ implemented in commit \texttt{c95df34}, with raw-body verification and
 idempotent delivery persistence. A reproducible run against external GitHub,
 Jira and Figma accounts was not present in the repository history at the
 reporting date of Iteration~1, so no live event count is claimed for it. That
-gap has since been closed: GitHub was exercised live on 12~October and Jira and
-Figma on 16~November (Chapter~8, Section~\ref{sec:live-integration}).
+gap has since been narrowed: GitHub was exercised live on 12~October, Figma on
+13~November and Jira on 16~November, and a Jira and Figma graph outcome was
+captured on 27~November (Chapter~8, Section~\ref{sec:live-integration}).
 
 \paragraph{Rules firing on live data.} Rules~1--3 are implemented as versioned
 records in \texttt{048ceaa}. Their deterministic replay path is available, but
@@ -516,14 +517,14 @@ checkpoints go stale after an outage and clear on recovery. That file is part
 of the contracts suite, which passes 115/115 on the evaluation commit
 (\S\ref{sec:ch6-repro}). What is tested there is the ingestion engine, not the
 HTTP layer: the adapters' signature verification and provider-specific payload
-handling are exercised only against fixtures, so the live-provider path remains
-as in the limitation below.
+handling are tested automatically only against fixtures, and the live-provider
+runs are manual, as in the limitation below.
 
 \subsubsection{Limitations}
 \begin{itemize}
-  \item All three adapters are implemented, but the committed evidence is
-        currently code and documented fixtures rather than a reproducible
-        live-provider run.
+  \item All three adapters are implemented, but the live-provider evidence is
+        from manual runs (Chapter~8), including committed Jira and Figma
+        captures of 27~November; none is a reproducible automated test.
   \item Figma reports design intent only at named-version granularity. A change
         made without creating a named version is invisible to Rule~1 until a
         version is cut or reconciliation polls the file.
@@ -531,8 +532,8 @@ as in the limitation below.
         lost after its retries are exhausted is recovered only at the next
         reconciliation poll, not immediately. The gap is bounded by the polling
         interval; no measured interval is claimed here.
-  \item No provider rate-limit measurement is claimed because live traffic was
-        not captured in the repository evidence.
+  \item No provider rate-limit measurement is claimed because none has been
+        taken.
   \item Duplicate, out-of-order, outage and missing-webhook scenarios remain
         replay-only by design, because they cannot be induced reliably against
         a live vendor.
