@@ -61,4 +61,10 @@ describe("loadExplorerGraph", () => {
     expect(graph.edges).toHaveLength(2);
     expect(graph.nodes.find((n) => n.id === node(249).id)?.findingId).toBe("f-1");
   });
+
+  it("labels a design constraint as CONSTRAINS, not as a plain reference", async () => {
+    fake.tables.edges = [{ ...edge(1, 2), type: "CONSTRAINS", source_class: "derived", resolver: "figma:url-in-ticket" }];
+    const graph = await loadExplorerGraph();
+    expect(graph.edges.map((e) => e.label)).toEqual(["CONSTRAINS"]);
+  });
 });

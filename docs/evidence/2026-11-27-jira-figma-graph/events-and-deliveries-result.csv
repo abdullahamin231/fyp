@@ -1,0 +1,5 @@
+source_tool,entity_id,action,vendor_delivery_id,occurred_at,event_received_at,delivery_received_at
+figma,<figma-file-key>:file,FILE_VERSION_UPDATE,figma:poll:<figma-file-key>:2421337648201437424,2026-11-13 13:17:04+00,2026-11-13 13:19:38.471+00,2026-11-13 13:19:39.970916+00
+figma,<figma-file-key>:file,FILE_VERSION_UPDATE,figma:poll:<figma-file-key>:2421338301006599040,2026-11-13 13:22:46+00,2026-11-13 13:24:28.229+00,2026-11-13 13:24:28.897469+00
+figma,<figma-file-key>:file,FILE_VERSION_UPDATE,figma:poll:<figma-file-key>:2421348996019990023,2026-11-13 13:29:53+00,2026-11-13 13:30:05.792+00,2026-11-13 13:30:07.364403+00
+jira,SCRUM-5,jira:issue_updated,4870142127299415000,2026-11-27 08:45:31.268+00,2026-11-27 08:45:34.849+00,2026-11-27 08:45:36.812294+00

@@ -36,7 +36,8 @@ based on reading the code, plus what was done during setup. Items marked
 ### Database
 Per `supabase/README.md`, the live project already had migrations through 00036.
 00037, 00038 and 00039 are applied by hand, in that order, in the SQL editor or `psql -f`
-(not `supabase db push`). **(unverified: whether 00037-00039 are applied on the live project.)**
+(not `supabase db push`). All three were confirmed on the live project on 27 November 2026
+(check query in `supabase/README.md`).
 OAuth connect works without them; Jira ingestion and verification expect them.
 
 ---
