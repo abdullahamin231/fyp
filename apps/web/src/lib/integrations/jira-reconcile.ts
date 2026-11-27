@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { admin } from "@/lib/supabase/admin";
 import { jiraAdapter } from "./adapters";
+import { projectKeyOf, recordCheckpoint } from "./checkpoints";
 import { asRecord, text } from "./common";
 import { loadJiraCriteriaField } from "./pipeline-settings";
 import { evaluateWorkflowRule, ingestJiraIssue, upsertNormalizedEvents, type TicketResult } from "./pipeline";
@@ -95,6 +96,14 @@ export async function reconcileJiraWorkspace(
     await persistDelivery({ workspaceId, provider: "jira", deliveryId, eventId: event.eventId, payload });
     const result = await ingestJiraIssue(db, workspaceId, event.eventId, payload, criteriaField, event.occurredAt);
     if (result?.kind === "ticket") await evaluateWorkflowRule(db, result.nodeId);
+    // Last, as in the webhook route: a checkpoint promises the event was applied.
+    await recordCheckpoint(db, {
+      workspaceId,
+      provider: "jira",
+      resource: { provider: "jira", projectKey: projectKeyOf(key) },
+      eventId: event.eventId,
+      eventTime: event.occurredAt,
+    });
     replayed.push({ key, updated, result });
   }
   return { seen: issues.length, replayed };
