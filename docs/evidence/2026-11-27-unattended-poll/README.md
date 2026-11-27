@@ -37,3 +37,6 @@ was edited.
 - New Figma versions: the file was `up_to_date`, so its checkpoint did not move.
 - GitHub reconciliation: the workspace has no GitHub connection.
 - The systemd unit running on a server.
+
+A later run with the Jira webhook disabled shows the checkpoint moving:
+[2026-11-27-jira-reconcile-replay](../2026-11-27-jira-reconcile-replay/README.md).

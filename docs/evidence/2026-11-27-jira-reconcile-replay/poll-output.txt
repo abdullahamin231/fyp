@@ -1,0 +1,35 @@
+
+> @unify/web@0.1.0 poll
+> tsx scripts/poll-loop.ts
+
+{"at":"2026-11-27T07:52:17.998Z","message":"figma poll loop started","intervalMs":60000,"once":false}
+{"at":"2026-11-27T07:52:20.397Z","message":"jira reconciled","workspace":"testing","seen":0,"replayed":[]}
+{"at":"2026-11-27T07:52:22.947Z","message":"polled","workspace":"testing","files":1,"ingested":0}
+{"at":"2026-11-27T07:52:22.949Z","message":"file","workspace":"testing","fileKey":"<figma-file-key>","status":"up_to_date","versions":0}
+{"at":"2026-11-27T07:53:25.801Z","message":"jira reconciled","workspace":"testing","seen":0,"replayed":[]}
+{"at":"2026-11-27T07:53:28.498Z","message":"polled","workspace":"testing","files":1,"ingested":0}
+{"at":"2026-11-27T07:53:28.498Z","message":"file","workspace":"testing","fileKey":"<figma-file-key>","status":"up_to_date","versions":0}
+{"at":"2026-11-27T07:54:31.516Z","message":"jira reconciled","workspace":"testing","seen":0,"replayed":[]}
+{"at":"2026-11-27T07:54:34.230Z","message":"polled","workspace":"testing","files":1,"ingested":0}
+{"at":"2026-11-27T07:54:34.231Z","message":"file","workspace":"testing","fileKey":"<figma-file-key>","status":"up_to_date","versions":0}
+{"at":"2026-11-27T07:55:36.413Z","message":"jira reconciled","workspace":"testing","seen":0,"replayed":[]}
+{"at":"2026-11-27T07:55:39.459Z","message":"polled","workspace":"testing","files":1,"ingested":0}
+{"at":"2026-11-27T07:55:39.459Z","message":"file","workspace":"testing","fileKey":"<figma-file-key>","status":"up_to_date","versions":0}
+{"at":"2026-11-27T07:56:47.704Z","message":"jira reconciled","workspace":"testing","seen":1,"replayed":["SCRUM-5"]}
+{"at":"2026-11-27T07:56:50.336Z","message":"polled","workspace":"testing","files":1,"ingested":0}
+{"at":"2026-11-27T07:56:50.336Z","message":"file","workspace":"testing","fileKey":"<figma-file-key>","status":"up_to_date","versions":0}
+{"at":"2026-11-27T07:57:53.291Z","message":"jira reconciled","workspace":"testing","seen":1,"replayed":[]}
+{"at":"2026-11-27T07:57:55.317Z","message":"polled","workspace":"testing","files":1,"ingested":0}
+{"at":"2026-11-27T07:57:55.317Z","message":"file","workspace":"testing","fileKey":"<figma-file-key>","status":"up_to_date","versions":0}
+{"at":"2026-11-27T07:58:58.157Z","message":"jira reconciled","workspace":"testing","seen":1,"replayed":[]}
+{"at":"2026-11-27T07:59:00.872Z","message":"polled","workspace":"testing","files":1,"ingested":0}
+{"at":"2026-11-27T07:59:00.872Z","message":"file","workspace":"testing","fileKey":"<figma-file-key>","status":"up_to_date","versions":0}
+{"at":"2026-11-27T08:00:03.622Z","message":"jira reconciled","workspace":"testing","seen":1,"replayed":[]}
+{"at":"2026-11-27T08:00:06.429Z","message":"polled","workspace":"testing","files":1,"ingested":0}
+{"at":"2026-11-27T08:00:06.429Z","message":"file","workspace":"testing","fileKey":"<figma-file-key>","status":"up_to_date","versions":0}
+{"at":"2026-11-27T08:01:09.508Z","message":"jira reconciled","workspace":"testing","seen":1,"replayed":[]}
+{"at":"2026-11-27T08:01:11.808Z","message":"polled","workspace":"testing","files":1,"ingested":0}
+{"at":"2026-11-27T08:01:11.809Z","message":"file","workspace":"testing","fileKey":"<figma-file-key>","status":"up_to_date","versions":0}
+{"at":"2026-11-27T08:02:14.591Z","message":"jira reconciled","workspace":"testing","seen":1,"replayed":[]}
+{"at":"2026-11-27T08:02:17.622Z","message":"polled","workspace":"testing","files":1,"ingested":0}
+{"at":"2026-11-27T08:02:17.622Z","message":"file","workspace":"testing","fileKey":"<figma-file-key>","status":"up_to_date","versions":0}

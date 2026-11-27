@@ -1,0 +1,54 @@
+{
+  "label": "after-pass-1",
+  "takenAt": "2026-11-27T07:52:23.170Z",
+  "connections": [
+    {
+      "provider": "figma",
+      "workspaces": {
+        "slug": "testing"
+      }
+    },
+    {
+      "provider": "jira",
+      "workspaces": {
+        "slug": "testing"
+      }
+    }
+  ],
+  "figma_watched_files": [
+    {
+      "file_key": "<figma-file-key>",
+      "last_seen_version_id": "2421348996019990023",
+      "last_polled_at": "2026-11-27T07:52:21.309+00:00",
+      "last_poll_error": null,
+      "workspaces": {
+        "slug": "testing"
+      }
+    }
+  ],
+  "checkpoints": [
+    {
+      "source_tool": "jira",
+      "resource_id": "SCRUM",
+      "last_event_id": "<workspace-id>:jira:4968951805873320906:ticket:SCRUM-5:jira:issue_updated",
+      "last_state_at": "2026-11-16T17:56:39.706+00:00",
+      "last_success_at": "2026-11-16T17:56:48.842+00:00",
+      "source_stale": false,
+      "workspaces": {
+        "slug": "testing"
+      }
+    },
+    {
+      "source_tool": "figma",
+      "resource_id": "<figma-file-key>",
+      "last_event_id": "<workspace-id>:figma:figma:poll:<figma-file-key>:2421348996019990023:design_artifact:<figma-file-key>:file:FILE_VERSION_UPDATE",
+      "last_state_at": "2026-11-13T13:29:53+00:00",
+      "last_success_at": "2026-11-13T13:30:14.09+00:00",
+      "source_stale": false,
+      "workspaces": {
+        "slug": "testing"
+      }
+    }
+  ],
+  "reconcile_deliveries": []
+}
