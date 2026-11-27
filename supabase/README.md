@@ -54,8 +54,21 @@ the whole chain in order on an empty Postgres and fails on a reused version.
 
 ### Deploying 00037–00039 to the existing live project
 
-The live project already has 00026, 00035 and 00036. These follow-up migrations
-do not modify those applied files or rewrite immutable event history.
+**All three were confirmed on the live project on 27 November 2026**, so there
+is nothing left to apply there. To check a database, run this in the SQL editor
+(it only reads); every column should be true once they are applied:
+
+```sql
+select
+  position('Preserve the identity of deliveries' in pg_get_functiondef(
+    'public.link_pull_request_event(uuid,text,text,text,timestamptz,text,jsonb,jsonb)'::regprocedure)) > 0 as m00037,
+  position('stale_version' in pg_get_functiondef(
+    'public.ingest_jira_issue(uuid,text,jsonb)'::regprocedure)) > 0 as m00038,
+  to_regproc('public.complete_verification_job') is not null as m00039;
+```
+
+For another database that already has 00026, 00035 and 00036: these follow-up
+migrations do not modify those applied files or rewrite immutable event history.
 
 1. Stop the worker: `sudo systemctl stop unify-worker`.
 2. Apply **00037, 00038, then 00039** using the SQL editor or `psql -f`, each
