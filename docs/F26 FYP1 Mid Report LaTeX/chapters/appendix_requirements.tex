@@ -20,7 +20,7 @@ CSV hash and coverage summary.
 \textbf{Requirement} & \textbf{Capability} & \textbf{Implementation} & \textbf{Validation / evidence}\\
 \midrule
 \endhead
-FR-01--FR-02 & Receive, normalize, deduplicate and reconcile source events & \texttt{apps/web/src/lib/integrations/}; ingestion contracts; event/delivery persistence & Adapter and replay cases; live provider rehearsal remains a separate gate.\\
+FR-01--FR-02 & Receive, normalize, deduplicate and reconcile source events & \texttt{apps/web/src/lib/integrations/}; ingestion contracts; event/delivery persistence & Adapter and replay cases; manual live Jira and Figma captures and one live Jira reconciliation (27~November); automated live-provider rehearsal remains a separate gate.\\
 FR-04--FR-05 & Link source artifacts with resolver provenance and prevent unsupported decisive links & \texttt{apps/worker/src/linking/}; migration \texttt{00015} & TC-10--TC-15; live Supabase linking demo.\\
 FR-06, FR-25 & Extract changed files, symbols, callers and tests; produce symbol cards & \texttt{apps/worker/src/analyser/} & TC-17--TC-19; pilot results and analyser tests.\\
 FR-08--FR-10 & Build bounded context packets, run verifier passes and validate citations & \texttt{apps/worker/src/packet/}; \texttt{packages/contracts/src/gate.ts} & TC-20 and TC-22; packet hash, content hashes and gate checks.\\

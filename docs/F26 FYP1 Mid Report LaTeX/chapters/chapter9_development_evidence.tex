@@ -139,7 +139,7 @@ their own subsystem.
 Member & Contribution & Commit or PR & Review or test evidence \\
 \midrule
 \endhead
-Haaniah & Source adapters, three systems & \texttt{c95df34} & Implementation and webhook setup documentation; live provider test evidence remains to be run \\
+Haaniah & Source adapters, three systems & \texttt{c95df34} & Implementation and webhook setup documentation; manual Jira and Figma captures of 27~November under \texttt{docs/\allowbreak{}evidence/}; automated live-provider tests remain to be run \\
 Haaniah & Event reliability layer & \texttt{46d04f6} & Replay/convergence implementation; final local suite result to be recorded after dependencies are installed \\
 Haaniah & Deterministic rules 1--3 & \texttt{048ceaa} & Versioned rule records and contract tests in the commit \\
 Haaniah & Sequence, state-machine and deployment diagrams & \texttt{c95df34} & Source and rendered diagrams retained in the repository \\
@@ -590,8 +590,9 @@ Stated as limitations of the project at the mid stage, not as future work.
         which do not.
   \item \textbf{Live provider behavior remains an integration-test
         dependency.} The adapter and webhook paths are implemented and
-        documented, but the repository history does not yet contain a
-        reproducible run against all three external provider accounts.
+        documented, and Jira and Figma outcomes were captured in manual runs on
+        27~November, but the repository does not yet contain a reproducible run
+        against all three external provider accounts.
   \item \textbf{The local-inference hardware question remains unresolved.}
         No reproducible latency and memory measurement is committed yet, so
         the final model choice and any interactive-latency claim are deferred.

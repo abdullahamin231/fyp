@@ -485,8 +485,9 @@ reporting date (Chapter~4, FR-12).
   \item[Evidence] The \texttt{DesignArtifact} and \texttt{DesignConstraint}
     nodes for the new version, the \texttt{CONSTRAINS} edges from those
     constraints to tickets, and the version the ticket was last reconciled
-    against. These nodes exist in the graph as of 16 November, so the rule has
-    real inputs to fire on.
+    against. These nodes and edges were captured in the live graph on
+    27~November (Section~\ref{sec:live-integration}), so the rule has real
+    inputs to fire on.
   \item[Guards] Cosmetic changes and changes mapped as acceptable do not fire;
     an unconfirmed inferred link cannot make the finding decisive.
   \item[Outputs] One finding per ticket and design version, carrying the rule
