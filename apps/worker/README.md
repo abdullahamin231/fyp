@@ -71,6 +71,13 @@ model provider, budgets, poll interval, analysis settings — is hardcoded in
 `src/config.ts` (`WORKER_SETTINGS`), so a run's inputs are a recorded decision
 in git rather than a shell export. Change a value there, commit, redeploy.
 
+## Run it as a service
+
+`./deploy/install.sh` installs this worker as the `unify-worker` systemd unit.
+`./deploy/install-poll.sh` installs the other long-running process,
+`unify-poll` (`apps/web`'s poll loop); see
+[Unattended operation](../../docs/INTEGRATIONS.md#unattended-operation).
+
 ## Configuration
 
 `src/config.ts` is the whole story: the fixed budgets, the poll cadence, the

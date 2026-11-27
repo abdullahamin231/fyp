@@ -92,8 +92,37 @@ the same ingest as a webhook, every issue whose `updated` time the graph has
 not recorded (delivery id `reconcile:<key>@<updated>`). Run it with
 `POST /api/integrations/jira/reconcile?workspace=<slug>`.
 
-The local loop `npm run poll` in `apps/web` runs both reconciliations and polls
-watched Figma files on an interval.
+Each replayed Jira issue advances its project's row in `checkpoints`, as a
+webhook delivery does. A pass that finds nothing to replay leaves the row
+untouched, so `last_success_at` records the last applied event, not the last
+time Jira was asked. GitHub reconciliation writes no checkpoint.
+
+## Unattended operation
+
+`npm run poll` in `apps/web` is the scheduled half of ingestion. It runs as one
+long-lived loop process: each pass reconciles GitHub and Jira and polls watched
+Figma files, then waits `POLL_INTERVAL_MS` (default 60000) before the next, so
+passes never overlap. `npm run poll -- --once` runs a single pass. Vercel hosts
+only the app and the webhook routes; nothing there schedules these passes
+(`apps/web/vercel.json` has no `crons` entry), so they stop when the loop does.
+
+On a Linux host with systemd, from a clone of the repository:
+
+1. Create `apps/web/.env` with `NEXT_PUBLIC_SUPABASE_URL`,
+   `SUPABASE_SECRET_KEY` (or `SUPABASE_SERVICE_ROLE_KEY`) and the same
+   `INTEGRATION_ENCRYPTION_KEY` the deployed app uses.
+2. Run `./apps/worker/deploy/install-poll.sh` as your own user. It installs
+   dependencies and enables `unify-poll`
+   (template: `apps/worker/deploy/unify-poll.service`).
+3. Follow it with `journalctl -u unify-poll -f`. Every line is one JSON object.
+
+Run one loop per Supabase project: stop any `npm run poll` left running on a
+development machine. After pulling new code, `sudo systemctl restart unify-poll`.
+The verification worker is a separate unit (`install.sh`).
+
+Evidence that it is running: `figma_watched_files.last_polled_at` moves on every
+pass. A Jira checkpoint moves only when a pass replays an issue the webhook did
+not deliver, and the row's `last_event_id` then contains `:jira:reconcile:`.
 
 ## Figma design nodes
 
