@@ -131,42 +131,57 @@ temperature is fixed at zero. Missing models, unavailable servers, timeouts,
 and malformed responses fail visibly as `MODEL_UNAVAILABLE`; they never fall
 back to the stub.
 
-### Smoke-test Inkling on Colab
+### Run Inkling on a GPU server
 
-The tracked smoke-test script at
-[`scripts/colab-inkling-smoke.py`](./scripts/colab-inkling-smoke.py) installs
-Ollama in a Colab GPU runtime if needed, downloads the fixed model, and sends
-the same JSON-mode chat request shape used by the worker. The model download is
-about 18 GB. After authenticating the Colab CLI, run:
+The team has confirmed that Inkling 2 Mini runs. On the Linux server with the
+A100, first verify the NVIDIA driver with `nvidia-smi`, then install Ollama
+using its official installer and start its service:
 
 ```bash
-colab new --gpu T4 --session unify-inkling
-colab exec --session unify-inkling \
-  --file apps/worker/scripts/colab-inkling-smoke.py --timeout 0
-colab stop --session unify-inkling
+curl -fsSL https://ollama.com/install.sh | sh
+sudo systemctl enable --now ollama
+ollama pull inkling-2-mini:26b-a5b
+ollama run inkling-2-mini:26b-a5b
 ```
 
-By default the request uses Ollama's default context and GPU allocation,
-matching the worker. T4's 15 GB VRAM may be insufficient for this 26B model;
-the script reports Ollama's allocation error. For a hardware diagnostic, you
-can retry with reduced context and partial GPU offload:
+In the interactive prompt, ask for a small JSON object and confirm the model
+responds. The worker sends non-streaming JSON-mode requests with temperature
+zero to `127.0.0.1:11434`. Keep Ollama bound to loopback; do not expose port
+11434 publicly. Although the model advertises a very large context window, the
+worker packet budget is 8,000 tokens, and allocating the advertised maximum
+context is unnecessary.
+
+**Guided setup after cloning:** from the repository root, run:
 
 ```bash
-colab exec --session unify-inkling \
-  --file apps/worker/scripts/colab-inkling-smoke.py \
-  --env INKLING_NUM_CTX=1024 --env INKLING_NUM_GPU=10 --timeout 0
+bash scripts/setup-a100.sh
 ```
 
-Those overrides only test whether this runtime can serve the model; they do
-not change the worker's fixed request. For local app runs, install Ollama on
-the same machine as the worker, pull the model, and keep `ollama serve` running
-there. The Colab runtime is not exposed as the worker's Ollama endpoint.
+The script checks Node/Ollama/model availability, installs repository
+dependencies, securely prompts for Supabase credentials and the integration
+encryption key, writes mode-600 environment files, then starts the worker and
+web app bound to server loopback. It refuses to overwrite existing env files.
+Once both processes are running, open a second terminal on your PC and run the
+SSH tunnel command printed by the script; then browse to
+`http://localhost:3000`. It requires Node.js 24+, `curl`, `openssl`, and Ollama.
+Apply migration 00039 to Supabase before processing jobs.
 
-The standard 15 GB Colab T4 used for the initial test downloaded the model but
-failed to initialize inference with CUDA out-of-memory, even at a 1,024-token
-context. A successful real-model response has not yet been verified; rerun the
-tracked smoke test on a larger GPU or with validated partial offload before
-relying on this model for live jobs.
+The service-role key and integration encryption key previously shown in the
+editor must be rotated before setup. Use the replacement values at the hidden
+prompts; do not put secrets in command arguments or `NEXT_PUBLIC_` variables.
+If the encryption key is rotated, reconnect integrations whose stored tokens
+were encrypted with the old key.
+
+If you want to run the worker on your development machine instead, create an
+SSH tunnel from that machine to the server and leave it running:
+
+```bash
+ssh -N -L 11434:127.0.0.1:11434 <user>@<gpu-server>
+```
+
+The worker's existing `127.0.0.1:11434` URL then reaches Ollama through the
+tunnel, without opening Ollama to the network. In either arrangement, the
+worker still needs its own `.env` with the Supabase URL and service-role key.
 
 `modelProvider: "opencode"` — wraps `opencode run --standalone --format json`.
 Each call gets a scratch directory containing an `opencode.json` that pins
