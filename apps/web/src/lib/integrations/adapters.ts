@@ -52,7 +52,10 @@ export const githubAdapter: IntegrationAdapter = {
     const occurredAt = text(body.updated_at) ?? text(body.created_at) ?? receivedAt.toISOString();
     if (event === "pull_request") {
       const pr = asRecord(body.pull_request);
-      const number = text(body.number) ?? text(pr.number) ?? (typeof (body.number ?? pr.number) === "number" ? String(body.number ?? pr.number) : "unknown");
+      const rawNumber = body.number ?? pr.number;
+      const number = typeof rawNumber === "number" && Number.isFinite(rawNumber)
+        ? String(rawNumber)
+        : text(rawNumber) ?? "unknown";
       const base = asRecord(pr.base);
       const head = asRecord(pr.head);
       const baseSha = text(base.sha);

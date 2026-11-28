@@ -8,27 +8,28 @@ PNG render per screen).
 
 ## Run it
 
-Run everything from `apps/web` — the package manifest, lockfile and
-`node_modules` all live here (there is no repo-root `package.json`):
+Dependencies are managed by the npm workspace at the repository root. Install
+there, then use the workspace scripts:
 
 ```sh
-npm install            # in apps/web
-npm run dev            # → http://localhost:3000
-npm run build          # production build
-npm run typecheck      # tsc --noEmit
-npm run lint           # eslint
+npm install
+npm run dev --workspace @unify/web
+npm run build --workspace @unify/web
+npm run typecheck --workspace @unify/web
+npm run lint --workspace @unify/web
 ```
 
 ## Routes
 
 ```
-/                            /conflicts/[id]         /policies/simulation
-/activity                    /evaluation             /profile
-/alerts                      /graph                  /search
-/audit                       /graph/artifacts        /settings/notifications
-/links                       /onboarding             /settings/slack
-/conflicts                   /policies               /settings/workspace
-                                                     /study
+/                            /conflicts/[id]         /settings/integrations
+/activity                    /evaluation             /settings/slack
+/alerts                      /graph                  /settings/workspace
+/audit                       /graph/artifacts        /workspaces
+/conflicts                   /ingest                 /workspaces/[slug]/integrations
+/links                       /login                  /workspaces/new
+/onboarding                  /policies               /signup
+/profile                     /search
 ```
 
 ## Layout
@@ -39,7 +40,9 @@ src/components/layout/   AppShell — 240px side rail + sticky omnibar top bar
 src/components/ui/       shared kit: Icon, Panel, Badge/ToolPill, Button,
                          SegmentedTabs, StatCard, PageHeader
 src/lib/types.ts         domain model (Finding, CriterionResult, Verdict, …)
-src/lib/mock/            typed mock data — replaced by the API client later
+src/lib/data/            workspace-scoped Supabase data access
+src/lib/actions/         audited server actions
+src/lib/integrations/    provider adapters, OAuth, webhook and reconciliation
 src/lib/nav.ts           side-rail navigation
 ```
 
@@ -123,3 +126,9 @@ Every screen reads Supabase through `src/lib/data/**` under the caller's RLS
 session, and every write goes through a server action in `src/lib/actions/**`
 that appends an `audit_log` row. Controls with no backend were removed rather
 than left as placeholders.
+
+The integration adapters now cover the GitHub, Jira and Figma provider boundaries:
+webhook and poll deliveries are normalized, verified, workspace-scoped and
+idempotently persisted. Numeric GitHub pull-request numbers, Jira stable
+delivery identifiers and provider actor identities are retained in the common
+event envelope.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { integrationStatus, resolutionLeaders } from "./alerts";
+import { frequencyChartPaths, integrationStatus, resolutionLeaders } from "./alerts";
 
 const NOW = new Date("2026-10-19T12:00:00Z");
 
@@ -34,5 +34,18 @@ describe("alerts rail", () => {
       { name: "Jira", status: "No deliveries yet", connected: true },
       { name: "Figma", status: "Not connected", connected: false },
     ]);
+  });
+
+  it("keeps an empty frequency series finite for the SVG chart", () => {
+    const chart = frequencyChartPaths([0, 0, 0, 0, 0, 0, 0]);
+    expect(chart).not.toBeNull();
+    expect(chart!.line).toBe("M0.0,36.0 L16.7,36.0 L33.3,36.0 L50.0,36.0 L66.7,36.0 L83.3,36.0 L100.0,36.0");
+    expect(chart!.area).toContain("L100,40 L0,40 Z");
+    expect(chart!.line).not.toContain("NaN");
+  });
+
+  it("returns no chart path when there are fewer than two points", () => {
+    expect(frequencyChartPaths([])).toBeNull();
+    expect(frequencyChartPaths([1])).toBeNull();
   });
 });

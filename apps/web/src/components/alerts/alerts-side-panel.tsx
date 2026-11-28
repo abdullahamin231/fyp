@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
-import type { FrequencySeries, Integration, ResolutionLeader } from "@/lib/domain/alerts";
+import { frequencyChartPaths, type FrequencySeries, type Integration, type ResolutionLeader } from "@/lib/domain/alerts";
 import type { Finding } from "@/lib/types";
 
 
@@ -36,16 +36,7 @@ export function AlertsSidePanel({
   integrations: Integration[];
 }) {
   const frequency = frequencyFrom(findings);
-  const hasSeries = frequency.points.length > 1;
-  const max = hasSeries ? Math.max(...frequency.points) : 1;
-  const points = frequency.points.map((value, index) => ({
-    x: (index / (frequency.points.length - 1)) * 100,
-    y: 36 - (value / max) * 30,
-  }));
-  const line = points
-    .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
-    .join(" ");
-  const area = `${line} L100,40 L0,40 Z`;
+  const chart = frequencyChartPaths(frequency.points);
 
   return (
     <aside className="w-full xl:w-[320px] flex flex-col gap-gutter shrink-0">
@@ -57,7 +48,7 @@ export function AlertsSidePanel({
             <span className="text-tertiary text-body-sm font-bold">{frequency.delta}</span>
           ) : null}
         </div>
-        {hasSeries ? (
+        {chart ? (
           <>
             <div className="h-32 w-full relative group">
               <svg
@@ -65,8 +56,8 @@ export function AlertsSidePanel({
                 viewBox="0 0 100 40"
                 preserveAspectRatio="none"
               >
-                <path d={line} />
-                <path className="fill-tertiary/10 stroke-none" d={area} />
+                <path d={chart.line} />
+                <path className="fill-tertiary/10 stroke-none" d={chart.area} />
               </svg>
               <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
                 <div className="border-t border-outline-variant w-full" />

@@ -119,3 +119,16 @@ export interface FrequencySeries {
   delta: string;
   axis: string[];
 }
+
+export function frequencyChartPaths(values: number[]): { line: string; area: string } | null {
+  if (values.length < 2) return null;
+  const max = Math.max(1, ...values);
+  const line = values
+    .map((value, index) => {
+      const x = (index / (values.length - 1)) * 100;
+      const y = 36 - (value / max) * 30;
+      return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  return { line, area: `${line} L100,40 L0,40 Z` };
+}

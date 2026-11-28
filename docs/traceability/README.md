@@ -10,6 +10,15 @@ chapter 4's claim true:
 > repository and regenerated at each gate."
 > — `chapters/chapter4_requirements.tex`, §Requirements Traceability (since commit `33b00e7`)
 
+> **Audit caveat:** this README and several CSV row notes contain historical
+> implementation claims and do not describe the current repository. In
+> particular, the worker, Supabase-backed web data/actions, provider
+> integrations, and their tests now exist. Treat the status explanations and
+> shell-command examples below as a past snapshot until the CSV evidence and
+> generated matrix are reconciled against current code and acceptance criteria.
+> Do not use the historical `partially_implemented` row count as a current
+> completion measure.
+
 Applied to UNIFY itself, it doubles as a worked example of the product capability the
 project is building (requirement entities anchored to design and code, with provenance).
 

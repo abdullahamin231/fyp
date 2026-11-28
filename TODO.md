@@ -5,6 +5,13 @@ Sources: `docs/UNIFY Final Proposal v2 (Post Defense).docx` (Rev. 2 + Rev. 3), `
 
 **No dates or durations in this file.** Items are ordered by dependency: an item is ready when its blockers are checked. Commit the file as work progresses.
 
+**Status caveat:** this checklist has not been reconciled with the current
+implementation. Some implementation notes are historical (for example, the
+worker and Supabase-backed web integration now exist); an unchecked item does
+not by itself prove the capability is absent, and a checked item still needs
+its stated evidence. Reconcile the checklist against the current code and
+evaluation requirements before using it as a completion report.
+
 ---
 
 ## 0. How to use this file

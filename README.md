@@ -45,28 +45,24 @@ Technical ownership (proposal §16):
 ## Repository contents
 
 ```
-apps/web           Reviewer web app — Next.js 16 + TypeScript + Tailwind (see its README)
-packages/contracts Shared Zod contracts — event envelope, graph, rules, packets, verdicts (see its README)
-supabase/          PostgreSQL schema, RLS, auth — migrations + setup guide (see its README)
-docs/              Project documents (see below)
-opencode.json      OpenCode config — official Stitch MCP server
-.env               Local secrets (gitignored) — STITCH_API_KEY
+apps/web           Reviewer app, integrations, OAuth/webhook routes, Supabase data/actions
+apps/worker        Code analyser, packet builder, verifier loop and queue worker
+packages/contracts Shared Zod contracts — event envelope, graph, rules, packets, verdicts
+supabase/          PostgreSQL schema, RLS, auth and RPC migrations
+docs/              Project documents, evidence, datasets and traceability
 ```
 
 ### Contracts
 
 `packages/contracts` holds the shared data shapes as code — the normalised
-event envelope, node/edge types, the rule schema, the context-packet schema and
-the verdict/output schema (TODO §2). It is standalone for now: each package
-carries its own lockfile until the workspace root is wired up with `apps/api`,
-so `cd packages/contracts && npm install && npm test` works today without
-disturbing the app's install.
+event envelope, node/edge types, rule schema, context-packet schema and
+verdict/output schema. Packages are managed through the npm workspace at the
+repository root.
 
 ```sh
-cd packages/contracts
 npm install
-npm test           # 60 tests over the schemas and the gate invariants
-npm run build      # emits dist/ (ESM + declarations)
+npm test --workspace @unify/contracts
+npm run build --workspace @unify/contracts
 ```
 
 ### Frontend
@@ -74,19 +70,38 @@ npm run build      # emits dist/ (ESM + declarations)
 `apps/web` implements the reviewer surface screen-for-screen against the Stitch
 project **Unified Dev Collaboration Hub**. Every design was exported locally to
 `docs/stitch-reference/screens/` (Tailwind HTML + PNG per screen) and the app's
-Tailwind theme is a 1:1 port of the token block inside those exports, so the
-screens stay checkable against their source. Screens currently render typed mock
-data (`apps/web/src/lib/mock/`); the contracts/API layer lands next.
+Tailwind theme is a 1:1 port of the token block inside those exports. The app
+uses Supabase-backed data/actions, workspace-scoped provider OAuth and webhook
+ingestion, and audit records. See `apps/web/README.md` for current setup and
+integration details.
 
 Email+password authentication is wired against Supabase: browser/server
 clients, a `src/proxy.ts` session guard, `/login`, `/signup`, `/auth/callback`
 and `/auth/signout`. See `apps/web/README.md` and `supabase/README.md`.
 
+### Worker
+
+`apps/worker` analyses repository changes, enriches evidence for queued
+verification jobs, builds bounded context packets, runs the verifier loop and
+applies the shared deterministic verdict gate. The default model provider is
+the deterministic `stub`; it is not a selected or evaluated local LLM. See
+`apps/worker/README.md` for deployment and provider behavior.
+
+## Verification run in this checkout
+
+The local audit run produced these package-boundary results:
+
+- Shared contracts: 123 tests
+- Verification worker: 114 tests
+- Reviewer web app: 192 tests, including provider adapter edge cases and zero-data chart coverage
+- Contracts, worker and web TypeScript typechecks: passing
+- Web ESLint: passing
+- Contracts and worker builds: passing
+- Production web build: passing with Next.js 16.4.6
+
 ```sh
-cd apps/web
-npm install        # deps live in the app, not the repo root
-npm run dev        # → http://localhost:3000
-npm run build
+npm run dev --workspace @unify/web
+npm run build --workspace @unify/web
 ```
 
 ### Database
