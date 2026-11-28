@@ -22,6 +22,7 @@ export type NavItem = {
  */
 export const intelligenceNav: NavItem[] = [
   { label: "Conflict Inbox", href: "/conflicts", icon: "inbox", path: "conflict-inbox" },
+  { label: "Inkling Chat", href: "/chat", icon: "chat", path: "inkling-chat" },
   { label: "Policy Configuration", href: "/policies", icon: "rule", path: "policy-configuration" },
   { label: "Graph Explorer", href: "/graph", icon: "account_tree", path: "graph-explorer" },
   { label: "Artifact Graph", href: "/graph/artifacts", icon: "hub", path: "artifact-graph" },
