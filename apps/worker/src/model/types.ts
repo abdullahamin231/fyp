@@ -9,9 +9,8 @@ import type { BuiltPacket } from "../packet/builder.js";
  *
  *   `StubModelClient`  deterministic, offline — tests, CI, and any run
  *                      without a serving stack
- *   `OpenCodeModelClient` wraps the OpenCode CLI (`opencode run --standalone
- *                      --format json`), which is the serving front-end this
- *                      project uses
+ *   `OpenCodeModelClient` wraps the OpenCode CLI
+ *   `OllamaModelClient` calls a locally served Ollama model
  *
  * The contract both obey: **a failed call throws `ModelUnavailableError`** and
  * is reported as `MODEL_UNAVAILABLE`, never as a clean result (ch5). That is
@@ -38,7 +37,7 @@ export interface ModelResult {
 }
 
 export interface ModelClient {
-  readonly provider: "stub" | "opencode";
+  readonly provider: "stub" | "opencode" | "ollama";
   describe(): ModelDescriptor;
   complete(call: ModelCall): Promise<ModelResult>;
 }

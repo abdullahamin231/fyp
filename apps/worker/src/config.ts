@@ -24,14 +24,13 @@ import { PACKET_SLOTS, type PacketSlot } from "@unify/contracts";
  */
 export const WORKER_SETTINGS = {
   /**
-   * `stub` = deterministic offline model; `opencode` = the real CLI runner.
-   * There is deliberately no silent fallback between the two: if this says
-   * `opencode` and the CLI is unreachable, jobs finish with MODEL_UNAVAILABLE
-   * rather than quietly downgrading to the stub.
+   * `stub` = deterministic offline model; `opencode` = OpenCode CLI;
+   * `ollama` = the local Ollama HTTP API. A serving failure never downgrades
+   * to the stub.
    */
-  modelProvider: "stub" as "stub" | "opencode",
-  /** `provider/model` as the OpenCode CLI expects (`-m`); only used above. */
-  model: "opencode/ling-3.1-flash-free",
+  modelProvider: "ollama" as "stub" | "opencode" | "ollama",
+  /** Fixed local open-weight verifier model; only used by the selected provider. */
+  model: "inkling-2-mini:26b-a5b",
   /** One model call, end to end (the bound the loop enforces per pass). */
   modelTimeoutMs: 180_000,
   /** Queue poll cadence. */
@@ -82,7 +81,7 @@ const secretSchema = z.object({
 
 export const configSchema = z.object({
   ...secretSchema.shape,
-  modelProvider: z.enum(["stub", "opencode"]),
+  modelProvider: z.enum(["stub", "opencode", "ollama"]),
   model: z.string().min(1),
   modelTimeoutMs: z.number().int().positive(),
   pollIntervalMs: z.number().int().positive(),

@@ -1,5 +1,6 @@
 import type { Config } from "../config.js";
 import { OpenCodeModelClient } from "./opencode.js";
+import { OllamaModelClient } from "./ollama.js";
 import { StubModelClient, type StubOptions } from "./stub.js";
 import type { ModelClient } from "./types.js";
 
@@ -15,6 +16,12 @@ export function createModelClient(config: Config, stubOptions: StubOptions = {})
       return new StubModelClient(stubOptions);
     case "opencode":
       return new OpenCodeModelClient({
+        model: config.model,
+        timeoutMs: config.modelTimeoutMs,
+        temperature: 0,
+      });
+    case "ollama":
+      return new OllamaModelClient({
         model: config.model,
         timeoutMs: config.modelTimeoutMs,
         temperature: 0,

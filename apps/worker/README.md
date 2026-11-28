@@ -114,12 +114,59 @@ per-command git header and never written into the cached clone.
 
 ## Model providers
 
-`modelProvider: "stub"` (the current setting) — deterministic, offline, no
+`modelProvider: "stub"` — deterministic, offline, no
 network. It reads the rendered packet and answers from the evidence itself: a
 passing test ⇒ `SUPPORTED`, a failing one ⇒ `CONTRADICTED`, code without tests
 ⇒ `PARTIAL`, empty packet ⇒ not applicable. Because it is bit-for-bit
 repeatable, the tests drive the whole pipeline, including its failure paths,
 without a serving stack.
+
+`modelProvider: "ollama"` (the current fixed setting) — sends one non-streaming
+JSON-mode chat request to the local Ollama API at `http://127.0.0.1:11434`.
+The fixed model tag is `inkling-2-mini:26b-a5b` (Inkling 2 Mini, the
+downloadable open-weight model listed in the [Ollama library](https://ollama.com/library/inkling-2-mini)).
+Install and start Ollama, then run
+`ollama pull inkling-2-mini:26b-a5b` before starting the worker. Sampling
+temperature is fixed at zero. Missing models, unavailable servers, timeouts,
+and malformed responses fail visibly as `MODEL_UNAVAILABLE`; they never fall
+back to the stub.
+
+### Smoke-test Inkling on Colab
+
+The tracked smoke-test script at
+[`scripts/colab-inkling-smoke.py`](./scripts/colab-inkling-smoke.py) installs
+Ollama in a Colab GPU runtime if needed, downloads the fixed model, and sends
+the same JSON-mode chat request shape used by the worker. The model download is
+about 18 GB. After authenticating the Colab CLI, run:
+
+```bash
+colab new --gpu T4 --session unify-inkling
+colab exec --session unify-inkling \
+  --file apps/worker/scripts/colab-inkling-smoke.py --timeout 0
+colab stop --session unify-inkling
+```
+
+By default the request uses Ollama's default context and GPU allocation,
+matching the worker. T4's 15 GB VRAM may be insufficient for this 26B model;
+the script reports Ollama's allocation error. For a hardware diagnostic, you
+can retry with reduced context and partial GPU offload:
+
+```bash
+colab exec --session unify-inkling \
+  --file apps/worker/scripts/colab-inkling-smoke.py \
+  --env INKLING_NUM_CTX=1024 --env INKLING_NUM_GPU=10 --timeout 0
+```
+
+Those overrides only test whether this runtime can serve the model; they do
+not change the worker's fixed request. For local app runs, install Ollama on
+the same machine as the worker, pull the model, and keep `ollama serve` running
+there. The Colab runtime is not exposed as the worker's Ollama endpoint.
+
+The standard 15 GB Colab T4 used for the initial test downloaded the model but
+failed to initialize inference with CUDA out-of-memory, even at a 1,024-token
+context. A successful real-model response has not yet been verified; rerun the
+tracked smoke test on a larger GPU or with validated partial offload before
+relying on this model for live jobs.
 
 `modelProvider: "opencode"` — wraps `opencode run --standalone --format json`.
 Each call gets a scratch directory containing an `opencode.json` that pins
@@ -130,7 +177,7 @@ it cannot touch the repository. Failures (missing binary, non-zero exit,
 timeout, empty reply) throw `ModelUnavailableError`, which the loop reports as
 `stopReason = MODEL_UNAVAILABLE` and an `INSUFFICIENT_EVIDENCE` abstention.
 
-There is deliberately **no silent fallback** from `opencode` to the stub. A
+There is deliberately **no silent fallback** from a real provider to the stub. A
 worker that thinks it is running the real model and quietly is not would be the
 worst possible failure mode for an evidence pipeline.
 

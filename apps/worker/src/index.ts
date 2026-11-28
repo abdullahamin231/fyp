@@ -9,9 +9,8 @@
  * Configuration lives in `src/config.ts`: the operational values are
  * hardcoded there (a recorded decision), and the environment holds only the
  * Supabase URL and service-role key. There is no built-in fallback from the
- * real model to the stub: if the configured provider is `opencode` and the CLI
- * is unreachable, jobs finish `failed` with `MODEL_UNAVAILABLE`, which is the
- * honest outcome.
+ * real model to the stub: if the configured provider is unavailable, jobs
+ * finish `failed` with `MODEL_UNAVAILABLE`, which is the honest outcome.
  */
 import { loadConfig } from "./config.js";
 import { createServiceClient } from "./db.js";

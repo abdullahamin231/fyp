@@ -83,16 +83,16 @@ and `/auth/signout`. See `apps/web/README.md` and `supabase/README.md`.
 
 `apps/worker` analyses repository changes, enriches evidence for queued
 verification jobs, builds bounded context packets, runs the verifier loop and
-applies the shared deterministic verdict gate. The default model provider is
-the deterministic `stub`; it is not a selected or evaluated local LLM. See
-`apps/worker/README.md` for deployment and provider behavior.
+applies the shared deterministic verdict gate. Its fixed model provider is
+local Ollama serving `inkling-2-mini:26b-a5b` (Inkling 2 Mini). See
+`apps/worker/README.md` for setup and provider behavior.
 
 ## Verification run in this checkout
 
 The local audit run produced these package-boundary results:
 
 - Shared contracts: 123 tests
-- Verification worker: 114 tests
+- Verification worker: 120 tests
 - Reviewer web app: 192 tests, including provider adapter edge cases and zero-data chart coverage
 - Contracts, worker and web TypeScript typechecks: passing
 - Web ESLint: passing
