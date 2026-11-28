@@ -3,6 +3,28 @@
 import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import {
+  Bubble,
+  BubbleContent,
+} from "@/components/ai-elements/ui/bubble";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@/components/ai-elements/ui/input-group";
+import {
+  Message,
+  MessageContent,
+} from "@/components/ai-elements/ui/message";
+import {
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerProvider,
+  MessageScrollerViewport,
+} from "@/components/ai-elements/ui/message-scroller";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -14,6 +36,7 @@ const STARTERS = [
   "Explain how a verification worker evaluates evidence.",
   "Give me a concise summary of the Inkling model.",
 ];
+const MAX_CONTEXT_MESSAGES = 20;
 
 export function InklingChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -21,7 +44,6 @@ export function InklingChat() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
 
   async function sendMessage(text: string) {
     const content = text.trim();
@@ -37,7 +59,7 @@ export function InklingChat() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: nextMessages.slice(-MAX_CONTEXT_MESSAGES) }),
       });
       const result: unknown = await response.json();
       if (!response.ok) {
@@ -51,7 +73,6 @@ export function InklingChat() {
         throw new Error("The model returned an empty or invalid response.");
       }
       setMessages([...nextMessages, { role: "assistant", content: result.message }]);
-      requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }));
     } catch (sendError) {
       setError(sendError instanceof Error ? sendError.message : "The model request failed.");
     } finally {
@@ -105,107 +126,137 @@ export function InklingChat() {
         </Button>
       </header>
 
-      <div
-        className="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-8"
-        aria-live="polite"
-        aria-label="Conversation"
-      >
-        {messages.length === 0 ? (
-          <div className="mx-auto flex min-h-full max-w-2xl flex-col items-center justify-center text-center">
-            <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-surface-container-high">
-              <Icon name="forum" className="text-[28px] text-primary" />
-            </div>
-            <h2 className="font-headline-md text-headline-md font-semibold text-on-surface">
-              What would you like to ask?
-            </h2>
-            <p className="mt-2 max-w-lg text-body-sm text-on-surface-variant">
-              Your messages are sent to the Inkling model running on the server. This chat is temporary
-              and is not saved when you leave the page.
-            </p>
-            <div className="mt-6 flex flex-wrap justify-center gap-2">
-              {STARTERS.map((starter) => (
-                <button
-                  key={starter}
-                  type="button"
-                  onClick={() => void sendMessage(starter)}
-                  disabled={busy}
-                  className="rounded-full border border-outline-variant bg-surface-container px-3 py-2 text-left text-body-sm text-on-surface-variant transition hover:border-outline hover:bg-surface-container-high disabled:opacity-50"
-                >
-                  {starter}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          messages.map((message, index) => (
-            <article
-              key={`${index}-${message.role}`}
-              className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              {message.role === "assistant" ? (
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-container-highest">
-                  <Icon name="smart_toy" className="text-[17px] text-primary" />
+      <MessageScrollerProvider autoScroll>
+        <MessageScroller className="flex-1">
+          <MessageScrollerViewport aria-live="polite" aria-label="Conversation">
+            <MessageScrollerContent className="min-h-full justify-center gap-5 px-4 py-6 sm:px-8">
+              {messages.length === 0 ? (
+                <div className="mx-auto flex min-h-full max-w-2xl flex-col items-center justify-center text-center">
+                  <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-surface-container-high">
+                    <Icon name="forum" className="text-[28px] text-primary" />
+                  </div>
+                  <h2 className="font-headline-md text-headline-md font-semibold text-on-surface">
+                    What would you like to ask?
+                  </h2>
+                  <p className="mt-2 max-w-lg text-body-sm text-on-surface-variant">
+                    Your messages are sent to the Inkling model running on the server. This chat is temporary
+                    and is not saved when you leave the page. Only the latest 20 messages are included as
+                    model context.
+                  </p>
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    {STARTERS.map((starter) => (
+                      <button
+                        key={starter}
+                        type="button"
+                        onClick={() => void sendMessage(starter)}
+                        disabled={busy}
+                        className="rounded-full border border-outline-variant bg-surface-container px-3 py-2 text-left text-body-sm text-on-surface-variant transition hover:border-outline hover:bg-surface-container-high disabled:opacity-50"
+                      >
+                        {starter}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+              ) : (
+                messages.map((message, index) => (
+                  <MessageScrollerItem
+                    key={`${index}-${message.role}`}
+                    messageId={`${index}-${message.role}`}
+                    scrollAnchor={message.role === "user"}
+                  >
+                    <Message
+                      align={message.role === "user" ? "end" : "start"}
+                      className="items-end gap-3"
+                    >
+                      {message.role === "assistant" ? (
+                        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-container-highest">
+                          <Icon name="smart_toy" className="text-[17px] text-primary" />
+                        </div>
+                      ) : null}
+                      <MessageContent className="w-auto max-w-[85%]">
+                        <Bubble
+                          align={message.role === "user" ? "end" : "start"}
+                          variant={message.role === "user" ? "default" : "muted"}
+                          className="max-w-full"
+                        >
+                          <BubbleContent className="whitespace-pre-wrap break-words text-body-md">
+                            {message.content}
+                          </BubbleContent>
+                        </Bubble>
+                      </MessageContent>
+                      {message.role === "user" ? (
+                        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-container-highest">
+                          <Icon name="person" className="text-[17px] text-on-surface-variant" />
+                        </div>
+                      ) : null}
+                    </Message>
+                  </MessageScrollerItem>
+                ))
+              )}
+              {busy ? (
+                <MessageScrollerItem messageId="inkling-thinking">
+                  <Message className="items-end gap-3">
+                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-container-highest">
+                      <Icon name="smart_toy" className="text-[17px] text-primary" />
+                    </div>
+                    <MessageContent className="w-auto">
+                      <p role="status" className="animate-pulse text-body-sm text-on-surface-variant">
+                        Inkling is thinking…
+                      </p>
+                    </MessageContent>
+                  </Message>
+                </MessageScrollerItem>
               ) : null}
-              <div
-                className={`max-w-[85%] rounded-xl px-4 py-3 text-body-md ${
-                  message.role === "user"
-                    ? "bg-primary text-on-primary"
-                    : "border border-outline-variant bg-surface-container text-on-surface"
-                }`}
-              >
-                <p className="whitespace-pre-wrap break-words">{message.content}</p>
-              </div>
-              {message.role === "user" ? (
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-container-highest">
-                  <Icon name="person" className="text-[17px] text-on-surface-variant" />
-                </div>
+              {error ? (
+                <MessageScrollerItem messageId="inkling-error">
+                  <p role="alert" className="mx-auto max-w-2xl rounded-lg border border-error/40 bg-error-container/30 px-4 py-3 text-body-sm text-on-error-container">
+                    {error}
+                  </p>
+                </MessageScrollerItem>
               ) : null}
-            </article>
-          ))
-        )}
-        {busy ? (
-          <div className="flex items-center gap-3 text-body-sm text-on-surface-variant" role="status">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-surface-container-highest">
-              <Icon name="smart_toy" className="text-[17px] text-primary" />
-            </div>
-            <span className="animate-pulse">Inkling is thinking…</span>
-          </div>
-        ) : null}
-        {error ? (
-          <p role="alert" className="mx-auto max-w-2xl rounded-lg border border-error/40 bg-error-container/30 px-4 py-3 text-body-sm text-on-error-container">
-            {error}
-          </p>
-        ) : null}
-        <div ref={bottomRef} />
-      </div>
+            </MessageScrollerContent>
+          </MessageScrollerViewport>
+          <MessageScrollerButton
+            variant="secondary"
+            size="icon-sm"
+            className="border-outline-variant bg-surface-container-high text-on-surface hover:bg-surface-container-highest"
+          />
+        </MessageScroller>
+      </MessageScrollerProvider>
 
       <form onSubmit={submit} className="border-t border-outline-variant bg-surface-container-low p-4 sm:px-6">
         <div className="mx-auto flex max-w-4xl items-end gap-3">
-          <label className="sr-only" htmlFor="inkling-message">Message Inkling</label>
-          <textarea
-            ref={textareaRef}
-            id="inkling-message"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Message Inkling…"
-            rows={2}
-            maxLength={8000}
-            disabled={busy}
-            className="max-h-40 min-h-12 flex-1 resize-y rounded-lg border border-outline-variant bg-surface-container px-4 py-3 text-body-md text-on-surface placeholder:text-muted focus:border-outline focus:outline-none focus:ring-1 focus:ring-primary/40 disabled:opacity-60"
-          />
-          <Button
-            type="submit"
-            leadingIcon={busy ? "progress_activity" : "send"}
-            disabled={!draft.trim() || busy}
-            className="h-12 px-4"
-          >
-            <span className="sr-only sm:not-sr-only">{busy ? "Sending" : "Send"}</span>
-          </Button>
+          <InputGroup className="h-auto rounded-xl border-outline-variant bg-surface-container shadow-none focus-within:border-outline focus-within:ring-1 focus-within:ring-primary/40">
+            <InputGroupTextarea
+              ref={textareaRef}
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              onKeyDown={handleKeyDown}
+              aria-label="Message Inkling"
+              placeholder="Message Inkling…"
+              rows={2}
+              maxLength={8000}
+              disabled={busy}
+              className="max-h-40 min-h-12 resize-y border-0 bg-transparent px-4 py-3 text-body-md text-on-surface placeholder:text-muted focus-visible:ring-0"
+            />
+            <InputGroupAddon align="block-end" className="justify-between border-t border-outline-variant px-3 py-2">
+              <span className="font-mono-code text-[11px] text-muted">Shift+Enter for a new line</span>
+              <InputGroupButton
+                type="submit"
+                variant="default"
+                size="sm"
+                disabled={!draft.trim() || busy}
+                aria-label={busy ? "Sending message" : "Send message"}
+                className="bg-primary text-on-primary hover:opacity-90"
+              >
+                <Icon name={busy ? "progress_activity" : "send"} className="text-[16px]" />
+                <span>{busy ? "Sending" : "Send"}</span>
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
         </div>
         <p className="mx-auto mt-2 max-w-4xl text-right font-mono-code text-[11px] text-muted">
-          Enter to send · Shift+Enter for a new line
+          Enter to send
         </p>
       </form>
     </section>
